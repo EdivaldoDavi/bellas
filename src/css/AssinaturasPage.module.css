@@ -1,0 +1,109 @@
+.container {
+  padding: 1.5rem;
+
+  background: var(--bg);
+  min-height: 100vh;
+  color: var(--text);
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: var(--text);
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--separator);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  padding: 0.5rem;
+  overflow-x: auto;
+}
+
+/* Tabela Desktop */
+.table {
+  width: 100%;
+  border-collapse: collapse; /* Para evitar espaçamentos */
+}
+
+.table thead th {
+  text-align: left;
+  font-weight: 700;
+  color: var(--text-muted);
+  padding: 1rem;
+
+ border-bottom: none; /* Remove linha do cabeçalho */
+  background: var(--card-bg);
+}
+
+.table tbody td {
+  padding: 1rem;
+
+ border-bottom: none; /* Remove todas as linhas */
+  color: var(--text);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.35rem 0.6rem;
+  border-radius: 9999px;
+}
+
+.badgeGreen { background: #d1fae5; color: #065f46; }
+.badgeRed { background: #fee2e2; color: #991b1b; }
+.badgeOrange { background: #ffedd5; color: #9a3412; }
+
+/* Mensagens de estado */
+.loading,
+.error,
+.empty {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 1.25rem;
+  border: 1px solid var(--separator);
+  color: var(--text);
+}
+
+.error { border-left: 4px solid #ef4444; }
+
+/* ✅ Responsividade estilo cards */
+@media (max-width: 768px) {
+  .table thead { display: none; }
+
+  .table, .table tbody, .table tr, .table td {
+    display: block;
+    width: 100%;
+  }
+
+  .table tr {
+    padding: 1rem;
+    margin: 0.5rem 0;
+    border: 1px solid var(--separator);
+    border-radius: 10px;
+    background: var(--card-bg);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  }
+
+  .table td {
+    padding: 0.5rem 0;
+    border: none;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+  }
+}

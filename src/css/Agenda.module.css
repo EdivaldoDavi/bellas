@@ -1,0 +1,604 @@
+.container {
+  padding: 1.5rem;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.newButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+.newButton:hover {
+  opacity: 0.9;
+}
+
+.dateNav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  background: var(--card-bg);
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  padding: 0.8rem 1rem;
+}
+
+.navButton {
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.date {
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.list {
+  margin-top: 1rem;
+}
+
+.card {
+  background: var(--card-bg);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  margin-bottom: 1rem;
+}
+
+.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.details {
+  flex-grow: 1;
+}
+
+.time {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.desc {
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.client {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.status {
+  padding: 0.3rem 0.7rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.realizado {
+  background: #c4f1d1;
+  color: #1b7a3f;
+}
+
+.pendente {
+  background: #ffeab6;
+  color: #946200;
+}
+
+.cancelado {
+  background: #ffd6d6;
+  color: #b80000;
+}
+
+.loading,
+.empty {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 1rem;
+}
+/* ===========================
+   MODAL
+=========================== */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: var(--card-bg);
+  color: var(--text);
+  padding: 2rem;
+  border-radius: 10px;
+  width: 95%;
+  max-width: 450px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.closeBtn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.input {
+  width: 100%;
+  padding: 0.6rem;
+  margin: 0.5rem 0 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--separator);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.timeRow {
+  display: flex;
+  gap: 1rem;
+}
+
+.saveButton {
+  width: 100%;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+.saveButton:hover {
+  opacity: 0.9;
+}
+
+.rowWithButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.smallBtn {
+  background: var(--color-primary);
+  border: none;
+  color: #fff;
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalContentSmall {
+  background: var(--card-bg);
+  color: var(--text);
+  padding: 1.5rem;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 380px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+.rowWithButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.smallBtn {
+  background: var(--color-primary);
+  border: none;
+  color: #fff;
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalContentSmall {
+  background: var(--card-bg);
+  color: var(--text);
+  padding: 1.5rem;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 380px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+.cardActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.iconButton {
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  padding: 4px;
+  transition: color 0.2s ease;
+ display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-primary);
+
+}
+
+.iconButton:hover {
+  color: var(--color-primary);
+}
+
+.iconButtonDelete {
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  padding: 4px;
+  transition: color 0.2s ease;
+ display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-primary);
+
+}
+
+.iconButtonDelete:hover {
+  color: #a00;
+}
+/* tipografia mais marcante como no mock */
+.time {
+  color: var(--text);
+  font-weight: 800;    /* mais bold */
+  font-size: 1.05rem;
+  letter-spacing: .2px;
+}
+
+.desc {
+  color: var(--text);
+  font-size: 1rem;     /* levemente maior */
+  line-height: 1.25;
+  margin-top: 2px;
+}
+
+.with { color: var(--text-muted); }
+
+/* avatar visível no card (já existe a classe, só garantindo o look) */
+.avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+}
+
+/* ações à direita (status + ícones) */
+.cardActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+/* badge azul “Agendado” igual ao mock */
+.badgeInfo {
+  background: #e6efff;
+  color: #2b63c3;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: .85rem;
+  font-weight: 700;
+}
+.statusSelect {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--separator, #ddd);
+  border-radius: 8px;
+  padding: 4px 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  outline: none;
+  cursor: pointer;
+  transition: border 0.2s ease;
+}
+
+.statusSelect:hover {
+  border-color: var(--color-primary);
+}
+.dateNav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.dateCenter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.datePicker {
+  border: 1px solid var(--separator, #ddd);
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.9rem;
+  color: var(--text, #111);
+  background-color: var(--card-bg, #fff);
+  cursor: pointer;
+  transition: border 0.2s ease;
+}
+
+.datePicker:hover {
+  border-color: var(--color-primary, #ff1493);
+}
+
+.datePicker::-webkit-calendar-picker-indicator {
+  filter: invert(50%);
+  cursor: pointer;
+}
+
+/* ===========================
+   RESPONSIVO
+=========================== */
+@media (max-width: 1024px) {
+  .container {
+    padding-top: calc(1.5rem + 80px); /* adiciona espaço extra p/ o header fixo */
+  }
+}
+/* Tablets e telas médias */
+@media (max-width: 992px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .title {
+    font-size: 1.35rem;
+  }
+
+  .dateNav {
+    gap: .75rem;
+    padding: .7rem .9rem;
+  }
+
+  .card {
+    padding: .9rem;
+    gap: .9rem;
+  }
+
+  .avatar {
+    width: 48px;
+    height: 48px;
+  }
+
+  .time {
+    font-size: 1rem;
+  }
+
+  .desc {
+    font-size: .98rem;
+  }
+
+  .client {
+    font-size: .9rem;
+  }
+
+  .badgeInfo {
+    padding: 5px 9px;
+    font-size: .83rem;
+  }
+}
+
+/* Celulares (layout em coluna, alvos de toque maiores) */
+@media (max-width: 768px) {
+  .header {
+    gap: .75rem;
+  }
+
+  .newButton {
+    padding: .5rem .9rem;
+    font-size: .92rem;
+    border-radius: 10px;
+  }
+
+  .dateNav {
+    padding: .65rem .8rem;
+    gap: .65rem;
+  }
+
+  .date {
+    font-size: 1rem;
+    text-align: center;
+  }
+
+  .navButton {
+    padding: .25rem; /* aumentar área de toque sem pesar visual */
+  }
+
+  /* Card vira “bloco” vertical */
+  .card {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: .8rem;
+  }
+
+  .avatar {
+    width: 44px;
+    height: 44px;
+  }
+
+  .details {
+    width: calc(100% - 52px); /* espaço ao lado do avatar */
+  }
+
+  /* ações descem para a linha de baixo */
+  .cardActions {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-start;
+    gap: 8px;
+    margin-top: .25rem;
+  }
+
+  .iconButton,
+  .iconButtonDelete {
+    padding: 6px;
+    border-radius: 10px;
+  }
+
+  .time {
+    font-size: .98rem;
+    letter-spacing: .15px;
+  }
+
+  .desc {
+    font-size: .95rem;
+  }
+
+  .client {
+    font-size: .88rem;
+  }
+
+  .badgeInfo {
+    font-size: .82rem;
+    padding: 5px 9px;
+  }
+
+  /* modal: inputs em uma coluna */
+  .modalContent {
+    width: 94%;
+    padding: 1.25rem;
+    border-radius: 12px;
+  }
+
+  .timeRow {
+    flex-direction: column;
+    gap: .6rem;
+  }
+
+  .input {
+    font-size: .95rem;
+  }
+
+  .saveButton {
+    padding: .7rem;
+    border-radius: 10px;
+  }
+}
+
+/* Celulares pequenos */
+@media (max-width: 480px) {
+  .container {
+    padding: .85rem;
+  }
+
+  .title {
+    font-size: 1.2rem;
+  }
+
+  .newButton {
+    gap: 6px;
+    padding: .45rem .75rem;
+    font-size: .9rem;
+  }
+
+  .date {
+    font-size: .95rem;
+  }
+
+  .card {
+    padding: .8rem;
+    border-radius: 12px;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .details {
+    width: 100%;
+  }
+
+  .time {
+    font-size: .95rem;
+  }
+
+  .desc {
+    font-size: .92rem;
+  }
+
+  .client {
+    font-size: .86rem;
+  }
+
+  .badgeInfo {
+    font-size: .8rem;
+    padding: 4px 8px;
+  }
+
+  .iconButton,
+  .iconButtonDelete {
+    padding: 6px;
+  }
+
+  .modalContent {
+    width: 96%;
+    padding: 1rem 1.1rem;
+  }
+
+  .modalContentSmall {
+    width: 96%;
+    padding: 1rem 1.1rem;
+  }
+}
+
+

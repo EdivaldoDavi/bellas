@@ -1,0 +1,151 @@
+/* ===== LAYOUT BASE ===== */
+.layoutWrapper {
+  display: flex;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden; /* sem scroll global */
+}
+
+/* Flag quando sidebar colapsa (aplicada no wrapper raiz) */
+.isCollapsed {}
+.isMobileSidebarOpen {}
+
+/* ===== SIDEBAR FIXA ===== */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 240px;
+  background: var(--sidebar-bg);
+  color: var(--text);
+  z-index: 1000;
+  transition: width 0.3s ease, left 0.3s ease;
+  box-shadow: 2px 0 6px rgba(0,0,0,0.1);
+  overflow-y: auto;
+}
+
+.sidebar.collapsed {
+  width: 70px;
+}
+
+/* ===== CONTEÚDO ===== */
+.contentWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: 240px;              /* espaço da sidebar */
+  transition: margin-left 0.3s ease;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Quando colapsa (classe no wrapper raiz) */
+.isCollapsed .contentWrapper {
+  margin-left: 70px;
+}
+
+/* ===== HEADER FIXO ===== */
+.headerWrapper {
+  position: fixed;
+  top: 0;
+  left: 240px;                     /* acompanha a sidebar */
+  height: 64px;
+  width: calc(100% - 240px);       /* ocupa apenas a área do conteúdo */
+  z-index: 999;
+  background: var(--header-bg);
+  color: var(--text);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transition: left 0.3s ease, width 0.3s ease;
+  /* NÃO forçar flex aqui — deixa o Header manter o layout original */
+}
+
+/* Header quando sidebar colapsa (agora a flag está no wrapper raiz) */
+.isCollapsed .headerWrapper {
+  left: 70px;
+  width: calc(100% - 70px);
+}
+
+/* ===== CONTEÚDO SCROLLÁVEL ===== */
+.pageContent {
+  flex: 1;
+  margin-top: 64px;                /* compensa header fixo */
+  padding: 1.5rem;
+  overflow-y: auto;                /* só o conteúdo rola */
+  height: calc(100vh - 64px);
+  background: var(--bg);
+  color: var(--text);
+  box-sizing: border-box;
+}
+/* ===== MOBILE MODE ===== */
+@media (max-width: 1024px) {
+  
+  /* Sidebar sobrepõe o conteúdo */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -260px; /* escondida por padrão */
+    width: 240px;
+    height: 100vh;
+    background: var(--sidebar-bg);
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    transition: left 0.3s ease;
+  }
+
+  /* Sidebar aberta (classe aplicada no wrapper root) */
+  .isMobileSidebarOpen .sidebar {
+    left: 0;
+  }
+
+  /* Overlay escuro (fundo clicável) */
+  .mobileOverlay {
+    display: none;
+  }
+
+  .isMobileSidebarOpen .mobileOverlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 900;
+    animation: fadeIn 0.3s ease forwards;
+  }
+
+  /* Animação suave do overlay */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* Header ocupa toda a largura da tela */
+  .headerWrapper {
+    left: 0;
+    width: 100%;
+    height: 64px;
+    z-index: 999;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Conteúdo sem margem lateral */
+  .contentWrapper {
+    margin-left: 0 !important;
+    width: 100%;
+  }
+
+  /* Área de conteúdo rola sob o header fixo */
+  .pageContent {
+    margin-top: 64px;
+    height: calc(100vh - 64px);
+    overflow-y: auto;
+    background: var(--bg);
+  }
+}

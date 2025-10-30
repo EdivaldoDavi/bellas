@@ -1,0 +1,309 @@
+/* ===========================
+   DASHBOARD TENANT
+   Compatível com tema dinâmico (igual ao Sidebar)
+=========================== */
+
+.container {
+  background: var(--bg);
+  min-height: 100vh;
+  padding: 2rem;
+  color: var(--text);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* ===========================
+   LAYOUT PRINCIPAL
+=========================== */
+.dashboardGrid {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.leftColumn {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.rightColumn {
+  flex: 1;
+}
+
+/* ===========================
+   TÍTULOS / SAUDAÇÃO
+=========================== */
+.greetingTitle {
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--text);
+}
+
+/* ===========================
+   METAS DO GERENTE
+=========================== */
+.goalsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.goalCard {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--separator);
+  border-radius: 10px;
+  padding: 1.2rem 1.4rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: background 0.3s ease, border 0.3s ease;
+}
+
+.goalCard h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.goalValue {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 1.1rem;
+  margin-bottom: 0.4rem;
+}
+
+.goalTarget {
+  color: var(--text-muted, #888);
+  font-size: 0.9rem;
+}
+
+.progressBar {
+  background: var(--separator);
+  height: 8px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progressInner {
+  height: 8px;
+  background: var(--color-primary);
+  border-radius: 6px;
+  transition: width 0.4s ease;
+}
+
+.progressLabel {
+  text-align: right;
+  color: var(--color-primary);
+  font-weight: 600;
+  margin-top: 0.3rem;
+  font-size: 0.85rem;
+}
+
+/* ===========================
+   PRÓXIMOS AGENDAMENTOS
+=========================== */
+.appointmentCard {
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* distância entre avatar e texto */
+  background: var(--card-alt-bg, #f9f9fa);
+  border-radius: 10px;
+  padding: 0.8rem 1rem;
+  margin-bottom: 0.6rem;
+  transition: background 0.3s ease;
+}
+
+.avatar {
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.appointmentInfo {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+}
+
+.appointmentTitle {
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.appointmentTime {
+  color: var(--text-muted, #666);
+  font-size: 0.9rem;
+  margin-bottom: 2px;
+}
+
+.appointmentClient {
+  font-size: 0.9rem;
+  color: var(--text-muted, #666);
+}
+
+.statusBadge {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: white;
+  display: inline-block;
+  text-align: center;
+  min-width: 90px;
+}
+
+/* 🟢 Realizado */
+.done {
+  background-color: #28a745;
+}
+
+/* 🔴 Cancelado */
+.canceled {
+  background-color: #dc3545;
+}
+
+/* 🟡 Reagendado */
+.rescheduled {
+  background-color: #ffc107;
+  color: #111;
+}
+
+/* 🔵 Agendado */
+.scheduled {
+  background-color: #007bff;
+}
+
+
+/* ===========================
+   TOP 3 PROFISSIONAIS
+=========================== */
+.topProfCard {
+  background: var(--card-bg);
+  border: 1px solid var(--separator);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: background 0.3s ease, border 0.3s ease;
+}
+
+.rankItem {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.6rem 0.8rem;
+  background: var(--card-alt-bg, #fafafa);
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+  transition: background 0.3s ease;
+}
+
+.rankNumber {
+  font-weight: 700;
+  font-size: 1rem;
+  width: 24px;
+  text-align: center;
+  color: var(--color-warning, #ffb300);
+}
+
+.rankAvatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+}
+
+.rankName {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.rankAmount {
+  color: var(--color-success, #2ecc71);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* ===========================
+   DASHBOARD DO PROFISSIONAL
+=========================== */
+.goalCard.prof {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+  position: relative;
+}
+
+.goalCard.prof::before {
+  content: "";
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  position: absolute;
+  top: 1.4rem;
+  left: 1rem;
+  background: var(--color-primary);
+  opacity: 0.6;
+}
+
+.goalCard.prof h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-left: 1.8rem;
+  color: var(--text);
+}
+
+.goalCard.prof .goalValue {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-left: 1.8rem;
+  color: var(--text);
+}
+
+.appointmentsSection.prof {
+  margin-top: 1.5rem;
+}
+
+/* ===========================
+   ESTADO VAZIO
+=========================== */
+.emptyState {
+  text-align: left;
+  color: var(--text-muted, #666);
+  padding: 1rem;
+}
+
+/* ===========================
+   RESPONSIVIDADE
+=========================== */
+@media (max-width: 992px) {
+  .dashboardGrid {
+    flex-direction: column;
+  }
+  .rightColumn {
+    width: 100%;
+  }
+  .goalsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 576px) {
+  .container {
+    padding: 1rem;
+  }
+  .goalCard {
+    padding: 1rem;
+  }
+  .appointmentCard {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+  .appointmentTime {
+    margin: 0;
+  }
+}

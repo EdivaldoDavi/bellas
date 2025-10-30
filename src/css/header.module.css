@@ -1,0 +1,127 @@
+/* src/components/header.module.css */
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: var(--header-bg, #ffffff);
+  border-bottom: 1px solid var(--separator, #e5e5e5);
+  height: 70px;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Saudação */
+.greeting {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Lado direito */
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* Botões de ícones (tema, paleta, menu) */
+.iconButton {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+  padding: 0.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+/* Hover com cor primária */
+.iconButton:hover {
+  background-color: var(--color-primary, #ff1493);
+  color: white;
+}
+
+.separator {
+  width: 1px;
+  height: 24px;
+  background-color: var(--separator);
+}
+
+.userProfile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--color-primary);
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.userName {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.userRole {
+  font-size: 0.8rem;
+  color: var(--text-muted, #888);
+}
+
+/* Responsividade */
+
+/* ===========================
+   RESPONSIVIDADE CORRIGIDA
+=========================== */
+@media (max-width: 1024px) {
+  .header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    height: 70px; /* mantém a altura fixa */
+    padding: 0.75rem 1rem;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 999; /* fica sobre o conteúdo */
+    background-color: var(--header-bg, #ffffff);
+    border-bottom: 1px solid var(--separator, #e5e5e5);
+  }
+
+  .rightSection {
+    gap: 1rem;
+  }
+
+  .greeting {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    height: auto;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .rightSection {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
