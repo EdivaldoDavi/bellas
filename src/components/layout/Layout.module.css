@@ -142,10 +142,8 @@
   }
 
   /* Área de conteúdo rola sob o header fixo */
-  .pageContent {
-    margin-top: 64px;
-    height: calc(100vh - 64px);
-    overflow-y: auto;
-    background: var(--bg);
-  }
+.pageContent {
+  padding-top: 64px; /* substitui margin-top */
+}
+
 }

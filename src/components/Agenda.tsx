@@ -8,31 +8,34 @@ import {
   X,
   Edit2,
   Trash2,
-  Calendar,
 } from "lucide-react";
 import styles from "../css/Agenda.module.css";
 import { getCurrentProfile, supabase } from "../lib/supabaseCleint";
 
-// =============================
-// Tipagens
-// =============================
+// ✅ Modais
+import ModalNewCustomer from "../components/ModalNewCustomer";
+import ModalNewService from "../components/ModalNewService";
+import ModalNewProfessional from "../components/ModalNewProfessional";
+
+// ✅ Tipagens
 interface Appointment {
   id: string;
   starts_at: string;
   ends_at: string;
   status: string;
-  service_name?: string;
-  professional_name?: string;
-  customer_name?: string;
   service_id?: string;
   professional_id?: string;
   customer_id?: string;
+  service_name?: string;
+  professional_name?: string;
+  customer_name?: string;
   avatar_url?: string;
 }
 
 interface Service {
   id: string;
   name: string;
+  duration_min?: number;
 }
 
 interface Professional {
@@ -45,69 +48,84 @@ interface Customer {
   full_name: string;
 }
 
-// =============================
-// Função auxiliar
-// =============================
-function getStatusLabel(status: string) {
-  switch (status) {
-    case "scheduled":
-      return "Agendado";
-    case "done":
-      return "Realizado";
-    case "canceled":
-      return "Cancelado";
-    case "rescheduled":
-      return "Reagendado";
-    default:
-      return status;
-  }
+// ✅ Helpers locais (sem UTC)
+function parseLocalDate(dateStr: string) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(y, (m || 1) - 1, d || 1);
 }
 
-// =============================
-// Componente principal
-// =============================
+function dateToInputValue(dt: Date) {
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth() + 1).padStart(2, "0");
+  const d = String(dt.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function isPastDateLocal(dateStr: string) {
+  const today = new Date();
+  const t = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const sel = parseLocalDate(dateStr);
+  return sel.getTime() < t.getTime();
+}
+
+function getWeekdayLocal(dateStr: string) {
+  const wd = parseLocalDate(dateStr).getDay();
+  return wd === 0 ? 7 : wd; // Domingo = 7
+}
+
+function combineLocalDateTime(dateStr: string, timeStr: string) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const [hh, mm] = timeStr.split(":").map(Number);
+  return new Date(y, (m || 1) - 1, d || 1, hh, mm);
+}
+
+function getDayBoundsISO(dateStr: string) {
+  const base = parseLocalDate(dateStr);
+  const start = new Date(base.getFullYear(), base.getMonth(), base.getDate());
+  const end = new Date(base.getFullYear(), base.getMonth(), base.getDate(), 23, 59, 59);
+  return { startISO: start.toISOString(), endISO: end.toISOString() };
+}
+
+const fixedHolidays = ["01-01","04-21","05-01","09-07","10-12","11-02","11-15","12-25"];
+function isHoliday(dateStr: string) {
+  return fixedHolidays.includes(dateStr.slice(5));
+}
+
+// ==========================================================
+// ✅ Componente
+// ==========================================================
 export default function Agenda() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [tenantId, setTenantId] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
-  const [status, setStatus] = useState("scheduled");
 
   // Modal principal
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Campos do agendamento
+  // Campos do form
   const [serviceId, setServiceId] = useState("");
   const [professionalId, setProfessionalId] = useState("");
   const [customerId, setCustomerId] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
 
-  const [services, setServices] = useState<Service[]>([]);
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [professionalServices, setProfessionalServices] = useState<Service[]>([]);
+  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const [serviceDuration, setServiceDuration] = useState<number | null>(null);
 
-  // Mini-modais
+  // Modais secundários
   const [showNewCustomer, setShowNewCustomer] = useState(false);
   const [showNewService, setShowNewService] = useState(false);
   const [showNewProfessional, setShowNewProfessional] = useState(false);
 
-  // Campos dos mini-modais
-  const [newCustomerName, setNewCustomerName] = useState("");
-  const [newCustomerPhone, setNewCustomerPhone] = useState("");
-  const [newServiceName, setNewServiceName] = useState("");
-  const [newServicePrice, setNewServicePrice] = useState("");
-  const [newProfessionalName, setNewProfessionalName] = useState("");
-  const [newProfessionalPhone, setNewProfessionalPhone] = useState("");
-  const [newProfessionalEmail, setNewProfessionalEmail] = useState("");
-
-
-  
-  // =============================
-  // Perfil atual
-  // =============================
+  // ================================
+  // Perfil
   useEffect(() => {
     (async () => {
       const profile = await getCurrentProfile();
@@ -118,271 +136,261 @@ export default function Agenda() {
     })();
   }, []);
 
-  // =============================
-  // Data formatada
-  // =============================
+  // ================================
+  // Agendamentos
+  async function fetchAppointments() {
+    if (!tenantId) return;
+    setLoading(true);
+
+    const d = dateToInputValue(currentDate);
+    const { startISO, endISO } = getDayBoundsISO(d);
+
+    const { data } = await supabase
+      .from("appointments")
+      .select(`
+        id, starts_at, ends_at, status,
+        service:services(id,name),
+        professional:professionals(id,name),
+        customer:customers(id,full_name)
+      `)
+      .eq("tenant_id", tenantId)
+      .gte("starts_at", startISO)
+      .lte("ends_at", endISO)
+      .order("starts_at");
+
+    setAppointments((data || []).map((a: any) => ({
+      id: a.id,
+      starts_at: a.starts_at,
+      ends_at: a.ends_at,
+      status: a.status,
+      service_name: a.service?.name,
+      service_id: a.service?.id,
+      professional_name: a.professional?.name,
+      professional_id: a.professional?.id,
+      customer_name: a.customer?.full_name,
+      customer_id: a.customer?.id,
+      avatar_url: `https://api.dicebear.com/8.x/avataaars/svg?seed=${encodeURIComponent(
+        a.professional?.name || "Profissional"
+      )}`,
+    })));
+
+    setLoading(false);
+  }
+
+  useEffect(() => { if (tenantId) fetchAppointments(); }, [tenantId, currentDate]);
+
+  // ================================
+  async function loadFormData() {
+    if (!tenantId) return;
+
+    const [prof, cust] = await Promise.all([
+      supabase.from("professionals").select("id,name").eq("tenant_id", tenantId),
+      supabase.from("customers").select("id,full_name").eq("tenant_id", tenantId),
+    ]);
+
+    setProfessionals(prof.data || []);
+    setCustomers(cust.data || []);
+  }
+
+  async function fetchServicesByProfessional(profId: string) {
+    const { data } = await supabase
+      .from("professional_services")
+      .select("service:services(id,name,duration_min)")
+      .eq("tenant_id", tenantId)
+      .eq("professional_id", profId);
+
+    setProfessionalServices((data || []).map((s: any) => s.service));
+  }
+
+  // ================================
+  // ⏱ Horários disponíveis
+  async function loadAvailableTimes(date: string, profId: string, duration = serviceDuration) {
+    if (!tenantId || !date || !profId || !duration) return;
+    if (isPastDateLocal(date) || isHoliday(date)) return setAvailableTimes([]);
+
+    const weekday = getWeekdayLocal(date);
+
+    const { data: schedule } = await supabase
+      .from("professional_schedules")
+      .select("*")
+      .eq("tenant_id", tenantId)
+      .eq("professional_id", profId)
+      .eq("weekday", weekday)
+      .single();
+
+    if (!schedule) return setAvailableTimes([]);
+
+    const workStart = combineLocalDateTime(date, schedule.start_time.slice(0,5));
+    const workEnd   = combineLocalDateTime(date, schedule.end_time.slice(0,5));
+
+    const hasBreak = schedule.break_start_time !== "00:00:00" && schedule.break_end_time !== "00:00:00";
+    const breakStart = hasBreak ? combineLocalDateTime(date, schedule.break_start_time.slice(0,5)) : null;
+    const breakEnd   = hasBreak ? combineLocalDateTime(date, schedule.break_end_time.slice(0,5)) : null;
+
+    const { startISO, endISO } = getDayBoundsISO(date);
+    const { data: booked } = await supabase
+      .from("appointments")
+      .select("starts_at, ends_at")
+      .eq("tenant_id", tenantId)
+      .eq("professional_id", profId)
+      .gte("starts_at", startISO)
+      .lte("ends_at", endISO);
+
+const slots: string[] = [];
+let t = new Date(workStart);
+
+// ▶️ se é hoje, não permitir horários já passados
+const today = new Date();
+const todayMid = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+const selectedMid = new Date(workStart.getFullYear(), workStart.getMonth(), workStart.getDate());
+const isToday = todayMid.getTime() === selectedMid.getTime();
+
+while (t < workEnd) {
+  const end = new Date(t.getTime() + duration * 60000);
+  if (end > workEnd) break;
+
+  // ✅ Permitir se terminar exatamente no início do intervalo
+  const endsExactlyAtBreak =
+    hasBreak &&
+    breakStart &&
+    end.getTime() === breakStart.getTime();
+
+  // ❌ Bloquear se ultrapassar intervalo
+  const invadeBreak =
+    hasBreak &&
+    breakStart &&
+    breakEnd &&
+    t < breakEnd &&
+    end > breakStart &&
+    !endsExactlyAtBreak;
+
+  if (invadeBreak) {
+    t = new Date(breakEnd!);
+    continue;
+  }
+
+  // ❌ Bloquear horários já passados quando for o mesmo dia
+  if (isToday) {
+    const now = new Date();
+    if (end <= now) {
+      t = new Date(t.getTime() + duration * 60000);
+      continue;
+    }
+  }
+
+  const conflict = (booked || []).some(b => {
+    const s = new Date(b.starts_at);
+    const e = new Date(b.ends_at);
+    return t < e && end > s;
+  });
+
+  if (!conflict) {
+    slots.push(
+      String(t.getHours()).padStart(2, "0") + ":" +
+      String(t.getMinutes()).padStart(2, "0")
+    );
+  }
+
+  t = new Date(t.getTime() + duration * 60000);
+}
+
+    setAvailableTimes(slots);
+  }
+
+  // ================================
+  function resetForm() {
+    setEditingId(null);
+    setServiceId("");
+    setProfessionalId("");
+    setCustomerId("");
+    setSelectedDate("");
+    setStartTime("");
+    setEndTime("");
+    setServiceDuration(null);
+    setAvailableTimes([]);
+    setProfessionalServices([]);
+  }
+
+  // ================================
+  const openModal = async (a?: Appointment) => {
+    await loadFormData();
+    resetForm();
+
+    if (a) {
+      setEditingId(a.id);
+      setProfessionalId(a.professional_id || "");
+      setCustomerId(a.customer_id || "");
+      setServiceId(a.service_id || "");
+
+      const dt = new Date(a.starts_at);
+      setSelectedDate(dateToInputValue(dt));
+      setStartTime(dt.toTimeString().slice(0, 5));
+      setEndTime(new Date(a.ends_at).toTimeString().slice(0, 5));
+
+      await fetchServicesByProfessional(a.professional_id || "");
+      loadAvailableTimes(dateToInputValue(dt), a.professional_id || "");
+    }
+
+    setShowModal(true);
+  };
+
+  // ================================
+  async function handleSaveAppointment() {
+    if (!tenantId || !serviceId || !professionalId || !customerId || !selectedDate || !startTime)
+      return toast.warn("Preencha todos os campos!");
+
+    const { data: cli } = await supabase
+      .from("customers")
+      .select("full_name,customer_phone")
+      .eq("id", customerId)
+      .single();
+
+    const start = combineLocalDateTime(selectedDate, startTime);
+    const end = new Date(start.getTime() + (serviceDuration || 60) * 60000);
+
+    const payload = {
+      tenant_id: tenantId,
+      professional_id: professionalId,
+      service_id: serviceId,
+      customer_id: customerId,
+      customer_name: cli?.full_name,
+      customer_phone: cli?.customer_phone,
+      starts_at: start,
+      ends_at: end,
+      status: "scheduled",
+    };
+
+    const { error } = editingId
+      ? await supabase.from("appointments").update(payload).eq("id", editingId)
+      : await supabase.from("appointments").insert([payload]);
+
+    if (error) return toast.error("Erro ao salvar");
+
+    toast.success(editingId ? "Atualizado!" : "Agendado!");
+    setShowModal(false);
+    fetchAppointments();
+  }
+
+  async function handleDeleteAppointment(id: string) {
+    if (!confirm("Excluir?")) return;
+    await supabase.from("appointments").delete().eq("id", id);
+    fetchAppointments();
+  }
+
+  // ================================
   const formattedDate = new Intl.DateTimeFormat("pt-BR", {
     weekday: "long",
     day: "2-digit",
     month: "long",
   }).format(currentDate);
 
-  // =============================
-  // Buscar agendamentos
-  // =============================
-  async function fetchAppointments() {
-    if (!tenantId || !role) return;
-    setLoading(true);
+  const handlePrevDay = () => setCurrentDate((d) => new Date(d.getTime() - 86400000));
+  const handleNextDay = () => setCurrentDate((d) => new Date(d.getTime() + 86400000));
 
-    const startOfDay = new Date(currentDate);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(currentDate);
-    endOfDay.setHours(23, 59, 59, 999);
-
-    const { data, error } = await supabase
-      .from("appointments")
-      .select(`
-        id, starts_at, ends_at, status,
-        service:services!appointments_service_id_fkey(id, name),
-        professional:professionals!appointments_professional_id_fkey(id, name),
-        customer:customers!appointments_customer_id_fkey(id, full_name)
-      `)
-      .eq("tenant_id", tenantId)
-      .gte("starts_at", startOfDay.toISOString())
-      .lte("ends_at", endOfDay.toISOString())
-      .order("starts_at", { ascending: true });
-
-    if (error) {
-      console.error("Erro ao carregar agendamentos:", error);
-      setLoading(false);
-      return;
-    }
-
-    const formatted: Appointment[] = (data || []).map((a: any) => {
-      const profName = a.professional?.name ?? "Profissional";
-      const avatarUrl = `https://api.dicebear.com/8.x/avataaars/svg?seed=${encodeURIComponent(
-        profName
-      )}`;
-      return {
-        id: a.id,
-        starts_at: a.starts_at,
-        ends_at: a.ends_at,
-        status: a.status,
-        service_name: a.service?.name,
-        service_id: a.service?.id,
-        professional_name: profName,
-        professional_id: a.professional?.id,
-        customer_name: a.customer?.full_name,
-        customer_id: a.customer?.id,
-        avatar_url: avatarUrl,
-      };
-    });
-
-    setAppointments(formatted);
-    setLoading(false);
-  }
-
-  useEffect(() => {
-    if (tenantId) fetchAppointments();
-  }, [tenantId, currentDate]);
-
-  // =============================
-  // Abrir modal (novo / editar)
-  // =============================
-  const openModal = async (appointment?: Appointment) => {
-    await loadFormData();
-
-    if (appointment) {
-      setEditingId(appointment.id);
-      setServiceId(appointment.service_id || "");
-      setProfessionalId(appointment.professional_id || "");
-      setCustomerId(appointment.customer_id || "");
-      setStartTime(new Date(appointment.starts_at).toTimeString().slice(0, 5));
-      setEndTime(new Date(appointment.ends_at).toTimeString().slice(0, 5));
-      setStatus(appointment.status || "scheduled");
-    } else {
-      resetForm();
-    }
-
-    setShowModal(true);
-  };
-
-  const resetForm = () => {
-    setEditingId(null);
-    setServiceId("");
-    setProfessionalId("");
-    setCustomerId("");
-    setStartTime("");
-    setEndTime("");
-    setStatus("scheduled");
-  };
-
-  // =============================
-  // Carregar selects
-  // =============================
-  async function loadFormData() {
-    if (!tenantId) return;
-    const [srv, prof, cust] = await Promise.all([
-      supabase.from("services").select("id, name").eq("tenant_id", tenantId),
-      supabase.from("professionals").select("id, name").eq("tenant_id", tenantId),
-      supabase.from("customers").select("id, full_name").eq("tenant_id", tenantId),
-    ]);
-    setServices(srv.data || []);
-    setProfessionals(prof.data || []);
-    setCustomers(cust.data || []);
-  }
-
-  // =============================
-  // Criar novo Cliente / Serviço / Profissional
-  // =============================
-async function handleCreateCustomer() {
-  if (!tenantId || !newCustomerName || !newCustomerPhone) return;
-  const { data, error } = await supabase
-    .from("customers")
-    .insert([{ tenant_id: tenantId, full_name: newCustomerName, customer_phone: newCustomerPhone }])
-    .select();
-
-  if (error) {
-    toast.error("Erro ao criar cliente!");
-    console.error(error);
-    return;
-  }
-
-  await loadFormData(); // 🔹 Recarrega lista completa
-  setCustomerId(data[0].id);
-  setShowNewCustomer(false);
-  setNewCustomerName("");
-  setNewCustomerPhone("");
-}
-
-async function handleCreateService() {
-  if (!tenantId || !newServiceName) return;
-  const { data, error } = await supabase
-    .from("services")
-    .insert([{ tenant_id: tenantId, name: newServiceName, price_cents: Number(newServicePrice || 0) }])
-    .select();
-
-  if (error) {
-    toast.error("Erro ao criar serviço!");
-    console.error(error);
-    return;
-  }
-
-  await loadFormData();
-  setServiceId(data[0].id);
-  setShowNewService(false);
-  setNewServiceName("");
-  setNewServicePrice("");
-}
-
-async function handleCreateProfessional() {
-  if (!tenantId || !newProfessionalName) return;
-  const { data, error } = await supabase
-    .from("professionals")
-    .insert([
-      {
-        tenant_id: tenantId,
-        name: newProfessionalName,
-        phone: newProfessionalPhone,
-        email: newProfessionalEmail,
-      },
-    ])
-    .select();
-
-  if (error) {
-    toast.error("Erro ao criar profissional!");
-    console.error(error);
-    return;
-  }
-
-  await loadFormData();
-  setProfessionalId(data[0].id);
-  setShowNewProfessional(false);
-  setNewProfessionalName("");
-  setNewProfessionalPhone("");
-  setNewProfessionalEmail("");
-}
-
-  // =============================
-  // Salvar (novo / edição)
-  // =============================
-async function handleSaveAppointment() {
-  if (!tenantId || !serviceId || !professionalId || !customerId || !startTime || !endTime) {
-    toast.warn("Preencha todos os campos obrigatórios!");
-    return;
-  }
-
-  // Busca nome e telefone do cliente
-  const { data: clienteData, error: clienteError } = await supabase
-    .from("customers")
-    .select("full_name, customer_phone")
-    .eq("id", customerId)
-    .single();
-
-  if (clienteError || !clienteData) {
-    toast.error("Erro ao buscar dados do cliente!");
-    console.error(clienteError);
-    return;
-  }
-
-  const starts_at = new Date(`${currentDate.toDateString()} ${startTime}`);
-  const ends_at = new Date(`${currentDate.toDateString()} ${endTime}`);
-
-  const payload = {
-    tenant_id: tenantId,
-    professional_id: professionalId,
-    service_id: serviceId,
-    customer_id: customerId,
-    customer_name: clienteData.full_name || "Cliente",
-    customer_phone: clienteData.customer_phone || null,
-    starts_at,
-    ends_at,
-    status,
-  };
-
-  console.log("Salvando agendamento:", payload);
-
-  const { error } = editingId
-    ? await supabase.from("appointments").update(payload).eq("id", editingId)
-    : await supabase.from("appointments").insert([payload]);
-
-  if (error) {
-    console.error("Erro ao salvar agendamento:", error);
-    toast.error(`Erro ao salvar agendamento: ${error.message}`);
-    return;
-  }
-
-  toast.success(editingId ? "Agendamento atualizado!" : "Agendamento criado com sucesso!");
-  setShowModal(false);
-  resetForm();
-  fetchAppointments();
-}
-
-  // =============================
-  // Excluir
-  // =============================
-  async function handleDeleteAppointment(id: string) {
-    if (confirm("Deseja realmente excluir este agendamento?")) {
-      const { error } = await supabase.from("appointments").delete().eq("id", id);
-      if (error) console.error("Erro ao excluir:", error);
-      fetchAppointments();
-    }
-  }
-
-  // =============================
-  // Navegação
-  // =============================
-  const handlePrevDay = () =>
-    setCurrentDate((prev) => new Date(prev.getTime() - 86400000));
-  const handleNextDay = () =>
-    setCurrentDate((prev) => new Date(prev.getTime() + 86400000));
-
-  // =============================
-  // Render
-  // =============================
+  // ==========================================================
   return (
     <div className={styles.container}>
-      {/* Header */}
+      {/* HEADER */}
       <div className={styles.header}>
         <h2 className={styles.title}>Agenda</h2>
         {role === "manager" && (
@@ -392,6 +400,7 @@ async function handleSaveAppointment() {
         )}
       </div>
 
+      {/* Navegação */}
       {/* Navegação de data */}
 <div className={styles.dateNav}>
   <button onClick={handlePrevDay} className={styles.navButton}>
@@ -422,209 +431,204 @@ async function handleSaveAppointment() {
 </div>
       {/* Lista */}
       <div className={styles.list}>
-        {loading ? (
-          <p className={styles.loading}>Carregando...</p>
-        ) : appointments.length === 0 ? (
-          <p className={styles.empty}>Nenhum agendamento neste dia.</p>
-        ) : (
-          appointments.map((a) => (
-            <div key={a.id} className={styles.card}>
-              <img className={styles.avatar} src={a.avatar_url} alt={a.professional_name || "Profissional"} />
-              <div className={styles.details}>
-                <strong className={styles.time}>
-                  {new Date(a.starts_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })} –{" "}
-                  {new Date(a.ends_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-                </strong>
-                <p className={styles.desc}>
-                  {a.service_name} <span className={styles.with}>com</span> {a.professional_name}
-                </p>
-                <p className={styles.client}>Cliente: {a.customer_name}</p>
-              </div>
-
-              <div className={styles.cardActions}>
-                {role === "manager" ? (
-                  <select
-                    className={styles.statusSelect}
-                    value={a.status}
-                    onChange={async (e) => {
-                      const newStatus = e.target.value;
-                      const result = await Swal.fire({
-                        title: "Confirmar alteração?",
-                        text: `Alterar status para "${getStatusLabel(newStatus)}"?`,
-                        icon: "warning",
-                        showCancelButton: true,
-                        confirmButtonText: "Sim",
-                        cancelButtonText: "Cancelar",
-                      });
-                      if (!result.isConfirmed) return;
-                      const { error } = await supabase.from("appointments").update({ status: newStatus }).eq("id", a.id);
-                      if (error) return toast.error("Erro ao alterar status!");
-                      setAppointments((prev) =>
-                        prev.map((x) => (x.id === a.id ? { ...x, status: newStatus } : x))
-                      );
-                      toast.success(`Status alterado para "${getStatusLabel(newStatus)}"`);
-                    }}
-                  >
-                    <option value="scheduled">Agendado</option>
-                    <option value="done">Realizado</option>
-                    <option value="canceled">Cancelado</option>
-                  </select>
-                ) : (
-                  <span className={`${styles.status} ${styles.badgeInfo}`}>{getStatusLabel(a.status)}</span>
-                )}
-
-                {role === "manager" && (
-                  <>
-                    <button onClick={() => openModal(a)} className={styles.iconButton} title="Editar">
-                      <Edit2 size={16} />
-                    </button>
-                    <button onClick={() => handleDeleteAppointment(a.id)} className={styles.iconButtonDelete} title="Excluir">
-                      <Trash2 size={16} />
-                    </button>
-                  </>
-                )}
-              </div>
+        {loading ? <p>Carregando...</p> :
+        appointments.length === 0 ? <p>Nenhum agendamento.</p> :
+        appointments.map((a) => (
+          <div key={a.id} className={styles.card}>
+            <img className={styles.avatar} src={a.avatar_url} />
+            <div className={styles.details}>
+              <strong>
+                {new Date(a.starts_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })} -{" "}
+                {new Date(a.ends_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+              </strong>
+              <p>{a.service_name} com {a.professional_name}</p>
+              <p>Cliente: {a.customer_name}</p>
             </div>
-          ))
-        )}
+
+            {role === "manager" && (
+              <div className={styles.cardActions}>
+                <button onClick={() => openModal(a)} className={styles.iconButton}>
+                  <Edit2 size={16} />
+                </button>
+                <button onClick={() => handleDeleteAppointment(a.id)} className={styles.iconButtonDelete}>
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
 
-      {/* =======================
-          MODAL PRINCIPAL
-      ======================= */}
+      {/* MODAL */}
       {showModal && (
         <div className={styles.modal}>
           <div className={styles.modalContent}>
-            <button onClick={() => setShowModal(false)} className={styles.closeBtn}>
-              <X size={20} />
-            </button>
-            <h3>{editingId ? "Editar Agendamento" : "Novo Agendamento"}</h3>
+            <button onClick={() => setShowModal(false)} className={styles.closeBtn}><X /></button>
+            <h3>📅 {editingId ? "Editar Agendamento" : "Novo Agendamento"}</h3>
 
-            {/* Serviço */}
-            <label>Serviço</label>
-            <div className={styles.rowWithButton}>
-              <select value={serviceId} onChange={(e) => setServiceId(e.target.value)} className={styles.input}>
-                <option value="">Selecione</option>
-                {services.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-              <button type="button" onClick={() => setShowNewService(true)} className={styles.smallBtn}>
-                <Plus size={16} />
-              </button>
-            </div>
-
-            {/* Profissional */}
+            {/* PROFISSIONAL */}
             <label>Profissional</label>
             <div className={styles.rowWithButton}>
-              <select value={professionalId} onChange={(e) => setProfessionalId(e.target.value)} className={styles.input}>
+              <select
+                className={styles.input}
+                value={professionalId}
+                onClick={() => {}}
+                onChange={async (e) => {
+                  const id = e.target.value;
+                  setProfessionalId(id);
+                  await fetchServicesByProfessional(id);
+                  setServiceId("");
+                  setSelectedDate("");
+                  setAvailableTimes([]);
+                }}
+              >
                 <option value="">Selecione</option>
                 {professionals.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
+                  <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
               </select>
-              <button type="button" onClick={() => setShowNewProfessional(true)} className={styles.smallBtn}>
-                <Plus size={16} />
-              </button>
+              <button onClick={() => setShowNewProfessional(true)} className={styles.smallBtn}><Plus size={16}/></button>
             </div>
 
-            {/* Cliente */}
+            {/* SERVIÇO */}
+            <label>Serviço</label>
+            <div className={styles.rowWithButton}>
+              <select
+                className={styles.input}
+                value={serviceId}
+                onClick={() => { if (!professionalId) toast.warn("Selecione primeiro o profissional"); }}
+                onChange={(e) => {
+                  if (!professionalId) return toast.warn("Selecione primeiro o profissional");
+                  const id = e.target.value;
+                  setServiceId(id);
+                  const svc = professionalServices.find((s) => s.id === id);
+                  setServiceDuration(svc?.duration_min || 60);
+                  if (selectedDate)
+                    loadAvailableTimes(selectedDate, professionalId, svc?.duration_min);
+                }}
+              >
+                <option value="">Selecione</option>
+                {professionalServices.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+
+              <button onClick={() => setShowNewService(true)} className={styles.smallBtn}><Plus size={16}/></button>
+            </div>
+
+            {/* Tempo estimado */}
+            {serviceDuration && (
+              <div className={styles.serviceTimeInfo}>
+                <span className={styles.timeIcon}>⏱</span>
+                <span className={styles.timeLabel}>Tempo estimado: {serviceDuration} min</span>
+              </div>
+            )}
+
+            {/* CLIENTE */}
             <label>Cliente</label>
             <div className={styles.rowWithButton}>
-              <select value={customerId} onChange={(e) => setCustomerId(e.target.value)} className={styles.input}>
+              <select
+                className={styles.input}
+                value={customerId}
+                onClick={() => {}}
+                onChange={(e) => setCustomerId(e.target.value)}
+              >
                 <option value="">Selecione</option>
                 {customers.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.full_name}
-                  </option>
+                  <option key={c.id} value={c.id}>{c.full_name}</option>
                 ))}
               </select>
-              <button type="button" onClick={() => setShowNewCustomer(true)} className={styles.smallBtn}>
-                <Plus size={16} />
-              </button>
+              <button onClick={() => setShowNewCustomer(true)} className={styles.smallBtn}><Plus size={16}/></button>
             </div>
 
-            {/* Horários */}
-            <div className={styles.timeRow}>
-              <div>
-                <label>Início</label>
-                <input
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className={styles.input}
-                />
-              </div>
-              <div>
-                <label>Término</label>
-                <input
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className={styles.input}
-                />
-              </div>
-            </div>
+            {/* DATA */}
+            <label>Data</label>
+            <input
+              type="date"
+              className={styles.input}
+              value={selectedDate}
+              onClick={() => {
+                if (!professionalId) return toast.warn("Selecione primeiro o profissional");
+                if (!serviceId) return toast.warn("Selecione primeiro o serviço");
+              }}
+              onChange={(e) => {
+                if (!professionalId) return toast.warn("Selecione primeiro o profissional");
+                if (!serviceId) return toast.warn("Selecione primeiro o serviço");
 
-            <button onClick={handleSaveAppointment} className={styles.saveButton}>
-              {editingId ? "Salvar Alterações" : "Salvar"}
+                const d = e.target.value;
+                if (!d) return;
+                if (isPastDateLocal(d)) return toast.warn("Data passada não permitida");
+                if (isHoliday(d)) return toast.warn("Feriado não permitido");
+
+                setSelectedDate(d);
+                if (serviceDuration)
+                  loadAvailableTimes(d, professionalId, serviceDuration);
+              }}
+            />
+
+            {/* HORÁRIO */}
+            <label>Horário</label>
+            <select
+              className={styles.input}
+              value={startTime}
+              onClick={() => { if (!selectedDate) toast.warn("Selecione a data primeiro"); }}
+              onChange={(e) => {
+                if (!selectedDate) return toast.warn("Selecione a data primeiro");
+                const t = e.target.value;
+                setStartTime(t);
+                const end = combineLocalDateTime(selectedDate, t);
+                end.setMinutes(end.getMinutes() + (serviceDuration || 60));
+                setEndTime(
+                  end.toTimeString().slice(0,5)
+                );
+              }}
+            >
+              <option value="">Selecione</option>
+              {availableTimes.map(h => (
+                <option key={h} value={h}>{h}</option>
+              ))}
+            </select>
+
+            <button className={styles.saveButton} onClick={handleSaveAppointment}>
+              {editingId ? "Salvar" : "Agendar"}
             </button>
           </div>
         </div>
       )}
 
-      {/* MINI MODAIS */}
+      {/* MODAIS AUXILIARES */}
       {showNewCustomer && (
-        <div className={styles.modal}>
-          <div className={styles.modalContentSmall}>
-            <button onClick={() => setShowNewCustomer(false)} className={styles.closeBtn}>
-              <X size={20} />
-            </button>
-            <h4>Novo Cliente</h4>
-            <input placeholder="Nome completo" value={newCustomerName} onChange={(e) => setNewCustomerName(e.target.value)} className={styles.input} />
-            <input placeholder="Telefone" value={newCustomerPhone} onChange={(e) => setNewCustomerPhone(e.target.value)} className={styles.input} />
-            <button onClick={handleCreateCustomer} className={styles.saveButton}>
-              Salvar Cliente
-            </button>
-          </div>
-        </div>
+        <ModalNewCustomer
+          tenantId={tenantId!}
+          onClose={() => setShowNewCustomer(false)}
+          onCreated={(id) => {
+            setCustomerId(id);
+            loadFormData();
+          }}
+        />
       )}
 
       {showNewService && (
-        <div className={styles.modal}>
-          <div className={styles.modalContentSmall}>
-            <button onClick={() => setShowNewService(false)} className={styles.closeBtn}>
-              <X size={20} />
-            </button>
-            <h4>Novo Serviço</h4>
-            <input placeholder="Nome do serviço" value={newServiceName} onChange={(e) => setNewServiceName(e.target.value)} className={styles.input} />
-            <input placeholder="Preço (em reais)" type="number" value={newServicePrice} onChange={(e) => setNewServicePrice(e.target.value)} className={styles.input} />
-            <button onClick={handleCreateService} className={styles.saveButton}>
-              Salvar Serviço
-            </button>
-          </div>
-        </div>
+        <ModalNewService
+          tenantId={tenantId!}
+          onClose={() => setShowNewService(false)}
+          onCreated={(id) => {
+            setServiceId(id);
+            loadFormData();
+          }}
+        />
       )}
 
       {showNewProfessional && (
-        <div className={styles.modal}>
-          <div className={styles.modalContentSmall}>
-            <button onClick={() => setShowNewProfessional(false)} className={styles.closeBtn}>
-              <X size={20} />
-            </button>
-            <h4>Novo Profissional</h4>
-            <input placeholder="Nome completo" value={newProfessionalName} onChange={(e) => setNewProfessionalName(e.target.value)} className={styles.input} />
-            <input placeholder="Telefone" value={newProfessionalPhone} onChange={(e) => setNewProfessionalPhone(e.target.value)} className={styles.input} />
-            <input placeholder="E-mail" value={newProfessionalEmail} onChange={(e) => setNewProfessionalEmail(e.target.value)} className={styles.input} />
-            <button onClick={handleCreateProfessional} className={styles.saveButton}>
-              Salvar Profissional
-            </button>
-          </div>
-        </div>
+        <ModalNewProfessional
+          tenantId={tenantId!}
+          onClose={() => setShowNewProfessional(false)}
+          onCreated={async (id) => {
+            setProfessionalId(id);
+            await fetchServicesByProfessional(id);
+            loadFormData();
+          }}
+        />
       )}
     </div>
   );

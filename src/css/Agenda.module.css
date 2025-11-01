@@ -1,7 +1,8 @@
 .container {
   padding: 1.5rem;
   background: var(--bg);
-  color: var(--text);
+ color: var(--text);
+  transition: background 0.3s ease, color 0.3s ease;
   min-height: 100vh;
 }
 
@@ -202,17 +203,6 @@
   gap: 8px;
 }
 
-.smallBtn {
-  background: var(--color-primary);
-  border: none;
-  color: #fff;
-  border-radius: 6px;
-  padding: 0.4rem 0.6rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
 .modalContentSmall {
   background: var(--card-bg);
@@ -272,7 +262,7 @@
 }
 
 .iconButton:hover {
-  color: var(--color-primary);
+  color: var(--color-primary, #ff1493);
 }
 
 .iconButtonDelete {
@@ -357,6 +347,7 @@
   justify-content: center;
   gap: 1rem;
   margin: 1rem 0;
+    color: var(--color-primary, #ff1493);
 }
 
 .dateCenter {
@@ -367,11 +358,11 @@
 }
 
 .datePicker {
-  border: 1px solid var(--separator, #ddd);
+  border: 1px solid  var(--color-primary, #ff1493);
   border-radius: 6px;
   padding: 0.4rem 0.6rem;
   font-size: 0.9rem;
-  color: var(--text, #111);
+  color: var(--color-primary, #ff1493);
   background-color: var(--card-bg, #fff);
   cursor: pointer;
   transition: border 0.2s ease;
@@ -385,6 +376,182 @@
   filter: invert(50%);
   cursor: pointer;
 }
+.checkList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.checkItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .9rem;
+  cursor: pointer;
+}
+
+.scheduleRow {
+  display: grid;
+  grid-template-columns: 50px 1fr 1fr 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 6px;
+  align-items: center;
+}
+
+.scheduleRow input {
+  padding: 5px;
+}
+
+.modalContent h4 {
+  margin-top: 12px;
+  margin-bottom: 6px;
+  font-size: .95rem;
+}
+.dayBlock {
+  margin-bottom: 12px;
+}
+
+.dayRowTitle {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.timeGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.timeGrid label {
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 2px;
+  display: block;
+}
+
+.timeGrid input[type="time"] {
+  padding: 6px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 14px;
+  width: 100%;
+}
+
+.copyWeekRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 16px;
+  font-size: 14px;
+}
+
+.noteText {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+/* Tempo estimado do serviço */
+.serviceTimeInfo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #555;
+  margin: 6px 0 12px;
+}
+
+.timeIcon {
+  font-size: 1rem;
+}
+
+.timeLabel {
+  font-size: 0.85rem;
+}
+
+/* Modal geral */
+.modalContent {
+  background: #fff;
+  padding: 22px 26px;
+  border-radius: 12px;
+  width: 450px;
+  max-width: 90%;
+  box-shadow: 0 6px 26px rgba(0,0,0,.12);
+  animation: fadeIn .2s ease-in-out;
+}
+
+/* Título modal */
+.modalContent h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Inputs */
+.modalContent .input
+ {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 10px;
+  border: 1px solid #d6d6d6;
+  border-radius: 8px;
+  background: #fafafa;
+  transition: .2s;
+}
+
+.modalContent .input:focus,
+.modalContent select:focus {
+  border-color: var(--color-primary);
+  background-color: #fff;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255,20,147,.15);
+}
+
+/* Botão salvar */
+.saveButton {
+  width: 100%;
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: 8px;
+  padding: 12px;
+  font-weight: bold;
+  margin-top: 10px;
+  transition: .25s;
+}
+
+.saveButton:hover {
+  opacity: .85;
+}
+
+/* Botão fechar */
+.closeBtn {
+  background: none;
+  border: none;
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  cursor: pointer;
+  opacity: .7;
+  transition: .2s;
+}
+
+.closeBtn:hover {
+  opacity: 1;
+}
+
+/* Linha com + botão */
+.rowWithButton {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+
 
 /* ===========================
    RESPONSIVO
@@ -407,6 +574,7 @@
   .dateNav {
     gap: .75rem;
     padding: .7rem .9rem;
+      color: var(--color-primary, #ff1493);
   }
 
   .card {
@@ -534,71 +702,35 @@
   }
 }
 
-/* Celulares pequenos */
-@media (max-width: 480px) {
-  .container {
-    padding: .85rem;
-  }
+/* =====================================
+   FIX: Select exibindo só 4 itens no mobile
+===================================== */
+@media (max-width: 1024px) {
+.container {
+ padding-top: calc(1.5rem + 80px); /* adiciona espaço extra p/ o header fixo */
+ }
 
-  .title {
-    font-size: 1.2rem;
-  }
-
-  .newButton {
-    gap: 6px;
-    padding: .45rem .75rem;
-    font-size: .9rem;
-  }
-
-  .date {
-    font-size: .95rem;
-  }
-
-  .card {
-    padding: .8rem;
-    border-radius: 12px;
-  }
-
-  .avatar {
-    width: 40px;
-    height: 40px;
-  }
-
-  .details {
-    width: 100%;
-  }
-
-  .time {
-    font-size: .95rem;
-  }
-
-  .desc {
-    font-size: .92rem;
-  }
-
-  .client {
-    font-size: .86rem;
-  }
-
-  .badgeInfo {
-    font-size: .8rem;
-    padding: 4px 8px;
-  }
-
-  .iconButton,
-  .iconButtonDelete {
-    padding: 6px;
-  }
-
-  .modalContent {
-    width: 96%;
-    padding: 1rem 1.1rem;
-  }
-
-  .modalContentSmall {
-    width: 96%;
-    padding: 1rem 1.1rem;
-  }
+.modal {
+ /* ✅ DESLIGA o flexbox do desktop */
+ display: block !important; 
+ 
+ /* ✅ MANTÉM o backdrop como o único scroller */
+ overflow-y: auto !important; 
+ 
+ /* ✅ MANTÉM os preenchimentos para espaço */
+ padding-top: 80px; 
+ padding-bottom: 80px;
 }
 
-
+.modalContent, 
+.modalContentSmall {
+ /* ✅ CENTRALIZA o modal horizontalmente
+      (agora que o display:flex foi removido do pai) */
+ margin-left: auto;
+ margin-right: auto;
+ 
+ /* Garante que não haja margem vertical */
+ margin-top: 0;
+ margin-bottom: 0;
+ }
+}
