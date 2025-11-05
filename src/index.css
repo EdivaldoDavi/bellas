@@ -18,6 +18,7 @@
   --color-success: #2ecc71;
   --color-warning: #ffb300;
   --color-danger: #ff5a5f;
+   --theme-invert: 0; /* ✅ ícone normal no modo claro */
 }
 
 /* ===========================
@@ -52,7 +53,10 @@
   --sidebar-bg: #111111;
   --header-bg: #101010;
   --separator: #333333;
+  
+    --theme-invert: 1; /* ✅ inverte ícone no modo escuro */
 }
+
 
 /* ===========================
    ELEMENTOS DO SIDEBAR

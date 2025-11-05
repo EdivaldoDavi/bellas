@@ -371,6 +371,24 @@ export default function Agenda() {
       (startTime && endTime ? ` — ${startTime} até ${endTime}` : "")
     : "";
 
+async function handleCancelAppointment(id: string) {
+  if (!confirm("Deseja cancelar este agendamento?")) return;
+
+  const { error } = await supabase
+    .from("appointments")
+    .update({ status: "canceled" })
+    .eq("id", id);
+
+  if (error) {
+    toast.error("Erro ao cancelar agendamento");
+    return;
+  }
+
+  toast.success("Agendamento cancelado!");
+  fetchAppointments();
+}
+
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -428,19 +446,48 @@ export default function Agenda() {
                   {new Date(a.ends_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                 </strong>
                 <p>{a.service_name} com {a.professional_name}</p>
+                {a.status === "canceled" && (
+                <span style={{ color: "red", fontWeight: "bold" }}>Cancelado</span>
+                )}
                 <p>Cliente: {a.customer_name}</p>
               </div>
 
-              {role === "manager" && (
-                <div className={styles.cardActions}>
-                  <button onClick={() => openModal(a)} className={styles.iconButton}>
-                    <Edit2 size={16} />
-                  </button>
-                  <button onClick={() => handleDelete(a.id)} className={styles.iconButtonDelete}>
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              )}
+{role === "manager" && (
+  <div className={styles.cardActions}>
+    {a.status === "canceled" ? (
+      <button
+        disabled
+        className={styles.iconButtonCancel}
+        style={{
+          background: "#ccc",
+          color: "#666",
+          borderRadius: "6px",
+          padding: "6px 10px",
+          fontSize: "12px",
+          cursor: "not-allowed"
+        }}
+      >
+        Cancelado
+      </button>
+    ) : (
+      <button
+        onClick={() => handleCancelAppointment(a.id)}
+        className={styles.iconButtonCancel}
+        style={{
+          background: "#ff4444",
+          color: "#fff",
+          borderRadius: "6px",
+          padding: "6px 10px",
+          fontSize: "12px"
+        }}
+      >
+        Cancelar
+      </button>
+    )}
+  </div>
+)}
+
+
             </div>
           ))
         )}

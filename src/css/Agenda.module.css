@@ -19,49 +19,83 @@
 /* ===========================
    BOTÃO NOVO AGENDAMENTO
 =========================== */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
 
+/* Botão de novo agendamento */
 .newButton {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: var(--color-primary);
   color: #fff;
   border: none;
-  border-radius: 8px;
-  padding: .6rem 1.2rem;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity .2s;
+  transition: 0.2s;
 }
 
-.newButton:hover { opacity: .9; }
+/* Hover */
+.newButton:hover {
+  opacity: .9;
+  transform: translateY(-1px);
+}
+
 
 /* ===========================
    NAVEGAÇÃO DE DATA
 =========================== */
 
+/* -------- DATE NAV -------- */
 .dateNav {
   display: flex;
   justify-content: center;
   gap: 1rem;
   background: var(--card-bg);
-  border-radius: 10px;
+  border-radius: 12px;
   padding: .8rem 1rem;
   box-shadow: 0 2px 4px rgba(0,0,0,.08);
-  color: var(--color-primary);
+  align-items: center;
 }
 
-.navButton {
-  background: none;
-  border: none;
+.dateCenter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Estilo do input date */
+.datePicker {
+  background: var(--card-bg);
   color: var(--text);
-  cursor: pointer;
+  border: 1px solid var(--separator);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 14px;
+  outline: none;
 }
 
-.date {
-  font-size: 1.1rem;
-  font-weight: 600;
+/* Previne branco no ícone no dark mode */
+.datePicker::-webkit-calendar-picker-indicator {
+  filter: invert(var(--theme-dark));
 }
+
+/* Texto da data */
+.date {
+  font-size: 1.05rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+
 
 /* ===========================
    LISTA DE AGENDAMENTOS
@@ -433,4 +467,81 @@ select:focus {
     width: 46px;
     height: 46px;
   }
+
+  .header {
+    /* ok manter como está se preferir */
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .newButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* 👇 NÃO empilhar no mobile */
+  .dateNav {
+    display: flex;
+    flex-direction: row;      /* <- mantém em linha */
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    padding: .8rem;
+    flex-wrap: nowrap;        /* <- impede quebra */
+  }
+
+  .navButton {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+  }
+
+  .dateCenter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    flex: 1 1 auto;          /* ocupa o miolo, sem quebrar */
+    min-width: 0;            /* evita estouro */
+  }
+
+  /* O input não deve forçar 100% senão empurra os chevrons */
+.datePicker {
+  appearance: auto;
+  -webkit-appearance: auto;
+  background: var(--card-bg);
+  color: var(--text);
+  border: 1px solid var(--separator);
+  border-radius: 8px;
+  padding: .45rem .6rem;
+  font-size: 14px;
+}
+
+/* Mobile Chrome/Android */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(var(--theme-invert, 0));
+  opacity: .85;
+}
+
+
+/* Corrige ícone no Chrome/Android quando tema dark */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(var(--theme-invert, 0));
+  opacity: .8;
+}
+
+/* Evita desaparecer no foco */
+input[type="date"]:focus::-webkit-calendar-picker-indicator {
+  opacity: 1;
+}
+
+/* Safari iOS fix */
+input[type="date"] {
+  color-scheme: light dark; /* mostra ícone correto no modo atual */
+}
 }
