@@ -19,7 +19,8 @@
 }
 
 .input:hover {
-  border-color: var(--text-muted);
+  border-color:var(--color-primary);
+
   background: var(--bg);
 }
 
