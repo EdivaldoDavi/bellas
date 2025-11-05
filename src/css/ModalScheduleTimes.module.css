@@ -1,0 +1,145 @@
+/* ===========================
+   OVERLAY
+=========================== */
+.overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, .45);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  z-index: 99999;
+  backdrop-filter: blur(4px);
+}
+
+/* ===========================
+   SHEET
+=========================== */
+.modal {
+  background: var(--card-bg);
+  width: 100%;
+  max-width: 420px;
+  border-radius: 22px 22px 0 0;
+  padding: 16px 18px 25px;
+  animation: slideUp .25s ease-out;
+  box-shadow: 0 -4px 16px rgba(0,0,0,.28);
+  border-top: 1px solid var(--separator);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(60px); opacity: 0.5; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* handle */
+.handle {
+  width: 42px;
+  height: 5px;
+  background: var(--text-muted);
+  border-radius: 4px;
+  margin: 0 auto 12px;
+}
+
+/* ===========================
+   TITLE
+=========================== */
+.title {
+  text-align: center;
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+/* ===========================
+   GRID DE HORÁRIOS
+=========================== */
+.timesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+/* ===========================
+   BOTÃO DE HORÁRIO
+=========================== */
+.timeBtn {
+  padding: 10px 0;
+  border-radius: 12px;
+  background: var(--card-alt-bg);
+  border: 1px solid var(--separator);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--text);
+  transition: .18s;
+  text-align: center;
+}
+
+/* hover ativo */
+.timeBtn:not(.timeSelected):hover {
+  background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  transform: scale(1.03);
+}
+
+
+/* horário selecionado */
+.timeSelected {
+  background: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: #fff !important;
+  font-weight: 700;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 35%, transparent);
+}
+/* Força prioridade acima do hover/focus */
+.timeBtn.timeSelected,
+.timeBtn.timeSelected:hover,
+.timeBtn.timeSelected:focus,
+.timeBtn.timeSelected:focus-visible {
+  background: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: #fff !important;
+  font-weight: 700;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 35%, transparent);
+}
+
+/* desabilitado */
+.timeBtn:disabled {
+  background: var(--card-alt-bg) !important;
+  border-color: var(--separator) !important;
+  color: var(--text-muted) !important;
+  cursor: not-allowed !important;
+  opacity: .9;
+}
+.timeBtn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ===========================
+   BOTÃO CANCELAR
+=========================== */
+.closeBtn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  background: var(--card-alt-bg);
+  color: var(--text);
+  font-size: 15px;
+  cursor: pointer;
+  font-weight: 600;
+  border: 1px solid var(--separator);
+  transition: .2s;
+}
+
+.closeBtn:hover {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}

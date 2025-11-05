@@ -1,0 +1,125 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 10px;
+  z-index: 9999;
+}
+
+.modal {
+  width: 100%;
+  max-width: 420px;
+  background: var(--card-bg);
+  border-radius: 16px 16px 0 0;
+  padding: 18px;
+  position: relative;
+  box-shadow: 0 -4px 20px rgba(0,0,0,.3);
+}
+
+/* close X */
+.closeIcon {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.title {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+
+.searchInput {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--separator);
+  background: var(--bg);
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.listBox {
+  max-height: 240px;
+  overflow-y: auto;
+  background: var(--card-bg);
+  border-radius: 8px;
+  border: 1px solid var(--separator);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--separator);
+  transition: background .15s;
+}
+
+.item:hover {
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+/* avatar circle */
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+  font-weight: 600;
+  color: white;
+}
+
+.name {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.empty {
+  padding: 10px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* buttons */
+.addButton {
+  margin-top: 10px;
+  width: 100%;
+  background: var(--color-primary);
+  color: #fff;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.cancelButton {
+  margin-top: 8px;
+  width: 100%;
+  padding: 12px;
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 10px;
+  border: 1px solid var(--separator);
+  cursor: pointer;
+  font-weight: 600;
+}

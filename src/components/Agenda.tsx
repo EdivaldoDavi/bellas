@@ -1,6 +1,25 @@
 import { useEffect, useState } from "react";
-import Swal from "sweetalert2";
 import { toast } from "react-toastify";
+
+import ModalCalendar from "./ModalCalendar";
+import ModalScheduleTimes from "./ModalScheduletimes";
+import ModalSelectServiceForProfessional from "./ModalSelectServiceForProfessional";
+import ModalSelectProfessional from "./ModalSelectProfessional";
+import ModalScheduleWizard from "../components/ModalScheduleWizard";
+// Tema / Branding
+import { useTheme } from "../hooks/useTheme";
+import { useUserAndTenant } from "../hooks/useUserAndTenant";
+import {
+  toLocalISOString,
+  isPastDateLocal,
+  getWeekdayLocal,
+  combineLocalDateTime,
+  getDayBoundsISO,
+  weekdayName,
+  dateBR,
+  isHoliday
+} from "../utils/date";
+
 import {
   ChevronLeft,
   ChevronRight,
@@ -9,15 +28,21 @@ import {
   Edit2,
   Trash2,
 } from "lucide-react";
+
 import styles from "../css/Agenda.module.css";
 import { getCurrentProfile, supabase } from "../lib/supabaseCleint";
 
-// ✅ Modais
+// ✅ Components
+import SelectClientWhatsApp from "../components/SelectClientWhatsapp";
+
+// ✅ Bootstrap Modals
 import ModalNewCustomer from "../components/ModalNewCustomer";
 import ModalNewService from "../components/ModalNewService";
 import ModalNewProfessional from "../components/ModalNewProfessional";
 
-// ✅ Tipagens
+// =============================
+// Tipagens
+// =============================
 interface Appointment {
   id: string;
   starts_at: string;
@@ -32,118 +57,90 @@ interface Appointment {
   avatar_url?: string;
 }
 
-interface Service {
-  id: string;
-  name: string;
-  duration_min?: number;
-}
-
-interface Professional {
-  id: string;
-  name: string;
-}
-
-interface Customer {
-  id: string;
-  full_name: string;
-}
-
-// ✅ Helpers locais (sem UTC)
-function parseLocalDate(dateStr: string) {
-  const [y, m, d] = dateStr.split("-").map(Number);
-  return new Date(y, (m || 1) - 1, d || 1);
-}
-
-function dateToInputValue(dt: Date) {
-  const y = dt.getFullYear();
-  const m = String(dt.getMonth() + 1).padStart(2, "0");
-  const d = String(dt.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
-
-function isPastDateLocal(dateStr: string) {
-  const today = new Date();
-  const t = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const sel = parseLocalDate(dateStr);
-  return sel.getTime() < t.getTime();
-}
-
-function getWeekdayLocal(dateStr: string) {
-  const wd = parseLocalDate(dateStr).getDay();
-  return wd === 0 ? 7 : wd; // Domingo = 7
-}
-
-function combineLocalDateTime(dateStr: string, timeStr: string) {
-  const [y, m, d] = dateStr.split("-").map(Number);
-  const [hh, mm] = timeStr.split(":").map(Number);
-  return new Date(y, (m || 1) - 1, d || 1, hh, mm);
-}
-
-function getDayBoundsISO(dateStr: string) {
-  const base = parseLocalDate(dateStr);
-  const start = new Date(base.getFullYear(), base.getMonth(), base.getDate());
-  const end = new Date(base.getFullYear(), base.getMonth(), base.getDate(), 23, 59, 59);
-  return { startISO: start.toISOString(), endISO: end.toISOString() };
-}
-
-const fixedHolidays = ["01-01","04-21","05-01","09-07","10-12","11-02","11-15","12-25"];
-function isHoliday(dateStr: string) {
-  return fixedHolidays.includes(dateStr.slice(5));
-}
-
-// ==========================================================
-// ✅ Componente
-// ==========================================================
 export default function Agenda() {
+  const [showWizard, setShowWizard] = useState(false);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [tenantId, setTenantId] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
 
-  // Modal principal
+  // Profissional
+  const [showProfessionalModal, setShowProfessionalModal] = useState(false);
+  const [selectedProfessionalName, setSelectedProfessionalName] = useState("");
+  const [professionals, setProfessionals] = useState<any[]>([]);
+
+  // Calendário / Horários
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [showTimes, setShowTimes] = useState(false);
+
+  // Modal CRUD
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Campos do form
-  const [serviceId, setServiceId] = useState("");
+  // Serviço
+  const [showServiceModal, setShowServiceModal] = useState(false);
+  const [selectedServiceName, setSelectedServiceName] = useState("");
+
+  // Form fields
   const [professionalId, setProfessionalId] = useState("");
+  const [serviceId, setServiceId] = useState("");
   const [customerId, setCustomerId] = useState("");
+
   const [selectedDate, setSelectedDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
 
-  const [professionals, setProfessionals] = useState<Professional[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [professionalServices, setProfessionalServices] = useState<Service[]>([]);
+  const [professionalServices, setProfessionalServices] = useState<any[]>([]);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [serviceDuration, setServiceDuration] = useState<number | null>(null);
 
-  // Modais secundários
+  // Aux Modals
   const [showNewCustomer, setShowNewCustomer] = useState(false);
   const [showNewService, setShowNewService] = useState(false);
   const [showNewProfessional, setShowNewProfessional] = useState(false);
 
-  // ================================
-  // Perfil
+  // Tema
+  const { theme } = useTheme();
+  const { profile } = useUserAndTenant();
+
+  useEffect(() => {
+    if (theme) document.documentElement.setAttribute("data-theme", theme);
+    if (profile?.theme_variant)
+      document.documentElement.setAttribute("data-theme-variant", profile.theme_variant);
+  }, [theme, profile]);
+
   useEffect(() => {
     (async () => {
-      const profile = await getCurrentProfile();
-      if (profile) {
-        setTenantId(profile.tenant_id);
-        setRole(profile.role);
+      const p = await getCurrentProfile();
+      if (p) {
+        setTenantId(p.tenant_id);
+        setRole(p.role);
       }
     })();
   }, []);
 
-  // ================================
-  // Agendamentos
-  async function fetchAppointments() {
+  async function loadProfessionals() {
+    const { data } = await supabase
+      .from("professionals")
+      .select("id,name");
+
+    setProfessionals(data || []);
+  }
+
+  useEffect(() => {
     if (!tenantId) return;
+    fetchAppointments();
+  }, [tenantId, currentDate]);
+
+  async function fetchAppointments() {
     setLoading(true);
 
-    const d = dateToInputValue(currentDate);
-    const { startISO, endISO } = getDayBoundsISO(d);
+    const start = new Date(currentDate);
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date(currentDate);
+    end.setHours(23, 59, 59);
 
     const { data } = await supabase
       .from("appointments")
@@ -154,58 +151,41 @@ export default function Agenda() {
         customer:customers(id,full_name)
       `)
       .eq("tenant_id", tenantId)
-      .gte("starts_at", startISO)
-      .lte("ends_at", endISO)
+      .gte("starts_at", start.toISOString())
+      .lte("ends_at", end.toISOString())
       .order("starts_at");
 
-    setAppointments((data || []).map((a: any) => ({
-      id: a.id,
-      starts_at: a.starts_at,
-      ends_at: a.ends_at,
-      status: a.status,
-      service_name: a.service?.name,
-      service_id: a.service?.id,
-      professional_name: a.professional?.name,
-      professional_id: a.professional?.id,
-      customer_name: a.customer?.full_name,
-      customer_id: a.customer?.id,
-      avatar_url: `https://api.dicebear.com/8.x/avataaars/svg?seed=${encodeURIComponent(
-        a.professional?.name || "Profissional"
-      )}`,
-    })));
+   setAppointments(
+  (data || []).map((a: any) => ({
+    id: a.id,
+    starts_at: a.starts_at,
+    ends_at: a.ends_at,
+    status: a.status, // ✅ FALTAVA ISSO
+    service_name: a.service?.name,
+    service_id: a.service?.id,
+    professional_name: a.professional?.name,
+    professional_id: a.professional?.id,
+    customer_name: a.customer?.full_name,
+    customer_id: a.customer?.id,
+    avatar_url: `https://api.dicebear.com/8.x/avataaars/svg?seed=${a.professional?.name}`
+  }))
+);
 
     setLoading(false);
   }
 
-  useEffect(() => { if (tenantId) fetchAppointments(); }, [tenantId, currentDate]);
-
-  // ================================
-  async function loadFormData() {
-    if (!tenantId) return;
-
-    const [prof, cust] = await Promise.all([
-      supabase.from("professionals").select("id,name").eq("tenant_id", tenantId),
-      supabase.from("customers").select("id,full_name").eq("tenant_id", tenantId),
-    ]);
-
-    setProfessionals(prof.data || []);
-    setCustomers(cust.data || []);
-  }
-
-  async function fetchServicesByProfessional(profId: string) {
+  async function fetchServicesByProfessional(id: string) {
     const { data } = await supabase
       .from("professional_services")
       .select("service:services(id,name,duration_min)")
       .eq("tenant_id", tenantId)
-      .eq("professional_id", profId);
+      .eq("professional_id", id);
 
-    setProfessionalServices((data || []).map((s: any) => s.service));
+    setProfessionalServices((data || []).map((r: any) => r.service));
   }
 
-  // ================================
-  // ⏱ Horários disponíveis
   async function loadAvailableTimes(date: string, profId: string, duration = serviceDuration) {
-    if (!tenantId || !date || !profId || !duration) return;
+    if (!tenantId || !date || !profId || !duration) return setAvailableTimes([]);
     if (isPastDateLocal(date) || isHoliday(date)) return setAvailableTimes([]);
 
     const weekday = getWeekdayLocal(date);
@@ -220,14 +200,15 @@ export default function Agenda() {
 
     if (!schedule) return setAvailableTimes([]);
 
-    const workStart = combineLocalDateTime(date, schedule.start_time.slice(0,5));
-    const workEnd   = combineLocalDateTime(date, schedule.end_time.slice(0,5));
+    const workStart = combineLocalDateTime(date, schedule.start_time.slice(0, 5));
+    const workEnd = combineLocalDateTime(date, schedule.end_time.slice(0, 5));
 
     const hasBreak = schedule.break_start_time !== "00:00:00" && schedule.break_end_time !== "00:00:00";
-    const breakStart = hasBreak ? combineLocalDateTime(date, schedule.break_start_time.slice(0,5)) : null;
-    const breakEnd   = hasBreak ? combineLocalDateTime(date, schedule.break_end_time.slice(0,5)) : null;
+    const breakStart = hasBreak ? combineLocalDateTime(date, schedule.break_start_time.slice(0, 5)) : null;
+    const breakEnd = hasBreak ? combineLocalDateTime(date, schedule.break_end_time.slice(0, 5)) : null;
 
     const { startISO, endISO } = getDayBoundsISO(date);
+
     const { data: booked } = await supabase
       .from("appointments")
       .select("starts_at, ends_at")
@@ -236,105 +217,84 @@ export default function Agenda() {
       .gte("starts_at", startISO)
       .lte("ends_at", endISO);
 
-const slots: string[] = [];
-let t = new Date(workStart);
-
-// ▶️ se é hoje, não permitir horários já passados
-const today = new Date();
-const todayMid = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-const selectedMid = new Date(workStart.getFullYear(), workStart.getMonth(), workStart.getDate());
-const isToday = todayMid.getTime() === selectedMid.getTime();
-
-while (t < workEnd) {
-  const end = new Date(t.getTime() + duration * 60000);
-  if (end > workEnd) break;
-
-  // ✅ Permitir se terminar exatamente no início do intervalo
-  const endsExactlyAtBreak =
-    hasBreak &&
-    breakStart &&
-    end.getTime() === breakStart.getTime();
-
-  // ❌ Bloquear se ultrapassar intervalo
-  const invadeBreak =
-    hasBreak &&
-    breakStart &&
-    breakEnd &&
-    t < breakEnd &&
-    end > breakStart &&
-    !endsExactlyAtBreak;
-
-  if (invadeBreak) {
-    t = new Date(breakEnd!);
-    continue;
-  }
-
-  // ❌ Bloquear horários já passados quando for o mesmo dia
-  if (isToday) {
+    const slots: string[] = [];
+    let t = new Date(workStart);
     const now = new Date();
-    if (end <= now) {
+    const isToday =
+      now.getFullYear() === workStart.getFullYear() &&
+      now.getMonth() === workStart.getMonth() &&
+      now.getDate() === workStart.getDate();
+
+    while (t < workEnd) {
+      const end = new Date(t.getTime() + duration * 60000);
+      if (end > workEnd) break;
+
+      const overlapBreak =
+        hasBreak && breakStart && breakEnd && t < breakEnd && end > breakStart;
+
+      if (overlapBreak) {
+        t = new Date(breakEnd!);
+        continue;
+      }
+
+      if (isToday && end <= now) {
+        t = new Date(t.getTime() + duration * 60000);
+        continue;
+      }
+
+      const conflict = (booked || []).some((b) => {
+        const s = new Date(b.starts_at);
+        const e = new Date(b.ends_at);
+        return t < e && end > s;
+      });
+
+      if (!conflict) {
+        slots.push(`${String(t.getHours()).padStart(2, "0")}:${String(t.getMinutes()).padStart(2, "0")}`);
+      }
+
       t = new Date(t.getTime() + duration * 60000);
-      continue;
     }
-  }
-
-  const conflict = (booked || []).some(b => {
-    const s = new Date(b.starts_at);
-    const e = new Date(b.ends_at);
-    return t < e && end > s;
-  });
-
-  if (!conflict) {
-    slots.push(
-      String(t.getHours()).padStart(2, "0") + ":" +
-      String(t.getMinutes()).padStart(2, "0")
-    );
-  }
-
-  t = new Date(t.getTime() + duration * 60000);
-}
 
     setAvailableTimes(slots);
   }
 
-  // ================================
   function resetForm() {
     setEditingId(null);
-    setServiceId("");
     setProfessionalId("");
+    setSelectedProfessionalName("");
+    setServiceId("");
+    setSelectedServiceName("");
     setCustomerId("");
     setSelectedDate("");
     setStartTime("");
     setEndTime("");
-    setServiceDuration(null);
     setAvailableTimes([]);
-    setProfessionalServices([]);
+    setServiceDuration(null);
   }
 
-  // ================================
   const openModal = async (a?: Appointment) => {
-    await loadFormData();
     resetForm();
 
     if (a) {
       setEditingId(a.id);
       setProfessionalId(a.professional_id || "");
-      setCustomerId(a.customer_id || "");
+      setSelectedProfessionalName(a.professional_name || "");
       setServiceId(a.service_id || "");
+      setSelectedServiceName(a.service_name || "");
+      setCustomerId(a.customer_id || "");
 
-      const dt = new Date(a.starts_at);
-      setSelectedDate(dateToInputValue(dt));
-      setStartTime(dt.toTimeString().slice(0, 5));
-      setEndTime(new Date(a.ends_at).toTimeString().slice(0, 5));
+      const d = toLocalISOString(new Date(a.starts_at)).split("T")[0];
+      const t = new Date(a.starts_at).toTimeString().slice(0, 5);
 
-      await fetchServicesByProfessional(a.professional_id || "");
-      loadAvailableTimes(dateToInputValue(dt), a.professional_id || "");
+      setSelectedDate(d);
+      setStartTime(t);
+
+      await fetchServicesByProfessional(a.professional_id!);
     }
 
     setShowModal(true);
   };
 
-  // ================================
   async function handleSaveAppointment() {
     if (!tenantId || !serviceId || !professionalId || !customerId || !selectedDate || !startTime)
       return toast.warn("Preencha todos os campos!");
@@ -357,7 +317,7 @@ while (t < workEnd) {
       customer_phone: cli?.customer_phone,
       starts_at: start,
       ends_at: end,
-      status: "scheduled",
+      status: "scheduled"
     };
 
     const { error } = editingId
@@ -371,223 +331,197 @@ while (t < workEnd) {
     fetchAppointments();
   }
 
-  async function handleDeleteAppointment(id: string) {
+  async function handleDelete(id: string) {
     if (!confirm("Excluir?")) return;
     await supabase.from("appointments").delete().eq("id", id);
     fetchAppointments();
   }
 
-  // ================================
-  const formattedDate = new Intl.DateTimeFormat("pt-BR", {
+  async function handleSelectDate(date: Date) {
+    if (!professionalId) return toast.warn("Selecione o profissional primeiro");
+    if (!serviceId || !serviceDuration) return toast.warn("Selecione o serviço primeiro");
+
+    const d = toLocalISOString(date).split("T")[0];
+
+    const today = new Date();
+    const selected = new Date(`${d}T00:00:00`);
+    if (selected < new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
+      return toast.warn("Data passada não permitida");
+    }
+
+    if (isHoliday(d)) return toast.warn("Feriado não permitido");
+
+    setSelectedDate(d);
+    setShowCalendar(false);
+
+    setTimeout(() => {
+      loadAvailableTimes(d, professionalId, serviceDuration!);
+      setShowTimes(true);
+    }, 10);
+  }
+
+  const formattedDate = currentDate.toLocaleDateString("pt-BR", {
     weekday: "long",
     day: "2-digit",
-    month: "long",
-  }).format(currentDate);
+    month: "long"
+  });
 
-  const handlePrevDay = () => setCurrentDate((d) => new Date(d.getTime() - 86400000));
-  const handleNextDay = () => setCurrentDate((d) => new Date(d.getTime() + 86400000));
+  const unifiedDateTimeText = selectedDate
+    ? `${dateBR(selectedDate)} (${weekdayName(selectedDate)})` +
+      (startTime && endTime ? ` — ${startTime} até ${endTime}` : "")
+    : "";
 
-  // ==========================================================
   return (
     <div className={styles.container}>
-      {/* HEADER */}
       <div className={styles.header}>
         <h2 className={styles.title}>Agenda</h2>
-        {role === "manager" && (
-          <button onClick={() => openModal()} className={styles.newButton}>
-            <Plus size={18} /> Novo Agendamento
-          </button>
+       {role === "manager" && (
+  <button className={styles.newButton} onClick={() => setShowWizard(true)}>
+    <Plus size={18} /> Novo Agendamento
+  </button>
+)}
+
+      </div>
+
+      {/* Navegação de data */}
+      <div className={styles.dateNav}>
+        <button onClick={() => setCurrentDate(d => new Date(d.getTime() - 86400000))} className={styles.navButton}>
+          <ChevronLeft size={18} />
+        </button>
+
+        <div className={styles.dateCenter}>
+          <div className={styles.datePickerWrapper}>
+            <input
+              type="date"
+              className={styles.datePicker}
+              value={toLocalISOString(currentDate).split("T")[0]}
+              onChange={(e) => {
+                const sel = e.target.value
+                  ? new Date(`${e.target.value}T00:00:00`)
+                  : new Date();
+                setCurrentDate(sel);
+              }}
+            />
+          </div>
+          <h3 className={styles.date}>{formattedDate}</h3>
+        </div>
+
+        <button onClick={() => setCurrentDate(d => new Date(d.getTime() + 86400000))} className={styles.navButton}>
+          <ChevronRight size={18} />
+        </button>
+      </div>
+
+      {/* Lista de agendamentos */}
+      <div className={styles.list}>
+        {loading ? (
+          <p>Carregando...</p>
+        ) : appointments.length === 0 ? (
+          <p>Nenhum agendamento.</p>
+        ) : (
+          appointments.map((a) => (
+            <div key={a.id} className={styles.card}>
+              <img className={styles.avatar} src={a.avatar_url} />
+              <div className={styles.details}>
+                <strong>
+                  {new Date(a.starts_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                  {" - "}
+                  {new Date(a.ends_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                </strong>
+                <p>{a.service_name} com {a.professional_name}</p>
+                <p>Cliente: {a.customer_name}</p>
+              </div>
+
+              {role === "manager" && (
+                <div className={styles.cardActions}>
+                  <button onClick={() => openModal(a)} className={styles.iconButton}>
+                    <Edit2 size={16} />
+                  </button>
+                  <button onClick={() => handleDelete(a.id)} className={styles.iconButtonDelete}>
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              )}
+            </div>
+          ))
         )}
       </div>
 
-      {/* Navegação */}
-      {/* Navegação de data */}
-<div className={styles.dateNav}>
-  <button onClick={handlePrevDay} className={styles.navButton}>
-    <ChevronLeft size={18} />
-  </button>
-
-  <div className={styles.dateCenter}>
-    <div className={styles.datePickerWrapper}>
-    
-      <input
-        type="date"
-        className={styles.datePicker}
-        value={currentDate.toISOString().split("T")[0]}
-        onChange={(e) => {
-          const selectedDate = e.target.value
-            ? new Date(`${e.target.value}T00:00:00`) // ✅ fixa o horário local
-            : new Date();
-          setCurrentDate(selectedDate);
-        }}
-      />
-    </div>
-    <h3 className={styles.date}>{formattedDate}</h3>
-  </div>
-
-  <button onClick={handleNextDay} className={styles.navButton}>
-    <ChevronRight size={18} />
-  </button>
-</div>
-      {/* Lista */}
-      <div className={styles.list}>
-        {loading ? <p>Carregando...</p> :
-        appointments.length === 0 ? <p>Nenhum agendamento.</p> :
-        appointments.map((a) => (
-          <div key={a.id} className={styles.card}>
-            <img className={styles.avatar} src={a.avatar_url} />
-            <div className={styles.details}>
-              <strong>
-                {new Date(a.starts_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })} -{" "}
-                {new Date(a.ends_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-              </strong>
-              <p>{a.service_name} com {a.professional_name}</p>
-              <p>Cliente: {a.customer_name}</p>
-            </div>
-
-            {role === "manager" && (
-              <div className={styles.cardActions}>
-                <button onClick={() => openModal(a)} className={styles.iconButton}>
-                  <Edit2 size={16} />
-                </button>
-                <button onClick={() => handleDeleteAppointment(a.id)} className={styles.iconButtonDelete}>
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* MODAL */}
+      {/* Modal de Agendamento */}
       {showModal && (
         <div className={styles.modal}>
           <div className={styles.modalContent}>
-            <button onClick={() => setShowModal(false)} className={styles.closeBtn}><X /></button>
-            <h3>📅 {editingId ? "Editar Agendamento" : "Novo Agendamento"}</h3>
+            <button className={styles.closeBtn} onClick={() => setShowModal(false)}>
+              <X />
+            </button>
 
-            {/* PROFISSIONAL */}
-            <label>Profissional</label>
-            <div className={styles.rowWithButton}>
-              <select
-                className={styles.input}
-                value={professionalId}
-                onClick={() => {}}
-                onChange={async (e) => {
-                  const id = e.target.value;
-                  setProfessionalId(id);
-                  await fetchServicesByProfessional(id);
-                  setServiceId("");
-                  setSelectedDate("");
-                  setAvailableTimes([]);
-                }}
-              >
-                <option value="">Selecione</option>
-                {professionals.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-              <button onClick={() => setShowNewProfessional(true)} className={styles.smallBtn}><Plus size={16}/></button>
-            </div>
+            <h3>📅 {editingId ? "Editar" : "Novo"} Agendamento</h3>
 
-            {/* SERVIÇO */}
-            <label>Serviço</label>
-            <div className={styles.rowWithButton}>
-              <select
-                className={styles.input}
-                value={serviceId}
-                onClick={() => { if (!professionalId) toast.warn("Selecione primeiro o profissional"); }}
-                onChange={(e) => {
-                  if (!professionalId) return toast.warn("Selecione primeiro o profissional");
-                  const id = e.target.value;
-                  setServiceId(id);
-                  const svc = professionalServices.find((s) => s.id === id);
-                  setServiceDuration(svc?.duration_min || 60);
-                  if (selectedDate)
-                    loadAvailableTimes(selectedDate, professionalId, svc?.duration_min);
-                }}
-              >
-                <option value="">Selecione</option>
-                {professionalServices.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
+            {/* Profissional */}
+            <button
+              type="button"
+              className={styles.dateTimeContainer}
+              onClick={() => {
+                loadProfessionals();
+                setShowProfessionalModal(true);
+              }}
+            >
+              <div className={styles.dateTimeBox}>
+                <span className={styles.dateTimeIcon}>👤</span>
+                {selectedProfessionalName ? (
+                  <span className={styles.dateTimeText}>{selectedProfessionalName}</span>
+                ) : (
+                  <span className={styles.dateTimePlaceholder}>Selecionar profissional</span>
+                )}
+              </div>
+            </button>
 
-              <button onClick={() => setShowNewService(true)} className={styles.smallBtn}><Plus size={16}/></button>
-            </div>
-
-            {/* Tempo estimado */}
-            {serviceDuration && (
+            {selectedProfessionalName && (
               <div className={styles.serviceTimeInfo}>
-                <span className={styles.timeIcon}>⏱</span>
-                <span className={styles.timeLabel}>Tempo estimado: {serviceDuration} min</span>
+                <span>👤 {selectedProfessionalName}</span><br />
+                {selectedServiceName && (
+                  <>
+                    <strong>💇 {selectedServiceName}</strong><br />
+                    <span>⏱ Tempo estimado: {serviceDuration} min</span>
+                  </>
+                )}
+                <button
+                  className={styles.changeServiceBtn}
+                  onClick={() => setShowServiceModal(true)}
+                >
+                  Trocar serviço
+                </button>
               </div>
             )}
 
-            {/* CLIENTE */}
-            <label>Cliente</label>
-            <div className={styles.rowWithButton}>
-              <select
-                className={styles.input}
-                value={customerId}
-                onClick={() => {}}
-                onChange={(e) => setCustomerId(e.target.value)}
-              >
-                <option value="">Selecione</option>
-                {customers.map((c) => (
-                  <option key={c.id} value={c.id}>{c.full_name}</option>
-                ))}
-              </select>
-              <button onClick={() => setShowNewCustomer(true)} className={styles.smallBtn}><Plus size={16}/></button>
-            </div>
-
-            {/* DATA */}
-            <label>Data</label>
-            <input
-              type="date"
-              className={styles.input}
-              value={selectedDate}
-              onClick={() => {
-                if (!professionalId) return toast.warn("Selecione primeiro o profissional");
-                if (!serviceId) return toast.warn("Selecione primeiro o serviço");
-              }}
-              onChange={(e) => {
-                if (!professionalId) return toast.warn("Selecione primeiro o profissional");
-                if (!serviceId) return toast.warn("Selecione primeiro o serviço");
-
-                const d = e.target.value;
-                if (!d) return;
-                if (isPastDateLocal(d)) return toast.warn("Data passada não permitida");
-                if (isHoliday(d)) return toast.warn("Feriado não permitido");
-
-                setSelectedDate(d);
-                if (serviceDuration)
-                  loadAvailableTimes(d, professionalId, serviceDuration);
-              }}
+            {/* Cliente */}
+            <SelectClientWhatsApp
+              tenantId={tenantId!}
+              value={customerId}
+              onChange={setCustomerId}
+              onAdd={() => setShowNewCustomer(true)}
             />
 
-            {/* HORÁRIO */}
-            <label>Horário</label>
-            <select
-              className={styles.input}
-              value={startTime}
-              onClick={() => { if (!selectedDate) toast.warn("Selecione a data primeiro"); }}
-              onChange={(e) => {
-                if (!selectedDate) return toast.warn("Selecione a data primeiro");
-                const t = e.target.value;
-                setStartTime(t);
-                const end = combineLocalDateTime(selectedDate, t);
-                end.setMinutes(end.getMinutes() + (serviceDuration || 60));
-                setEndTime(
-                  end.toTimeString().slice(0,5)
-                );
+            {/* Data & Hora */}
+            <label className="mt-2">Data & Horário</label>
+            <button
+              type="button"
+              className={styles.dateTimeContainer}
+              onClick={() => {
+                if (!professionalId) return toast.warn("Selecione o profissional primeiro");
+                if (!serviceId) return toast.warn("Selecione o serviço primeiro");
+                if (!serviceDuration) return toast.warn("Selecione o serviço primeiro");
+                setShowCalendar(true);
               }}
             >
-              <option value="">Selecione</option>
-              {availableTimes.map(h => (
-                <option key={h} value={h}>{h}</option>
-              ))}
-            </select>
+              <div className={styles.dateTimeBox}>
+                <span className={styles.dateTimeIcon}>🕒</span>
+                {selectedDate ? (
+                  <span className={styles.dateTimeText}>{unifiedDateTimeText}</span>
+                ) : (
+                  <span className={styles.dateTimePlaceholder}>Selecionar data e horário</span>
+                )}
+              </div>
+            </button>
 
             <button className={styles.saveButton} onClick={handleSaveAppointment}>
               {editingId ? "Salvar" : "Agendar"}
@@ -596,40 +530,82 @@ while (t < workEnd) {
         </div>
       )}
 
-      {/* MODAIS AUXILIARES */}
+      {/* Modais adicionais */}
       {showNewCustomer && (
-        <ModalNewCustomer
-          tenantId={tenantId!}
-          onClose={() => setShowNewCustomer(false)}
-          onCreated={(id) => {
-            setCustomerId(id);
-            loadFormData();
-          }}
-        />
+        <ModalNewCustomer tenantId={tenantId!} onClose={() => setShowNewCustomer(false)} onCreated={(id) => setCustomerId(id)} />
       )}
-
       {showNewService && (
-        <ModalNewService
-          tenantId={tenantId!}
-          onClose={() => setShowNewService(false)}
-          onCreated={(id) => {
-            setServiceId(id);
-            loadFormData();
-          }}
-        />
+        <ModalNewService tenantId={tenantId!} onClose={() => setShowNewService(false)} onCreated={(id) => setServiceId(id)} />
+      )}
+      {showNewProfessional && (
+        <ModalNewProfessional tenantId={tenantId!} onClose={() => setShowNewProfessional(false)} onCreated={(id) => setProfessionalId(id)} />
       )}
 
-      {showNewProfessional && (
-        <ModalNewProfessional
-          tenantId={tenantId!}
-          onClose={() => setShowNewProfessional(false)}
-          onCreated={async (id) => {
-            setProfessionalId(id);
-            await fetchServicesByProfessional(id);
-            loadFormData();
-          }}
-        />
-      )}
+      {/* Calendário */}
+      <ModalCalendar show={showCalendar} onClose={() => setShowCalendar(false)} onSelect={handleSelectDate} />
+
+      {/* Horários */}
+      <ModalScheduleTimes
+        show={showTimes}
+        times={availableTimes}
+        onClose={() => setShowTimes(false)}
+        onSelect={(t: string) => {
+          setStartTime(t);
+          if (!serviceDuration) return;
+          const start = new Date(`${selectedDate}T${t}`);
+          const end = new Date(start.getTime() + serviceDuration * 60000);
+          setEndTime(end.toTimeString().slice(0, 5));
+          setShowTimes(false);
+        }}
+      />
+
+      {/* Modal de serviços */}
+      <ModalSelectServiceForProfessional
+        show={showServiceModal}
+        services={professionalServices}
+        onClose={() => setShowServiceModal(false)}
+        onSelect={(id, name, duration) => {
+          setServiceId(id);
+          setSelectedServiceName(name);
+          setServiceDuration(duration);
+          setSelectedDate("");
+          setStartTime("");
+          setEndTime("");
+          setAvailableTimes([]);
+          setShowServiceModal(false);
+        }}
+      />
+
+      {/* Modal de seleção de profissional */}
+      <ModalSelectProfessional
+        show={showProfessionalModal}
+        professionals={professionals}
+        onClose={() => setShowProfessionalModal(false)}
+        onSelect={async (id, name) => {
+          setProfessionalId(id);
+          setSelectedProfessionalName(name);
+          setServiceId("");
+          setSelectedServiceName("");
+          setServiceDuration(null);
+          setSelectedDate("");
+          setStartTime("");
+          setEndTime("");
+          setAvailableTimes([]);
+          await fetchServicesByProfessional(id);
+          setShowProfessionalModal(false);
+          setShowServiceModal(true);
+        }}
+      />
+      <ModalScheduleWizard
+  open={showWizard}
+  tenantId={tenantId!}
+  onClose={() => setShowWizard(false)}
+  onBooked={() => {
+    // recarrega a agenda do dia
+    fetchAppointments();
+  }}
+/>
+
     </div>
   );
 }

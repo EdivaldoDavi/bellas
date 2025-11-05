@@ -1,0 +1,175 @@
+/* Fundo escuro - modal overlay */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* Caixa do modal */
+.modal {
+  width: 100%;
+  max-width: 480px;
+  max-height: 92vh;
+  overflow-y: auto;
+  background: var(--card-bg, #fff);
+  color: var(--text, #000);
+  border-radius: 14px;
+  padding: 1.2rem;
+  position: relative;
+  animation: fadeIn .2s ease-out;
+}
+
+/* Botão fechar */
+.closeBtn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: 1px solid var(--separator, #ddd);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: var(--text);
+}
+
+/* Títulos */
+.modal h3 {
+  margin: 0 0 1rem;
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.modal h4 {
+  margin: 1rem 0 .6rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+/* Inputs */
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--separator);
+  background: var(--bg);
+  color: var(--text);
+  margin-bottom: 10px;
+  font-size: 14px;
+  transition: border-color .2s, box-shadow .2s, background .2s;
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+/* FOCUS correto para dark/light */
+.input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent);
+  background: var(--card-bg);
+}
+
+
+/* Lista de serviços */
+.checkList {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .5rem;
+}
+
+.checkItem {
+  display: flex;
+  gap: .45rem;
+  align-items: center;
+}
+
+.checkItem input {
+  accent-color: var(--color-primary);
+}
+
+/* Row "copiar semana" */
+.copyRow {
+  display: flex;
+  gap: .45rem;
+  align-items: center;
+  margin: .5rem 0 .75rem;
+  font-size: .95rem;
+}
+
+/* Títulos dias */
+.dayTitle {
+  font-weight: 600;
+  margin-bottom: .4rem;
+}
+
+/* Caixa de dia */
+.dayBlock {
+  padding: .65rem;
+  border: 1px solid var(--separator);
+  border-radius: 10px;
+  margin-bottom: .65rem;
+}
+
+/* Grid horários */
+.timeGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .65rem;
+}
+
+.timeGrid input {
+  width: 100%;
+  padding: .5rem;
+  border-radius: 8px;
+  border: 1px solid var(--separator);
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Observação */
+.note {
+  font-size: .9rem;
+  color: var(--text-muted);
+  margin-top: .3rem;
+}
+
+/* Botão salvar */
+.saveBtn {
+  width: 100%;
+  padding: .95rem;
+  border: none;
+  border-radius: 12px;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 700;
+  margin-top: 1rem;
+  cursor: pointer;
+}
+
+.saveBtn:hover {
+  opacity: .9;
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .timeGrid {
+    grid-template-columns: 1fr;
+  }
+  .checkList {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Fade-in */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

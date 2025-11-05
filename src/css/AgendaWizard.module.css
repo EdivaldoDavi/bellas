@@ -1,0 +1,353 @@
+/* Overlay fullscreen */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  z-index: 9999;
+}
+
+/* Modal ocupa toda a tela (mobile-first) */
+.modal {
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--separator);
+}
+
+.headerTitle {
+  font-weight: 600;
+}
+
+/* Botão de ícone (voltar/fechar) */
+.iconBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid var(--separator);
+  background: transparent;
+  color: var(--text);
+  display: grid;
+  place-items: center;
+}
+
+/* Body com scroll */
+.body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+/* Footer */
+.footer {
+  padding: 1rem;
+  border-top: 1px solid var(--separator);
+}
+
+/* Botão Next */
+.nextBtn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+.nextBtn:disabled { opacity: .4; }
+
+/* Step container + animação */
+.step { animation: slideIn .2s ease; }
+@keyframes slideIn {
+  from { transform: translateX(10px); opacity: .0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+.stepTitle {
+  font-size: 1.1rem;
+  margin-bottom: .75rem;
+}
+
+/* Listas de seleção */
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: .5rem;
+}
+
+.item {
+  width: 100%;
+  background: var(--card-bg, #fff);
+  color: var(--text);
+  border: 1px solid var(--separator);
+  border-radius: 12px;
+  padding: .9rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.item:hover { filter: brightness(1.02); }
+.item.active {
+  background: color-mix(in srgb, var(--color-primary) 20%, transparent);
+  border-left: 4px solid var(--color-primary);
+}
+
+
+.itemCol {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+}
+
+.itemTitle { font-weight: 600; }
+.badge {
+  font-size: .85rem;
+  padding: .15rem .5rem;
+  border-radius: 999px;
+  border: 1px solid var(--separator);
+}
+
+/* Check alinhado */
+.check { stroke-width: 3; }
+
+/* Texto auxiliar */
+.muted { color: var(--text-muted); font-size: .95rem; }
+
+/* DatePicker */
+.datePickerContainer {
+  display: flex;
+  margin-bottom: .75rem;
+}
+.datePicker {
+  width: 100%;
+  padding: .7rem .9rem;
+  border: 1px solid var(--separator);
+  border-radius: 10px;
+  background: var(--card-bg, #fff);
+  color: var(--text);
+}
+
+.helper {
+  margin-top: .25rem;
+  font-size: .95rem;
+  color: var(--text-muted);
+}
+
+/* Grid de horários */
+.timeGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: .5rem;
+}
+.timeBtn {
+  padding: .65rem .4rem;
+  border-radius: 10px;
+  border: 1px solid var(--separator);
+  background: var(--card-bg, #fff);
+  color: var(--text);
+  font-weight: 600;
+}
+.timeBtn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.timeActive {
+  outline: 2px solid var(--color-primary);
+}
+.addButton {
+  width: 100%;
+  background: var(--card-bg);
+  border: 1px dashed var(--color-primary);
+  color: var(--color-primary);
+  padding: .65rem;
+  border-radius: 10px;
+  font-weight: 600;
+  margin-bottom: .75rem;
+  cursor: pointer;
+}
+
+.addButton:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+
+/* Card de revisão */
+.reviewCard {
+  border: 1px solid var(--separator);
+  border-radius: 12px;
+  padding: 1rem;
+  display: grid;
+  gap: .6rem;
+  background: var(--card-bg, #fff);
+}
+.reviewRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.label {
+  color: var(--text-muted);
+}
+
+/* ==== LISTAGEM ESTILO SELECT CLIENT ==== */
+
+.list {
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--separator);
+  border-radius: 10px;
+  background: var(--card-bg);
+  margin-top: 8px;
+  padding: 0;
+}
+
+.list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.list::-webkit-scrollbar-thumb {
+  background: var(--separator);
+  border-radius: 6px;
+}
+
+.item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--separator);
+  background: var(--card-bg);
+  cursor: pointer;
+  transition: background 0.2s;
+  border-radius: 6px;
+}
+
+.item:hover {
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+.active {
+  background: color-mix(in srgb, var(--color-primary) 25%, transparent);
+}
+
+.itemTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.badge {
+  background: var(--color-primary);
+  padding: 3px 8px;
+  font-size: 11px;
+  border-radius: 6px;
+  color: #fff;
+  margin-left: 6px;
+}
+.searchInput {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 8px;
+
+  /* Border e fundo adaptáveis */
+  border: 1px solid var(--separator);
+  background: var(--card-bg);
+  color: var(--text);
+
+  /* UX */
+  margin-bottom: 10px;
+  font-size: 14px;
+  transition: background .2s, border-color .2s, color .2s, box-shadow .2s;
+}
+
+/* Placeholder */
+.searchInput::placeholder {
+  color: var(--text-muted);
+}
+
+/* Hover levemente visível */
+.searchInput:hover {
+  border-color: color-mix(in srgb, var(--text) 30%, var(--separator));
+}
+
+/* Foco bonito nos dois temas */
+.searchInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent);
+}
+.closeTextBtn {
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.footerNav {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 16px;
+}
+
+.prevBtn {
+  flex: 1;
+  background: var(--separator);
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  color: var(--text);
+  transition: .2s;
+}
+
+.prevBtn:hover {
+  background: color-mix(in srgb, var(--text) 15%, var(--separator));
+}
+
+.nextBtn {
+  flex: 2;
+  background: var(--color-primary);
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 600;
+  transition: .2s;
+}
+
+.nextBtn:disabled {
+  opacity: .5;
+}
+
+
+/* Responsivo */
+@media (min-width: 768px) {
+  .modal {
+    height: 90%;
+    max-width: 520px;
+    border-radius: 16px 16px 0 0;
+  }
+}

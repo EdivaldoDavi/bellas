@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import styles from "../css/Agenda.module.css";
+import styles from "../css/ModalNewService.module.css";
 import { supabase } from "../lib/supabaseCleint";
 import { toast } from "react-toastify";
 import { X } from "lucide-react";
@@ -7,7 +7,7 @@ import { X } from "lucide-react";
 interface ModalNewServiceProps {
   tenantId: string;
   onClose: () => void;
-  onCreated: (id: string) => void;
+  onCreated: (id: string, name: string, duration: number) => void;
 }
 
 interface Professional {
@@ -19,6 +19,7 @@ export default function ModalNewService({ tenantId, onClose, onCreated }: ModalN
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [duration, setDuration] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [selectedProfessionals, setSelectedProfessionals] = useState<string[]>([]);
@@ -43,10 +44,8 @@ export default function ModalNewService({ tenantId, onClose, onCreated }: ModalN
   }, [tenantId]);
 
   function toggleProfessional(id: string) {
-    setSelectedProfessionals((prev) =>
-      prev.includes(id)
-        ? prev.filter((x) => x !== id)
-        : [...prev, id]
+    setSelectedProfessionals(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
     );
   }
 
@@ -54,12 +53,16 @@ export default function ModalNewService({ tenantId, onClose, onCreated }: ModalN
     if (selectedProfessionals.length === professionals.length) {
       setSelectedProfessionals([]);
     } else {
-      setSelectedProfessionals(professionals.map((p) => p.id));
+      setSelectedProfessionals(professionals.map(p => p.id));
     }
   }
 
   async function handleSave() {
-    if (!name.trim() || !duration.trim()) {
+    const serviceName = name.trim();
+    const serviceDuration = Number(duration);
+    const priceCents = Number(price) > 0 ? Number(price) * 100 : 0;
+
+    if (!serviceName || !serviceDuration) {
       toast.warn("Preencha nome e duração");
       return;
     }
@@ -69,19 +72,24 @@ export default function ModalNewService({ tenantId, onClose, onCreated }: ModalN
       return;
     }
 
+    setLoading(true);
+
     const { data: service, error: srvErr } = await supabase
       .from("services")
-      .insert([{
-        tenant_id: tenantId,
-        name,
-        price_cents: Number(price || 0) * 100,
-        duration_min: Number(duration)
-      }])
+      .insert([
+        {
+          tenant_id: tenantId,
+          name: serviceName,
+          price_cents: priceCents,
+          duration_min: serviceDuration
+        }
+      ])
       .select()
       .single();
 
     if (srvErr) {
       toast.error("Erro ao cadastrar serviço");
+      setLoading(false);
       return;
     }
 
@@ -97,19 +105,22 @@ export default function ModalNewService({ tenantId, onClose, onCreated }: ModalN
       .from("professional_services")
       .insert(rows);
 
+    setLoading(false);
+
     if (linkErr) {
       toast.error("Serviço criado, mas falhou ao vincular profissionais");
-      return;
+    } else {
+      toast.success("Serviço cadastrado!");
     }
 
-    toast.success("Serviço cadastrado!");
-    onCreated(serviceId);
+    onCreated(serviceId, serviceName, serviceDuration);
     onClose();
   }
 
   return (
-    <div className={styles.modal}>
-      <div className={styles.modalContentSmall}>
+    <div className={styles.overlay}>
+      <div className={styles.modal}>
+        
         <button onClick={onClose} className={styles.closeBtn}>
           <X size={20} />
         </button>
@@ -120,7 +131,7 @@ export default function ModalNewService({ tenantId, onClose, onCreated }: ModalN
           className={styles.input}
           placeholder="Nome do serviço"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={e => setName(e.target.value)}
         />
 
         <input
@@ -128,7 +139,7 @@ export default function ModalNewService({ tenantId, onClose, onCreated }: ModalN
           placeholder="Preço (R$ opcional)"
           type="number"
           value={price}
-          onChange={(e) => setPrice(e.target.value)}
+          onChange={e => setPrice(e.target.value)}
         />
 
         <input
@@ -136,17 +147,13 @@ export default function ModalNewService({ tenantId, onClose, onCreated }: ModalN
           placeholder="Duração (min)"
           type="number"
           value={duration}
-          onChange={(e) => setDuration(e.target.value)}
+          onChange={e => setDuration(e.target.value)}
         />
 
-        <h4 style={{ marginTop: 10 }}>Profissionais do serviço</h4>
+        <h4 style={{ marginTop: 12 }}>Profissionais do serviço</h4>
 
         {professionals.length > 0 && (
-          <button
-            onClick={selectAllProfessionals}
-            className={styles.smallBtn}
-            style={{ marginBottom: "6px" }}
-          >
+          <button onClick={selectAllProfessionals} className={styles.smallBtn}>
             {selectedProfessionals.length === professionals.length
               ? "Desmarcar todos"
               : "Selecionar todos"}
@@ -155,9 +162,9 @@ export default function ModalNewService({ tenantId, onClose, onCreated }: ModalN
 
         <div className={styles.checkList}>
           {professionals.length === 0 ? (
-            <p style={{ fontSize: 13 }}>Nenhum profissional cadastrado.</p>
+            <p className={styles.emptyText}>Nenhum profissional cadastrado.</p>
           ) : (
-            professionals.map((p) => (
+            professionals.map(p => (
               <label key={p.id} className={styles.checkItem}>
                 <input
                   type="checkbox"
@@ -170,8 +177,8 @@ export default function ModalNewService({ tenantId, onClose, onCreated }: ModalN
           )}
         </div>
 
-        <button className={styles.saveButton} onClick={handleSave} style={{ marginTop: "10px" }}>
-          Salvar Serviço
+        <button className={styles.saveButton} disabled={loading} onClick={handleSave}>
+          {loading ? "Salvando..." : "Salvar Serviço"}
         </button>
       </div>
     </div>
