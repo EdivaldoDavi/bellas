@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-
+import DatePickerAgenda from "../components/DatePickerAgenda";
 import ModalCalendar from "./ModalCalendar";
 import ModalScheduleTimes from "./ModalScheduletimes";
 import ModalSelectServiceForProfessional from "./ModalSelectServiceForProfessional";
@@ -402,33 +402,29 @@ async function handleCancelAppointment(id: string) {
       </div>
 
       {/* Navegação de data */}
-      <div className={styles.dateNav}>
-        <button onClick={() => setCurrentDate(d => new Date(d.getTime() - 86400000))} className={styles.navButton}>
-          <ChevronLeft size={18} />
-        </button>
+<div className={styles.dateNav}>
+  <button
+    onClick={() => setCurrentDate((d) => new Date(d.getTime() - 86400000))}
+    className={styles.navButton}
+  >
+    <ChevronLeft size={18} />
+  </button>
 
-        <div className={styles.dateCenter}>
-          <div className={styles.datePickerWrapper}>
-            <input
-              type="date"
-              className={styles.datePicker}
-              value={toLocalISOString(currentDate).split("T")[0]}
-              onChange={(e) => {
-                const sel = e.target.value
-                  ? new Date(`${e.target.value}T00:00:00`)
-                  : new Date();
-                setCurrentDate(sel);
-              }}
-            />
-          </div>
-          <h3 className={styles.date}>{formattedDate}</h3>
-        </div>
+  <div className={styles.dateCenter}>
+    <DatePickerAgenda
+      value={toLocalISOString(currentDate).split("T")[0]}
+      onSelect={(iso) => setCurrentDate(new Date(`${iso}T00:00:00`))}
+    />
+    <h3 className={styles.date}>{formattedDate}</h3>
+  </div>
 
-        <button onClick={() => setCurrentDate(d => new Date(d.getTime() + 86400000))} className={styles.navButton}>
-          <ChevronRight size={18} />
-        </button>
-      </div>
-
+  <button
+    onClick={() => setCurrentDate((d) => new Date(d.getTime() + 86400000))}
+    className={styles.navButton}
+  >
+    <ChevronRight size={18} />
+  </button>
+</div>
       {/* Lista de agendamentos */}
       <div className={styles.list}>
         {loading ? (

@@ -1,4 +1,36 @@
 // src/utils/date.ts
+import {  supabase } from "../lib/supabaseCleint";
+import { toast } from "react-toastify";
+
+export async function checkAvailableTimes(dateStr: string, profId: string) {
+  if (!dateStr || !profId) return false;
+
+  const { startISO, endISO } = getDayBoundsISO(dateStr);
+
+  const { data: appointments } = await supabase
+    .from("appointments")
+    .select("id, starts_at")
+    .eq("professional_id", profId)
+    .gte("starts_at", startISO)
+    .lte("starts_at", endISO);
+
+  if (!appointments || appointments.length === 0) {
+    toast.warn("Não há horários disponíveis para este profissional na data escolhida.");
+    return false;
+  }
+
+  return true;
+}
+
+
+export function isInvalidAppointmentDate(dateStr: string) {
+  if (!dateStr) return true;
+  if (isPastDateLocal(dateStr)) return true;
+  if (getWeekdayLocal(dateStr) === 7) return true; // domingo
+  if (isHoliday(dateStr)) return true;
+  return false;
+}
+
 
 /** Parse date string YYYY-MM-DD to local Date */
 export function parseLocalDate(dateStr: string): Date {

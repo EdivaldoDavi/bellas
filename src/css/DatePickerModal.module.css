@@ -1,0 +1,324 @@
+/* =========================================
+   Campo principal (fora do modal)
+========================================= */
+.inputWrapper {
+  position: relative;
+  cursor: pointer;
+  width: 100%;
+}
+
+.input {
+  width: 100%;
+  padding: 10px 36px 10px 14px;
+  font-size: 1rem;
+  border: 1px solid var(--separator);
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: var(--text);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.input:hover {
+  border-color: var(--text-muted);
+  background: var(--bg);
+}
+
+.icon {
+  position: absolute;
+  right: 10px;
+  top: 9px;
+  color: var(--color-primary);
+  pointer-events: none;
+}
+
+/* =========================================
+   Overlay e modal container
+========================================= */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fade 0.25s ease;
+  z-index: 9999;
+}
+
+.modal {
+  background: var(--card-bg);
+  padding: 20px;
+  border-radius: 16px;
+  width: 92vw;
+  max-width: 380px;
+  box-sizing: border-box;
+  animation: slideUp 0.3s ease;
+  border: 1px solid var(--separator);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  color: var(--text);
+  overflow: hidden;
+}
+
+/* =========================================
+   Animações de entrada
+========================================= */
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(35px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cellFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* =========================================
+   Cabeçalho (navegação de meses)
+========================================= */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  user-select: none;
+}
+
+.header h3 {
+  text-transform: capitalize;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.navBtn {
+  background: var(--bg);
+  border: 1px solid var(--separator);
+  border-radius: 8px;
+  padding: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+  color: var(--text);
+}
+
+.navBtn:hover {
+  background: var(--color-primary);
+  color: #fff;
+  transform: scale(1.05);
+}
+
+/* =========================================
+   Legenda
+========================================= */
+.legend {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 8px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  user-select: none;
+}
+
+.badgeOk,
+.badgeNo {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.badgeOk {
+  background: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+
+.badgeNo {
+  background: var(--bg);
+  border: 1px dashed var(--separator);
+}
+
+/* =========================================
+   Grade do calendário
+========================================= */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  justify-items: center;
+}
+
+.cell {
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  max-width: 46px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+  user-select: none;
+  animation: cellFadeIn 0.35s ease both;
+  transition: all 0.2s ease;
+}
+
+/* animação em sequência */
+.cell:nth-child(1) { animation-delay: 0.02s; }
+.cell:nth-child(2) { animation-delay: 0.04s; }
+.cell:nth-child(3) { animation-delay: 0.06s; }
+.cell:nth-child(4) { animation-delay: 0.08s; }
+.cell:nth-child(5) { animation-delay: 0.1s; }
+.cell:nth-child(6) { animation-delay: 0.12s; }
+.cell:nth-child(7) { animation-delay: 0.14s; }
+
+.headerCell {
+  background: transparent;
+  color: var(--text-muted);
+  height: auto;
+  cursor: default;
+  font-weight: 500;
+}
+
+.cellOk {
+  background: var(--bg);
+  border: 1px solid var(--color-primary);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.cellOk:hover {
+  background: var(--color-primary);
+  color: #fff;
+  transform: scale(1.05);
+}
+
+.cellNo {
+  background: var(--bg);
+  border: 1px dashed var(--separator);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+
+.today {
+  outline: 2px solid var(--color-primary);
+}
+
+/* =========================================
+   Estados e rodapé
+========================================= */
+.loading {
+  margin-top: 12px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.footerHint {
+  margin-top: 14px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* =========================================
+   Botões padrão do DatePicker
+========================================= */
+.dateInput {
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  background: var(--bg);
+  border: 1px solid var(--separator);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+/* =========================================
+   Botões de ação (cancelar/confirmar)
+========================================= */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.cancel,
+.confirm {
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.2s ease;
+}
+
+.cancel {
+  background: var(--bg);
+  border: 1px solid var(--separator);
+  color: var(--text-muted);
+}
+
+.cancel:hover {
+  background: var(--separator);
+  color: var(--text);
+  transform: scale(1.03);
+}
+
+.confirm {
+  background: var(--color-primary);
+  border: none;
+  color: #fff;
+}
+
+.confirm:hover {
+  filter: brightness(1.15);
+  transform: scale(1.03);
+}
+
+/* =========================================
+   Responsividade
+========================================= */
+@media (max-width: 420px) {
+  .modal {
+    width: 95vw;
+    padding: 16px;
+  }
+
+  .cell {
+    max-width: 40px;
+    font-size: 0.9rem;
+  }
+
+  .legend {
+    font-size: 0.8rem;
+    gap: 10px;
+  }
+}

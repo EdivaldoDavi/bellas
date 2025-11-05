@@ -2,16 +2,16 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { toast } from "react-toastify";
 import styles from "../css/AgendaWizard.module.css";
 import { supabase } from "../lib/supabaseCleint";
+import DatePickerModal from "../components/DatePickerModal";
 
-// Components
 import SelectClientWhatsApp from "../components/SelectClientWhatsapp";
 import ModalNewCustomer from "../components/ModalNewCustomer";
 import ModalNewService from "../components/ModalNewService";
 import ModalNewProfessional from "../components/ModalNewProfessional";
-
+import { CalendarDays, Clock } from "lucide-react";
 // Utils
 import {
-  toLocalISOString,
+ 
   isPastDateLocal,
   getWeekdayLocal,
   combineLocalDateTime,
@@ -59,6 +59,7 @@ export default function ModalScheduleWizard({
   const [serviceName, setServiceName] = useState("");
   const [serviceDuration, setServiceDuration] = useState<number | null>(null);
   const [newServiceId, setNewServiceId] = useState<string | null>(null);
+const [customerName, setCustomerName] = useState("");
 
   const [customerId, setCustomerId] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
@@ -359,43 +360,45 @@ export default function ModalScheduleWizard({
                 + Novo cliente
               </button>
 
-              <SelectClientWhatsApp
-                ref={clientRef}
-                tenantId={tenantId}
-                value={customerId}
-                onChange={setCustomerId}
-                onAdd={() => setShowNewCustomer(true)}
-              />
+             <SelectClientWhatsApp
+  tenantId={tenantId}
+  value={customerId}
+  onChange={(id, name) => {
+    setCustomerId(id);
+    setCustomerName(name);
+  }}
+  onAdd={() => setShowNewCustomer(true)}
+/>
+
             </div>
           )}
 
           {step === 4 && (
             <div className={styles.step}>
               <h3 className={styles.stepTitle}>Escolha a data</h3>
-              <input
-                type="date"
-                className={styles.datePicker}
-                value={selectedDate}
-                onChange={async (e) => {
-                  const d = e.target.value;
-                  if (!d) return;
 
-                  const today = toLocalISOString(new Date()).split("T")[0];
-                  if (d < today) return toast.warn("Data passada");
-                  if (isHoliday(d)) return toast.warn("Feriado não permitido");
+          <DatePickerModal
+            professionalId={professionalId}
+            serviceDuration={serviceDuration || 60}
+            value={selectedDate}
+            onSelect={async (d) => {
+              setSelectedDate(d);
+              setSelectedTime("");
+            await loadTimes(d, professionalId, serviceDuration || 60);
+            
+            }}
+          />
 
-                  setSelectedDate(d);
-                  setSelectedTime("");
-
-                  if (professionalId && serviceDuration) {
-                    await loadTimes(d, professionalId, serviceDuration);
-                  }
-                }}
-              />
               {selectedDate && (
-                <div className={styles.helper}>
-                  {dateBR(selectedDate)} — {weekdayName(selectedDate)}
+              <div className={styles.helper}>
+              <CalendarDays size={20} className={styles.helperIcon} />
+              <div className={styles.helperBody}>
+                <div className={styles.helperLabel}>Data selecionada</div>
+                <div className={styles.helperValue}>
+                  <strong>{dateBR(selectedDate)}</strong> — {weekdayName(selectedDate)}
                 </div>
+              </div>
+            </div>
               )}
             </div>
           )}
@@ -403,6 +406,12 @@ export default function ModalScheduleWizard({
           {step === 5 && (
             <div className={styles.step}>
               <h3 className={styles.stepTitle}>Selecione o horário</h3>
+
+              {availableTimes.length === 0 && (
+                <p style={{ color: "#f0ad4e", fontSize: "0.9rem" }}>
+                  Nenhum horário disponível nesta data.
+                </p>
+              )}
 
               <div className={styles.timeGrid}>
                 {availableTimes.map((t) => (
@@ -418,18 +427,48 @@ export default function ModalScheduleWizard({
             </div>
           )}
 
-          {step === 6 && (
-            <div className={styles.step}>
-              <h3 className={styles.stepTitle}>Confirme os dados</h3>
-              <div className={styles.reviewCard}>
-                <div className={styles.reviewRow}><span>Profissional</span><span>{professionalName}</span></div>
-                <div className={styles.reviewRow}><span>Serviço</span><span>{serviceName} ({serviceDuration} min)</span></div>
-                <div className={styles.reviewRow}><span>Cliente</span><span>{customerId ? "Selecionado" : "-"}</span></div>
-                <div className={styles.reviewRow}><span>Data</span><span>{dateBR(selectedDate)}</span></div>
-                <div className={styles.reviewRow}><span>Hora</span><span>{selectedTime}</span></div>
-              </div>
-            </div>
-          )}
+       {step === 6 && (
+  <div className={styles.step}>
+    <h3 className={styles.stepTitle}>Confirme os dados</h3>
+
+    <div className={styles.reviewCard}>
+      <div className={styles.reviewRow}>
+        <span className={styles.label}>Profissional</span>
+        <span className={styles.value}>{professionalName}</span>
+      </div>
+
+      <div className={styles.reviewRow}>
+        <span className={styles.label}>Serviço</span>
+        <span className={styles.value}>
+          {serviceName} ({serviceDuration} min)
+        </span>
+      </div>
+
+      <div className={styles.reviewRow}>
+        <span className={styles.label}>Cliente</span>
+        <span className={styles.value}>{customerName || "-"}</span>
+      </div>
+
+     
+    <div className={`${styles.reviewRow} ${styles.dateRow}`}>
+  <div className={styles.iconWrapper}>
+    <CalendarDays size={18} />
+    <span className={styles.label}>Data</span>
+  </div>
+  <span className={styles.value}>{dateBR(selectedDate)}</span>
+</div>
+
+<div className={`${styles.reviewRow} ${styles.timeRow}`}>
+  <div className={styles.iconWrapper}>
+    <Clock size={18} />
+    <span className={styles.label}>Hora</span>
+  </div>
+  <span className={styles.value}>{selectedTime}</span>
+</div>
+    </div>
+  </div>
+)}
+
 
         </div>
 

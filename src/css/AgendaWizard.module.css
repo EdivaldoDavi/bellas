@@ -144,11 +144,75 @@
   color: var(--text);
 }
 
+/* ============================
+   Helper: Data selecionada
+============================ */
+/* Card de Data Selecionada - ocupa 100% do modal */
 .helper {
-  margin-top: .25rem;
-  font-size: .95rem;
-  color: var(--text-muted);
+  width: 100%;
+  box-sizing: border-box;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  background: color-mix(in srgb, var(--color-primary) 12%, var(--card-bg));
+  border: 1px solid var(--color-primary);
+  border-radius: 12px;
+  padding: 12px 14px;
+
+  color: var(--text);
+  transition: border-color .25s ease, box-shadow .25s ease, transform .2s ease;
+  box-shadow: 0 4px 14px rgba(0,0,0,.18);
 }
+
+.helper:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-primary) 40%, transparent);
+  transform: translateY(-1px);
+}
+
+/* Ícone à esquerda */
+.helperIcon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+  opacity: .95;
+}
+
+/* Conteúdo em duas linhas (label + valor) */
+.helperBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;            /* evita quebra estranha em nomes longos */
+  flex: 1;
+}
+
+/* Label “Data selecionada” */
+.helperLabel {
+  font-size: .78rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* Valor principal (data + dia da semana) */
+.helperValue {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.helperValue strong {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
 
 /* Grid de horários */
 .timeGrid {
@@ -191,23 +255,119 @@
 
 
 /* Card de revisão */
+/* ============================
+   Step 6 — Review Card
+============================ */
 .reviewCard {
+  background: var(--card-bg);
   border: 1px solid var(--separator);
-  border-radius: 12px;
-  padding: 1rem;
-  display: grid;
-  gap: .6rem;
-  background: var(--card-bg, #fff);
-}
-.reviewRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.label {
-  color: var(--text-muted);
+  border-radius: 14px;
+  padding: 18px 22px;
+  color: var(--text);
+  width: 100%;
+  max-width: 480px;
+  margin: 12px auto 0;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s ease;
+  animation: fadeIn 0.4s ease both;
 }
 
+.reviewCard:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 12px rgba(255, 184, 77, 0.3);
+  transform: translateY(-2px);
+}
+
+.reviewRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+  transition: color 0.3s ease;
+}
+
+.label {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.value {
+  color: var(--text);
+  font-weight: 600;
+  text-align: right;
+}
+
+/* ============================
+   Data e Hora (destaque visual)
+============================ */
+.dateRow,
+.timeRow {
+  background: var(--bg);
+  border: 1px solid var(--separator);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.dateRow:hover,
+.timeRow:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 10px rgba(255, 184, 77, 0.25);
+  transform: translateY(-1px);
+}
+
+.dateRow .label,
+.timeRow .label {
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.dateRow .value,
+.timeRow .value {
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.5px;
+}
+
+/* Ícone visual à esquerda (opcional) */
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.iconWrapper svg {
+  color: var(--color-primary);
+  opacity: 0.85;
+}
+
+/* Título do step */
+.stepTitle {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+/* Animação de fade-in */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 /* ==== LISTAGEM ESTILO SELECT CLIENT ==== */
 
 .list {
@@ -350,4 +510,34 @@
     max-width: 520px;
     border-radius: 16px 16px 0 0;
   }
+  .reviewCard {
+    padding: 16px;
+  }
+
+  .reviewRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .value {
+    text-align: left;
+  }
+  .dateRow,
+  .timeRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .dateRow .value,
+  .timeRow .value {
+    font-size: 1rem;
+  }
+  .helper {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+  .helperLabel { font-size: .74rem; }
+  .helperValue { font-size: .95rem; }
 }

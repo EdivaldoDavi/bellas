@@ -12,34 +12,57 @@ interface Client {
 interface Props {
   tenantId: string;
   value: string;
-  onChange: (id: string) => void;
+  onChange: (id: string, name: string) => void; // ✅ agora também recebe nome
   onAdd: () => void;
 }
 
-// ✅ Agora com forwardRef para expor reload()
-const SelectClientWhatsApp = forwardRef(function SelectClientWhatsApp(
-  { tenantId, value, onChange, onAdd }: Props,
+export interface SelectClientRef {
+  reload: (id?: string) => void;
+}
+
+const SelectClientWhatsApp = forwardRef<SelectClientRef, Props>(function SelectClientWhatsApp(
+  { tenantId, value, onChange, onAdd },
   ref
 ) {
   const [list, setList] = useState<Client[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // ✅ carregar lista inicial
   useEffect(() => {
     if (!tenantId) return;
     loadInitial();
   }, [tenantId]);
 
-  async function loadInitial() {
+  // ✅ expõe reload para o pai
+  useImperativeHandle(ref, () => ({
+    reload: async (selectedId?: string) => {
+      await loadInitial(selectedId);
+    }
+  }));
+
+  async function loadInitial(selectId?: string) {
     setLoading(true);
+
     const { data } = await supabase
       .from("customers")
       .select("id,full_name,customer_phone")
       .eq("tenant_id", tenantId)
       .order("full_name", { ascending: true })
-      .limit(10);
+      .limit(50);
 
-    setList(data || []);
+    let listData = data || [];
+
+    // ✅ Se cliente recém criado, coloca no topo e seleciona
+    if (selectId) {
+      const selected = listData.find(c => c.id === selectId);
+      if (selected) {
+        listData = [selected, ...listData.filter(c => c.id !== selectId)];
+        onChange(selected.id, selected.full_name);
+      }
+    }
+
+    setList(listData);
     setLoading(false);
   }
 
@@ -59,37 +82,6 @@ const SelectClientWhatsApp = forwardRef(function SelectClientWhatsApp(
     setList(data || []);
     setLoading(false);
   }
-
-  // ✅ Função para recarregar após criar cliente
-async function reload(selectId?: string) {
-  const { data } = await supabase
-    .from("customers")
-    .select("id,full_name,customer_phone")
-    .eq("tenant_id", tenantId)
-    .order("full_name", { ascending: true });
-
-  let listData = data || [];
-
-  // ✅ Se um novo id foi passado, mova ele para o topo
-  if (selectId) {
-    const selectedItem = listData.find(c => c.id === selectId);
-    if (selectedItem) {
-      listData = [
-        selectedItem,
-        ...listData.filter(c => c.id !== selectId)
-      ];
-    }
-
-    // Seleciona automaticamente no form
-    onChange(selectId);
-    setSearch(""); // limpa busca para mostrar lista completa
-  }
-
-  setList(listData);
-}
-
-  // ✅ disponibiliza método reload para o componente pai
-  useImperativeHandle(ref, () => ({ reload }));
 
   return (
     <div className={styles.wrapper}>
@@ -114,7 +106,7 @@ async function reload(selectId?: string) {
           <div
             key={c.id}
             className={`${styles.item} ${value === c.id ? styles.itemSelected : ""}`}
-            onClick={() => onChange(c.id)}
+            onClick={() => onChange(c.id, c.full_name)}
           >
             <img
               src={`https://api.dicebear.com/8.x/avataaars/svg?seed=${encodeURIComponent(c.full_name)}`}
