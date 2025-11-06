@@ -320,39 +320,58 @@ select:focus {
 /* ===========================================================
    RESPONSIVO
 =========================================================== */
+/* --- MOBILE: manter layout em linha como no desktop --- */
 @media (max-width: 768px) {
-  .modalContent {
-    width: 92%;
-    padding: 1.3rem;
-  }
-
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .newButton {
-    width: 100%;
-    justify-content: center;
-  }
-
+  /* Use grid 3 colunas: seta / centro / seta (estável e sem quebra) */
   .dateNav {
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 44px 1fr 44px;
+    align-items: center;
+    justify-content: center;
     gap: 12px;
     padding: 10px 12px;
-  }
-
-  .datePickerWrapper {
-    width: 160px;
+    margin: 16px 0 20px;
+    /* remove qualquer override anterior */
+    /* flex-direction: column;  <-- remova se existir */
   }
 
   .navButton {
     width: 44px;
     height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto; /* não deixa a seta esticar */
+  }
+
+  .dateCenter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;     /* evita overflow do centro */
+    gap: 6px;
+  }
+
+  .datePickerWrapper {
+    width: 100%;
+    max-width: 220px; /* centraliza e evita empurrar as setas */
+  }
+
+  .datePicker {
+    appearance: auto;
+    -webkit-appearance: auto;
+    background: var(--card-bg);
+    color: var(--text);
+    border: 1px solid var(--separator);
+    border-radius: 10px;
+    padding: .5rem .7rem;
+    font-size: 14px;
+    text-align: center;
   }
 
   .date {
     font-size: 0.95rem;
+    text-align: center;
   }
 }
