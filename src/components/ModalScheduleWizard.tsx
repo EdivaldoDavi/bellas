@@ -253,17 +253,50 @@ const [customerName, setCustomerName] = useState("");
 
   const labels = ["Profissional", "Serviço", "Cliente", "Data", "Horário", "Revisão"];
   const progressLabel = `${labels[step - 1]} (${step}/${totalSteps})`;
-
+/* Header */
+const stepName = labels[step - 1];
+const stepPct =
+  totalSteps > 1 ? ((step - 1) / (totalSteps - 1)) * 100 : 0;
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
 
         {/* Header */}
-        <div className={styles.header}>
-          <div style={{ width: 36 }} />
-          <div className={styles.headerTitle}>{progressLabel}</div>
-          <button className={styles.closeTextBtn} onClick={handleClose}>Fechar</button>
-        </div>
+    <div className={styles.header}>
+  <div className={styles.headerBar}>
+    {/* Espaçador à esquerda para manter centro absoluto (como já fazia) */}
+    <div className={styles.headerSide} />
+
+    <div className={styles.headerCenter}>
+      <span className={styles.headerKicker}>Agendamento</span>
+      <h4 className={styles.headerTitle}>
+        {stepName} <span className={styles.headerCount}>({step}/{totalSteps})</span>
+      </h4>
+    </div>
+
+    <button className={styles.closeTextBtn} onClick={handleClose}>
+      Fechar
+    </button>
+  </div>
+
+  {/* Progress bar */}
+  <div className={styles.headerProgress}>
+    <div
+      className={styles.headerProgressFill}
+      style={{ width: `${stepPct}%` }}
+    />
+  </div>
+
+  {/* Dots de etapas */}
+  <div className={styles.headerDots} aria-hidden="true">
+    {Array.from({ length: totalSteps }).map((_, i) => (
+      <span
+        key={i}
+        className={`${styles.dot} ${i < step ? styles.dotActive : ""}`}
+      />
+    ))}
+  </div>
+</div>
 
         {/* Body */}
         <div className={styles.body}>

@@ -21,18 +21,126 @@
 
 /* Header */
 .header {
-  display: flex;
+  position: sticky;          /* gruda no topo do modal */
+  top: 0;
+  z-index: 3;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background:
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--bg) 80%, transparent) 0%,
+      color-mix(in srgb, var(--bg) 92%, transparent) 100%
+    );
+  border-bottom: 1px solid color-mix(in srgb, var(--separator) 80%, transparent);
+  padding: 10px 12px 12px;
+  box-shadow:
+    0 2px 12px rgba(0,0,0,.08),
+    inset 0 -1px 0 color-mix(in srgb, var(--separator) 60%, transparent);
+}
+
+/* Barra superior: lado-esquerdo | centro | lado-direito */
+.headerBar {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
   align-items: center;
-  justify-content: space-between;
-  gap: .5rem;
-  padding: 1rem;
-  border-bottom: 1px solid var(--separator);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.headerSide { width: 36px; height: 36px; } /* o seu espaçador “fantasma” */
+
+.headerCenter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+.headerKicker {
+  font-size: .72rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 700;
 }
 
 .headerTitle {
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.1;
 }
 
+.headerCount {
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+/* Botão "Fechar" mais elegante */
+.closeTextBtn {
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--separator) 80%, transparent);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: .875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .15s ease, background .2s ease, border-color .2s ease;
+}
+.closeTextBtn:hover {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary) 40%, var(--separator));
+  transform: translateY(-1px);
+}
+
+/* Progress bar (cheia e suave) */
+.headerProgress {
+  position: relative;
+  height: 6px;
+  width: 100%;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--separator) 65%, transparent);
+  overflow: hidden;
+}
+
+.headerProgressFill {
+  height: 100%;
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--color-primary) 85%, #fff) 0%,
+      var(--color-primary) 100%
+    );
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-primary) 55%, transparent);
+  transition: width .35s ease;
+}
+
+/* Dots de etapas (reforço visual) */
+.headerDots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--separator) 70%, transparent);
+  transform: translateZ(0);
+  transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+}
+
+.dotActive {
+  background: var(--color-primary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 22%, transparent);
+  transform: scale(1.12);
+}
 /* Botão de ícone (voltar/fechar) */
 .iconBtn {
   width: 36px;
@@ -221,20 +329,21 @@
   gap: .5rem;
 }
 .timeBtn {
-  padding: .65rem .4rem;
+  padding: .65rem;
   border-radius: 10px;
+  background: var(--card-bg);
   border: 1px solid var(--separator);
-  background: var(--card-bg, #fff);
-  color: var(--text);
   font-weight: 600;
+  transition: .2s;
 }
-.timeBtn:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+
+.timeBtn:hover {
+  border-color: var(--color-primary);
 }
 
 .timeActive {
-  outline: 2px solid var(--color-primary);
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 12%, var(--card-bg));
 }
 .addButton {
   width: 100%;
