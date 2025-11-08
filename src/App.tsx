@@ -15,6 +15,10 @@ import "react-toastify/dist/ReactToastify.css";
 import AssinaturasPage from "./pages/AssinaturasPage";
 import PerfilPage from "./pages/PerfilPage";
 import Agenda from "./components/Agenda";
+
+// ✅ IMPORTA A NOVA PÁGINA
+import ConnectWhatsAppPage from './pages/ConnectWhatsAppPage';
+
 // 🔹 Loading enquanto verifica auth
 function LoadingScreen() {
   return <div className="p-5 text-center">⏳ Carregando...</div>;
@@ -38,7 +42,8 @@ export default function App() {
 
   // Manter sessão autenticada
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {});
+    const { data: { subscription } } =
+      supabase.auth.onAuthStateChange(() => {});
     return () => subscription.unsubscribe();
   }, []);
 
@@ -71,16 +76,19 @@ export default function App() {
           }
         >
           <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/saloes" element={<SaloesPage />} /> {/* ✅ Nova rota */}
-        <Route path="/assinaturas" element={<AssinaturasPage />} /> {/* ✅ Nova rota */}
-          <Route path="/perfil" element={<PerfilPage />} /> {/* ✅ Nova rota */}
-          {/* Futuras rotas */}
+          <Route path="/saloes" element={<SaloesPage />} />
+          <Route path="/assinaturas" element={<AssinaturasPage />} />
+          <Route path="/perfil" element={<PerfilPage />} />
           <Route path="/agenda" element={<Agenda />} />
-          {/* <Route path="/clientes" element={<Clientes />} /> */}
+
+          {/* ✅ ✅ ✅ NOVA ROTA DO WHATSAPP */}
+          <Route
+            path="/integracoes/whatsapp"
+            element={<ConnectWhatsAppPage />}
+          />
         </Route>
       </Routes>
 
-      {/* ✅ Toasts globais ficam fora do Router para não reiniciar a cada change */}
       <ToastContainer position="top-right" autoClose={3000} />
     </BrowserRouter>
   );

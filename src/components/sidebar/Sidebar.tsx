@@ -1,5 +1,7 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";
+import { MessageCircle } from "lucide-react";
+
 import {
   LayoutDashboard,
   Building2,
@@ -40,27 +42,36 @@ export default function Sidebar({
   const variant = tenant?.theme_variant ?? "pink";
   const primary = THEME_PRIMARY[variant] ?? THEME_PRIMARY.pink;
 
-  let menu: MenuItem[] = role === "superuser"
-    ? [
-        { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
-        { to: "/saloes", label: "Salões", icon: <Building2 size={20} /> },
-        { to: "/assinaturas", label: "Assinaturas", icon: <CreditCard size={20} /> },
-        { to: "/perfil", label: "Meu Perfil", icon: <User size={20} /> },
-      ]
-    : role === "manager"
-    ? [
-        { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
-        { to: "/agenda", label: "Agenda", icon: <Calendar size={20} /> },
-        { to: "/usuarios", label: "Usuários", icon: <Users size={20} /> },
-        { to: "/config", label: "Configurações", icon: <Settings size={20} /> },
-        { to: "/perfil", label: "Meu Perfil", icon: <User size={20} /> },
-      ]
-    : [
-        { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
-        { to: "/agenda", label: "Agenda", icon: <Calendar size={20} /> },
-        { to: "/comissoes", label: "Minhas Comissões", icon: <BadgeDollarSign size={20} /> },
-        { to: "/perfil", label: "Meu Perfil", icon: <User size={20} /> },
-      ];
+let menu: MenuItem[] = role === "superuser"
+  ? [
+      { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
+      { to: "/saloes", label: "Salões", icon: <Building2 size={20} /> },
+      { to: "/assinaturas", label: "Assinaturas", icon: <CreditCard size={20} /> },
+
+      // ✅ WhatsApp para superuser
+      { to: "/integracoes/whatsapp", label: "WhatsApp", icon: <MessageCircle size={20} /> },
+
+      { to: "/perfil", label: "Meu Perfil", icon: <User size={20} /> },
+    ]
+  : role === "manager"
+  ? [
+      { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
+      { to: "/agenda", label: "Agenda", icon: <Calendar size={20} /> },
+      { to: "/usuarios", label: "Usuários", icon: <Users size={20} /> },
+      { to: "/config", label: "Configurações", icon: <Settings size={20} /> },
+
+      // ✅ WhatsApp para manager
+      { to: "/integracoes/whatsapp", label: "WhatsApp", icon: <MessageCircle size={20} /> },
+
+      { to: "/perfil", label: "Meu Perfil", icon: <User size={20} /> },
+    ]
+  : [
+      // ✅ professional → sem WhatsApp
+      { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
+      { to: "/agenda", label: "Agenda", icon: <Calendar size={20} /> },
+      { to: "/comissoes", label: "Minhas Comissões", icon: <BadgeDollarSign size={20} /> },
+      { to: "/perfil", label: "Meu Perfil", icon: <User size={20} /> },
+    ];
 
   const handleLogout = async () => {
     try {
