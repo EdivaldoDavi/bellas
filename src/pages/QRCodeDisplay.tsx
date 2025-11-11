@@ -5,20 +5,17 @@ import styles from "../css/QRCodeDisplay.module.css";
 
 export interface QRCodeDisplayProps {
   instanceId: string;
-  autoStart?: boolean;   // agora só conecta se for TRUE e explicitamente permitido
+  autoStart?: boolean;
   baseUrl?: string;
 }
 
 export default function QRCodeDisplay({
   instanceId,
-  autoStart = false,     // 🔥 padrão alterado: NUNCA conecta sozinho
+  autoStart = false,
   baseUrl = "/api",
 }: QRCodeDisplayProps) {
-  
-  const safeInstanceId = useMemo(
-    () => (instanceId || "").trim(),
-    [instanceId]
-  );
+
+  const safeInstanceId = useMemo(() => instanceId.trim(), [instanceId]);
 
   const {
     status,
@@ -26,131 +23,125 @@ export default function QRCodeDisplay({
     error,
     loading,
     start,
+    refresh,
     logout,
+    realInstanceId,
   } = useEvolutionConnection({
     baseUrl,
-    autostart: false,          // 🔥 hook nunca inicia sozinho
+    autostart: false,
     initialInstanceId: safeInstanceId,
   });
 
-  /* LOGS para debug */
-  useEffect(() => console.log("📡 STATUS:", status), [status]);
-useEffect(() => { qrBase64 && console.log("🟢 QR:", qrBase64.slice(0, 32)); }, [qrBase64]);
-useEffect(() => { error && console.error("❌ ERRO:", error); }, [error]);
+  // ✅ Refresh apenas 1 vez ao montar
+  useEffect(() => {
+    refresh();
+  }, []);
 
-  /* 🔥 autoStart SOMENTE se permitido explicitamente */
+  // ✅ AutoStart opcional (somente quando usuário ativou)
   useEffect(() => {
     if (autoStart && safeInstanceId) {
-      start();                  // somente aqui, e somente se autoStart = TRUE
+      start();
     }
   }, [autoStart, safeInstanceId, start]);
 
-  const isTrying = loading || status === "OPENING";
-  const isConnected =
-    status === "CONNECTED" ||
-    status === "OPEN" ||
-    status === "AUTHENTICATED";
+useEffect(() => {
+  console.log("🔄 STATUS RECEBIDO DO HOOK:", status);
 
+  if (status === "CONNECTED") {
+    document.body.classList.add("wa-connected");
+  } else {
+    document.body.classList.remove("wa-connected");
+  }
+}, [status, safeInstanceId]);
+
+
+  /* ---------- Estados de UI ---------- */
+  const isConnecting = loading || status === "OPENING";
+  const isConnected = status === "CONNECTED";
   const showQR = !!qrBase64 && !isConnected;
 
   return (
-    <div className={styles.wrapper}>
-      
-      {/* STATUS */}
-      <div className={styles.statusRow}>
-        <span className={styles.dot} data-status={status} />
-        <span className={styles.statusText}>{labelFromStatus(status)}</span>
-      </div>
+    <div className={styles.container}>
+      <div className={styles.card}>
 
-      {/* ERRO */}
-      {error && (
-        <div className={styles.errorBox}>
-          <strong>Erro:</strong> {error}
+        <div className={styles.header}>
+          <h2 className={styles.title}>WhatsApp · Conexão</h2>
+
+          {realInstanceId && (
+            <span className={styles.instanceId}>
+              Instância: {realInstanceId}
+            </span>
+          )}
         </div>
-      )}
 
-      {/* BOTÕES */}
-      <div className={styles.actions}>
-        {!isConnected && (
-          <button
-            className={styles.btnConnect}
-            onClick={() => start()}
-            disabled={isTrying || !safeInstanceId}
-          >
-            {isTrying ? "Conectando..." : "Conectar WhatsApp"}
-          </button>
+        <div className={styles.statusBox}>
+          <span className={styles.statusDot} data-status={status} />
+          <span className={styles.statusText}>{labelFromStatus(status)}</span>
+        </div>
+
+        {error && <div className={styles.errorBox}>❌ {error}</div>}
+
+        {showQR && (
+          <div className={styles.qrArea}>
+            <img src={qrBase64} className={styles.qr} alt="QR Code" />
+          </div>
+        )}
+
+        {isConnecting && (
+          <div className={styles.loadingBox}>
+            <div className={styles.spinner} />
+            <p>Conectando…</p>
+          </div>
         )}
 
         {isConnected && (
-          <button className={styles.btnDisconnect} onClick={logout}>
-            Desconectar
-          </button>
+          <div className={styles.connectedBox}>
+            <div className={styles.connectedIllustration}>
+              <div className={styles.checkInside}>✓</div>
+            </div>
+            <p>✅ Conectado com sucesso!</p>
+          </div>
         )}
 
-        {!isConnected && !isTrying && (
-          <button
-            className={styles.btnSecondary}
-            onClick={() => start()}
-          >
-            Forçar verificação
-          </button>
-        )}
+        <div className={styles.buttons}>
+          {!isConnected && (
+            <button
+              className={styles.btnPrimary}
+              disabled={isConnecting}
+              onClick={start}
+            >
+              {isConnecting ? "Conectando..." : "Conectar"}
+            </button>
+          )}
+
+          {!isConnected && (
+            <button className={styles.btnSecondary} onClick={refresh}>
+              Recarregar
+            </button>
+          )}
+
+          {isConnected && (
+            <button className={styles.btnDanger} onClick={logout}>
+              Desconectar
+            </button>
+          )}
+        </div>
+
       </div>
-
-      {/* QR CODE */}
-      {showQR && (
-        <section className={styles.qrSection}>
-          <img
-            src={
-              qrBase64.startsWith("data:image/")
-                ? qrBase64
-                : `data:image/png;base64,${qrBase64}`
-            }
-            alt="QR Code do WhatsApp"
-            className={styles.qr}
-          />
-
-          <ol className={styles.steps}>
-            <li>Abra o WhatsApp.</li>
-            <li>Menu → Dispositivos conectados → Conectar.</li>
-            <li>Escaneie o QR acima.</li>
-          </ol>
-
-          <button
-            className={styles.btnReload}
-            onClick={() => start()}
-            disabled={isTrying}
-          >
-            Recarregar QR
-          </button>
-        </section>
-      )}
-
-      {/* CONECTADO */}
-      {isConnected && (
-        <section className={styles.connectedBox}>
-          ✅ Conectado com sucesso!
-        </section>
-      )}
     </div>
   );
 }
 
-/* LABELS AMIGÁVEIS */
 function labelFromStatus(s: EvoStatus | string) {
   const up = (s || "UNKNOWN").toUpperCase();
-
   switch (up) {
     case "IDLE": return "Pronto";
     case "OPENING": return "Conectando…";
-    case "QRCODE": return "Aguardando leitura do QR";
-    case "CONNECTED":
-    case "OPEN":
-    case "AUTHENTICATED":
-      return "Conectado";
+    case "QRCODE": return "Aguardando leitura…";
+    case "CONNECTED": return "Conectado";
     case "DISCONNECTED": return "Desconectado";
     case "LOGGED_OUT": return "Sessão encerrada";
     case "ERROR": return "Erro";
-    default: return "Desconhecido";
+    default: return "Desconectado";
   }
 }

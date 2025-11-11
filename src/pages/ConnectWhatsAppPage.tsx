@@ -2,15 +2,13 @@ import { useUserAndTenant } from "../hooks/useUserAndTenant";
 import QRCodeDisplay from "./QRCodeDisplay";
 
 export default function ConnectWhatsAppPage() {
-  const { tenant } = useUserAndTenant();
+  const { tenant, loading } = useUserAndTenant();
 
-  const instanceId = tenant?.id
-    ? `tenant_${tenant.id}`
-    : "tenant_demo";
+  if (loading) return <div style={{ padding: "2rem" }}>Carregando…</div>;
+  if (!tenant?.id) return <div style={{ padding: "2rem" }}>❌ Nenhum tenant encontrado.</div>;
 
-  const evoBase =
-    import.meta.env.VITE_EVO_PROXY_URL ??
-    "http://localhost:3001/api";
+  const instanceId = tenant.id; // ✅ UUID puro
+  const evoBase = import.meta.env.VITE_EVO_PROXY_URL ?? "http://localhost:3001/api";
 
   return (
     <div style={{ padding: "1.5rem" }}>
@@ -19,8 +17,8 @@ export default function ConnectWhatsAppPage() {
 
       <QRCodeDisplay
         instanceId={instanceId}
+        autoStart={false}
         baseUrl={evoBase}
-        autoStart={false}   // 🔥 AGORA NÃO CONECTA AUTOMATICAMENTE
       />
     </div>
   );
