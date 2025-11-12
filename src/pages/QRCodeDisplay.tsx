@@ -14,7 +14,6 @@ export default function QRCodeDisplay({
   autoStart = false,
   baseUrl = "/api",
 }: QRCodeDisplayProps) {
-
   const safeInstanceId = useMemo(() => instanceId.trim(), [instanceId]);
 
   const {
@@ -32,41 +31,39 @@ export default function QRCodeDisplay({
     initialInstanceId: safeInstanceId,
   });
 
-  // ✅ Refresh apenas 1 vez ao montar
+  // ✅ Atualiza status visual no body
+  useEffect(() => {
+    console.log("🔄 STATUS RECEBIDO DO HOOK:", status);
+    if (status === "CONNECTED") document.body.classList.add("wa-connected");
+    else document.body.classList.remove("wa-connected");
+  }, [status]);
+
+  // ✅ Refresh ao montar
   useEffect(() => {
     refresh();
-  }, []);
+  }, [refresh]);
 
-  // ✅ AutoStart opcional (somente quando usuário ativou)
+  // ✅ AutoStart (caso habilitado externamente)
   useEffect(() => {
-    if (autoStart && safeInstanceId) {
-      start();
-    }
+    if (autoStart && safeInstanceId) start();
   }, [autoStart, safeInstanceId, start]);
 
-useEffect(() => {
-  console.log("🔄 STATUS RECEBIDO DO HOOK:", status);
-
-  if (status === "CONNECTED") {
-    document.body.classList.add("wa-connected");
-  } else {
-    document.body.classList.remove("wa-connected");
-  }
-}, [status, safeInstanceId]);
-
-
-  /* ---------- Estados de UI ---------- */
+  /* ---------------- UI STATES ---------------- */
   const isConnecting = loading || status === "OPENING";
   const isConnected = status === "CONNECTED";
-  const showQR = !!qrBase64 && !isConnected;
+  const isDisconnected =
+    status === "DISCONNECTED" ||
+    status === "LOGGED_OUT" ||
+    status === "UNKNOWN" ||
+    status === "IDLE";
+  const showQR = !!qrBase64 && !isConnected && !isConnecting;
 
+  /* ---------------- RENDER ---------------- */
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-
         <div className={styles.header}>
           <h2 className={styles.title}>WhatsApp · Conexão</h2>
-
           {realInstanceId && (
             <span className={styles.instanceId}>
               Instância: {realInstanceId}
@@ -74,19 +71,26 @@ useEffect(() => {
           )}
         </div>
 
+        {/* STATUS BOX */}
         <div className={styles.statusBox}>
           <span className={styles.statusDot} data-status={status} />
           <span className={styles.statusText}>{labelFromStatus(status)}</span>
         </div>
 
+        {/* ERRO */}
         {error && <div className={styles.errorBox}>❌ {error}</div>}
 
+        {/* QR */}
         {showQR && (
           <div className={styles.qrArea}>
             <img src={qrBase64} className={styles.qr} alt="QR Code" />
+            <p className={styles.qrHint}>
+              Escaneie o QR Code no seu aplicativo WhatsApp.
+            </p>
           </div>
         )}
 
+        {/* LOADING */}
         {isConnecting && (
           <div className={styles.loadingBox}>
             <div className={styles.spinner} />
@@ -94,6 +98,7 @@ useEffect(() => {
           </div>
         )}
 
+        {/* CONECTADO */}
         {isConnected && (
           <div className={styles.connectedBox}>
             <div className={styles.connectedIllustration}>
@@ -103,21 +108,37 @@ useEffect(() => {
           </div>
         )}
 
+        {/* BOTÕES */}
         <div className={styles.buttons}>
-          {!isConnected && (
-            <button
-              className={styles.btnPrimary}
-              disabled={isConnecting}
-              onClick={start}
-            >
-              {isConnecting ? "Conectando..." : "Conectar"}
-            </button>
-          )}
+          {isDisconnected && (
+            <>
+              {/* 🔹 Instruções antes de conectar */}
+              <div className={styles.instructionsBox}>
+                <p className={styles.instructionsTitle}>
+                  📱 Como conectar seu WhatsApp:
+                </p>
+                <ol className={styles.instructionsList}>
+                  <li>Abra o aplicativo <strong>WhatsApp</strong> no seu celular.</li>
+                  <li>
+                    Vá em <strong> ... três pontinhos → Dispositivos conectados</strong>.
+                  </li>
+                  <li>Toque em <strong>“Conectar um dispositivo”</strong>.</li>
+                  <li>Escaneie o QR Code exibido aqui na tela.</li>
+                </ol>
+              </div>
 
-          {!isConnected && (
-            <button className={styles.btnSecondary} onClick={refresh}>
-              Recarregar
-            </button>
+              <button
+                onClick={start}
+                disabled={loading}
+                className={styles.btnPrimary}
+              >
+                {loading ? "Conectando..." : "Conectar WhatsApp"}
+              </button>
+
+              <button className={styles.btnSecondary} onClick={refresh}>
+                Recarregar
+              </button>
+            </>
           )}
 
           {isConnected && (
@@ -126,22 +147,30 @@ useEffect(() => {
             </button>
           )}
         </div>
-
       </div>
     </div>
   );
 }
 
+/* ---------------- LABEL ---------------- */
 function labelFromStatus(s: EvoStatus | string) {
   const up = (s || "UNKNOWN").toUpperCase();
   switch (up) {
-    case "IDLE": return "Pronto";
-    case "OPENING": return "Conectando…";
-    case "QRCODE": return "Aguardando leitura…";
-    case "CONNECTED": return "Conectado";
-    case "DISCONNECTED": return "Desconectado";
-    case "LOGGED_OUT": return "Sessão encerrada";
-    case "ERROR": return "Erro";
-    default: return "Desconectado";
+    case "IDLE":
+      return "Pronto";
+    case "OPENING":
+      return "Conectando…";
+    case "QRCODE":
+      return "Aguardando leitura…";
+    case "CONNECTED":
+      return "Conectado";
+    case "DISCONNECTED":
+      return "Desconectado";
+    case "LOGGED_OUT":
+      return "Sessão encerrada";
+    case "ERROR":
+      return "Erro";
+    default:
+      return "Desconectado";
   }
 }

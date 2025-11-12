@@ -117,11 +117,85 @@
     align-items: flex-start;
     height: auto;
     gap: 1rem;
-    padding: 1rem;
+    padding: 0; /* remove o padding interno principal */
+    width: 100%;
+  }
+
+  .leftSection {
+    width: 100%;
+    padding: 1rem; /* mantém espaçamento interno para saudação */
+    box-sizing: border-box;
+  }
+
+  .greeting {
+    font-size: 1rem;
+    margin-bottom: 0.3rem;
+  }
+
+  /* 🔸 Alerta ocupa 100% da tela */
+  .whatsappAlert {
+    width: 100vw; /* largura total da viewport */
+    margin-left: calc(-1rem); /* corrige deslocamento lateral */
+    margin-right: calc(-1rem);
+    border-radius: 0; /* bordas retas para parecer uma faixa */
+    border-left: none;
+    border-right: none;
+    padding: 0.8rem 1rem;
+    font-size: 0.85rem;
+    text-align: left;
+    background: rgba(255, 193, 7, 0.12);
+    border-top: 1px solid rgba(255, 193, 7, 0.3);
+    border-bottom: 1px solid rgba(255, 193, 7, 0.3);
   }
 
   .rightSection {
     width: 100%;
     justify-content: space-between;
+    padding: 0 1rem 1rem;
+    box-sizing: border-box;
+  }
+}
+
+/* 🔹 Agrupa saudação + alerta em coluna */
+.leftSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  max-width: 60%;
+}
+
+.greeting {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+/* 🔸 Alerta de desconexão */
+.whatsappAlert {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(255, 193, 7, 0.08);
+  border: 1px solid rgba(255, 193, 7, 0.35);
+  color: #ffcd45;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  padding: 0.45rem 0.75rem;
+  border-radius: 6px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.alertIcon {
+  flex-shrink: 0;
+  color: #ffcd45;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

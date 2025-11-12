@@ -16,6 +16,14 @@ interface Options {
   initialInstanceId?: string;
 }
 
+type StatusPayload = {
+  status?: string;
+  instance?: { state?: string; phoneConnected?: boolean; connected?: boolean };
+  connected?: boolean;
+  phoneConnected?: boolean;
+  exists?: boolean;
+};
+
 export function useEvolutionConnection(opts: Options = {}) {
   /* ---------------------------------------------------------
      CONFIG
@@ -30,7 +38,7 @@ export function useEvolutionConnection(opts: Options = {}) {
   const autostart = !!opts.autostart;
 
   /* ---------------------------------------------------------
-     STATES
+     STATE
   --------------------------------------------------------- */
   const [realInstanceId, setRealInstanceId] = useState("");
   const [status, setStatus] = useState<EvoStatus>("IDLE");
@@ -40,7 +48,7 @@ export function useEvolutionConnection(opts: Options = {}) {
   const [loading, setLoading] = useState(false);
 
   /* ---------------------------------------------------------
-     CONTROL REFS
+     CONTROL
   --------------------------------------------------------- */
   const didLogoutRef = useRef(false);
   const sseRef = useRef<EventSource | null>(null);
@@ -63,9 +71,9 @@ export function useEvolutionConnection(opts: Options = {}) {
     }
   }, []);
 
-  const extractStatus = (raw: any) => {
+  const extractStatus = (raw: StatusPayload) => {
     if (!raw) return "UNKNOWN";
-    if (typeof raw === "string") return raw;
+    if (typeof (raw as any) === "string") return raw;
     if (raw.status) return raw.status;
     if (raw.instance?.state) return raw.instance.state;
     return "UNKNOWN";
@@ -77,70 +85,60 @@ export function useEvolutionConnection(opts: Options = {}) {
       if (raw.startsWith("data:image/")) return raw;
       return `data:image/png;base64,${raw}`;
     }
-
     const base =
       raw?.qr?.base64 ||
       raw?.qrcode?.base64 ||
       raw?.base64 ||
       raw?.qrcode ||
       null;
-
     return base ? `data:image/png;base64,${base}` : null;
   };
 
+  /** 🔍 converte o texto de status em EvoStatus coerente */
 const mapStatus = (raw: any): EvoStatus => {
   if (!raw) return "UNKNOWN";
   const s = String(raw).toLowerCase().trim();
 
-  // 🔥 ESTADOS DE CONECTADO
+  // ❌ Desconectado / offline (verificado primeiro!)
   if (
-    s === "open" ||
+    s === "disconnected" ||
+    s.includes("disconnected") ||
+    s.includes("offline") ||
+    s.includes("logout") ||
+    s.includes("closed") ||
+    s === "close"
+  ) {
+    return "DISCONNECTED";
+  }
+
+  // ✅ Conectado
+  if (
     s === "connected" ||
-    s.includes("connected") ||
-    s.includes("sessionconnected") ||
-    s.includes("session_active") ||
-    s.includes("sessionactive") ||
-    s.includes("session_activated") ||
-    s.includes("open_session") ||
-    s.includes("opensession") ||
-    s.includes("online") ||
-    s.includes("ready") ||
-    s.includes("active")
+    s.includes(" connected") || // evita "disconnected"
+    s === "online" ||
+    s.includes(" phone_connected") ||
+    s.includes("phoneconnected")
   ) {
     return "CONNECTED";
   }
 
-  // 🔥 Estados de CONNECTING
-  if (
-    s === "openning" ||
-    s.includes("opening") ||
-    s.includes("initializing")
-  ) {
+  // 🔄 Em conexão
+  if (s === "openning" || s.includes("opening") || s.includes("initializing")) {
     return "OPENING";
   }
 
-  // 🔥 Estados de QR
-  if (
-    s.includes("qr") ||
-    s.includes("scan") ||
-    s.includes("waiting")
-  ) {
+  // 🧾 QR
+  if (s.includes("qr") || s.includes("scan") || s.includes("waiting")) {
     return "QRCODE";
   }
 
-  // 🔥 Estados de desconectado
-  if (
-    s === "close" ||
-    s.includes("offline") ||
-    s.includes("logout") ||
-    s.includes("closed")
-  ) {
+  // ⚠️ Estados intermediários
+  if (s === "open" || s.includes("ready") || s.includes("active")) {
     return "DISCONNECTED";
   }
 
   return "UNKNOWN";
 };
-
 
   const setStatusSafe = (next: EvoStatus) => {
     if (lastStatusRef.current !== next) {
@@ -153,71 +151,97 @@ const mapStatus = (raw: any): EvoStatus => {
     }
   };
 
+  /** ✅ Checa se a instância existe consultando apenas /status */
+  const existsFetch = async (id: string): Promise<boolean> => {
+    if (!id) return false;
+    try {
+      const url = `${baseUrl.replace(/\/$/, "")}/evo/status?instanceId=${encodeURIComponent(id)}`;
+      const res = await fetch(url, { headers: { "X-Api-Key": evoToken } });
+      if (res.status === 404) return false;
+      if (!res.ok) return false;
+      const data = (await res.json()) as StatusPayload;
+      if (typeof data.exists === "boolean") return data.exists;
+      if (data.instance || data.status) return true;
+      return false;
+    } catch {
+      return false;
+    }
+  };
+
+  /** ⚙️ define se o payload representa conectado/desconectado */
+  const evaluateConnectivity = (payload: StatusPayload): EvoStatus => {
+    // explicitação direta
+    if (
+      payload.phoneConnected === true ||
+      payload.connected === true ||
+      payload.instance?.phoneConnected === true ||
+      payload.instance?.connected === true
+    )
+      return "CONNECTED";
+    if (
+      payload.phoneConnected === false ||
+      payload.connected === false ||
+      payload.instance?.phoneConnected === false
+    )
+      return "DISCONNECTED";
+
+    // fallback textual
+    const mapped = mapStatus(extractStatus(payload));
+    return mapped;
+  };
+
   /* ---------------------------------------------------------
-     SSE STREAM
+     SSE
   --------------------------------------------------------- */
-const openSSE = useCallback(
-  (instanceId: string) => {
-    if (!instanceId || didLogoutRef.current) return;
+  const openSSE = useCallback(
+    (instanceId: string) => {
+      if (!instanceId || didLogoutRef.current) return;
+      closeSSE();
 
-    closeSSE();
-
-    const es = new EventSource(
-      `${baseUrl}/evo/stream?instanceId=${instanceId}&token=${evoToken}`
-    );
-
-    sseRef.current = es;
-
-    /* ✅ CAPTURA STATUS DO SSE */
-    es.addEventListener("status", (evt) => {
-      try {
-        const data = JSON.parse((evt as MessageEvent).data);
-
-        // ✅ AQUI → loga o valor bruto enviado pelo backend
-        console.log("📡 RAW SSE STATUS EVENT →", data);
-
-        // ✅ Processamento normal
-        const raw = extractStatus(data);
-
-        // ✅ AQUI → loga antes e depois do mapeamento
-        console.log("📡 RAW STATUS RECEBIDO →", raw);
-        const mapped = mapStatus(raw);
-        console.log("✅ STATUS NORMALIZADO →", mapped);
-
-        // ✅ Aplica o status no React
-        setStatusSafe(mapped);
-
-      } catch (err) {
-        console.warn("Erro ao processar status SSE:", err);
-      }
-    });
-
-    /* ✅ CAPTURA QR */
-    es.addEventListener("qr", (evt) => {
-      try {
-        const data = JSON.parse((evt as MessageEvent).data);
-        const qr = normalizeQR(data?.base64 ?? data);
-
-        if (qr && lastStatusRef.current !== "CONNECTED") {
-          setQrBase64(qr);
-          setStatusSafe("QRCODE");
-        }
-      } catch {}
-    });
-
-    es.onerror = () => {
-      if (didLogoutRef.current) return;
-      reconnectTimerRef.current = window.setTimeout(
-        () => openSSE(instanceId),
-        2000
+      const es = new EventSource(
+        `${baseUrl}/evo/stream?instanceId=${encodeURIComponent(instanceId)}&token=${encodeURIComponent(evoToken)}`
       );
-    };
-  },
-  [baseUrl, evoToken, closeSSE]
-);
+      sseRef.current = es;
+
+      es.addEventListener("status", async (evt) => {
+        try {
+          const data = JSON.parse((evt as MessageEvent).data) as StatusPayload;
+          const exists = await existsFetch(instanceId);
+          if (!exists) {
+            setStatusSafe("DISCONNECTED");
+            return;
+          }
+          const next = evaluateConnectivity(data);
+          setStatusSafe(next);
+        } catch (err) {
+          console.warn("Erro ao processar status SSE:", err);
+        }
+      });
+
+      es.addEventListener("qr", (evt) => {
+        try {
+          const data = JSON.parse((evt as MessageEvent).data);
+          const qr = normalizeQR(data?.base64 ?? data);
+          if (qr && lastStatusRef.current !== "CONNECTED") {
+            setQrBase64(qr);
+            setStatusSafe("QRCODE");
+          }
+        } catch {}
+      });
+
+      es.onerror = () => {
+        if (didLogoutRef.current) return;
+        reconnectTimerRef.current = window.setTimeout(
+          () => openSSE(instanceId),
+          2000
+        );
+      };
+    },
+    [baseUrl, evoToken, closeSSE]
+  );
 
   /* ---------------------------------------------------------
-     START INSTANCE
+     START
   --------------------------------------------------------- */
   const start = useCallback(async () => {
     if (!logicalInstanceId) {
@@ -238,13 +262,9 @@ const openSSE = useCallback(
 
     try {
       const resp = await fetch(
-        `${baseUrl}/evo/start?instanceId=${logicalInstanceId}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        }
+        `${baseUrl}/evo/start?instanceId=${encodeURIComponent(logicalInstanceId)}`,
+        { method: "POST", headers: { "Content-Type": "application/json" } }
       );
-
       const json = await resp.json();
       if (!resp.ok) throw new Error(json?.error || "Erro ao iniciar instância");
 
@@ -257,9 +277,7 @@ const openSSE = useCallback(
       setRealInstanceId(inst);
       startedForRef.current = logicalInstanceId;
 
-      const firstQR =
-        json?.base64 || json?.qr?.base64 || json?.qrcode?.base64 || null;
-
+      const firstQR = json?.base64 || json?.qr?.base64 || json?.qrcode?.base64 || null;
       if (firstQR) {
         const q = normalizeQR(firstQR);
         if (q) {
@@ -282,45 +300,64 @@ const openSSE = useCallback(
   --------------------------------------------------------- */
   const refresh = useCallback(async () => {
     if (didLogoutRef.current) return;
-
     const id = realInstanceId || logicalInstanceId;
     if (!id) return;
 
+    const exists = await existsFetch(id);
+    if (!exists) {
+      setQrBase64(null);
+      setPairingCode(null);
+      setStatusSafe("DISCONNECTED");
+      return;
+    }
+
     try {
-      const r = await fetch(`${baseUrl}/evo/status?instanceId=${id}`);
-      const j = await r.json();
+      const r = await fetch(
+        `${baseUrl.replace(/\/$/, "")}/evo/status?instanceId=${encodeURIComponent(id)}`,
+        { headers: { "X-Api-Key": evoToken } }
+      );
+      if (r.status === 404) {
+        setStatusSafe("DISCONNECTED");
+        return;
+      }
+      const j = (await r.json()) as StatusPayload;
+      const next = evaluateConnectivity(j);
+      setStatusSafe(next);
 
-      const mapped = mapStatus(extractStatus(j));
-      setStatusSafe(mapped);
-
-      if (mapped === "CONNECTED") {
+      if (next === "CONNECTED") {
         setQrBase64(null);
         return;
       }
     } catch {}
 
     try {
-      const r2 = await fetch(`${baseUrl}/evo/qr?instanceId=${id}`);
-      const j2 = await r2.json();
-
-      const qr =
-        j2?.base64 || j2?.qr?.base64 || j2?.qrcode?.base64 || null;
-
-      if (qr && lastStatusRef.current !== "CONNECTED") {
-        setQrBase64(normalizeQR(qr));
-        setStatusSafe("QRCODE");
+      const r2 = await fetch(
+        `${baseUrl.replace(/\/$/, "")}/evo/qr?instanceId=${encodeURIComponent(id)}`,
+        { headers: { "X-Api-Key": evoToken } }
+      );
+      if (r2.ok) {
+        const j2 = await r2.json();
+        const qr = j2?.base64 || j2?.qr?.base64 || j2?.qrcode?.base64 || null;
+        if (qr && lastStatusRef.current !== "CONNECTED") {
+          setQrBase64(normalizeQR(qr));
+          setStatusSafe("QRCODE");
+        } else {
+          setStatusSafe("DISCONNECTED");
+        }
+      } else {
+        setStatusSafe("DISCONNECTED");
       }
-    } catch {}
-  }, [baseUrl, logicalInstanceId, realInstanceId]);
+    } catch {
+      setStatusSafe("DISCONNECTED");
+    }
+  }, [baseUrl, logicalInstanceId, realInstanceId, evoToken]);
 
   /* ---------------------------------------------------------
-     LOGOUT — FINAL, FUNCIONAL E ESTÁVEL
+     LOGOUT
   --------------------------------------------------------- */
   const logout = useCallback(async () => {
     const id = realInstanceId || logicalInstanceId;
-
     if (!id) {
-      console.warn("Nenhuma instância para desconectar");
       setStatusSafe("LOGGED_OUT");
       return false;
     }
@@ -328,13 +365,10 @@ const openSSE = useCallback(
     didLogoutRef.current = true;
     closeSSE();
 
-    const url = `${baseUrl.replace(/\/$/, "")}/evo/instance/delete/${encodeURIComponent(
-      id
-    )}`;
-
+    const url = `${baseUrl.replace(/\/$/, "")}/evo/instance/delete/${encodeURIComponent(id)}`;
     try {
       const resp = await fetch(url, { method: "DELETE" });
-      let body = null;
+      let body: any = null;
       try {
         body = await resp.json();
       } catch {}
@@ -350,7 +384,7 @@ const openSSE = useCallback(
       setRealInstanceId("");
       setStatusSafe("LOGGED_OUT");
       return true;
-    } catch (err) {
+    } catch {
       setStatusSafe("ERROR");
       return false;
     }
@@ -362,46 +396,75 @@ const openSSE = useCallback(
   useEffect(() => {
     didLogoutRef.current = false;
     refresh();
-  }, [logicalInstanceId]);
+  }, [logicalInstanceId, refresh]);
 
   useEffect(() => {
     if (autostart && logicalInstanceId) start();
   }, [autostart, logicalInstanceId, start]);
 
   useEffect(() => closeSSE, [closeSSE]);
-useEffect(() => {
-  // fallback polling: enquanto não CONNECTED, consulta /status a cada 2s
-  if (status === "CONNECTED" || didLogoutRef.current) return;
 
+  /** 🔁 Polling que detecta conexão/desconexão */
+  useEffect(() => {
+    if (didLogoutRef.current) return;
+
+    const id = realInstanceId || logicalInstanceId;
+    if (!id) return;
+
+    let timer: number | null = null;
+
+    const ping = async () => {
+      try {
+        const r = await fetch(
+          `${baseUrl.replace(/\/$/, "")}/evo/status?instanceId=${encodeURIComponent(id)}`,
+          { headers: { "X-Api-Key": evoToken } }
+        );
+        if (r.status === 404) {
+          setStatusSafe("DISCONNECTED");
+          return;
+        }
+
+        const j = (await r.json()) as StatusPayload;
+        const next = evaluateConnectivity(j);
+
+        if (next !== lastStatusRef.current) {
+          console.log("📡 Fallback detectou mudança →", next);
+          setStatusSafe(next);
+          if (next === "DISCONNECTED") setQrBase64(null);
+        }
+      } catch (err) {
+        console.warn("Erro no fallback:", err);
+      }
+    };
+
+    ping();
+    timer = window.setInterval(ping, 3000) as unknown as number;
+
+    return () => {
+      if (timer) window.clearInterval(timer);
+    };
+  }, [baseUrl, evoToken, realInstanceId, logicalInstanceId]);
+
+
+  // 🧹 Auto-delete da instância se estiver desconectado
+useEffect(() => {
+  if (status !== "DISCONNECTED") return;
+  if (didLogoutRef.current) return; // evita loop de logout
   const id = realInstanceId || logicalInstanceId;
   if (!id) return;
 
-  let timer: number | null = null;
-
-  const ping = async () => {
+  console.log("🧹 Instância desconectada — agendando exclusão...");
+  const timer = setTimeout(async () => {
     try {
-      const r = await fetch(`${baseUrl.replace(/\/$/, "")}/evo/status?instanceId=${encodeURIComponent(id)}`, {
-        headers: { "X-Api-Key": evoToken }
-      });
-      const j = await r.json();
-      const mapped = mapStatus(extractStatus(j));
-      if (mapped === "CONNECTED") {
-        console.log("✅ Fallback detectou CONNECTED");
-        setStatusSafe("CONNECTED");
-        setQrBase64(null);
-        if (timer) window.clearInterval(timer);
-      }
-    } catch {}
-  };
+      await logout();
+      console.log("🗑️ Instância deletada automaticamente:", id);
+    } catch (err) {
+      console.warn("Erro ao deletar instância automaticamente:", err);
+    }
+  }, 2500); // espera 2.5 segundos para garantir que não é desconexão momentânea
 
-  // só ativa fallback quando estiver conectando ou aguardando QR
-  if (status === "OPENING" || status === "QRCODE") {
-    ping();
-    timer = window.setInterval(ping, 2000) as unknown as number;
-  }
-
-  return () => { if (timer) window.clearInterval(timer); };
-}, [status, baseUrl, evoToken, realInstanceId, logicalInstanceId]);
+  return () => clearTimeout(timer);
+}, [status, logout, realInstanceId, logicalInstanceId]);
 
   /* ---------------------------------------------------------
      API

@@ -190,6 +190,28 @@
   transition: opacity .4s ease;
 }
 
+.instructionsBox {
+  text-align: left;
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text) 20%, transparent);
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.instructionsTitle {
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+.instructionsList {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.9rem;
+  color: color-mix(in srgb, var(--text) 80%, white);
+}
+
+
 /* ============================================================
    Responsivo (Mobile / Tablet)
 ============================================================ */
