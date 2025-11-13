@@ -1,0 +1,76 @@
+.button {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+
+  padding: 0.75rem 1.4rem;
+  font-size: 0.97rem;
+  font-weight: 600;
+
+  border-radius: 14px;
+  border: none; /* deixamos o danger/success controlar */
+  cursor: pointer;
+  transition: all .25s ease;
+
+  /* remove o background que estava escondendo tudo */
+  background: transparent;
+
+  width: fit-content;
+  margin: 0 auto;
+}
+
+
+/* Hover */
+.button:hover {
+  background: var(--btn-bg-hover);
+  transform: translateY(-1px);
+}
+
+/* PAUSAR (danger style) */
+.pauseButton {
+  background: var(--btn-pause-bg);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(255, 77, 97, 0.4);
+}
+
+.pauseButton:hover {
+  background: var(--btn-pause-hover);
+  transform: translateY(-1px);
+}
+
+/* RETOMAR (success style) */
+.resumeButton {
+  background: var(--btn-resume-bg);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(26, 188, 114, 0.35);
+}
+
+.resumeButton:hover {
+  background: var(--btn-resume-hover);
+  transform: translateY(-1px);
+}
+/* Loading */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+}
+[data-theme="light"] {
+  --btn-pause-bg: #ff4d61;
+  --btn-pause-hover: #e63e52;
+
+  --btn-resume-bg: #1abc72;
+  --btn-resume-hover: #14995b;
+}
+
+[data-theme="dark"] {
+  --btn-pause-bg: #ff4d61;
+  --btn-pause-hover: #d93648;
+
+  --btn-resume-bg: #1abc72;
+  --btn-resume-hover: #14995b;
+}
