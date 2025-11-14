@@ -37,6 +37,9 @@ RUN npm run build
 FROM node:20-slim
 
 WORKDIR /app
+WORKDIR /app
+ARG CACHE_BUST=1
+
 RUN npm install -g serve
 
 COPY --from=build /app/dist ./dist
