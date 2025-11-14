@@ -1,0 +1,36 @@
+.container {
+  width: 100%;
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1.3rem;
+  color: #444;
+  text-align: center;
+}
+
+.icon {
+  color: var(--sidebar-primary, #ff4081);
+}
+
+.button {
+  background: var(--sidebar-primary, #ff4081);
+  color: white;
+  padding: 12px 22px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: 0.2s ease;
+  font-weight: 600;
+}
+
+.button:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.button:active {
+  transform: translateY(1px);
+}
