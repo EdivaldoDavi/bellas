@@ -1,5 +1,5 @@
 # -------------------------------------------------------
-# 1) BUILD DA APLICAÇÃO (VITE)
+# 1) Build da aplicação (VITE)
 # -------------------------------------------------------
 FROM node:20-slim AS build
 
@@ -11,45 +11,35 @@ ARG VITE_SUPABASE_ANON_KEY
 ARG VITE_EVO_PROXY_URL
 ARG NODE_ENV
 
-# 👉 Exportar para ambiente para o Vite
+# 👉 Exportar para ambiente do Vite
 ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
 ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
 ENV VITE_EVO_PROXY_URL=$VITE_EVO_PROXY_URL
 ENV NODE_ENV=$NODE_ENV
-
-# 👉 Garantir que npm existe (evita exit code 127)
-RUN node -v && npm -v
 
 COPY package*.json ./
 RUN npm install
 
 COPY . .
 
-RUN echo "VITE_SUPABASE_URL=$VITE_SUPABASE_URL" >> .env && \
-    echo "VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY" >> .env && \
-    echo "VITE_EVO_PROXY_URL=$VITE_EVO_PROXY_URL" >> .env && \
-    echo "NODE_ENV=$NODE_ENV" >> .env
+# 👉 Criar arquivo .env.production (Vite realmente lê este!)
+RUN echo "VITE_SUPABASE_URL=$VITE_SUPABASE_URL"        > .env.production && \
+    echo "VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY" >> .env.production && \
+    echo "VITE_EVO_PROXY_URL=$VITE_EVO_PROXY_URL" >> .env.production && \
+    echo "NODE_ENV=production" >> .env.production
 
-RUN npm -v && node -v
-RUN ls -la
-RUN ls -la src
-RUN cat vite.config.ts || true
-RUN echo ">>> Starting Vite build..."
-
-# Build de produção
+# 👉 Build final
 RUN npm run build
 
 # -------------------------------------------------------
-# 2) SERVIR A APLICAÇÃO EM PRODUÇÃO
+# 2) Servir em produção
 # -------------------------------------------------------
 FROM node:20-slim
 
 WORKDIR /app
-
 RUN npm install -g serve
 
 COPY --from=build /app/dist ./dist
 
 EXPOSE 80
-
 CMD ["serve", "-s", "dist", "-l", "80"]
