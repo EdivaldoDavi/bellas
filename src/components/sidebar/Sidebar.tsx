@@ -13,7 +13,7 @@ import {
   BadgeDollarSign,
   LogOut,
 } from "lucide-react";
-import styles from "../../css/sidebar.module.css";
+import styles from "../../css/Sidebar.module.css";
 import { toast } from "react-toastify";
 import { useUserAndTenant } from "../../hooks/useUserAndTenant";
 
