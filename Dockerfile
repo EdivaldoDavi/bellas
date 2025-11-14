@@ -1,7 +1,7 @@
 # -------------------------------------------------------
 # 1) BUILD DA APLICAÇÃO (VITE)
 # -------------------------------------------------------
-FROM node:20-alpine AS build
+FROM node:20-slim AS build
 
 WORKDIR /app
 
@@ -25,7 +25,6 @@ RUN npm install
 
 COPY . .
 
-# Criar .env para garantir compatibilidade com Vite
 RUN echo "VITE_SUPABASE_URL=$VITE_SUPABASE_URL" >> .env && \
     echo "VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY" >> .env && \
     echo "VITE_EVO_PROXY_URL=$VITE_EVO_PROXY_URL" >> .env && \
