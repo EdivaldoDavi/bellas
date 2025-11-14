@@ -17,6 +17,8 @@ RUN npm install -g serve
 
 COPY --from=build /app/dist ./dist
 
-EXPOSE 5173
+# Porta padrão de produção
+EXPOSE 80
 
-CMD ["serve", "-s", "dist", "-l", "5173"]
+# Serve o conteúdo
+CMD ["serve", "-s", "dist", "-l", "80"]
