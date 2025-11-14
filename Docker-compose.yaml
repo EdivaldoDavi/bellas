@@ -1,0 +1,9 @@
+services:
+  bellas_frontend:
+    build:
+      context: .
+      dockerfile: dockerfile
+    restart: always
+    #  working_dir: /app
+    expose:
+      - "80"
