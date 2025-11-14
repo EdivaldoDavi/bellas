@@ -6,25 +6,27 @@ import { X } from "lucide-react";
 
 interface ModalNewCustomerProps {
   tenantId: string;
+  show: boolean;
   onClose: () => void;
-  onCreated: (id: string, name: string) => void;
+  onSuccess?: (id: string, name: string) => void; // 🔥 agora opcional
 }
 
-export default function ModalNewCustomer({ tenantId, onClose, onCreated }: ModalNewCustomerProps) {
+export default function ModalNewCustomer({ tenantId, show, onClose, onSuccess }: ModalNewCustomerProps) {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
 
+  if (!show) return null; // 🔥 impede renderização escondida
 
   async function handleSave() {
-    if (!fullName.trim() || !phone.trim()) return toast.warn("Preencha nome e telefone");
+    if (!fullName.trim() || !phone.trim()) 
+      return toast.warn("Preencha nome e telefone");
 
     setLoading(true);
+
     const { data, error } = await supabase
       .from("customers")
-      .insert([
-        { tenant_id: tenantId, full_name: fullName, customer_phone: phone }
-      ])
+      .insert([{ tenant_id: tenantId, full_name: fullName, customer_phone: phone }])
       .select()
       .single();
 
@@ -33,7 +35,8 @@ export default function ModalNewCustomer({ tenantId, onClose, onCreated }: Modal
     if (error) return toast.error("Erro ao cadastrar cliente");
 
     toast.success("Cliente cadastrado!");
-    onCreated(data.id, data.full_name);
+    
+    onSuccess?.(data.id, data.full_name); // 🔥 só dispara se vier da Agenda
     onClose();
   }
 
@@ -64,6 +67,7 @@ export default function ModalNewCustomer({ tenantId, onClose, onCreated }: Modal
         <button className={styles.saveBtn} disabled={loading} onClick={handleSave}>
           {loading ? "Salvando..." : "Salvar Cliente"}
         </button>
+
       </div>
     </div>
   );

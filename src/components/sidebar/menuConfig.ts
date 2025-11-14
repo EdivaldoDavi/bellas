@@ -20,18 +20,24 @@ export const menuConfig: Record<string, { label: string; path: string; icon: any
   ],
 
   // Gerente de salão
-  manager: [
-    { label: "Dashboard", path: "/dashboard", icon: Home },
-    { label: "Agenda", path: "/agenda", icon: CalendarDays },
-    { label: "Clientes", path: "/clients", icon: Users },
-    { label: "Serviços", path: "/services", icon: Scissors },
-    { label: "Profissionais", path: "/professionals", icon: UserCheck },
-    { label: "Relatórios", path: "/reports", icon: FileBarChart },
-    { label: "Caixa", path: "/cash", icon: Wallet },
-    { label: "Comissões", path: "/commissions", icon: Percent },
-    { label: "Assinatura", path: "/subscription", icon: Wallet },
-    { label: "Meu Perfil", path: "/profile", icon: UserCheck },
-  ],
+manager: [
+  { label: "Dashboard", path: "/dashboard", icon: Home },
+  { label: "Agenda", path: "/agenda", icon: CalendarDays },
+
+  // 👉 ADICIONANDO MENU DE CADASTROS
+  { label: "Cadastros", path: "#cadastros", icon: Users },
+
+  { label: "Clientes", path: "/clients", icon: Users },
+  { label: "Serviços", path: "/services", icon: Scissors },
+  { label: "Profissionais", path: "/professionals", icon: UserCheck },
+
+  { label: "Relatórios", path: "/reports", icon: FileBarChart },
+  { label: "Caixa", path: "/cash", icon: Wallet },
+  { label: "Comissões", path: "/commissions", icon: Percent },
+  { label: "Assinatura", path: "/subscription", icon: Wallet },
+  { label: "Meu Perfil", path: "/profile", icon: UserCheck },
+],
+
 
   // Profissional
   professional: [

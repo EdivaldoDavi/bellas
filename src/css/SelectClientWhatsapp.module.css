@@ -100,3 +100,20 @@
 .addButton:hover {
   opacity: .9;
 }
+.highlight {
+  animation: flash 1s ease-out;
+}
+
+@keyframes flash {
+  0% {
+    background: #ff2fa3;
+    transform: scale(1.02);
+  }
+  50% {
+    background: #ff73c7;
+  }
+  100% {
+    background: var(--bg);
+    transform: scale(1);
+  }
+}

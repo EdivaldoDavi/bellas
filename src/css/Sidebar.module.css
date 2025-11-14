@@ -81,6 +81,80 @@
 .footer { padding: .5rem; }
 .footer .menuItem { background: var(--color-primary); color:#fff; }
 .footer .menuItem:hover { opacity:.9; }
+.submenuOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.3);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 80px;
+  z-index: 999999;
+}
+
+/* Overlay do submenu */
+.submenuOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .35);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 90px;
+  z-index: 9999;
+  backdrop-filter: blur(2px);
+}
+
+/* Caixa do submenu */
+.submenuBox {
+  background: var(--bg); /* respeita tema */
+  color: var(--text);
+  padding: 1.25rem;
+  border-radius: 14px;
+  width: 220px;
+
+  border: 1px solid var(--separator);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18); 
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  animation: fadeInDropdown .15s ease-out;
+}
+
+/* Animação suave */
+@keyframes fadeInDropdown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Botões dentro do submenu */
+.submenuBox button {
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+
+  background: color-mix(in srgb, var(--color-primary) 90%, transparent);
+  color: white;
+
+  font-size: 0.95rem;
+  font-weight: 600;
+
+  transition: background 0.25s ease, transform 0.15s ease;
+}
+
+/* Hover com brilho */
+.submenuBox button:hover {
+  background: var(--color-primary);
+  transform: translateY(-2px);
+}
+
+/* Pressionado */
+.submenuBox button:active {
+  transform: translateY(0);
+  filter: brightness(.9);
+}
 
 /* ===========================
    MOBILE (≤1024px) – DRAWER SOBREPOSTO

@@ -6,8 +6,9 @@ import { X } from "lucide-react";
 
 interface ModalNewServiceProps {
   tenantId: string;
+  show: boolean;
   onClose: () => void;
-  onCreated: (id: string, name: string, duration: number) => void;
+  onSuccess?: (id: string, name: string, duration: number) => void; // 🔥 opcional
 }
 
 interface Professional {
@@ -15,7 +16,7 @@ interface Professional {
   name: string;
 }
 
-export default function ModalNewService({ tenantId, onClose, onCreated }: ModalNewServiceProps) {
+export default function ModalNewService({ tenantId, show, onClose, onSuccess }: ModalNewServiceProps) {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [duration, setDuration] = useState("");
@@ -24,8 +25,9 @@ export default function ModalNewService({ tenantId, onClose, onCreated }: ModalN
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [selectedProfessionals, setSelectedProfessionals] = useState<string[]>([]);
 
-  // Carregar profissionais
-  useEffect(() => {
+useEffect(() => {
+    if (!tenantId) return;
+
     async function loadProfessionals() {
       const { data, error } = await supabase
         .from("professionals")
@@ -40,8 +42,12 @@ export default function ModalNewService({ tenantId, onClose, onCreated }: ModalN
 
       setProfessionals(data || []);
     }
+
     loadProfessionals();
   }, [tenantId]);
+
+  // 🔥 SOMENTE AGORA pode fazer early-return
+  if (!show) return null;
 
   function toggleProfessional(id: string) {
     setSelectedProfessionals(prev =>
@@ -113,7 +119,7 @@ export default function ModalNewService({ tenantId, onClose, onCreated }: ModalN
       toast.success("Serviço cadastrado!");
     }
 
-    onCreated(serviceId, serviceName, serviceDuration);
+    onSuccess?.(serviceId, serviceName, serviceDuration);
     onClose();
   }
 
@@ -180,6 +186,7 @@ export default function ModalNewService({ tenantId, onClose, onCreated }: ModalN
         <button className={styles.saveButton} disabled={loading} onClick={handleSave}>
           {loading ? "Salvando..." : "Salvar Serviço"}
         </button>
+
       </div>
     </div>
   );

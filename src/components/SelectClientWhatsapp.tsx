@@ -12,7 +12,7 @@ interface Client {
 interface Props {
   tenantId: string;
   value: string;
-  onChange: (id: string, name: string) => void; // ✅ agora também recebe nome
+  onChange: (id: string, name: string) => void;
   onAdd: () => void;
 }
 
@@ -28,16 +28,24 @@ const SelectClientWhatsApp = forwardRef<SelectClientRef, Props>(function SelectC
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ✅ carregar lista inicial
+  // 🔥 novo: highlight
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+
   useEffect(() => {
     if (!tenantId) return;
     loadInitial();
   }, [tenantId]);
 
-  // ✅ expõe reload para o pai
   useImperativeHandle(ref, () => ({
     reload: async (selectedId?: string) => {
       await loadInitial(selectedId);
+
+      if (selectedId) {
+        setHighlightId(selectedId);
+
+        // 🔥 remove highlight após 1 segundo
+        setTimeout(() => setHighlightId(null), 1000);
+      }
     }
   }));
 
@@ -53,11 +61,10 @@ const SelectClientWhatsApp = forwardRef<SelectClientRef, Props>(function SelectC
 
     let listData = data || [];
 
-    // ✅ Se cliente recém criado, coloca no topo e seleciona
     if (selectId) {
-      const selected = listData.find(c => c.id === selectId);
+      const selected = listData.find((c) => c.id === selectId);
       if (selected) {
-        listData = [selected, ...listData.filter(c => c.id !== selectId)];
+        listData = [selected, ...listData.filter((c) => c.id !== selectId)];
         onChange(selected.id, selected.full_name);
       }
     }
@@ -105,17 +112,25 @@ const SelectClientWhatsApp = forwardRef<SelectClientRef, Props>(function SelectC
         {list.map((c) => (
           <div
             key={c.id}
-            className={`${styles.item} ${value === c.id ? styles.itemSelected : ""}`}
+            className={`
+              ${styles.item} 
+              ${value === c.id ? styles.itemSelected : ""} 
+              ${highlightId === c.id ? styles.highlight : ""}
+            `}
             onClick={() => onChange(c.id, c.full_name)}
           >
             <img
-              src={`https://api.dicebear.com/8.x/avataaars/svg?seed=${encodeURIComponent(c.full_name)}`}
+              src={`https://api.dicebear.com/8.x/avataaars/svg?seed=${encodeURIComponent(
+                c.full_name
+              )}`}
               alt="avatar"
               className={styles.avatar}
             />
             <div>
               <div className={styles.name}>{c.full_name}</div>
-              <div className={styles.phone}>{c.customer_phone || "Sem telefone"}</div>
+              <div className={styles.phone}>
+                {c.customer_phone || "Sem telefone"}
+              </div>
             </div>
           </div>
         ))}

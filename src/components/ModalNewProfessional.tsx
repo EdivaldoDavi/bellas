@@ -6,8 +6,9 @@ import styles from "../css/ModalNewProfessional.module.css";
 
 interface ModalNewProfessionalProps {
   tenantId: string;
+  show: boolean;
   onClose: () => void;
-  onCreated: (id: string, name: string) => void; // ✅ agora retorna id + nome
+  onSuccess?: (id: string, name: string) => void; // 🔥 agora opcional
 }
 
 type Service = { id: string; name: string; duration_min?: number };
@@ -35,14 +36,15 @@ function padSeconds(t: string) {
   return t.length === 5 ? `${t}:00` : t;
 }
 
-
-
 export default function ModalNewProfessional({
   tenantId,
+  show,
   onClose,
-  onCreated
+  onSuccess
 }: ModalNewProfessionalProps) {
+
   
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -67,18 +69,26 @@ export default function ModalNewProfessional({
     }))
   );
 
-  useEffect(() => {
-    (async () => {
-      const { data, error } = await supabase
-        .from("services")
-        .select("id,name,duration_min")
-        .eq("tenant_id", tenantId)
-        .order("name", { ascending: true });
+useEffect(() => {
+  if (!show) return; // 👈 só carrega quando o modal estiver visível
+  if (!tenantId) return;
 
-      if (error) toast.error("Erro ao carregar serviços");
-      setServices(data || []);
-    })();
-  }, [tenantId]);
+  (async () => {
+    const { data, error } = await supabase
+      .from("services")
+      .select("id,name,duration_min")
+      .eq("tenant_id", tenantId)
+      .order("name", { ascending: true });
+
+    if (error) {
+      console.error(error);
+      toast.error("Erro ao carregar serviços");
+    }
+
+    setServices(data || []);
+  })();
+}, [tenantId, show]);
+
 
   function toggleService(id: string) {
     setSelectedServices(prev =>
@@ -154,16 +164,17 @@ export default function ModalNewProfessional({
 
     toast.success("Profissional cadastrado!");
 
-    // ✅ retorna id + nome para o wizard selecionar automaticamente
-    onCreated(professionalId, name);
+    onSuccess?.(professionalId, name); // 🔥 só se agenda chamar
     onClose();
   }
-
+if (!show) return null;
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
         
-        <button onClick={onClose} className={styles.closeBtn}> <X size={20} /> </button>
+        <button onClick={onClose} className={styles.closeBtn}> 
+          <X size={20} /> 
+        </button>
 
         <h3>Novo Profissional</h3>
 
@@ -185,7 +196,7 @@ export default function ModalNewProfessional({
 
         <label className={styles.copyRow}>
           <input type="checkbox" checked={copyToWeek} onChange={() => setCopyToWeek(!copyToWeek)} />
-          Copiar segunda para os outros dias (até sábado)
+          Copiar segunda para todos os dias
         </label>
 
         {copyToWeek ? (
@@ -215,6 +226,7 @@ export default function ModalNewProfessional({
         <button className={styles.saveBtn} onClick={handleSave}>
           Salvar Profissional
         </button>
+
       </div>
     </div>
   );

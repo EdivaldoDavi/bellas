@@ -7,6 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
+     
       includeAssets: [
         "favicon.svg",
         "favicon.ico",
@@ -56,7 +57,7 @@ export default defineConfig({
         ],
       },
       devOptions: {
-        enabled: true, // permite testar PWA em dev
+        enabled: false, // permite testar PWA em dev
       },
     }),
   ],
