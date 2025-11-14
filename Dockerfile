@@ -1,24 +1,22 @@
-# 1️⃣ — Etapa de build (Node)
+# Build da aplicação React
 FROM node:20-alpine AS build
 
 WORKDIR /app
-
 COPY package*.json ./
 RUN npm install
 
 COPY . .
 RUN npm run build
 
-# 2️⃣ — Etapa de produção (Nginx)
-FROM nginx:stable-alpine
+# Servir com um server leve (serve)
+FROM node:20-alpine
 
-# Copia o build do React para o Nginx
-COPY --from=build /app/dist /usr/share/nginx/html
+WORKDIR /app
 
-# Remove configurações padrões e adiciona cache para PWA
-RUN rm /etc/nginx/conf.d/default.conf
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+RUN npm install -g serve
+
+COPY --from=build /app/dist ./dist
 
 EXPOSE 5173
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["serve", "-s", "dist", "-l", "4173"]
