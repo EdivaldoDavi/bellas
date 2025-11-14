@@ -20,11 +20,9 @@ ENV NODE_ENV=$NODE_ENV
 # 👉 Garantir que npm existe (evita exit code 127)
 RUN node -v && npm -v
 
-# Instalar dependências
 COPY package*.json ./
 RUN npm install
 
-# Copiar projeto
 COPY . .
 
 # Criar .env para garantir compatibilidade com Vite
@@ -43,10 +41,8 @@ FROM node:20-slim
 
 WORKDIR /app
 
-# Server para servir o build
 RUN npm install -g serve
 
-# Copiar apenas o dist
 COPY --from=build /app/dist ./dist
 
 EXPOSE 80
