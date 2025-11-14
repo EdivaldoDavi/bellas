@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useUserAndTenant } from '../../hooks/useUserAndTenant';
 import { supabase } from '../../lib/supabaseCleint';
-import styles from './Setup.module.css';
+
 
 export default function Setup() {
   const { loading, tenant } = useUserAndTenant();

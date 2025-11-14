@@ -58,7 +58,7 @@ export default function ModalScheduleWizard({
   const [serviceId, setServiceId] = useState("");
   const [serviceName, setServiceName] = useState("");
   const [serviceDuration, setServiceDuration] = useState<number | null>(null);
-  const [newServiceId, setNewServiceId] = useState<string | null>(null);
+  const [_, setNewServiceId] = useState<string | null>(null);
 const [customerName, setCustomerName] = useState("");
 
   const [customerId, setCustomerId] = useState("");
@@ -252,7 +252,7 @@ const [customerName, setCustomerName] = useState("");
   );
 
   const labels = ["Profissional", "Serviço", "Cliente", "Data", "Horário", "Revisão"];
-  const progressLabel = `${labels[step - 1]} (${step}/${totalSteps})`;
+  
 /* Header */
 const stepName = labels[step - 1];
 const stepPct =

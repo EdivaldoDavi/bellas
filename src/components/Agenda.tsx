@@ -25,8 +25,7 @@ import {
   ChevronRight,
   Plus,
   X,
-  Edit2,
-  Trash2,
+
 } from "lucide-react";
 
 import styles from "../css/Agenda.module.css";
@@ -76,7 +75,7 @@ export default function Agenda() {
 
   // Modal CRUD
   const [showModal, setShowModal] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, _] = useState<string | null>(null);
 
   // Serviço
   const [showServiceModal, setShowServiceModal] = useState(false);
@@ -258,42 +257,9 @@ export default function Agenda() {
     setAvailableTimes(slots);
   }
 
-  function resetForm() {
-    setEditingId(null);
-    setProfessionalId("");
-    setSelectedProfessionalName("");
-    setServiceId("");
-    setSelectedServiceName("");
-    setCustomerId("");
-    setSelectedDate("");
-    setStartTime("");
-    setEndTime("");
-    setAvailableTimes([]);
-    setServiceDuration(null);
-  }
+  
 
-  const openModal = async (a?: Appointment) => {
-    resetForm();
-
-    if (a) {
-      setEditingId(a.id);
-      setProfessionalId(a.professional_id || "");
-      setSelectedProfessionalName(a.professional_name || "");
-      setServiceId(a.service_id || "");
-      setSelectedServiceName(a.service_name || "");
-      setCustomerId(a.customer_id || "");
-
-      const d = toLocalISOString(new Date(a.starts_at)).split("T")[0];
-      const t = new Date(a.starts_at).toTimeString().slice(0, 5);
-
-      setSelectedDate(d);
-      setStartTime(t);
-
-      await fetchServicesByProfessional(a.professional_id!);
-    }
-
-    setShowModal(true);
-  };
+ 
 
   async function handleSaveAppointment() {
     if (!tenantId || !serviceId || !professionalId || !customerId || !selectedDate || !startTime)
@@ -331,11 +297,7 @@ export default function Agenda() {
     fetchAppointments();
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Excluir?")) return;
-    await supabase.from("appointments").delete().eq("id", id);
-    fetchAppointments();
-  }
+  
 
   async function handleSelectDate(date: Date) {
     if (!professionalId) return toast.warn("Selecione o profissional primeiro");

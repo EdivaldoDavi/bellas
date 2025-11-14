@@ -24,15 +24,7 @@ export default function ModalScheduleTimes({
 
   if (!show) return null;
 
-  function handleTimePick(time: string) {
-    setSelectedTime(time);
-
-    // Delay suave para permitir animação visual
-    setTimeout(() => {
-      onSelect(time);
-      onClose();
-    }, 120);
-  }
+  
 
   return (
     <div className={styles.overlay}>
@@ -47,8 +39,7 @@ export default function ModalScheduleTimes({
           )}
 
           {times.map((t) => {
-            const active = selectedTime === t;
-
+            
             return (
 <button
   key={t}

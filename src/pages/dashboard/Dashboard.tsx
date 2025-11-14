@@ -6,7 +6,7 @@ import DashboardTenant from './DashboardTenant';
 
 export default function Dashboard() {
   const [role, setRole] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [_, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchRole() {

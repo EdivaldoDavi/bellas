@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import styles from "../css/ModalCalendar.module.css";
 import { useTheme } from "../hooks/useTheme";

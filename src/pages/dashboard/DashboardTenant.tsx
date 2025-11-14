@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import Skeleton from "react-loading-skeleton";
+
 import "react-loading-skeleton/dist/skeleton.css";
 import { supabase, getCurrentProfile } from "../../lib/supabaseCleint";
 import { useUserAndTenant } from "../../hooks/useUserAndTenant";
@@ -18,16 +18,7 @@ interface Appointment {
   status: "scheduled" | "done" | "canceled" | "no_show";
 }
 
-interface Service {
-  id: UUID;
-  name: string;
-  price_cents: number;
-}
 
-interface Professional {
-  id: UUID;
-  name: string;
-}
 
 const REVENUE_GOAL_CENTS = 1_500_000; // 15.000
 const APPTS_GOAL = 200;
@@ -43,9 +34,10 @@ const THEME_PRIMARY: Record<string, string> = {
 export default function DashboardTenant() {
   const { tenant } = useUserAndTenant();
 
-  const [loading, setLoading] = useState(true);
+  const [_, setLoading] = useState(true);
+    const [__, setGreetingName] = useState("");
   const [role, setRole] = useState<string>("manager");
-  const [greetingName, setGreetingName] = useState("");
+
   const [appointmentsToday, setAppointmentsToday] = useState(0);
   const [revenueThisMonth, setRevenueThisMonth] = useState(0);
   const [todaysAppointments, setTodaysAppointments] = useState<any[]>([]);

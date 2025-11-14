@@ -35,11 +35,7 @@ function padSeconds(t: string) {
   return t.length === 5 ? `${t}:00` : t;
 }
 
-function toMinutes(t: string) {
-  if (!t) return null;
-  const [hh, mm] = t.split(":");
-  return Number(hh) * 60 + Number(mm);
-}
+
 
 export default function ModalNewProfessional({
   tenantId,
