@@ -15,6 +15,7 @@ import "react-toastify/dist/ReactToastify.css";
 import AssinaturasPage from "./pages/AssinaturasPage";
 import PerfilPage from "./pages/PerfilPage";
 import Agenda from "./components/Agenda";
+import EmDesenvolvimento from "./components/EmDesenvolvimento";
 
 // ✅ IMPORTA A NOVA PÁGINA
 import ConnectWhatsAppPage from './pages/ConnectWhatsAppPage';
@@ -66,7 +67,7 @@ export default function App() {
             </PrivateRoute>
           }
         />
-
+       <Route path="/em-desenvolvimento" element={<EmDesenvolvimento />} />
         {/* Rotas protegidas com layout */}
         <Route
           element={

@@ -16,6 +16,7 @@ import {
 import styles from "../../css/Sidebar.module.css";
 import { toast } from "react-toastify";
 import { useUserAndTenant } from "../../hooks/useUserAndTenant";
+import EmDesenvolvimento from "../EmDesenvolvimento";
 
 type MenuItem = { to: string; label: string; icon: ReactNode };
 
@@ -57,7 +58,7 @@ let menu: MenuItem[] = role === "superuser"
   ? [
       { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
       { to: "/agenda", label: "Agenda", icon: <Calendar size={20} /> },
-      { to: "/usuarios", label: "Usuários", icon: <Users size={20} /> },
+      { to: "/usuarios", label: "Usuários", icon: <EmDesenvolvimento /> }, // { to: "/usuarios", label: "Usuários", icon: // <Users size={20} /> },
       { to: "/config", label: "Configurações", icon: <Settings size={20} /> },
 
       // ✅ WhatsApp para manager
