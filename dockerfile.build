@@ -30,6 +30,12 @@ RUN echo "VITE_SUPABASE_URL=$VITE_SUPABASE_URL" >> .env && \
     echo "VITE_EVO_PROXY_URL=$VITE_EVO_PROXY_URL" >> .env && \
     echo "NODE_ENV=$NODE_ENV" >> .env
 
+RUN npm -v && node -v
+RUN ls -la
+RUN ls -la src
+RUN cat vite.config.ts || true
+RUN echo ">>> Starting Vite build..."
+
 # Build de produção
 RUN npm run build
 
