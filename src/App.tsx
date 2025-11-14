@@ -16,7 +16,8 @@ import AssinaturasPage from "./pages/AssinaturasPage";
 import PerfilPage from "./pages/PerfilPage";
 import Agenda from "./components/Agenda";
 import EmDesenvolvimento from "./components/EmDesenvolvimento";
-
+import ConfigPage from "./pages/ConfigPage";
+import UsuariosPage from "./pages/UsuariosPage";
 // ✅ IMPORTA A NOVA PÁGINA
 import ConnectWhatsAppPage from './pages/ConnectWhatsAppPage';
 
@@ -67,6 +68,10 @@ export default function App() {
             </PrivateRoute>
           }
         />
+        {/* Em Desenvolvimento */}
+  <Route path="/usuarios" element={<UsuariosPage />} />
+  <Route path="/config" element={<ConfigPage />} />
+
        <Route path="/em-desenvolvimento" element={<EmDesenvolvimento />} />
         {/* Rotas protegidas com layout */}
         <Route
