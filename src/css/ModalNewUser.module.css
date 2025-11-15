@@ -1,51 +1,100 @@
+/* =============================
+   OVERLAY (fundo escuro)
+============================= */
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.5);
+  background: rgba(0,0,0,.6);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   z-index: 9999;
 }
 
+/* =============================
+   MODAL
+============================= */
 .modal {
-  background: #fff;
-  padding: 2rem;
-  width: 400px;
-  border-radius: 12px;
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--card-bg, #fff);
+  color: var(--text, #000);
+  border-radius: 14px;
+  padding: 1.4rem;
   position: relative;
+  animation: fadeIn .2s ease-out;
 }
 
+/* Botão fechar */
 .closeBtn {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 10px;
+  right: 10px;
   background: transparent;
-  border: none;
+  border: 1px solid var(--separator, #ddd);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
   cursor: pointer;
+  color: var(--text);
 }
 
+/* Título */
+.modal h3 {
+  margin: 0 0 1rem;
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+/* =============================
+   INPUT
+============================= */
 .input {
   width: 100%;
-  padding: .7rem 1rem;
+  padding: 10px 12px;
   border-radius: 8px;
-  border: 1px solid #ddd;
-  margin-bottom: 1rem;
+  border: 1px solid var(--separator);
+  background: var(--bg);
+  color: var(--text);
+  margin-bottom: 10px;
+  font-size: 14px;
+  transition: border-color .2s, box-shadow .2s, background .2s;
 }
 
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent);
+  background: var(--card-bg);
+}
+
+/* =============================
+   LISTA DE RESULTADOS
+============================= */
 .resultsContainer {
-  max-height: 200px;
+  max-height: 220px;
   overflow-y: auto;
-  border: 1px solid #eee;
-  border-radius: 8px;
-  background: #fafafa;
+  border: 1px solid var(--separator);
+  border-radius: 10px;
+  background: var(--bg);
   margin-bottom: 1rem;
 }
 
+/* Cada item */
 .item {
-  padding: .7rem 1rem;
+  padding: .75rem 1rem;
   cursor: pointer;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--separator);
+  transition: background .2s;
+  color: var(--text);
 }
 
 .item:last-child {
@@ -53,20 +102,49 @@
 }
 
 .item:hover {
-  background: #f1f1f1;
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
 }
 
+/* Item selecionado */
 .selected {
-  background: #ffe4f2 !important;
+  background: color-mix(in srgb, var(--color-primary) 25%, transparent) !important;
 }
 
+/* =============================
+   BOTÃO SALVAR
+============================= */
 .saveBtn {
-  background: #ff1493;
-  color: white;
-  padding: .8rem 1.2rem;
-  border-radius: 8px;
+  background: var(--color-primary);
+  color: #fff;
+  padding: .95rem;
+  border-radius: 12px;
   border: none;
   width: 100%;
   cursor: pointer;
-  font-weight: bold;
+  font-weight: 700;
+  margin-top: .5rem;
+  font-size: 1rem;
+  transition: opacity .2s;
+}
+
+.saveBtn:hover {
+  opacity: .9;
+}
+
+/* =============================
+   MOBILE
+============================= */
+@media (max-width: 480px) {
+  .modal {
+    padding: 1rem;
+    max-width: 95%;
+  }
+}
+
+/* =============================
+   FADE IN
+============================= */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
