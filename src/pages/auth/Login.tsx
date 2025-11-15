@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+// src/pages/auth/Login.tsx
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
+import { useAuth } from "../../context/AuthProvider";
 import styles from "./Auth.module.css";
 import { toast } from "react-toastify";
 
@@ -10,22 +11,26 @@ export default function Login() {
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
-  const { signIn, user } = useAuth();
-useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  if (params.get("logged_out") === "1") {
-    toast.success("Sessão encerrada com sucesso! 👋");
-    params.delete("logged_out");
-    window.history.replaceState({}, "", "/login");
-  }
-}, []);
+  const { signIn, user, loading } = useAuth();
 
-  // ✅ Mensagens via query string
+  // ✅ Mensagem de logout
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("logged_out") === "1") {
+      toast.success("Sessão encerrada com sucesso! 👋");
+      params.delete("logged_out");
+      window.history.replaceState({}, "", "/login");
+    }
+  }, []);
+
+  // ✅ Mensagens de confirmação / check email
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
 
     if (params.get("checkEmail") === "1") {
-      toast.info("Enviamos um email de confirmação! Verifique sua caixa de entrada.");
+      toast.info(
+        "Enviamos um email de confirmação! Verifique sua caixa de entrada."
+      );
     }
 
     if (params.get("confirmed") === "1") {
@@ -33,26 +38,27 @@ useEffect(() => {
     }
   }, []);
 
-  // ✅ Se o user já está logado, redireciona automaticamente
+  // ✅ Se já está logado, manda pro dashboard
   useEffect(() => {
-    if (user) {
-      navigate("/dashboard");
+    if (!loading && user) {
+      navigate("/dashboard", { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, loading, navigate]);
 
-  // ==========================
-  //   SUBMIT LOGIN
-  // ==========================
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
     try {
-      await signIn(email, senha);
-      navigate("/dashboard");
+      await signIn(email.trim(), senha);
+      // Não precisa dar navigate aqui, o useEffect acima já redireciona
     } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Erro ao fazer login.");
+      console.error("Erro no login:", err);
+      if (err?.message?.includes("Invalid login credentials")) {
+        setError("Credenciais inválidas. Verifique email e senha.");
+      } else {
+        setError(err?.message || "Erro ao fazer login.");
+      }
     }
   };
 
@@ -70,6 +76,7 @@ useEffect(() => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            autoComplete="email"
           />
 
           <input
@@ -78,10 +85,11 @@ useEffect(() => {
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
             required
+            autoComplete="current-password"
           />
 
-          <button type="submit" disabled={!email || !senha}>
-            Entrar
+          <button type="submit" disabled={!email || !senha || loading}>
+            {loading ? "Entrando..." : "Entrar"}
           </button>
         </form>
 

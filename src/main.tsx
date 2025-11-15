@@ -3,17 +3,15 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-import AuthProvider from "./hooks/useAuth";
+import AuthProvider from "./context/AuthProvider";   // <-- AGORA ESTÁ CORRETO
 import App from "./App.tsx";
 
-// 👇 Importa o registrador do Service Worker (vite-plugin-pwa)
 import { registerSW } from "virtual:pwa-register";
 
-// 👇 Ativa o service worker com atualização automática
+// Ativar Service Worker
 registerSW({
   onNeedRefresh() {
     console.log("⚠️ Nova versão disponível. Atualize a página para aplicar.");
-    // Aqui você pode abrir um modal/toast automático depois
   },
   onOfflineReady() {
     console.log("📡 App pronto para uso offline!");
