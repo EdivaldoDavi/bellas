@@ -1,80 +1,74 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
+import { supabase } from "../../lib/supabaseCleint";
+import { Link } from "react-router-dom";
 
 export default function Register() {
-  const [salon, setSalon] = useState("");
-  const [gerente, setGerente] = useState("");
   const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
-  const [err, setErr] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
-  const navigate = useNavigate();
-  const { signUp, loading } = useAuth();
+  const handleRegister = async () => {
+    setLoading(true);
+    setMessage("");
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErr("");
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+        },
+      },
+    });
 
-    if (!email || !senha || !salon || !gerente) {
-      setErr("Preencha todos os campos.");
+    setLoading(false);
+
+    if (error) {
+      setMessage(error.message);
       return;
     }
 
-    try {
-      await signUp(email, senha, {
-        tenant_name: salon,
-        full_name: gerente,
-      });
-
-      // ✔ Importante: não navegar para /setup pois usuário ainda NÃO está logado
-      // ✔ Redireciona para login com aviso
-      navigate("/login?checkEmail=1");
-
-    } catch (error: any) {
-      console.error("Erro ao cadastrar:", error);
-      setErr(error.message || "Erro ao cadastrar");
-    }
+    setMessage(
+      "Cadastro criado! Verifique seu e-mail para confirmar."
+    );
   };
 
   return (
-    <form onSubmit={onSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-      
-      {err && <div className="alert alert-danger">{err}</div>}
+    <div className="auth-container">
+      <h2>Criar Conta</h2>
+
+      {message && <p>{message}</p>}
 
       <input
-        value={salon}
-        onChange={e => setSalon(e.target.value)}
-        placeholder="Nome do salão"
-        required
-      />
-
-      <input
-        value={gerente}
-        onChange={e => setGerente(e.target.value)}
-        placeholder="Nome da gerente"
-        required
+        type="text"
+        placeholder="Seu nome"
+        value={fullName}
+        onChange={(e) => setFullName(e.target.value)}
       />
 
       <input
         type="email"
+        placeholder="E-mail"
         value={email}
-        onChange={e => setEmail(e.target.value)}
-        placeholder="Email"
-        required
+        onChange={(e) => setEmail(e.target.value)}
       />
 
       <input
         type="password"
-        value={senha}
-        onChange={e => setSenha(e.target.value)}
         placeholder="Senha"
-        required
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
       />
 
-      <button type="submit" disabled={loading}>
-        {loading ? "Criando..." : "Criar conta"}
+      <button disabled={loading} onClick={handleRegister}>
+        {loading ? "Registrando..." : "Criar conta"}
       </button>
-    </form>
+
+      <p>
+        Já possui conta? <Link to="/login">Entrar</Link>
+      </p>
+    </div>
   );
 }
