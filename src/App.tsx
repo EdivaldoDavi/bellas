@@ -58,29 +58,6 @@ export default function App() {
   }, []);
 // 🔥 Auto-login após confirmação de email Supabase
 // 🔥 Auto-login após confirmação de email Supabase
-useEffect(() => {
-  const hash = window.location.hash;
-
-  if (hash.includes("access_token")) {
-    const params = new URLSearchParams(hash.replace("#", ""));
-    const access_token = params.get("access_token");
-    const refresh_token = params.get("refresh_token");
-
-    if (access_token && refresh_token) {
-      console.log("🔐 Aplicando sessão do Supabase a partir do link de confirmação...");
-
-      supabase.auth
-        .setSession({ access_token, refresh_token })
-        .then(() => {
-          // Limpar hash da URL
-          window.history.replaceState({}, document.title, window.location.pathname);
-
-          // Redirecionar para perfil
-          window.location.href = "/perfil";
-        });
-    }
-  }
-}, []);
 
 
 
