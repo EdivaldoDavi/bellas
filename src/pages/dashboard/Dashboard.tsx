@@ -1,45 +1,64 @@
-import { useEffect, useState } from 'react';
-import { getCurrentProfile } from '../../lib/supabaseCleint';
-import DashboardGlobal from './DashboardGlobal';
-import DashboardTenant from './DashboardTenant';
+import { useUserAndTenant } from "../../hooks/useUserAndTenant";
+import DashboardGlobal from "./DashboardGlobal";
+import DashboardTenant from "./DashboardTenant";
 
+import { Link } from "react-router-dom";
 
 export default function Dashboard() {
-  const [role, setRole] = useState<string | null>(null);
-  const [_, setLoading] = useState(true);
+  const { loading, profile } = useUserAndTenant();
 
-  useEffect(() => {
-    async function fetchRole() {
-      const profile = await getCurrentProfile();
+  // Enquanto carrega perfil / sessão
+  {loading ? "Carregando..." : "Carregando perfil"}
 
-      if (!profile) {
-        console.error('Perfil não encontrado!');
-        setRole(null);
-      } else {
-        setRole(profile.role); // superuser / manager / professional
-      }
-
-      setLoading(false);
-    }
-
-    fetchRole();
-  }, []);
-
-
-
-
-  if (role === 'superuser') {
-    return <DashboardGlobal />;
-  } else if (role === 'manager' || role === 'professional') {
-    return <DashboardTenant />;
-  } else {
+  // Caso não haja perfil
+  if (!profile) {
     return (
-      <>
-     
-        <p style={{ textAlign: 'center', padding: '20px', color: 'red' }}>
-          Acesso negado. Nenhum perfil compatível encontrado.
-        </p>
-      </>
+      <p style={{ textAlign: "center", padding: 20, color: "red" }}>
+        Acesso negado: Perfil não encontrado.
+      </p>
     );
   }
+
+  const role = profile.role; // superuser | manager | professional
+
+  // 🔥 superuser → dashboard global
+  if (role === "superuser") {
+    return <DashboardGlobal />;
+  }
+
+  // 🔥 manager → dashboard da tenant + acesso a permissões
+  if (role === "manager") {
+    return (
+      <div>
+        <DashboardTenant />
+
+        <div style={{ marginTop: 20, textAlign: "center" }}>
+          <Link
+            to="/permissions"
+            style={{
+              padding: "10px 16px",
+              background: "var(--color-primary)",
+              color: "#fff",
+              borderRadius: "8px",
+              textDecoration: "none",
+              fontWeight: 600,
+            }}
+          >
+            Gerenciar Permissões
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // 🔥 professional → dashboard da tenant
+  if (role === "professional") {
+    return <DashboardTenant />;
+  }
+
+  return (
+    <p style={{ textAlign: "center", padding: 20, color: "red" }}>
+      Acesso negado: papel inválido.
+    </p>
+  );
 }
