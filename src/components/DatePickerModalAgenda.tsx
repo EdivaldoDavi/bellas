@@ -54,12 +54,12 @@ export default function DatePickerModalAgenda({
   const enableAllDays = !professionalId || !serviceDuration;
 
   /** Hook de disponibilidade (apenas se ambos existirem) */
-  const { loading, available } = useAvailableDays(
-    professionalId ?? "",
-    serviceDuration ?? 0,
-    viewYear,
-    viewMonth
-  );
+const { loading, available } = useAvailableDays(
+  professionalId && serviceDuration ? professionalId : undefined,
+  professionalId && serviceDuration ? serviceDuration : undefined,
+  viewYear,
+  viewMonth
+);
 
   /** Monta a grade de dias do mês */
   const matrix = useMemo(() => {
