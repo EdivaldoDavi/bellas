@@ -62,17 +62,17 @@ export default function ModalNewUser({ tenantId, show, onClose }: ModalNewUserPr
 
       // 1️⃣ Criar usuário no Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: selected.email,
-        password: tempPassword,
-        options: {
-          emailRedirectTo: `${window.location.origin}/login`,
-          data: {
-            role: "professional",
-            tenant_id: tenantId,
-            full_name: selected.name,
-          },
-        },
-      });
+  email: selected.email,
+  password: tempPassword,
+  options: {
+    emailRedirectTo: `${window.location.origin}/force-reset`,
+    data: {
+      role: "professional",
+      tenant_id: tenantId,
+      full_name: selected.name
+    }
+  }
+});
 
       if (authError || !authData.user) {
         throw new Error(authError?.message || "Erro ao criar usuário.");

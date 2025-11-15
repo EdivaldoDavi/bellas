@@ -17,7 +17,7 @@ import PerfilPage from "./pages/PerfilPage";
 import Agenda from "./components/Agenda";
 import EmDesenvolvimento from "./components/EmDesenvolvimento";
 import ConfigPage from "./pages/ConfigPage";
-
+import ForcePasswordReset from "./components/ForcePasswordReset";
 // ✅ IMPORTA A NOVA PÁGINA
 import ConnectWhatsAppPage from './pages/ConnectWhatsAppPage';
 
@@ -89,6 +89,7 @@ useEffect(() => {
       <Routes>
         {/* Redirecionamento padrão */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/force-reset" element={<ForcePasswordReset />} />
 
         {/* Rotas públicas */}
         <Route path="/login" element={<Login />} />
