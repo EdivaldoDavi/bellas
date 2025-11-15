@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { X } from "lucide-react";
 
 interface ModalNewUserProps {
-  tenantId: string;
+  tenantId?: string;
   show: boolean;
   onClose: () => void;
 }

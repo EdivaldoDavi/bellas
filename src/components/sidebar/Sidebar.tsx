@@ -1,6 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode, type CSSProperties } from "react";
 
 import {
   LayoutDashboard,
@@ -27,16 +26,6 @@ import ModalNewUser from "../../components/ModalNewUser";
 import styles from "../../css/Sidebar.module.css";
 
 /* ================================
-   COLORS BY THEME
-===================================*/
-const THEME_PRIMARY: Record<string, string> = {
-  pink: "#FF4081",
-  purple: "#9C27B0",
-  blue: "#007BFF",
-  green: "#2ECC71",
-};
-
-/* ================================
    COMPONENT
 ===================================*/
 export default function Sidebar({
@@ -52,49 +41,66 @@ export default function Sidebar({
   const { profile, tenant } = useUserAndTenant();
 
   const role = profile?.role ?? "professional";
-  const variant = tenant?.theme_variant ?? "pink";
-  const primary = THEME_PRIMARY[variant] ?? THEME_PRIMARY.pink;
+
+  // 🎨 Cor primária do sidebar vem do tenant (ou rosa padrão)
+  const sidebarPrimary =
+    tenant?.primary_color && tenant.primary_color.trim() !== ""
+      ? tenant.primary_color
+      : "#FF4081";
 
   const [showCadastroMenu, setShowCadastroMenu] = useState(false);
 
-  // Modais
+  // Modais de cadastro rápido
   const [openCustomerModal, setOpenCustomerModal] = useState(false);
   const [openServiceModal, setOpenServiceModal] = useState(false);
   const [openProfessionalModal, setOpenProfessionalModal] = useState(false);
   const [openUserModal, setOpenUserModal] = useState(false);
 
-  const isMobile = window.innerWidth < 1024;
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 1024;
 
   /* ================================
      MENU DINÂMICO
+     Regras:
+     - Se NÃO tiver tenant -> modo "global" (admin da plataforma)
+     - Se tiver tenant:
+         - owner / manager -> menu de gestão do salão
+         - demais -> menu de profissional
   ===================================*/
 
-  const menu: { to: string; label: string; icon: ReactNode }[] =
-    role === "superuser"
-      ? [
-          { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
-          { to: "/saloes", label: "Salões", icon: <Building2 size={20} /> },
-          { to: "/assinaturas", label: "Assinaturas", icon: <CreditCard size={20} /> },
-          { to: "/gerenciar-acessos", label: "Gerenciar Acessos", icon: <ShieldCheck size={20} /> },
-          { to: "/integracoes/whatsapp", label: "WhatsApp", icon: <MessageCircle size={20} /> },
-          { to: "/perfil", label: "Meu Perfil", icon: <User size={20} /> },
-        ]
-      : role === "manager"
-      ? [
-          { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
-          { to: "/agenda", label: "Agenda", icon: <Calendar size={20} /> },
-          { to: "#cadastros", label: "Cadastros", icon: <PlusCircle size={20} /> },
-          { to: "/gerenciar-acessos", label: "Gerenciar Acessos", icon: <ShieldCheck size={20} /> },
-          { to: "/config", label: "Configurações", icon: <Settings size={20} /> },
-          { to: "/integracoes/whatsapp", label: "WhatsApp", icon: <MessageCircle size={20} /> },
-          { to: "/perfil", label: "Meu Perfil", icon: <User size={20} /> },
-        ]
-      : [
-          { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
-          { to: "/agenda", label: "Agenda", icon: <Calendar size={20} /> },
-          { to: "/comissoes", label: "Minhas Comissões", icon: <BadgeDollarSign size={20} /> },
-          { to: "/perfil", label: "Meu Perfil", icon: <User size={20} /> },
-        ];
+  type MenuItem = { to: string; label: string; icon: ReactNode };
+
+  let menu: MenuItem[] = [];
+
+  if (!tenant) {
+    // 🌐 Modo "global" (sem tenant associado)
+    menu = [
+      { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
+      { to: "/saloes", label: "Salões", icon: <Building2 size={20} /> },
+      { to: "/assinaturas", label: "Assinaturas", icon: <CreditCard size={20} /> },
+      { to: "/gerenciar-acessos", label: "Gerenciar Acessos", icon: <ShieldCheck size={20} /> },
+      { to: "/integracoes/whatsapp", label: "WhatsApp", icon: <MessageCircle size={20} /> },
+      { to: "/perfil", label: "Meu Perfil", icon: <User size={20} /> },
+    ];
+  } else if (role === "owner" || role === "manager") {
+    // 👑 Dono ou gerente do salão
+    menu = [
+      { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
+      { to: "/agenda", label: "Agenda", icon: <Calendar size={20} /> },
+      { to: "#cadastros", label: "Cadastros", icon: <PlusCircle size={20} /> },
+      { to: "/gerenciar-acessos", label: "Gerenciar Acessos", icon: <ShieldCheck size={20} /> },
+      { to: "/config", label: "Configurações", icon: <Settings size={20} /> },
+      { to: "/integracoes/whatsapp", label: "WhatsApp", icon: <MessageCircle size={20} /> },
+      { to: "/perfil", label: "Meu Perfil", icon: <User size={20} /> },
+    ];
+  } else {
+    // 💅 Profissionais e demais papéis
+    menu = [
+      { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
+      { to: "/agenda", label: "Agenda", icon: <Calendar size={20} /> },
+      { to: "/comissoes", label: "Minhas Comissões", icon: <BadgeDollarSign size={20} /> },
+      { to: "/perfil", label: "Meu Perfil", icon: <User size={20} /> },
+    ];
+  }
 
   /* ================================
      LOGOUT
@@ -119,7 +125,7 @@ export default function Sidebar({
         className={`${styles.sidebar} ${
           isMobile ? (isOpen ? styles.open : styles.collapsed) : isOpen ? "" : styles.collapsed
         }`}
-        style={{ ["--sidebar-primary" as any]: primary } as React.CSSProperties}
+        style={{ "--sidebar-primary": sidebarPrimary } as CSSProperties}
       >
         {/* TOP */}
         <div className={styles.topSection}>
@@ -136,7 +142,9 @@ export default function Sidebar({
               key={item.label}
               to={item.to === "#cadastros" ? "#" : item.to}
               className={({ isActive }) =>
-                `${styles.menuItem} ${isActive && item.to !== "#cadastros" ? styles.active : ""}`
+                `${styles.menuItem} ${
+                  isActive && item.to !== "#cadastros" ? styles.active : ""
+                }`
               }
               onClick={(e) => {
                 if (item.to === "#cadastros") {

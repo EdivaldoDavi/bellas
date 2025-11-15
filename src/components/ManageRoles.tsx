@@ -5,7 +5,7 @@ import styles from "../css/ManageRoles.module.css";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
 interface Props {
-  tenantId: string;
+  tenantId?: string;
 }
 
 interface ProfileUser {

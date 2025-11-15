@@ -29,10 +29,10 @@ export default function Dashboard() {
 
   // ---------------------------------------------------------
   // SUPERUSER
-  // ---------------------------------------------------------
-  if (role === "superuser") {
-    return <DashboardGlobal />;
-  }
+if (role === "owner") {
+  return <DashboardGlobal />;
+}
+
 
   // ---------------------------------------------------------
   // MANAGER

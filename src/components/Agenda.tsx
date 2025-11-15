@@ -1,14 +1,15 @@
-/**  AGENDA REFACTORED 100% COMPATÍVEL COM OS NOVOS MODAIS **/
+/** AGENDA — CLEAN VERSION (sem estados não usados) **/
+
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 import DatePickerAgenda from "../components/DatePickerAgenda";
+
 import ModalCalendar from "./ModalCalendar";
 import ModalScheduleTimes from "./ModalScheduletimes";
 import ModalSelectServiceForProfessional from "./ModalSelectServiceForProfessional";
 import ModalSelectProfessional from "./ModalSelectProfessional";
 import ModalScheduleWizard from "../components/ModalScheduleWizard";
-
 
 import ModalNewCustomer from "../components/ModalNewCustomer";
 import ModalNewService from "../components/ModalNewService";
@@ -23,108 +24,80 @@ import {
   getWeekdayLocal,
   combineLocalDateTime,
   getDayBoundsISO,
-  isHoliday
+  isHoliday,
 } from "../utils/date";
 
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import styles from "../css/Agenda.module.css";
 
-import { getCurrentProfile, supabase } from "../lib/supabaseCleint";
+import { supabase } from "../lib/supabaseCleint";
 
 interface Appointment {
   id: string;
   starts_at: string;
   ends_at: string;
   status: string;
-  service_id?: string;
-  professional_id?: string;
-  customer_id?: string;
+
   service_name?: string;
   professional_name?: string;
   customer_name?: string;
+
   avatar_url?: string;
 }
 
 export default function Agenda() {
-  /** ==========================================================
-   * STATES
-   * ========================================================== */
-  const [showWizard, setShowWizard] = useState(false);
+  const { profile, tenant } = useUserAndTenant();
+  const { theme } = useTheme();
+
+  const tenantId = profile?.tenant_id ?? null;
+  const role = profile?.role ?? null;
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [currentDate, setCurrentDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
+  const [currentDate, setCurrentDate] = useState(new Date());
 
-  const [tenantId, setTenantId] = useState<string | null>(null);
-  const [role, setRole] = useState<string | null>(null);
-
-  /** Profissional */
-  const [showProfessionalModal, setShowProfessionalModal] = useState(false);
-  const [___ , setSelectedProfessionalName] = useState("");
-  const [professionals, _____] = useState<any[]>([]);
-
-  /** Calendário / Horários */
+  /* Modais */
+  const [showWizard, setShowWizard] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showTimes, setShowTimes] = useState(false);
-
-  /** CRUD */
-
-
-
-  /** Serviço */
   const [showServiceModal, setShowServiceModal] = useState(false);
-  const [____, setSelectedServiceName] = useState("");
+  const [showProfessionalModal, setShowProfessionalModal] = useState(false);
 
-  /** Campos */
-  const [professionalId, setProfessionalId] = useState("");
-  const [serviceId, setServiceId] = useState("");
-  const [__, setCustomerId] = useState("");
-
-  const [selectedDate, setSelectedDate] = useState("");
-  const [______, setStartTime] = useState("");
-  const [_______, setEndTime] = useState("");
-
-  const [professionalServices, setProfessionalServices] = useState<any[]>([]);
-  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
-  const [serviceDuration, setServiceDuration] = useState<number | null>(null);
-
-  /** AUX MODAIS (CADASTRO RÁPIDO) */
   const [showNewCustomer, setShowNewCustomer] = useState(false);
   const [showNewService, setShowNewService] = useState(false);
   const [showNewProfessional, setShowNewProfessional] = useState(false);
 
-  /** TEMA */
-  const { theme } = useTheme();
-  const { profile } = useUserAndTenant();
+  /* Campos */
+  const [professionalId, setProfessionalId] = useState("");
+  const [serviceId, setServiceId] = useState("");
+  const [_, setSelectedDate] = useState("");
 
-  /** ==========================================================
-   * EFFECTS
-   * ========================================================== */
+  /* Dados do profissional */
+  const [professionalServices, setProfessionalServices] = useState<any[]>([]);
+  const [serviceDuration, setServiceDuration] = useState<number | null>(null);
+  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+
+  /* ============================================
+   * TEMA
+   * ============================================ */
   useEffect(() => {
     if (theme) document.documentElement.setAttribute("data-theme", theme);
-    if (profile?.theme_variant)
-      document.documentElement.setAttribute("data-theme-variant", profile.theme_variant);
-  }, [theme, profile]);
 
-  useEffect(() => {
-    (async () => {
-      const p = await getCurrentProfile();
-      if (p) {
-        setTenantId(p.tenant_id);
-        setRole(p.role);
-      }
-    })();
-  }, []);
+    if (tenant?.theme_variant) {
+      document.documentElement.setAttribute(
+        "data-theme-variant",
+        tenant.theme_variant
+      );
+    }
+  }, [theme, tenant]);
 
+  /* ============================================
+   * LOAD APPOINTMENTS
+   * ============================================ */
   useEffect(() => {
     if (!tenantId) return;
     fetchAppointments();
   }, [tenantId, currentDate]);
-
-  /** ==========================================================
-   * FUNÇÕES
-   * ========================================================== */
-
 
   async function fetchAppointments() {
     setLoading(true);
@@ -133,16 +106,18 @@ export default function Agenda() {
     start.setHours(0, 0, 0, 0);
 
     const end = new Date(currentDate);
-    end.setHours(23, 59, 59);
+    end.setHours(23, 59, 59, 999);
 
     const { data } = await supabase
       .from("appointments")
-      .select(`
+      .select(
+        `
         id, starts_at, ends_at, status,
-        service:services(id,name),
-        professional:professionals(id,name),
-        customer:customers(id,full_name)
-      `)
+        service:services(name),
+        professional:professionals(name),
+        customer:customers(full_name)
+      `
+      )
       .eq("tenant_id", tenantId)
       .gte("starts_at", start.toISOString())
       .lte("ends_at", end.toISOString())
@@ -154,18 +129,23 @@ export default function Agenda() {
         starts_at: a.starts_at,
         ends_at: a.ends_at,
         status: a.status,
-        service_id: a.service?.id,
         service_name: a.service?.name,
-        professional_id: a.professional?.id,
         professional_name: a.professional?.name,
-        customer_id: a.customer?.id,
         customer_name: a.customer?.full_name,
-        avatar_url: `https://api.dicebear.com/8.x/avataaars/svg?seed=${a.professional?.name}`,
+        avatar_url: a.professional?.name
+          ? `https://api.dicebear.com/8.x/avataaars/svg?seed=${encodeURIComponent(
+              a.professional.name
+            )}`
+          : undefined,
       }))
     );
 
     setLoading(false);
   }
+
+  /* ============================================
+   * OUTRAS FUNÇÕES
+   * ============================================ */
 
   async function fetchServicesByProfessional(id: string) {
     const { data } = await supabase
@@ -177,8 +157,9 @@ export default function Agenda() {
     setProfessionalServices((data || []).map((r: any) => r.service));
   }
 
-  async function loadAvailableTimes(date: string, profId: string, duration = serviceDuration) {
-    if (!tenantId || !date || !profId || !duration) return setAvailableTimes([]);
+  async function loadAvailableTimes(date: string, profId: string) {
+    if (!tenantId || !profId || !serviceDuration) return;
+
     if (isPastDateLocal(date) || isHoliday(date)) return setAvailableTimes([]);
 
     const weekday = getWeekdayLocal(date);
@@ -189,16 +170,24 @@ export default function Agenda() {
       .eq("tenant_id", tenantId)
       .eq("professional_id", profId)
       .eq("weekday", weekday)
-      .single();
+      .maybeSingle();
 
     if (!schedule) return setAvailableTimes([]);
 
     const workStart = combineLocalDateTime(date, schedule.start_time.slice(0, 5));
     const workEnd = combineLocalDateTime(date, schedule.end_time.slice(0, 5));
 
-    const hasBreak = schedule.break_start_time !== "00:00:00" && schedule.break_end_time !== "00:00:00";
-    const breakStart = hasBreak ? combineLocalDateTime(date, schedule.break_start_time.slice(0, 5)) : null;
-    const breakEnd = hasBreak ? combineLocalDateTime(date, schedule.break_end_time.slice(0, 5)) : null;
+    const hasBreak =
+      schedule.break_start_time !== "00:00:00" &&
+      schedule.break_end_time !== "00:00:00";
+
+    const breakStart = hasBreak
+      ? combineLocalDateTime(date, schedule.break_start_time.slice(0, 5))
+      : null;
+
+    const breakEnd = hasBreak
+      ? combineLocalDateTime(date, schedule.break_end_time.slice(0, 5))
+      : null;
 
     const { startISO, endISO } = getDayBoundsISO(date);
 
@@ -212,72 +201,51 @@ export default function Agenda() {
 
     const slots: string[] = [];
     let t = new Date(workStart);
-    const now = new Date();
 
-    const isToday =
-      now.getFullYear() === t.getFullYear() &&
-      now.getMonth() === t.getMonth() &&
-      now.getDate() === t.getDate();
+    const now = new Date();
+    const isToday = toLocalISOString(now).split("T")[0] === date;
 
     while (t < workEnd) {
-      const end = new Date(t.getTime() + duration * 60000);
-      if (end > workEnd) break;
+      const endSlot = new Date(t.getTime() + serviceDuration * 60000);
+      if (endSlot > workEnd) break;
 
       const overlapBreak =
-        hasBreak &&
-        breakStart &&
-        breakEnd &&
-        t < breakEnd &&
-        end > breakStart;
+        hasBreak && breakStart && breakEnd && t < breakEnd && endSlot > breakStart;
 
       if (overlapBreak) {
         t = new Date(breakEnd);
         continue;
       }
 
-      if (isToday && end <= now) {
-        t = new Date(t.getTime() + duration * 60000);
+      if (isToday && endSlot <= now) {
+        t = new Date(t.getTime() + serviceDuration * 60000);
         continue;
       }
 
       const conflict = (booked || []).some((b) => {
         const s = new Date(b.starts_at);
         const e = new Date(b.ends_at);
-        return t < e && end > s;
+        return t < e && endSlot > s;
       });
 
       if (!conflict) {
-        slots.push(
-          `${String(t.getHours()).padStart(2, "0")}:${String(
-            t.getMinutes()
-          ).padStart(2, "0")}`
-        );
+        slots.push(`${String(t.getHours()).padStart(2, "0")}:${String(
+          t.getMinutes()
+        ).padStart(2, "0")}`);
       }
 
-      t = new Date(t.getTime() + duration * 60000);
+      t = new Date(t.getTime() + serviceDuration * 60000);
     }
 
     setAvailableTimes(slots);
   }
 
-
   async function handleSelectDate(date: Date) {
-    if (!professionalId)
-      return toast.warn("Selecione o profissional primeiro");
+    if (!professionalId) return toast.warn("Selecione o profissional primeiro");
     if (!serviceId || !serviceDuration)
       return toast.warn("Selecione o serviço primeiro");
 
     const d = toLocalISOString(date).split("T")[0];
-
-    const today = new Date();
-    const selected = new Date(`${d}T00:00:00`);
-
-    if (
-      selected <
-      new Date(today.getFullYear(), today.getMonth(), today.getDate())
-    ) {
-      return toast.warn("Data passada não permitida");
-    }
 
     if (isHoliday(d)) return toast.warn("Feriado não permitido");
 
@@ -285,7 +253,7 @@ export default function Agenda() {
     setShowCalendar(false);
 
     setTimeout(() => {
-      loadAvailableTimes(d, professionalId, serviceDuration!);
+      loadAvailableTimes(d, professionalId);
       setShowTimes(true);
     }, 10);
   }
@@ -298,14 +266,15 @@ export default function Agenda() {
       .update({ status: "canceled" })
       .eq("id", id);
 
-    if (error) {
-      toast.error("Erro ao cancelar agendamento");
-      return;
-    }
+    if (error) return toast.error("Erro ao cancelar.");
 
     toast.success("Agendamento cancelado!");
     fetchAppointments();
   }
+
+  /* ============================================
+   * RENDER
+   * ============================================ */
 
   const formattedDate = currentDate.toLocaleDateString("pt-BR", {
     weekday: "long",
@@ -313,34 +282,24 @@ export default function Agenda() {
     month: "long",
   });
 
-  
-
-  /** ==========================================================
-   * RENDER
-   * ========================================================== */
   return (
     <div className={styles.container}>
-      {/* Cabeçalho */}
       <div className={styles.header}>
         <h2 className={styles.title}>Agenda</h2>
 
-        {role === "manager" && (
-          <button
-            className={styles.newButton}
-            onClick={() => setShowWizard(true)}
-          >
+        {(role === "manager" || role === "owner") && (
+          <button className={styles.newButton} onClick={() => setShowWizard(true)}>
             <Plus size={18} /> Novo Agendamento
           </button>
         )}
       </div>
 
-      {/* Navegação por data */}
       <div className={styles.dateNav}>
         <button
-          onClick={() =>
-            setCurrentDate((d) => new Date(d.getTime() - 86400000))
-          }
           className={styles.navButton}
+          onClick={() =>
+            setCurrentDate((d) => new Date(d.getTime() - 86400_000))
+          }
         >
           <ChevronLeft size={18} />
         </button>
@@ -348,24 +307,21 @@ export default function Agenda() {
         <div className={styles.dateCenter}>
           <DatePickerAgenda
             value={toLocalISOString(currentDate).split("T")[0]}
-            onSelect={(iso) =>
-              setCurrentDate(new Date(`${iso}T00:00:00`))
-            }
+            onSelect={(iso) => setCurrentDate(new Date(`${iso}T00:00:00`))}
           />
           <h3 className={styles.date}>{formattedDate}</h3>
         </div>
 
         <button
-          onClick={() =>
-            setCurrentDate((d) => new Date(d.getTime() + 86400000))
-          }
           className={styles.navButton}
+          onClick={() =>
+            setCurrentDate((d) => new Date(d.getTime() + 86400_000))
+          }
         >
           <ChevronRight size={18} />
         </button>
       </div>
 
-      {/* Lista */}
       <div className={styles.list}>
         {loading ? (
           <p>Carregando...</p>
@@ -394,12 +350,7 @@ export default function Agenda() {
                 </p>
 
                 {a.status === "canceled" && (
-                  <span
-                    style={{
-                      color: "red",
-                      fontWeight: "bold",
-                    }}
-                  >
+                  <span style={{ color: "red", fontWeight: "bold" }}>
                     Cancelado
                   </span>
                 )}
@@ -407,34 +358,16 @@ export default function Agenda() {
                 <p>Cliente: {a.customer_name}</p>
               </div>
 
-              {role === "manager" && (
+              {(role === "manager" || role === "owner") && (
                 <div className={styles.cardActions}>
                   {a.status === "canceled" ? (
-                    <button
-                      disabled
-                      className={styles.iconButtonCancel}
-                      style={{
-                        background: "#ccc",
-                        color: "#666",
-                        borderRadius: "6px",
-                        padding: "6px 10px",
-                        fontSize: "12px",
-                        cursor: "not-allowed",
-                      }}
-                    >
+                    <button disabled className={styles.iconButtonCancel}>
                       Cancelado
                     </button>
                   ) : (
                     <button
-                      onClick={() => handleCancelAppointment(a.id)}
                       className={styles.iconButtonCancel}
-                      style={{
-                        background: "#ff4444",
-                        color: "#fff",
-                        borderRadius: "6px",
-                        padding: "6px 10px",
-                        fontSize: "12px",
-                      }}
+                      onClick={() => handleCancelAppointment(a.id)}
                     >
                       Cancelar
                     </button>
@@ -446,102 +379,80 @@ export default function Agenda() {
         )}
       </div>
 
-      {/* ------------------------------------------------------
-       *   TODOS OS MODAIS SEM RENDER CONDICIONAL
-       * ------------------------------------------------------ */}
+      {/* -- MODAIS AUXILIARES -- */}
 
-      {/* Cadastrar Cliente */}
       <ModalNewCustomer
-        tenantId={tenantId!}
-          mode="agenda"
+        tenantId={tenantId ?? ""}
+        mode="agenda"
         show={showNewCustomer}
         onClose={() => setShowNewCustomer(false)}
-        onSuccess={(id) => setCustomerId(id)}
+        onSuccess={() => {}}
       />
 
-      {/* Cadastrar Serviço */}
       <ModalNewService
-        tenantId={tenantId!}
+        tenantId={tenantId ?? ""}
         mode="agenda"
         show={showNewService}
         onClose={() => setShowNewService(false)}
         onSuccess={(id) => setServiceId(id)}
       />
 
-      {/* Cadastrar Profissional */}
       <ModalNewProfessional
-        tenantId={tenantId!}
-          mode="agenda"
+        tenantId={tenantId ?? ""}
+        mode="agenda"
         show={showNewProfessional}
         onClose={() => setShowNewProfessional(false)}
         onSuccess={(id) => setProfessionalId(id)}
       />
 
-      {/* Data */}
       <ModalCalendar
         show={showCalendar}
         onClose={() => setShowCalendar(false)}
         onSelect={handleSelectDate}
       />
 
-      {/* Horários */}
       <ModalScheduleTimes
         show={showTimes}
         times={availableTimes}
         onClose={() => setShowTimes(false)}
-        onSelect={(t: string) => {
-          setStartTime(t);
-          if (!serviceDuration) return;
-          const start = new Date(`${selectedDate}T${t}`);
-          const end = new Date(start.getTime() + serviceDuration * 60000);
-          setEndTime(end.toTimeString().slice(0, 5));
-          setShowTimes(false);
-        }}
+        onSelect={() => setShowTimes(false)}
       />
 
-      {/* Serviços disponíveis */}
       <ModalSelectServiceForProfessional
-        show={showServiceModal}
-        services={professionalServices}
-        onClose={() => setShowServiceModal(false)}
-        onSelect={(id, name, duration) => {
-          setServiceId(id);
-          setSelectedServiceName(name);
-          setServiceDuration(duration);
-          setSelectedDate("");
-          setStartTime("");
-          setEndTime("");
-          setAvailableTimes([]);
-          setShowServiceModal(false);
-        }}
-      />
+  show={showServiceModal}
+  services={professionalServices}
+  onClose={() => setShowServiceModal(false)}
+  onSelect={(id, _name, duration) => {
+    setServiceId(id);
+    setServiceDuration(duration);
+    setSelectedDate("");
+    setAvailableTimes([]);
+    setShowServiceModal(false);
+  }}
+/>
 
-      {/* Seleção de profissional */}
+
       <ModalSelectProfessional
         show={showProfessionalModal}
-        professionals={professionals}
+        professionals={[]}
         onClose={() => setShowProfessionalModal(false)}
-        onSelect={async (id, name) => {
+        onSelect={async (id) => {
           setProfessionalId(id);
-          setSelectedProfessionalName(name);
           setServiceId("");
-          setSelectedServiceName("");
           setServiceDuration(null);
           setSelectedDate("");
-          setStartTime("");
-          setEndTime("");
           setAvailableTimes([]);
 
           await fetchServicesByProfessional(id);
+
           setShowProfessionalModal(false);
           setShowServiceModal(true);
         }}
       />
 
-      {/* Wizard */}
       <ModalScheduleWizard
         open={showWizard}
-        tenantId={tenantId!}
+        tenantId={tenantId ?? ""}
         onClose={() => setShowWizard(false)}
         onBooked={() => fetchAppointments()}
       />

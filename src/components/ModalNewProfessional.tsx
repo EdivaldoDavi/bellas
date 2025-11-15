@@ -5,7 +5,7 @@ import { X } from "lucide-react";
 import styles from "../css/ModalNewProfessional.module.css";
 
 interface ModalNewProfessionalProps {
-  tenantId: string;
+  tenantId?: string;
   show: boolean;
   mode?: "agenda" | "cadastro"; // ⭐ NOVO
   onClose: () => void;
