@@ -20,6 +20,7 @@ import ConfigPage from "./pages/ConfigPage";
 import ForcePasswordReset from "./components/ForcePasswordReset";
 // ✅ IMPORTA A NOVA PÁGINA
 import ConnectWhatsAppPage from './pages/ConnectWhatsAppPage';
+import GerenciarAcessosPage from "./config/GerenciarAcessosPage";
 
 // 🔹 Loading enquanto verifica auth
 function LoadingScreen() {
@@ -71,7 +72,14 @@ export default function App() {
         {/* Rotas públicas */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
+        <Route
+          path="/gerenciar-acessos"
+          element={
+            <PrivateRoute>
+              <GerenciarAcessosPage />
+            </PrivateRoute>
+          }
+        />
         {/* Setup (privada sem layout) */}
         <Route
           path="/setup"
