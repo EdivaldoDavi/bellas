@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { X } from "lucide-react";
 
 interface ModalNewCustomerProps {
- tenantId?: string;
+  tenantId: string; // obrigatório agora!
   show: boolean;
   mode: "agenda" | "cadastro";
   onClose: () => void;
@@ -24,7 +24,6 @@ export default function ModalNewCustomer({
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 🔥 limpa sempre que abrir
   useEffect(() => {
     if (show) {
       setFullName("");
@@ -35,6 +34,11 @@ export default function ModalNewCustomer({
   if (!show) return null;
 
   async function handleSave() {
+    if (!tenantId) {
+      toast.error("Tenant não encontrado. Recarregue a página.");
+      return;
+    }
+
     if (!fullName.trim() || !phone.trim()) {
       return toast.warn("Preencha nome e telefone");
     }
@@ -43,23 +47,28 @@ export default function ModalNewCustomer({
 
     const { data, error } = await supabase
       .from("customers")
-      .insert([{ tenant_id: tenantId, full_name: fullName, customer_phone: phone }])
+      .insert([{ 
+        tenant_id: tenantId, 
+        full_name: fullName, 
+        customer_phone: phone 
+      }])
       .select()
       .single();
 
     setLoading(false);
 
-    if (error) return toast.error("Erro ao cadastrar cliente");
+    if (error) {
+      console.error(error);
+      return toast.error("Erro ao cadastrar cliente");
+    }
 
     toast.success("Cliente cadastrado!");
 
-    // 🔥 chama agenda quando necessário
     onSuccess?.(data.id, data.full_name);
 
     if (mode === "agenda") {
       onClose();
     } else {
-      // 🔥 Modo CADASTRO → limpa após salvar
       setFullName("");
       setPhone("");
     }
@@ -68,7 +77,7 @@ export default function ModalNewCustomer({
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
-        
+
         <button className={styles.closeBtn} onClick={onClose}>
           <X size={20} />
         </button>

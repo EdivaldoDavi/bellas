@@ -5,9 +5,9 @@ import { toast } from "react-toastify";
 import { X } from "lucide-react";
 
 interface ModalNewServiceProps {
-  tenantId?: string;
+  tenantId: string;
   show: boolean;
-  mode: "agenda" | "cadastro";   // ⭐ NOVO
+  mode: "agenda" | "cadastro";
   onClose: () => void;
   onSuccess?: (id: string, name: string, duration: number) => void;
 }
@@ -33,9 +33,9 @@ export default function ModalNewService({
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [selectedProfessionals, setSelectedProfessionals] = useState<string[]>([]);
 
-  /* ------------------------------------------
-     Carregar profissionais
-  --------------------------------------------*/
+  /* ---------------------------
+     Load Professionals
+  -----------------------------*/
   useEffect(() => {
     if (!tenantId || !show) return;
 
@@ -44,7 +44,7 @@ export default function ModalNewService({
         .from("professionals")
         .select("id, name")
         .eq("tenant_id", tenantId)
-        .order("name", { ascending: true });
+        .order("name");
 
       if (error) {
         toast.error("Erro ao carregar profissionais");
@@ -57,9 +57,9 @@ export default function ModalNewService({
     loadProfessionals();
   }, [tenantId, show]);
 
-  /* ------------------------------------------
-     Resetar formulário após salvar (modo cadastro)
-  --------------------------------------------*/
+  /* ---------------------------
+     Reset form
+  -----------------------------*/
   function resetForm() {
     setName("");
     setPrice("");
@@ -67,9 +67,9 @@ export default function ModalNewService({
     setSelectedProfessionals([]);
   }
 
-  /* ------------------------------------------
-     Toggle checkbox de profissionais
-  --------------------------------------------*/
+  /* ---------------------------
+     Toggle checkbox
+  -----------------------------*/
   function toggleProfessional(id: string) {
     setSelectedProfessionals((prev) =>
       prev.includes(id)
@@ -78,17 +78,9 @@ export default function ModalNewService({
     );
   }
 
-  function selectAllProfessionals() {
-    if (selectedProfessionals.length === professionals.length) {
-      setSelectedProfessionals([]);
-    } else {
-      setSelectedProfessionals(professionals.map((p) => p.id));
-    }
-  }
-
-  /* ------------------------------------------
-     SALVAR SERVIÇO
-  --------------------------------------------*/
+  /* ---------------------------
+     SAVE SERVICE
+  -----------------------------*/
   async function handleSave() {
     const serviceName = name.trim();
     const serviceDuration = Number(duration);
@@ -99,13 +91,17 @@ export default function ModalNewService({
       return;
     }
 
-    if (selectedProfessionals.length === 0) {
-      toast.warn("Selecione ao menos um profissional");
+    // 🚀 NOVA REGRA → se NÃO houver profissionais cadastrados, permitir cadastro SEM vínculo
+    const mustLinkProfessionals = professionals.length > 0;
+
+    if (mustLinkProfessionals && selectedProfessionals.length === 0) {
+      toast.warn("Selecione pelo menos um profissional");
       return;
     }
 
     setLoading(true);
 
+    // --- Cadastrar serviço ---
     const { data: service, error: srvErr } = await supabase
       .from("services")
       .insert([
@@ -127,48 +123,46 @@ export default function ModalNewService({
 
     const serviceId = service.id;
 
-    // vincular profissionais
-    const rows = selectedProfessionals.map((pid) => ({
-      tenant_id: tenantId,
-      professional_id: pid,
-      service_id: serviceId
-    }));
+    // --- Vincular profissionais SE existirem ---
+    if (mustLinkProfessionals && selectedProfessionals.length > 0) {
+      const rows = selectedProfessionals.map((pid) => ({
+        tenant_id: tenantId,
+        professional_id: pid,
+        service_id: serviceId
+      }));
 
-    const { error: linkErr } = await supabase
-      .from("professional_services")
-      .insert(rows);
+      const { error: linkErr } = await supabase
+        .from("professional_services")
+        .insert(rows);
+
+      if (linkErr) {
+        toast.error("Serviço criado, mas erro ao vincular profissionais");
+      } else {
+        toast.success("Serviço cadastrado!");
+      }
+    } else {
+      // 🚀 Cadastrar SEM profissionais
+      toast.success("Serviço cadastrado! Vincule profissionais depois.");
+    }
 
     setLoading(false);
 
-    if (linkErr) {
-      toast.error("Serviço criado, mas erro ao vincular profissionais");
-    } else {
-      toast.success("Serviço cadastrado!");
-    }
-
+    // Callback para agenda
     onSuccess?.(serviceId, serviceName, serviceDuration);
 
     if (mode === "agenda") {
-      // 🔥 comportamento atual
       onClose();
     } else {
-      // 🔥 novo modo cadastro contínuo
       resetForm();
     }
   }
 
-  /* ------------------------------------------
-     early return
-  --------------------------------------------*/
   if (!show) return null;
 
-  /* ------------------------------------------
-     RENDER
-  --------------------------------------------*/
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
-        
+
         <button onClick={onClose} className={styles.closeBtn}>
           <X size={20} />
         </button>
@@ -198,24 +192,16 @@ export default function ModalNewService({
           onChange={(e) => setDuration(e.target.value)}
         />
 
-        <h4 style={{ marginTop: 12 }}>Profissionais do serviço</h4>
+        <h4 style={{ marginTop: 12 }}>Profissionais</h4>
 
-        {professionals.length > 0 && (
-          <button
-            onClick={selectAllProfessionals}
-            className={styles.smallBtn}
-          >
-            {selectedProfessionals.length === professionals.length
-              ? "Desmarcar todos"
-              : "Selecionar todos"}
-          </button>
-        )}
-
-        <div className={styles.checkList}>
-          {professionals.length === 0 ? (
-            <p className={styles.emptyText}>Nenhum profissional cadastrado.</p>
-          ) : (
-            professionals.map((p) => (
+        {professionals.length === 0 ? (
+          <p className={styles.emptyText}>
+            Nenhum profissional cadastrado ainda.<br />
+            Você poderá vincular depois.
+          </p>
+        ) : (
+          <div className={styles.checkList}>
+            {professionals.map((p) => (
               <label key={p.id} className={styles.checkItem}>
                 <input
                   type="checkbox"
@@ -224,18 +210,17 @@ export default function ModalNewService({
                 />
                 {p.name}
               </label>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
 
         <button
           className={styles.saveButton}
           disabled={loading}
           onClick={handleSave}
         >
-          {loading ? "Salvando..." : 
-            mode === "cadastro" ? "Salvar e continuar" : "Salvar Serviço"
-          }
+          {loading ? "Salvando..." :
+            mode === "cadastro" ? "Salvar e continuar" : "Salvar Serviço"}
         </button>
 
       </div>
