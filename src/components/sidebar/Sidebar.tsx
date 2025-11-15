@@ -1,33 +1,34 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import type { ReactNode } from "react";
-import { MessageCircle } from "lucide-react";
-import { supabase } from "../../lib/supabaseCleint";
+
 import {
   LayoutDashboard,
   Building2,
   CreditCard,
- 
   Calendar,
   Settings,
   User,
   BadgeDollarSign,
   LogOut,
   PlusCircle,
+  MessageCircle,
+  ShieldCheck,
 } from "lucide-react";
 
-import styles from "../../css/Sidebar.module.css";
-
+import { supabase } from "../../lib/supabaseCleint";
 import { useUserAndTenant } from "../../hooks/useUserAndTenant";
 
-// 🔥 Modais reutilizáveis
 import ModalNewCustomer from "../../components/ModalNewCustomer";
 import ModalNewProfessional from "../../components/ModalNewProfessional";
 import ModalNewService from "../../components/ModalNewService";
 import ModalNewUser from "../../components/ModalNewUser";
 
-type MenuItem = { to: string; label: string; icon: ReactNode };
+import styles from "../../css/Sidebar.module.css";
 
+/* ================================
+   COLORS BY THEME
+===================================*/
 const THEME_PRIMARY: Record<string, string> = {
   pink: "#FF4081",
   purple: "#9C27B0",
@@ -35,6 +36,9 @@ const THEME_PRIMARY: Record<string, string> = {
   green: "#2ECC71",
 };
 
+/* ================================
+   COMPONENT
+===================================*/
 export default function Sidebar({
   isOpen,
   toggleSidebar,
@@ -51,22 +55,27 @@ export default function Sidebar({
   const variant = tenant?.theme_variant ?? "pink";
   const primary = THEME_PRIMARY[variant] ?? THEME_PRIMARY.pink;
 
-  // 🔥 controla o submenu Cadastros
   const [showCadastroMenu, setShowCadastroMenu] = useState(false);
 
-  // 🔥 controla cada modal individualmente
+  // Modais
   const [openCustomerModal, setOpenCustomerModal] = useState(false);
   const [openServiceModal, setOpenServiceModal] = useState(false);
   const [openProfessionalModal, setOpenProfessionalModal] = useState(false);
   const [openUserModal, setOpenUserModal] = useState(false);
 
-  // 🔥 MENU CONFIG
-  let menu: MenuItem[] =
+  const isMobile = window.innerWidth < 1024;
+
+  /* ================================
+     MENU DINÂMICO
+  ===================================*/
+
+  const menu: { to: string; label: string; icon: ReactNode }[] =
     role === "superuser"
       ? [
           { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
           { to: "/saloes", label: "Salões", icon: <Building2 size={20} /> },
           { to: "/assinaturas", label: "Assinaturas", icon: <CreditCard size={20} /> },
+          { to: "/gerenciar-acessos", label: "Gerenciar Acessos", icon: <ShieldCheck size={20} /> },
           { to: "/integracoes/whatsapp", label: "WhatsApp", icon: <MessageCircle size={20} /> },
           { to: "/perfil", label: "Meu Perfil", icon: <User size={20} /> },
         ]
@@ -74,11 +83,8 @@ export default function Sidebar({
       ? [
           { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
           { to: "/agenda", label: "Agenda", icon: <Calendar size={20} /> },
-
-          // 🔥 botão Cadastros
           { to: "#cadastros", label: "Cadastros", icon: <PlusCircle size={20} /> },
-
-         
+          { to: "/gerenciar-acessos", label: "Gerenciar Acessos", icon: <ShieldCheck size={20} /> },
           { to: "/config", label: "Configurações", icon: <Settings size={20} /> },
           { to: "/integracoes/whatsapp", label: "WhatsApp", icon: <MessageCircle size={20} /> },
           { to: "/perfil", label: "Meu Perfil", icon: <User size={20} /> },
@@ -90,19 +96,21 @@ export default function Sidebar({
           { to: "/perfil", label: "Meu Perfil", icon: <User size={20} /> },
         ];
 
-const handleLogout = async () => {
-  try {
-    await supabase.auth.signOut(); // 🔥 desloga de verdade
-  } catch (e) {
-    console.warn("Erro ao deslogar:", e);
-  }
+  /* ================================
+     LOGOUT
+  ===================================*/
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.warn("Erro ao deslogar:", e);
+    }
+    navigate("/login?logged_out=1", { replace: true });
+  };
 
-  // Redireciona imediatamente
-  navigate("/login?logged_out=1", { replace: true });
-};
-
-  const isMobile = window.innerWidth < 1024;
-
+  /* ================================
+     RENDER
+  ===================================*/
   return (
     <>
       {isMobile && isOpen && <div className={styles.overlay} onClick={closeSidebar} />}
@@ -111,36 +119,32 @@ const handleLogout = async () => {
         className={`${styles.sidebar} ${
           isMobile ? (isOpen ? styles.open : styles.collapsed) : isOpen ? "" : styles.collapsed
         }`}
-        style={
-          {
-            ["--sidebar-primary" as any]: primary,
-          } as React.CSSProperties
-        }
+        style={{ ["--sidebar-primary" as any]: primary } as React.CSSProperties}
       >
+        {/* TOP */}
         <div className={styles.topSection}>
           <span className={styles.logo}>bellas!</span>
-
           <button className={styles.toggleBtn} onClick={toggleSidebar}>
             ☰
           </button>
         </div>
 
+        {/* MENU */}
         <nav className={styles.menu}>
           {menu.map((item) => (
             <NavLink
-              key={item.to}
+              key={item.label}
               to={item.to === "#cadastros" ? "#" : item.to}
               className={({ isActive }) =>
                 `${styles.menuItem} ${isActive && item.to !== "#cadastros" ? styles.active : ""}`
               }
               onClick={(e) => {
-                if (isMobile) closeSidebar();
-
                 if (item.to === "#cadastros") {
                   e.preventDefault();
                   setShowCadastroMenu(true);
                   return;
                 }
+                if (isMobile) closeSidebar();
               }}
             >
               <span className={styles.icon}>{item.icon}</span>
@@ -149,6 +153,7 @@ const handleLogout = async () => {
           ))}
         </nav>
 
+        {/* FOOTER */}
         <div className={styles.footer}>
           <button className={styles.menuItem} onClick={handleLogout}>
             <span className={styles.icon}>
@@ -159,7 +164,9 @@ const handleLogout = async () => {
         </div>
       </aside>
 
-      {/* SUBMENU CADASTROS */}
+      {/* ============================
+          SUBMENU CADASTROS
+      ============================= */}
       {showCadastroMenu && (
         <div className={styles.submenuOverlay} onClick={() => setShowCadastroMenu(false)}>
           <div className={styles.submenuBox} onClick={(e) => e.stopPropagation()}>
@@ -206,7 +213,9 @@ const handleLogout = async () => {
         </div>
       )}
 
-      {/* MODAIS */}
+      {/* ============================
+          MODAIS
+      ============================= */}
       <ModalNewCustomer
         tenantId={tenant?.id}
         mode="cadastro"
@@ -230,7 +239,6 @@ const handleLogout = async () => {
 
       <ModalNewUser
         tenantId={tenant?.id}
-      
         show={openUserModal}
         onClose={() => setOpenUserModal(false)}
       />
