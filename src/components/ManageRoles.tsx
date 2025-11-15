@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabaseCleint";
 import { toast } from "react-toastify";
+import { supabase } from "../lib/supabaseCleint";
 import styles from "../css/ManageRoles.module.css";
+import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
 interface Props {
   tenantId: string;
@@ -17,8 +18,11 @@ export default function ManageRoles({ tenantId }: Props) {
   const [users, setUsers] = useState<ProfileUser[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // 🔥 Usuário logado
+  const { profile } = useUserAndTenant();
+
   useEffect(() => {
-    loadUsers();
+    if (tenantId) loadUsers();
   }, [tenantId]);
 
   async function loadUsers() {
@@ -32,7 +36,7 @@ export default function ManageRoles({ tenantId }: Props) {
 
     if (error) {
       console.error(error);
-      toast.error("Erro ao carregar usuários");
+      toast.error("Erro ao carregar usuários.");
       setLoading(false);
       return;
     }
@@ -49,12 +53,12 @@ export default function ManageRoles({ tenantId }: Props) {
 
     if (error) {
       console.error(error);
-      toast.error("Erro ao atualizar permissão");
+      toast.error("Erro ao atualizar permissão.");
       return;
     }
 
     toast.success("Permissão atualizada!");
-    loadUsers(); // Recarrega lista
+    loadUsers();
   }
 
   return (
@@ -69,30 +73,60 @@ export default function ManageRoles({ tenantId }: Props) {
 
       {!loading && users.length > 0 && (
         <div className={styles.list}>
-          {users.map((u) => (
-            <div key={u.user_id} className={styles.item}>
-              <div className={styles.info}>
-                <strong>{u.full_name || "Sem nome"}</strong>
-                <span className={styles.roleLabel}>
-                  Papel atual: <b>{u.role}</b>
-                </span>
-              </div>
+          {users.map((u) => {
+            const isSelf = u.user_id === profile?.user_id;
+            const isSuperuser = u.role === "superuser";
 
-              {/* Superuser nunca pode ser alterado */}
-              {u.role !== "superuser" && (
-                <select
-                  className={styles.select}
-                  value={u.role}
-                  onChange={(e) =>
-                    updateRole(u.user_id, e.target.value as "manager" | "professional")
-                  }
-                >
-                  <option value="manager">Gerente</option>
-                  <option value="professional">Profissional</option>
-                </select>
-              )}
-            </div>
-          ))}
+            return (
+              <div key={u.user_id} className={styles.item}>
+                {/* INFO DO USUÁRIO */}
+                <div className={styles.info}>
+                  <strong>{u.full_name || "Sem nome"}</strong>
+
+                  <span className={styles.roleLabel}>
+                    Papel atual:{" "}
+                    <b style={{ textTransform: "capitalize" }}>{u.role}</b>
+                  </span>
+
+                  {isSelf && (
+                    <span className={styles.selfTag}>
+                      Você não pode alterar seu próprio papel
+                    </span>
+                  )}
+
+                  {isSuperuser && (
+                    <span className={styles.superTag}>
+                      Superuser — Não pode ser alterado
+                    </span>
+                  )}
+                </div>
+
+                {/* SELECT DE ALTERAÇÃO — somente se permitido */}
+                {!isSelf && !isSuperuser && (
+                  <select
+                    className={styles.select}
+                    value={u.role}
+                    onChange={(e) =>
+                      updateRole(
+                        u.user_id,
+                        e.target.value as "manager" | "professional"
+                      )
+                    }
+                  >
+                    <option value="manager">Gerente</option>
+                    <option value="professional">Profissional</option>
+                  </select>
+                )}
+
+                {/* Quando bloqueado */}
+                {(isSelf || isSuperuser) && (
+                  <select className={styles.select} disabled>
+                    <option>{u.role}</option>
+                  </select>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
