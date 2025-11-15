@@ -7,7 +7,7 @@ export default function ForcePasswordReset() {
   const navigate = useNavigate();
   const [newPass, setNewPass] = useState("");
   const [loading, setLoading] = useState(true);
-  const [session, setSession] = useState<any>(null);
+  const [__, setSession] = useState<any>(null);
 
   useEffect(() => {
     async function run() {
