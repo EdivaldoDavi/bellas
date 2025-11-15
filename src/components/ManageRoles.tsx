@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
 import { supabase } from "../lib/supabaseCleint";
+import { toast } from "react-toastify";
 import styles from "../css/ManageRoles.module.css";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
@@ -15,11 +15,9 @@ interface ProfileUser {
 }
 
 export default function ManageRoles({ tenantId }: Props) {
+  const { profile } = useUserAndTenant(); // ✅ Agora temos o usuário logado
   const [users, setUsers] = useState<ProfileUser[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // 🔥 Usuário logado
-  const { profile } = useUserAndTenant();
 
   useEffect(() => {
     if (tenantId) loadUsers();
@@ -36,7 +34,7 @@ export default function ManageRoles({ tenantId }: Props) {
 
     if (error) {
       console.error(error);
-      toast.error("Erro ao carregar usuários.");
+      toast.error("Erro ao carregar usuários");
       setLoading(false);
       return;
     }
@@ -53,7 +51,7 @@ export default function ManageRoles({ tenantId }: Props) {
 
     if (error) {
       console.error(error);
-      toast.error("Erro ao atualizar permissão.");
+      toast.error("Erro ao atualizar permissão");
       return;
     }
 
@@ -75,34 +73,22 @@ export default function ManageRoles({ tenantId }: Props) {
         <div className={styles.list}>
           {users.map((u) => {
             const isSelf = u.user_id === profile?.user_id;
-            const isSuperuser = u.role === "superuser";
 
             return (
               <div key={u.user_id} className={styles.item}>
-                {/* INFO DO USUÁRIO */}
                 <div className={styles.info}>
                   <strong>{u.full_name || "Sem nome"}</strong>
-
                   <span className={styles.roleLabel}>
-                    Papel atual:{" "}
-                    <b style={{ textTransform: "capitalize" }}>{u.role}</b>
+                    Papel atual: <b>{u.role}</b>
                   </span>
-
-                  {isSelf && (
-                    <span className={styles.selfTag}>
-                      Você não pode alterar seu próprio papel
-                    </span>
-                  )}
-
-                  {isSuperuser && (
-                    <span className={styles.superTag}>
-                      Superuser — Não pode ser alterado
-                    </span>
-                  )}
                 </div>
 
-                {/* SELECT DE ALTERAÇÃO — somente se permitido */}
-                {!isSelf && !isSuperuser && (
+                {/* Superuser não pode ser alterado */}
+                {u.role === "superuser" ? (
+                  <span className={styles.superuser}>Superuser (bloqueado)</span>
+                ) : isSelf ? (
+                  <span className={styles.self}>Você não pode alterar seu próprio papel</span>
+                ) : (
                   <select
                     className={styles.select}
                     value={u.role}
@@ -115,13 +101,6 @@ export default function ManageRoles({ tenantId }: Props) {
                   >
                     <option value="manager">Gerente</option>
                     <option value="professional">Profissional</option>
-                  </select>
-                )}
-
-                {/* Quando bloqueado */}
-                {(isSelf || isSuperuser) && (
-                  <select className={styles.select} disabled>
-                    <option>{u.role}</option>
                   </select>
                 )}
               </div>
