@@ -71,16 +71,19 @@ function overlaps(
  * - Faz apenas 2 consultas no Supabase para o mês inteiro.
  */
 export async function computeAvailableDaysForMonth(opts: {
+  tenantId: string;
   professionalId: string;
-  serviceDuration: number; // em minutos
-  year: number; // ex: 2025
-  month: number; // 1..12
+  serviceDuration: number;
+  year: number;
+  month: number;
 }) {
-  const { professionalId, serviceDuration, year, month } = opts;
+  const { tenantId, professionalId, serviceDuration, year, month } = opts;
+
 
   // limites do mês
   const monthStart = new Date(year, month - 1, 1);
   const monthEnd = new Date(year, month, 0);
+
   const { startISO } = getDayBoundsISO(
     toLocalISOString(monthStart).split("T")[0]
   );
@@ -88,10 +91,11 @@ export async function computeAvailableDaysForMonth(opts: {
     toLocalISOString(monthEnd).split("T")[0]
   );
 
-  // 1) obter agendamentos do mês
+  // 1) agendas do mês (com tenant!)
   const { data: appts } = await supabase
     .from("appointments")
     .select("starts_at, ends_at")
+    .eq("tenant_id", tenantId)
     .eq("professional_id", professionalId)
     .gte("starts_at", startISO)
     .lte("starts_at", endMonthISO);
@@ -101,21 +105,21 @@ export async function computeAvailableDaysForMonth(opts: {
     ends_at: string;
   }[];
 
-  // 2) obter schedules do profissional (por weekday 1..7)
+  // 2) schedules (com tenant!)
   const { data: schedules } = await supabase
     .from("professional_schedules")
     .select("weekday, start_time, end_time")
+    .eq("tenant_id", tenantId)
     .eq("professional_id", professionalId);
 
-  type S = { weekday: number; start_time: string; end_time: string };
-  const byWeekday = new Map<number, S[]>();
-  (schedules || []).forEach((s: any) => {
+  const byWeekday = new Map<number, any[]>();
+  (schedules || []).forEach((s) => {
     const list = byWeekday.get(s.weekday) || [];
-    list.push(s as S);
+    list.push(s);
     byWeekday.set(s.weekday, list);
   });
 
-  // 3) varrer os dias do mês localmente
+  // 3) varrer dias do mês
   const canBook = new Set<string>();
 
   for (let d = 1; d <= monthEnd.getDate(); d++) {
@@ -124,9 +128,9 @@ export async function computeAvailableDaysForMonth(opts: {
       "0"
     )}`;
 
-    // regras globais
     if (isPastDateLocal(iso)) continue;
     if (isHoliday(iso)) continue;
+
     const wd = getWeekdayLocal(iso);
     if (wd === 7) continue; // domingo
 
