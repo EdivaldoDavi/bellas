@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { X } from "lucide-react";
 
 interface ModalNewCustomerProps {
-  tenantId: string; // obrigatório agora!
+  tenantId?: string; // obrigatório agora!
   show: boolean;
   mode: "agenda" | "cadastro";
   onClose: () => void;

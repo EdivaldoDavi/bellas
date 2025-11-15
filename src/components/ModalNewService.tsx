@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { X } from "lucide-react";
 
 interface ModalNewServiceProps {
-  tenantId: string;
+  tenantId?: string;
   show: boolean;
   mode: "agenda" | "cadastro";
   onClose: () => void;
