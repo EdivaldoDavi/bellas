@@ -599,6 +599,7 @@ export default function ModalScheduleWizard({
       {showNewCustomer && (
         <ModalNewCustomer
           tenantId={tenantId}
+            mode="agenda"
            show={showNewCustomer} 
           onClose={() => setShowNewCustomer(false)}
          onSuccess={(id, name) => {
@@ -618,6 +619,7 @@ export default function ModalScheduleWizard({
       {showNewProfessional && (
         <ModalNewProfessional
           tenantId={tenantId}
+            mode="agenda"
            show={showNewProfessional} 
           onClose={() => setShowNewProfessional(false)}
           onSuccess={async (id, name) => {
@@ -651,34 +653,34 @@ export default function ModalScheduleWizard({
       {/* SERVIÇO */}
       {showNewService && (
         <ModalNewService
-          tenantId={tenantId}
-           show={showNewService} 
-          onClose={() => setShowNewService(false)}
-          onSuccess={async (id, name, duration) => {
-            setShowNewService(false);
+  tenantId={tenantId}
+  show={showNewService}
+  mode="agenda"   // ← OBRIGATÓRIO
+  onClose={() => setShowNewService(false)}
+  onSuccess={async (id, name, duration) => {
+    setShowNewService(false);
 
-            const { data } = await supabase
-              .from("professional_services")
-              .select("service:services(id,name,duration_min)")
-              .eq("tenant_id", tenantId)
-              .eq("professional_id", professionalId);
+    const { data } = await supabase
+      .from("professional_services")
+      .select("service:services(id,name,duration_min)")
+      .eq("tenant_id", tenantId)
+      .eq("professional_id", professionalId);
 
-            const list = (data || []).map((r: any) => r.service);
+    const list = (data || []).map((r: any) => r.service);
 
-            // insere topo
-            const reordered = [
-              { id, name, duration_min: duration },
-              ...list.filter((s) => s.id !== id)
-            ];
+    const reordered = [
+      { id, name, duration_min: duration },
+      ...list.filter((s) => s.id !== id)
+    ];
 
-            setServices(reordered);
-            setServiceId(id);
-            setServiceName(name);
-            setServiceDuration(duration || 60);
+    setServices(reordered);
+    setServiceId(id);
+    setServiceName(name);
+    setServiceDuration(duration || 60);
 
-            toast.success(`Serviço ${name} cadastrado!`);
-          }}
-        />
+    toast.success(`Serviço ${name} cadastrado!`);
+  }}
+/>
       )}
     </div>
   );

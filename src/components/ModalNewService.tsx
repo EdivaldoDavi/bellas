@@ -7,8 +7,9 @@ import { X } from "lucide-react";
 interface ModalNewServiceProps {
   tenantId: string;
   show: boolean;
+  mode: "agenda" | "cadastro";   // ⭐ NOVO
   onClose: () => void;
-  onSuccess?: (id: string, name: string, duration: number) => void; // 🔥 opcional
+  onSuccess?: (id: string, name: string, duration: number) => void;
 }
 
 interface Professional {
@@ -16,7 +17,14 @@ interface Professional {
   name: string;
 }
 
-export default function ModalNewService({ tenantId, show, onClose, onSuccess }: ModalNewServiceProps) {
+export default function ModalNewService({
+  tenantId,
+  show,
+  mode,
+  onClose,
+  onSuccess
+}: ModalNewServiceProps) 
+{
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [duration, setDuration] = useState("");
@@ -25,8 +33,11 @@ export default function ModalNewService({ tenantId, show, onClose, onSuccess }: 
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [selectedProfessionals, setSelectedProfessionals] = useState<string[]>([]);
 
-useEffect(() => {
-    if (!tenantId) return;
+  /* ------------------------------------------
+     Carregar profissionais
+  --------------------------------------------*/
+  useEffect(() => {
+    if (!tenantId || !show) return;
 
     async function loadProfessionals() {
       const { data, error } = await supabase
@@ -44,14 +55,26 @@ useEffect(() => {
     }
 
     loadProfessionals();
-  }, [tenantId]);
+  }, [tenantId, show]);
 
-  // 🔥 SOMENTE AGORA pode fazer early-return
-  if (!show) return null;
+  /* ------------------------------------------
+     Resetar formulário após salvar (modo cadastro)
+  --------------------------------------------*/
+  function resetForm() {
+    setName("");
+    setPrice("");
+    setDuration("");
+    setSelectedProfessionals([]);
+  }
 
+  /* ------------------------------------------
+     Toggle checkbox de profissionais
+  --------------------------------------------*/
   function toggleProfessional(id: string) {
-    setSelectedProfessionals(prev =>
-      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    setSelectedProfessionals((prev) =>
+      prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : [...prev, id]
     );
   }
 
@@ -59,10 +82,13 @@ useEffect(() => {
     if (selectedProfessionals.length === professionals.length) {
       setSelectedProfessionals([]);
     } else {
-      setSelectedProfessionals(professionals.map(p => p.id));
+      setSelectedProfessionals(professionals.map((p) => p.id));
     }
   }
 
+  /* ------------------------------------------
+     SALVAR SERVIÇO
+  --------------------------------------------*/
   async function handleSave() {
     const serviceName = name.trim();
     const serviceDuration = Number(duration);
@@ -101,7 +127,8 @@ useEffect(() => {
 
     const serviceId = service.id;
 
-    const rows = selectedProfessionals.map(pid => ({
+    // vincular profissionais
+    const rows = selectedProfessionals.map((pid) => ({
       tenant_id: tenantId,
       professional_id: pid,
       service_id: serviceId
@@ -114,15 +141,30 @@ useEffect(() => {
     setLoading(false);
 
     if (linkErr) {
-      toast.error("Serviço criado, mas falhou ao vincular profissionais");
+      toast.error("Serviço criado, mas erro ao vincular profissionais");
     } else {
       toast.success("Serviço cadastrado!");
     }
 
     onSuccess?.(serviceId, serviceName, serviceDuration);
-    onClose();
+
+    if (mode === "agenda") {
+      // 🔥 comportamento atual
+      onClose();
+    } else {
+      // 🔥 novo modo cadastro contínuo
+      resetForm();
+    }
   }
 
+  /* ------------------------------------------
+     early return
+  --------------------------------------------*/
+  if (!show) return null;
+
+  /* ------------------------------------------
+     RENDER
+  --------------------------------------------*/
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
@@ -137,7 +179,7 @@ useEffect(() => {
           className={styles.input}
           placeholder="Nome do serviço"
           value={name}
-          onChange={e => setName(e.target.value)}
+          onChange={(e) => setName(e.target.value)}
         />
 
         <input
@@ -145,7 +187,7 @@ useEffect(() => {
           placeholder="Preço (R$ opcional)"
           type="number"
           value={price}
-          onChange={e => setPrice(e.target.value)}
+          onChange={(e) => setPrice(e.target.value)}
         />
 
         <input
@@ -153,13 +195,16 @@ useEffect(() => {
           placeholder="Duração (min)"
           type="number"
           value={duration}
-          onChange={e => setDuration(e.target.value)}
+          onChange={(e) => setDuration(e.target.value)}
         />
 
         <h4 style={{ marginTop: 12 }}>Profissionais do serviço</h4>
 
         {professionals.length > 0 && (
-          <button onClick={selectAllProfessionals} className={styles.smallBtn}>
+          <button
+            onClick={selectAllProfessionals}
+            className={styles.smallBtn}
+          >
             {selectedProfessionals.length === professionals.length
               ? "Desmarcar todos"
               : "Selecionar todos"}
@@ -170,7 +215,7 @@ useEffect(() => {
           {professionals.length === 0 ? (
             <p className={styles.emptyText}>Nenhum profissional cadastrado.</p>
           ) : (
-            professionals.map(p => (
+            professionals.map((p) => (
               <label key={p.id} className={styles.checkItem}>
                 <input
                   type="checkbox"
@@ -183,8 +228,14 @@ useEffect(() => {
           )}
         </div>
 
-        <button className={styles.saveButton} disabled={loading} onClick={handleSave}>
-          {loading ? "Salvando..." : "Salvar Serviço"}
+        <button
+          className={styles.saveButton}
+          disabled={loading}
+          onClick={handleSave}
+        >
+          {loading ? "Salvando..." : 
+            mode === "cadastro" ? "Salvar e continuar" : "Salvar Serviço"
+          }
         </button>
 
       </div>

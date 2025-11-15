@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styles from "../css/ModalNewCustomer.module.css";
 import { supabase } from "../lib/supabaseCleint";
 import { toast } from "react-toastify";
@@ -7,20 +7,37 @@ import { X } from "lucide-react";
 interface ModalNewCustomerProps {
   tenantId: string;
   show: boolean;
+  mode: "agenda" | "cadastro";
   onClose: () => void;
-  onSuccess?: (id: string, name: string) => void; // 🔥 agora opcional
+  onSuccess?: (id: string, name: string) => void;
 }
 
-export default function ModalNewCustomer({ tenantId, show, onClose, onSuccess }: ModalNewCustomerProps) {
+export default function ModalNewCustomer({
+  tenantId,
+  show,
+  mode,
+  onClose,
+  onSuccess
+}: ModalNewCustomerProps) {
+
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
 
-  if (!show) return null; // 🔥 impede renderização escondida
+  // 🔥 limpa sempre que abrir
+  useEffect(() => {
+    if (show) {
+      setFullName("");
+      setPhone("");
+    }
+  }, [show]);
+
+  if (!show) return null;
 
   async function handleSave() {
-    if (!fullName.trim() || !phone.trim()) 
+    if (!fullName.trim() || !phone.trim()) {
       return toast.warn("Preencha nome e telefone");
+    }
 
     setLoading(true);
 
@@ -35,9 +52,17 @@ export default function ModalNewCustomer({ tenantId, show, onClose, onSuccess }:
     if (error) return toast.error("Erro ao cadastrar cliente");
 
     toast.success("Cliente cadastrado!");
-    
-    onSuccess?.(data.id, data.full_name); // 🔥 só dispara se vier da Agenda
-    onClose();
+
+    // 🔥 chama agenda quando necessário
+    onSuccess?.(data.id, data.full_name);
+
+    if (mode === "agenda") {
+      onClose();
+    } else {
+      // 🔥 Modo CADASTRO → limpa após salvar
+      setFullName("");
+      setPhone("");
+    }
   }
 
   return (
@@ -54,20 +79,23 @@ export default function ModalNewCustomer({ tenantId, show, onClose, onSuccess }:
           className={styles.input}
           placeholder="Nome completo"
           value={fullName}
-          onChange={e => setFullName(e.target.value)}
+          onChange={(e) => setFullName(e.target.value)}
         />
 
         <input
           className={styles.input}
           placeholder="Telefone"
           value={phone}
-          onChange={e => setPhone(e.target.value)}
+          onChange={(e) => setPhone(e.target.value)}
         />
 
-        <button className={styles.saveBtn} disabled={loading} onClick={handleSave}>
+        <button
+          className={styles.saveBtn}
+          disabled={loading}
+          onClick={handleSave}
+        >
           {loading ? "Salvando..." : "Salvar Cliente"}
         </button>
-
       </div>
     </div>
   );

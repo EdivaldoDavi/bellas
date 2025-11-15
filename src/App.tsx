@@ -17,7 +17,7 @@ import PerfilPage from "./pages/PerfilPage";
 import Agenda from "./components/Agenda";
 import EmDesenvolvimento from "./components/EmDesenvolvimento";
 import ConfigPage from "./pages/ConfigPage";
-import UsuariosPage from "./pages/UsuariosPage";
+
 // ✅ IMPORTA A NOVA PÁGINA
 import ConnectWhatsAppPage from './pages/ConnectWhatsAppPage';
 
@@ -28,10 +28,18 @@ function LoadingScreen() {
 
 // 🔹 Rota privada
 function PrivateRoute({ children }: { children: ReactNode }) {
-  const { loading, user } = useUserAndTenant();
+  const { loading, profile } = useUserAndTenant();
+
+  // ⏳ Enquanto carrega o estado de autenticação, não renderiza nada
   if (loading) return <LoadingScreen />;
-  return user ? <>{children}</> : <Navigate to="/login" replace />;
+
+  // ❌ Se não há perfil, significa realmente que não está logado
+  if (!profile) return <Navigate to="/login" replace />;
+
+  // ✅ Agora sim pode acessar
+  return <>{children}</>;
 }
+
 
 // 🔹 App principal
 export default function App() {
@@ -48,6 +56,33 @@ export default function App() {
       supabase.auth.onAuthStateChange(() => {});
     return () => subscription.unsubscribe();
   }, []);
+// 🔥 Auto-login após confirmação de email Supabase
+// 🔥 Auto-login após confirmação de email Supabase
+useEffect(() => {
+  const hash = window.location.hash;
+
+  if (hash.includes("access_token")) {
+    const params = new URLSearchParams(hash.replace("#", ""));
+    const access_token = params.get("access_token");
+    const refresh_token = params.get("refresh_token");
+
+    if (access_token && refresh_token) {
+      console.log("🔐 Aplicando sessão do Supabase a partir do link de confirmação...");
+
+      supabase.auth
+        .setSession({ access_token, refresh_token })
+        .then(() => {
+          // Limpar hash da URL
+          window.history.replaceState({}, document.title, window.location.pathname);
+
+          // Redirecionar para perfil
+          window.location.href = "/perfil";
+        });
+    }
+  }
+}, []);
+
+
 
   return (
     <BrowserRouter>
@@ -69,7 +104,7 @@ export default function App() {
           }
         />
         {/* Em Desenvolvimento */}
-  <Route path="/usuarios" element={<UsuariosPage />} />
+
   <Route path="/config" element={<ConfigPage />} />
 
        <Route path="/em-desenvolvimento" element={<EmDesenvolvimento />} />

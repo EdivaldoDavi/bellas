@@ -7,8 +7,9 @@ import styles from "../css/ModalNewProfessional.module.css";
 interface ModalNewProfessionalProps {
   tenantId: string;
   show: boolean;
+  mode?: "agenda" | "cadastro"; // ⭐ NOVO
   onClose: () => void;
-  onSuccess?: (id: string, name: string) => void; // 🔥 agora opcional
+  onSuccess?: (id: string, name: string) => void;
 }
 
 type Service = { id: string; name: string; duration_min?: number };
@@ -32,19 +33,18 @@ type DayRow = {
 };
 
 function padSeconds(t: string) {
-  if (!t) return "";
-  return t.length === 5 ? `${t}:00` : t;
+  return t && t.length === 5 ? `${t}:00` : t;
 }
 
 export default function ModalNewProfessional({
   tenantId,
   show,
+  mode = "agenda",
   onClose,
-  onSuccess
+  onSuccess,
 }: ModalNewProfessionalProps) {
-
   
-
+  // ================= STATE =================
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -59,63 +59,83 @@ export default function ModalNewProfessional({
   const [monBreakStart, setMonBreakStart] = useState("00:00");
   const [monBreakEnd, setMonBreakEnd] = useState("00:00");
 
-  const [weekRows, setWeekRows] = useState<DayRow[]>(
-    WEEKDAYS_FULL.map((d) => ({
-      weekday: d.id,
-      start: "",
-      end: "",
-      breakStart: "",
-      breakEnd: "",
-    }))
-  );
+  const emptyWeekRows: DayRow[] = WEEKDAYS_FULL.map((d) => ({
+    weekday: d.id,
+    start: "",
+    end: "",
+    breakStart: "",
+    breakEnd: "",
+  }));
 
-useEffect(() => {
-  if (!show) return; // 👈 só carrega quando o modal estiver visível
-  if (!tenantId) return;
+  const [weekRows, setWeekRows] = useState<DayRow[]>(emptyWeekRows);
 
-  (async () => {
-    const { data, error } = await supabase
-      .from("services")
-      .select("id,name,duration_min")
-      .eq("tenant_id", tenantId)
-      .order("name", { ascending: true });
+  // ================= RESET AO ABRIR =================
+  useEffect(() => {
+    if (!show) return;
 
-    if (error) {
-      console.error(error);
-      toast.error("Erro ao carregar serviços");
-    }
+    setName("");
+    setEmail("");
+    setPhone("");
+    setSelectedServices([]);
+    setCopyToWeek(true);
+    setMonStart("09:00");
+    setMonEnd("18:00");
+    setMonBreakStart("00:00");
+    setMonBreakEnd("00:00");
+    setWeekRows(emptyWeekRows);
+  }, [show]);
 
-    setServices(data || []);
-  })();
-}, [tenantId, show]);
+  // ================= CARREGAR SERVIÇOS =================
+  useEffect(() => {
+    if (!show) return;
+    if (!tenantId) return;
 
+    (async () => {
+      const { data, error } = await supabase
+        .from("services")
+        .select("id,name,duration_min")
+        .eq("tenant_id", tenantId)
+        .order("name");
 
+      if (error) toast.error("Erro ao carregar serviços");
+      setServices(data || []);
+    })();
+  }, [tenantId, show]);
+
+  // ================= TOGGLE =================
   function toggleService(id: string) {
-    setSelectedServices(prev =>
-      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    setSelectedServices((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   }
 
   function updateRow(weekday: number, field: keyof Omit<DayRow, "weekday">, value: string) {
-    setWeekRows(prev =>
-      prev.map(r => (r.weekday === weekday ? { ...r, [field]: value } : r))
+    setWeekRows((prev) =>
+      prev.map((r) => (r.weekday === weekday ? { ...r, [field]: value } : r))
     );
   }
 
+  // ================= SALVAR =================
   async function handleSave() {
-    if (!name.trim()) return toast.warn("Informe o nome do profissional");
+    if (!name.trim()) return toast.warn("Informe o nome");
     if (!hasServices) return toast.warn("Selecione ao menos um serviço");
 
-    const { data: prof, error: errProf } = await supabase
+    const { data: prof, error } = await supabase
       .from("professionals")
-      .insert([{ tenant_id: tenantId, name, email: email || null, phone: phone || null }])
+      .insert([{
+        tenant_id: tenantId,
+        name,
+        email: email || null,
+        phone: phone || null,
+      }])
       .select()
       .single();
 
-    if (errProf) return toast.error("Erro ao criar profissional");
-    
-    const professionalId = prof.id;
+    if (error) return toast.error("Erro ao cadastrar profissional");
 
+    const professionalId = prof.id;
+    
+    // vincular serviços
     await supabase.from("professional_services").insert(
       selectedServices.map((sid) => ({
         tenant_id: tenantId,
@@ -124,7 +144,8 @@ useEffect(() => {
       }))
     );
 
-    let scheduleRows: any[] = [];
+    // montar horários
+    const scheduleRows: any[] = [];
 
     if (copyToWeek) {
       const ws = padSeconds(monStart);
@@ -144,8 +165,8 @@ useEffect(() => {
         });
       }
     } else {
-      for (const r of weekRows) {
-        if (!r.start || !r.end) continue;
+      weekRows.forEach((r) => {
+        if (!r.start || !r.end) return;
         scheduleRows.push({
           tenant_id: tenantId,
           professional_id: professionalId,
@@ -155,38 +176,65 @@ useEffect(() => {
           break_start_time: padSeconds(r.breakStart),
           break_end_time: padSeconds(r.breakEnd),
         });
-      }
+      });
     }
 
-    if (scheduleRows.length > 0) {
+    if (scheduleRows.length > 0)
       await supabase.from("professional_schedules").insert(scheduleRows);
-    }
 
     toast.success("Profissional cadastrado!");
 
-    onSuccess?.(professionalId, name); // 🔥 só se agenda chamar
-    onClose();
+    // ========== COMPORTAMENTO POR MODE ==========
+    if (mode === "agenda") {
+      onSuccess?.(professionalId, name);
+      onClose();
+      return;
+    }
+
+    if (mode === "cadastro") {
+      // ⭐ LIMPA o formulário para continuar cadastrando
+      setName("");
+      setEmail("");
+      setPhone("");
+      setSelectedServices([]);
+      setWeekRows(emptyWeekRows);
+
+      toast.success("Pronto! Pode cadastrar outro profissional.");
+      return;
+    }
   }
-if (!show) return null;
+
+  if (!show) return null;
+
+  // ================= RENDER =================
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
-        
-        <button onClick={onClose} className={styles.closeBtn}> 
-          <X size={20} /> 
+
+        <button className={styles.closeBtn} onClick={onClose}>
+          <X size={20} />
         </button>
 
         <h3>Novo Profissional</h3>
 
-        <input className={styles.input} placeholder="Nome completo" value={name} onChange={e => setName(e.target.value)} />
-        <input className={styles.input} placeholder="E-mail (opcional)" value={email} onChange={e => setEmail(e.target.value)} />
-        <input className={styles.input} placeholder="Telefone (opcional)" value={phone} onChange={e => setPhone(e.target.value)} />
+        <input className={styles.input} placeholder="Nome completo"
+          value={name} onChange={(e) => setName(e.target.value)} />
+
+        <input className={styles.input} placeholder="E-mail (opcional)"
+          value={email} onChange={(e) => setEmail(e.target.value)} />
+
+        <input className={styles.input} placeholder="Telefone (opcional)"
+          value={phone} onChange={(e) => setPhone(e.target.value)} />
 
         <h4>Serviços que executa</h4>
         <div className={styles.checkList}>
-          {services.map(s => (
+          {services.map((s) => (
             <label key={s.id} className={styles.checkItem}>
-              <input type="checkbox" checked={selectedServices.includes(s.id)} onChange={() => toggleService(s.id)} />
+              <input
+                type="checkbox"
+                checked={selectedServices.includes(s.id)}
+                onChange={() => toggleService(s.id)}
+              />
               {s.name}
             </label>
           ))}
@@ -195,7 +243,11 @@ if (!show) return null;
         <h4>Horários de trabalho</h4>
 
         <label className={styles.copyRow}>
-          <input type="checkbox" checked={copyToWeek} onChange={() => setCopyToWeek(!copyToWeek)} />
+          <input
+            type="checkbox"
+            checked={copyToWeek}
+            onChange={() => setCopyToWeek(!copyToWeek)}
+          />
           Copiar segunda para todos os dias
         </label>
 
@@ -203,30 +255,32 @@ if (!show) return null;
           <>
             <div className={styles.dayTitle}>Segunda-feira</div>
             <div className={styles.timeGrid}>
-              <div><label>Entrada</label><input type="time" value={monStart} onChange={e => setMonStart(e.target.value)} /></div>
-              <div><label>Saída</label><input type="time" value={monEnd} onChange={e => setMonEnd(e.target.value)} /></div>
-              <div><label>Almoço início</label><input type="time" value={monBreakStart} onChange={e => setMonBreakStart(e.target.value)} /></div>
-              <div><label>Almoço fim</label><input type="time" value={monBreakEnd} onChange={e => setMonBreakEnd(e.target.value)} /></div>
+              <div><label>Entrada</label><input type="time" value={monStart} onChange={(e) => setMonStart(e.target.value)} /></div>
+              <div><label>Saída</label><input type="time" value={monEnd} onChange={(e) => setMonEnd(e.target.value)} /></div>
+              <div><label>Almoço início</label><input type="time" value={monBreakStart} onChange={(e) => setMonBreakStart(e.target.value)} /></div>
+              <div><label>Almoço fim</label><input type="time" value={monBreakEnd} onChange={(e) => setMonBreakEnd(e.target.value)} /></div>
             </div>
           </>
         ) : (
-          WEEKDAYS_FULL.map(d => (
-            <div key={d.id} className={styles.dayBlock}>
-              <div className={styles.dayTitle}>{d.label}</div>
-              <div className={styles.timeGrid}>
-                <div><label>Entrada</label><input type="time" value={weekRows.find(r => r.weekday === d.id)?.start || ""} onChange={e => updateRow(d.id, "start", e.target.value)} /></div>
-                <div><label>Saída</label><input type="time" value={weekRows.find(r => r.weekday === d.id)?.end || ""} onChange={e => updateRow(d.id, "end", e.target.value)} /></div>
-                <div><label>Almoço início</label><input type="time" value={weekRows.find(r => r.weekday === d.id)?.breakStart || ""} onChange={e => updateRow(d.id, "breakStart", e.target.value)} /></div>
-                <div><label>Almoço fim</label><input type="time" value={weekRows.find(r => r.weekday === d.id)?.breakEnd || ""} onChange={e => updateRow(d.id, "breakEnd", e.target.value)} /></div>
+          WEEKDAYS_FULL.map((d) => {
+            const row = weekRows.find((r) => r.weekday === d.id)!;
+            return (
+              <div key={d.id} className={styles.dayBlock}>
+                <div className={styles.dayTitle}>{d.label}</div>
+                <div className={styles.timeGrid}>
+                  <div><label>Entrada</label><input type="time" value={row.start} onChange={(e) => updateRow(d.id, "start", e.target.value)} /></div>
+                  <div><label>Saída</label><input type="time" value={row.end} onChange={(e) => updateRow(d.id, "end", e.target.value)} /></div>
+                  <div><label>Almoço início</label><input type="time" value={row.breakStart} onChange={(e) => updateRow(d.id, "breakStart", e.target.value)} /></div>
+                  <div><label>Almoço fim</label><input type="time" value={row.breakEnd} onChange={(e) => updateRow(d.id, "breakEnd", e.target.value)} /></div>
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
 
         <button className={styles.saveBtn} onClick={handleSave}>
           Salvar Profissional
         </button>
-
       </div>
     </div>
   );

@@ -1,47 +1,77 @@
-import { createClient } from '@supabase/supabase-js';
+// src/lib/supabaseClient.ts
+import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL!;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY!;
 
-// ⚠️ Verificação de variáveis obrigatórias
+// ⚠️ Verificação (somente desenvolvimento)
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error(
-    '❌ ERRO: Variáveis VITE_SUPABASE_URL ou VITE_SUPABASE_ANON_KEY estão ausentes no .env'
-  );
+  console.error("❌ ERRO: SUPABASE_URL ou SUPABASE_ANON_KEY ausentes no .env");
 }
 
-// ✅ Exporta o client pronto para uso
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    persistSession: true,         // mantém o login ao recarregar a página
-    autoRefreshToken: true,       // renova tokens automaticamente
-    detectSessionInUrl: true,     // necessário se usar redirecionamento OAuth
+    persistSession: true,      // mantém sessão no localStorage
+    autoRefreshToken: true,    // renova tokens em background
+    detectSessionInUrl: true,  // necessário para email de confirmação
   },
 });
 
-// ✅ Helper opcional: obter usuário logado
-export async function getCurrentUser() {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
-}
-
-// ✅ Helper opcional: obter perfil do usuário (da tabela profiles)
-export async function getCurrentProfile() {
-  const user = await getCurrentUser();
-  if (!user) return null;
-
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('user_id', user.id)
-    .maybeSingle(); // <-- troca single() por maybeSingle() para evitar erro interno
+/* ============================================================
+   GET CURRENT SESSION
+   ============================================================ */
+export async function getCurrentSession() {
+  const { data, error } = await supabase.auth.getSession();
 
   if (error) {
-    console.error('Erro ao buscar profile:', error);
+    console.warn("⚠ erro getSession:", error);
+    return null;
+  }
+
+  return data.session;
+}
+
+/* ============================================================
+   GET CURRENT USER
+   ============================================================ */
+export async function getCurrentUser() {
+  const session = await getCurrentSession();
+  if (!session) return null;
+  return session.user;
+}
+
+/* ============================================================
+   GET CURRENT PROFILE (tabela profiles)
+   Segurança: não dá erro se perfil não existir.
+   ============================================================ */
+export async function getCurrentProfile() {
+  const user = await getCurrentUser();
+  if (!user) return null; // ← não está logado
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("user_id", user.id)
+    .maybeSingle(); // ← seguro: não quebra se não existir
+
+  if (error) {
+    console.warn("⚠ erro ao buscar profile:", error.message);
     return null;
   }
 
   return data;
+}
+
+/* ============================================================
+   MANUAL LOGOUT (SEGURO — sem loop infinito)
+   ============================================================ */
+export async function logout() {
+  try {
+    await supabase.auth.signOut();
+  } catch (e) {
+    console.warn("⚠ erro ao fazer logout:", e);
+  }
+
+  // redirecionamento seguro
+  window.location.href = "/login";
 }

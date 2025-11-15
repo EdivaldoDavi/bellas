@@ -8,7 +8,7 @@ import ModalScheduleTimes from "./ModalScheduletimes";
 import ModalSelectServiceForProfessional from "./ModalSelectServiceForProfessional";
 import ModalSelectProfessional from "./ModalSelectProfessional";
 import ModalScheduleWizard from "../components/ModalScheduleWizard";
-import SelectClientWhatsApp from "../components/SelectClientWhatsapp";
+
 
 import ModalNewCustomer from "../components/ModalNewCustomer";
 import ModalNewService from "../components/ModalNewService";
@@ -23,12 +23,10 @@ import {
   getWeekdayLocal,
   combineLocalDateTime,
   getDayBoundsISO,
-  weekdayName,
-  dateBR,
   isHoliday
 } from "../utils/date";
 
-import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import styles from "../css/Agenda.module.css";
 
 import { getCurrentProfile, supabase } from "../lib/supabaseCleint";
@@ -62,29 +60,29 @@ export default function Agenda() {
 
   /** Profissional */
   const [showProfessionalModal, setShowProfessionalModal] = useState(false);
-  const [selectedProfessionalName, setSelectedProfessionalName] = useState("");
-  const [professionals, setProfessionals] = useState<any[]>([]);
+  const [___ , setSelectedProfessionalName] = useState("");
+  const [professionals, _____] = useState<any[]>([]);
 
   /** Calendário / Horários */
   const [showCalendar, setShowCalendar] = useState(false);
   const [showTimes, setShowTimes] = useState(false);
 
   /** CRUD */
-  const [showModal, setShowModal] = useState(false); // agenda modal
-  const [editingId, _] = useState<string | null>(null);
+
+
 
   /** Serviço */
   const [showServiceModal, setShowServiceModal] = useState(false);
-  const [selectedServiceName, setSelectedServiceName] = useState("");
+  const [____, setSelectedServiceName] = useState("");
 
   /** Campos */
   const [professionalId, setProfessionalId] = useState("");
   const [serviceId, setServiceId] = useState("");
-  const [customerId, setCustomerId] = useState("");
+  const [__, setCustomerId] = useState("");
 
   const [selectedDate, setSelectedDate] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+  const [______, setStartTime] = useState("");
+  const [_______, setEndTime] = useState("");
 
   const [professionalServices, setProfessionalServices] = useState<any[]>([]);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
@@ -127,13 +125,6 @@ export default function Agenda() {
    * FUNÇÕES
    * ========================================================== */
 
-  async function loadProfessionals() {
-    const { data } = await supabase
-      .from("professionals")
-      .select("id,name");
-
-    setProfessionals(data || []);
-  }
 
   async function fetchAppointments() {
     setLoading(true);
@@ -269,55 +260,6 @@ export default function Agenda() {
     setAvailableTimes(slots);
   }
 
-  async function handleSaveAppointment() {
-    if (
-      !tenantId ||
-      !serviceId ||
-      !professionalId ||
-      !customerId ||
-      !selectedDate ||
-      !startTime
-    )
-      return toast.warn("Preencha todos os campos!");
-
-    const { data: cli } = await supabase
-      .from("customers")
-      .select("full_name,customer_phone")
-      .eq("id", customerId)
-      .single();
-
-    const start = combineLocalDateTime(selectedDate, startTime);
-    const end = new Date(
-      start.getTime() + (serviceDuration || 60) * 60000
-    );
-
-    const payload = {
-      tenant_id: tenantId,
-      professional_id: professionalId,
-      service_id: serviceId,
-      customer_id: customerId,
-      customer_name: cli?.full_name,
-      customer_phone: cli?.customer_phone,
-      starts_at: start,
-      ends_at: end,
-      status: "scheduled",
-    };
-
-    const { error } = editingId
-      ? await supabase
-          .from("appointments")
-          .update(payload)
-          .eq("id", editingId)
-      : await supabase
-          .from("appointments")
-          .insert([payload]);
-
-    if (error) return toast.error("Erro ao salvar");
-
-    toast.success(editingId ? "Atualizado!" : "Agendado!");
-    setShowModal(false);
-    fetchAppointments();
-  }
 
   async function handleSelectDate(date: Date) {
     if (!professionalId)
@@ -371,11 +313,7 @@ export default function Agenda() {
     month: "long",
   });
 
-  const unifiedDateTimeText =
-    selectedDate
-      ? `${dateBR(selectedDate)} (${weekdayName(selectedDate)})` +
-        (startTime && endTime ? ` — ${startTime} até ${endTime}` : "")
-      : "";
+  
 
   /** ==========================================================
    * RENDER
@@ -515,6 +453,7 @@ export default function Agenda() {
       {/* Cadastrar Cliente */}
       <ModalNewCustomer
         tenantId={tenantId!}
+          mode="agenda"
         show={showNewCustomer}
         onClose={() => setShowNewCustomer(false)}
         onSuccess={(id) => setCustomerId(id)}
@@ -523,6 +462,7 @@ export default function Agenda() {
       {/* Cadastrar Serviço */}
       <ModalNewService
         tenantId={tenantId!}
+        mode="agenda"
         show={showNewService}
         onClose={() => setShowNewService(false)}
         onSuccess={(id) => setServiceId(id)}
@@ -531,6 +471,7 @@ export default function Agenda() {
       {/* Cadastrar Profissional */}
       <ModalNewProfessional
         tenantId={tenantId!}
+          mode="agenda"
         show={showNewProfessional}
         onClose={() => setShowNewProfessional(false)}
         onSuccess={(id) => setProfessionalId(id)}
