@@ -437,7 +437,7 @@ export default function ModalScheduleWizard({
               <h3 className={styles.stepTitle}>Escolha a data</h3>
 
               <DatePickerModal
-               tenantId={tenantId} 
+               tenantId={tenantId}   
                 professionalId={professionalId}
                 serviceDuration={serviceDuration || 60}
                 value={selectedDate}
