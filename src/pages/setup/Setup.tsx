@@ -14,7 +14,9 @@ export default function Setup() {
   const [variant, setVariant] = useState<"light" | "dark">("light");
   const [saving, setSaving] = useState(false);
 
-  // Carrega tenant existente
+  /* ============================================================
+     🔄 CARREGAR DADOS DO TENANT SE JÁ EXISTIR
+  ============================================================ */
   useEffect(() => {
     if (tenant) {
       setName(tenant.name ?? "");
@@ -24,9 +26,14 @@ export default function Setup() {
     }
   }, [tenant]);
 
-  if (loading)
-    return <div className="p-5 text-center">Carregando...</div>;
+  /* ============================================================
+     ⏳ LOADING
+  ============================================================ */
+  if (loading) return <div className="p-5 text-center">Carregando...</div>;
 
+  /* ============================================================
+     ❌ SEM PERFIL (erro grave)
+  ============================================================ */
   if (!profile)
     return (
       <p className="text-center p-4 text-danger">
@@ -34,38 +41,46 @@ export default function Setup() {
       </p>
     );
 
-  if (["client", "staff", "professional"].includes(profile.role))
+  /* ============================================================
+     🚫 PROFISSIONAIS NÃO PODEM FAZER SETUP
+  ============================================================ */
+  if (
+    profile.role === "client" ||
+    profile.role === "staff" ||
+    profile.role === "professional"
+  ) {
     return (
       <p className="text-center p-4 text-danger">
         Você não tem permissão para configurar o salão.
       </p>
     );
+  }
 
-  // ============================================================
-  // 🔥 FUNÇÃO DE SALVAR
-  // ============================================================
+  /* ============================================================
+     🔥 SALVAR CONFIGURAÇÕES
+  ============================================================ */
   const save = async () => {
     if (!profile) return;
 
     setSaving(true);
 
     try {
-      let tenantId = tenant?.id;
+      let tenantId = tenant?.id ?? null;
 
-      // ============================================================
-      // 1️⃣ CRIAR TENANT (se não existir)
-      // ============================================================
+      /* ============================================================
+         1️⃣ CRIAR TENANT SE NÃO EXISTIR
+      ============================================================ */
       if (!tenantId) {
         const { data: newTenant, error: tenantErr } = await supabase
           .from("tenants")
           .insert({
             id: crypto.randomUUID(),
-            owner_id: profile.user_id, // 🔥 AGORA OBRIGATÓRIO PARA RLS
             name,
             primary_color: primary,
             secondary_color: secondary,
             theme_variant: variant,
-            setup_complete: true
+            setup_complete: true,
+            created_by: profile.user_id, // 🔥 campo correto
           })
           .select("*")
           .single();
@@ -74,43 +89,42 @@ export default function Setup() {
 
         tenantId = newTenant.id;
 
-        // Atualiza o perfil do usuário com o tenant recém-criado
+        /* ============================================================
+           🔗 Atualizar perfil do usuário com o tenant criado
+        ============================================================ */
         const { error: profileErr } = await supabase
           .from("profiles")
           .update({ tenant_id: tenantId })
-          .eq("id", profile.user_id); // 🔥 AGORA CORRETO (id e não user_id)
+          .eq("user_id", profile.user_id); // 🔥 agora user_id (correto)
 
         if (profileErr) throw profileErr;
       }
 
-      // ============================================================
-      // 2️⃣ ATUALIZAR TENANT EXISTENTE
-      // ============================================================
-      if (tenantId) {
-        const { error: updateErr } = await supabase
-          .from("tenants")
-          .update({
-            name,
-            primary_color: primary,
-            secondary_color: secondary,
-            theme_variant: variant,
-            setup_complete: true
-          })
-          .eq("id", tenantId);
+      /* ============================================================
+         2️⃣ ATUALIZAR TENANT EXISTENTE
+      ============================================================ */
+      const { error: updateErr } = await supabase
+        .from("tenants")
+        .update({
+          name,
+          primary_color: primary,
+          secondary_color: secondary,
+          theme_variant: variant,
+          setup_complete: true,
+        })
+        .eq("id", tenantId);
 
-        if (updateErr) throw updateErr;
-      }
+      if (updateErr) throw updateErr;
 
-      // ============================================================
-      // 3️⃣ RECARREGAR PERFIL
-      // ============================================================
+      /* ============================================================
+         3️⃣ RECARREGAR PERFIL E REDIRECIONAR
+      ============================================================ */
       await reloadProfile();
 
       toast.success("Salão configurado com sucesso!");
       navigate("/dashboard", { replace: true });
-
     } catch (err: any) {
-      console.error("Erro ao salvar:", err);
+      console.error("Erro ao salvar setup:", err);
       toast.error(err?.message ?? "Erro ao configurar o salão.");
     }
 
@@ -122,6 +136,7 @@ export default function Setup() {
       <h3>Configurar seu salão</h3>
 
       <div className="row g-3">
+        {/* Nome */}
         <div className="col-12 col-md-6">
           <label className="form-label">Nome do salão</label>
           <input
@@ -131,6 +146,7 @@ export default function Setup() {
           />
         </div>
 
+        {/* Cor primária */}
         <div className="col-6 col-md-3">
           <label className="form-label">Cor primária</label>
           <input
@@ -141,6 +157,7 @@ export default function Setup() {
           />
         </div>
 
+        {/* Cor secundária */}
         <div className="col-6 col-md-3">
           <label className="form-label">Cor secundária</label>
           <input
@@ -151,6 +168,7 @@ export default function Setup() {
           />
         </div>
 
+        {/* Tema light/dark */}
         <div className="col-12">
           <div className="btn-group" role="group">
             <button
@@ -161,7 +179,6 @@ export default function Setup() {
             >
               🌞 Light
             </button>
-
             <button
               className={`btn ${
                 variant === "dark" ? "btn-primary" : "btn-outline-primary"
@@ -173,8 +190,13 @@ export default function Setup() {
           </div>
         </div>
 
+        {/* Botão salvar */}
         <div className="col-12">
-          <button className="btn btn-success" onClick={save} disabled={saving}>
+          <button
+            className="btn btn-success"
+            onClick={save}
+            disabled={saving}
+          >
             {saving ? "Salvando..." : "Salvar e continuar"}
           </button>
         </div>
