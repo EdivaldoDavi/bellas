@@ -34,67 +34,71 @@ export function useUserAndTenant() {
   const [features, setFeatures] = useState<string[]>([]);
   const [permissions, setPermissions] = useState<string[]>([]);
 
-  /** 🔄 Utilitário interno */
-  const clearAll = () => {
+  /* ============================================================
+     🔄 Função utilitária para limpar tudo com segurança
+  ============================================================ */
+  const clearAll = useCallback(() => {
     setProfile(null);
     setTenant(null);
     setSubscription(null);
     setPlan(null);
     setFeatures([]);
     setPermissions([]);
-  };
+  }, []);
 
-  /** ==========================================================
-   *  🔥 FUNÇÃO PRINCIPAL DE CARREGAMENTO
-   * ========================================================== */
+  /* ============================================================
+     🔥 Função principal – Carrega tudo
+  ============================================================ */
   const reloadProfile = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      /** 1️⃣ Obter usuário autenticado */
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
+      /* 1️⃣ Buscar sessão do usuário */
+      const { data: sessionData, error: sessErr } = await supabase.auth.getSession();
+      if (sessErr) throw sessErr;
 
-      if (userError) throw userError;
-      setUser(user);
+      const currentUser = sessionData.session?.user ?? null;
+      setUser(currentUser);
 
-      if (!user) {
+      if (!currentUser) {
         clearAll();
         return;
       }
 
-      /** 2️⃣ Obter PROFILE */
+      /* 2️⃣ Buscar perfil */
       const { data: pData, error: pErr } = await supabase
         .from("profiles")
         .select("user_id, tenant_id, role, full_name, avatar_url")
-        .eq("user_id", user.id)
+        .eq("user_id", currentUser.id)
         .maybeSingle();
 
       if (pErr) throw pErr;
 
       const finalProfile: Profile = {
-        user_id: user.id,
-        email: user.email,
-        role: pData?.role || "client",
+        user_id: currentUser.id,
+        email: currentUser.email,
+        role: pData?.role ?? "client",
         full_name:
-          pData?.full_name || (user.user_metadata as any)?.full_name || "",
+          pData?.full_name ??
+          (currentUser.user_metadata as any)?.full_name ??
+          "",
         avatar_url:
-          pData?.avatar_url || (user.user_metadata as any)?.avatar_url || null,
+          pData?.avatar_url ??
+          (currentUser.user_metadata as any)?.avatar_url ??
+          null,
         tenant_id: pData?.tenant_id ?? null,
       };
 
       setProfile(finalProfile);
 
-      /** 👇 Se o usuário ainda não tem tenant → apenas retorna (Setup irá assumir o fluxo) */
+      /* 3️⃣ Usuário sem tenant → para por aqui */
       if (!finalProfile.tenant_id) {
         setTenant(null);
         return;
       }
 
-      /** 3️⃣ Obter TENANT */
+      /* 4️⃣ Buscar tenant */
       const { data: tData, error: tErr } = await supabase
         .from("tenants")
         .select(
@@ -107,38 +111,29 @@ export function useUserAndTenant() {
 
       setTenant(tData);
 
-      /** 4️⃣ Aplicar tema do tenant */
+      /* 🎨 Aplicar tema */
       if (tData?.theme_variant) {
-        document.documentElement.setAttribute(
-          "data-theme-variant",
-          tData.theme_variant
-        );
+        document.documentElement.setAttribute("data-theme-variant", tData.theme_variant);
       }
 
       if (tData?.primary_color) {
-        document.documentElement.style.setProperty(
-          "--color-primary",
-          tData.primary_color
-        );
+        document.documentElement.style.setProperty("--color-primary", tData.primary_color);
       }
 
       if (tData?.secondary_color) {
-        document.documentElement.style.setProperty(
-          "--color-secondary",
-          tData.secondary_color
-        );
+        document.documentElement.style.setProperty("--color-secondary", tData.secondary_color);
       }
 
-      /** 5️⃣ Assinatura */
+      /* 5️⃣ Buscar assinatura do tenant */
       const { data: subData } = await supabase
         .from("subscriptions")
         .select("*")
         .eq("tenant_id", tData?.id)
         .maybeSingle();
 
-      setSubscription(subData || null);
+      setSubscription(subData ?? null);
 
-      /** 6️⃣ Plano */
+      /* 6️⃣ Buscar plano */
       if (tData?.plan_id) {
         const { data: planData } = await supabase
           .from("plans")
@@ -146,28 +141,28 @@ export function useUserAndTenant() {
           .eq("id", tData.plan_id)
           .maybeSingle();
 
-        setPlan(planData || null);
+        setPlan(planData ?? null);
 
-        /** 7️⃣ Features do plano */
+        /* 7️⃣ Features do plano */
         const { data: feats } = await supabase
           .from("plan_features")
           .select("feature_key, enabled")
           .eq("plan_id", tData.plan_id);
 
-        setFeatures((feats || []).filter((f) => f.enabled).map((f) => f.feature_key));
+        setFeatures((feats ?? []).filter((f) => f.enabled).map((f) => f.feature_key));
       } else {
         setPlan(null);
         setFeatures([]);
       }
 
-      /** 8️⃣ Permissões do usuário */
+      /* 8️⃣ Permissões */
       const { data: perms } = await supabase
         .from("permissions")
         .select("permission_key, allowed")
         .eq("tenant_id", finalProfile.tenant_id)
-        .eq("user_id", user.id);
+        .eq("user_id", currentUser.id);
 
-      setPermissions((perms || []).filter((p) => p.allowed).map((p) => p.permission_key));
+      setPermissions((perms ?? []).filter((p) => p.allowed).map((p) => p.permission_key));
     } catch (err: any) {
       console.error("Erro em useUserAndTenant:", err);
       setError(err.message || "Erro ao carregar dados do usuário.");
@@ -175,12 +170,19 @@ export function useUserAndTenant() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [clearAll]);
 
-  /** Autoexecuta ao montar */
+  /* ============================================================
+     🧪 Carregar automaticamente ao montar
+  ============================================================ */
   useEffect(() => {
     reloadProfile();
   }, [reloadProfile]);
+
+  /* ============================================================
+     🚨 DETECÇÃO AUTOMÁTICA: Usuário logado mas sem tenant → Setup!
+  ============================================================ */
+  const needsSetup = Boolean(user && profile && !tenant);
 
   return {
     loading,
@@ -192,6 +194,7 @@ export function useUserAndTenant() {
     plan,
     features,
     permissions,
+    needsSetup,
     reloadProfile,
   };
 }
