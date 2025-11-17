@@ -2,7 +2,7 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useEffect, type ReactNode } from "react";
 
-import { useUserTenant } from "./context/UserTenantProvider";   // <-- HOOK GLOBAL
+import { useUserTenant } from "./context/UserTenantProvider";
 import { useAuth } from "./context/AuthProvider";
 
 import { applyTenantTheme } from "./utils/theme";
@@ -23,6 +23,7 @@ import ForcePasswordReset from "./components/ForcePasswordReset";
 import ConnectWhatsAppPage from "./pages/ConnectWhatsAppPage";
 import GerenciarAcessosPage from "./config/GerenciarAcessosPage";
 import ForgotPassword from "./pages/auth/ForgotPassword";
+
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -34,11 +35,16 @@ function LoadingScreen() {
 }
 
 // =============================
-// 🔐 ROTA PRIVADA
+// 🔐 ROTA PRIVADA COM EXCEÇÃO PARA /force-reset
 // =============================
 function PrivateRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   const location = useLocation();
+
+  // 🔥 IGNORA TUDO SE ESTIVER NO RESET
+  if (location.pathname === "/force-reset") {
+    return <>{children}</>;
+  }
 
   if (loading) return <LoadingScreen />;
 
@@ -56,16 +62,21 @@ function SetupRedirectGuard({ children }: { children: ReactNode }) {
   const { needsSetup, loading } = useUserTenant();
   const location = useLocation();
 
+  // 🔥 Nunca redirecionar dentro do reset
+  if (location.pathname === "/force-reset") {
+    return <>{children}</>;
+  }
+
   if (loading) return <LoadingScreen />;
 
   const isSetupPage = location.pathname === "/setup";
 
-  // 🔻 1. Se precisa de setup → vá para setup
+  // 1. Se precisa de setup → vá para setup
   if (needsSetup && !isSetupPage) {
     return <Navigate to="/setup" replace />;
   }
 
-  // 🔺 2. Se NÃO precisa de setup e está na página de setup → vá para dashboard
+  // 2. Se não precisa e está no setup → dashboard
   if (!needsSetup && isSetupPage) {
     return <Navigate to="/dashboard" replace />;
   }
@@ -96,9 +107,11 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+
+          {/* 🔥 Reset não pode ser bloqueado */}
           <Route path="/force-reset" element={<ForcePasswordReset />} />
 
-          {/* Setup (Privada, Sem Layout) */}
+          {/* Setup */}
           <Route
             path="/setup"
             element={
@@ -108,7 +121,7 @@ export default function App() {
             }
           />
 
-          {/* Sem layout, mas privado */}
+          {/* Sem Layout */}
           <Route
             path="/gerenciar-acessos"
             element={
@@ -122,7 +135,7 @@ export default function App() {
           <Route path="/config" element={<ConfigPage />} />
           <Route path="/em-desenvolvimento" element={<EmDesenvolvimento />} />
 
-          {/* Rotas privadas + layout */}
+          {/* Rotas privadas + Layout */}
           <Route
             element={
               <PrivateRoute>

@@ -2,27 +2,14 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseCleint";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { useTheme } from "../hooks/useTheme";
-import { useBrandColor } from "../hooks/useBrandColor";
-
-import styles from "../css/ForcePasswordReset.module.css";
 
 export default function ForcePasswordReset() {
   const navigate = useNavigate();
+  const [newPass, setNewPass] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const { theme } = useTheme();
-  const { brandColor } = useBrandColor();
-
-  const [sessionLoaded, setSessionLoaded] = useState(false);
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  /* ============================================================
-     🔥 1) Validar token enviado pelo email do Supabase
-  ============================================================ */
   useEffect(() => {
-    async function validateMagicLink() {
+    async function run() {
       const hash = window.location.hash;
 
       if (!hash.includes("access_token")) {
@@ -39,108 +26,63 @@ export default function ForcePasswordReset() {
         return navigate("/login");
       }
 
-      // ⚠️ Estabelece sessão temporária para permitir alterar senha
-      const { data, error } = await supabase.auth.setSession({
+      // 🔥 Apenas autentica temporariamente
+      const { error } = await supabase.auth.setSession({
         access_token,
         refresh_token,
       });
 
-      if (error || !data.session) {
-        toast.error("Não foi possível autenticar o link.");
+      if (error) {
+        toast.error("Erro ao autenticar.");
         return navigate("/login");
       }
 
-      // ❇️ Remove hash da URL
+      // 🔥 Importante: remover o hash para não recarregar de novo
       window.history.replaceState({}, "", "/force-reset");
 
-      setSessionLoaded(true);
+      setLoading(false);
     }
 
-    validateMagicLink();
-  }, [navigate]);
+    run();
+  }, []);
 
-  /* ============================================================
-     🔐 2) Atualizar senha
-  ============================================================ */
-  async function handleSave() {
-    if (password.length < 6) {
-      toast.warning("A senha deve ter ao menos 6 caracteres.");
-      return;
-    }
-    if (password !== confirm) {
-      toast.warning("As senhas não coincidem.");
+  async function updatePassword() {
+    if (newPass.length < 6) {
+      toast.warn("A senha deve ter pelo menos 6 caracteres.");
       return;
     }
 
-    setSaving(true);
+    const { error } = await supabase.auth.updateUser({
+      password: newPass,
+    });
 
-    const { error } = await supabase.auth.updateUser({ password });
+    if (error) return toast.error(error.message);
 
-    setSaving(false);
+    toast.success("Senha atualizada!");
 
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
+    // 🔥 FORÇAR LOGOUT
+    await supabase.auth.signOut();
 
-    toast.success("Senha alterada com sucesso! 🎉");
-
-    // Redireciona para Login
-    navigate("/login?reset=1", { replace: true });
+    navigate("/login");
   }
 
-  /* ============================================================
-     UI - Tela de carregamento
-  ============================================================ */
-  if (!sessionLoaded) {
-    return (
-      <div className={styles.loadingWrap}>
-        <div className={styles.loadingCard}>
-          <p>Validando link...</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <p>Carregando...</p>;
 
-  /* ============================================================
-     UI - Tela principal
-  ============================================================ */
   return (
-    <div
-      className={`${styles.wrap} ${theme === "dark" ? styles.dark : ""}`}
-      style={{ "--primary": brandColor || "#ff1493" } as React.CSSProperties}
-    >
-      <div className={styles.card}>
-        <h2 className={styles.title}>Redefinir Senha</h2>
+    <div style={{ padding: 30 }}>
+      <h2>Defina sua nova senha</h2>
 
-        <p className={styles.subtitle}>
-          Digite sua nova senha para concluir o processo.
-        </p>
+      <input
+        type="password"
+        placeholder="Nova senha"
+        value={newPass}
+        onChange={(e) => setNewPass(e.target.value)}
+        style={{ padding: 12, width: "100%", marginTop: 15 }}
+      />
 
-        <input
-          type="password"
-          className={styles.input}
-          placeholder="Nova senha"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-
-        <input
-          type="password"
-          className={styles.input}
-          placeholder="Confirmar nova senha"
-          value={confirm}
-          onChange={(e) => setConfirm(e.target.value)}
-        />
-
-        <button
-          className={styles.button}
-          disabled={saving}
-          onClick={handleSave}
-        >
-          {saving ? "Salvando..." : "Salvar nova senha"}
-        </button>
-      </div>
+      <button onClick={updatePassword} style={{ marginTop: 20 }}>
+        Salvar nova senha
+      </button>
     </div>
   );
 }
