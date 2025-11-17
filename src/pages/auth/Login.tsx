@@ -5,6 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthProvider";
 import { useTheme } from "../../hooks/useTheme";
 import { useBrandColor } from "../../hooks/useBrandColor";
+import { supabase } from "../../lib/supabaseCleint";
 import styles from "./Auth.module.css";
 import { toast } from "react-toastify";
 
@@ -13,16 +14,18 @@ export default function Login() {
   const [senha, setSenha] = useState("");
   const [error, setError] = useState("");
 
+  // 🔹 Estados do reset de senha
+  const [resetEmail, setResetEmail] = useState("");
+  const [showReset, setShowReset] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+
   const navigate = useNavigate();
   const { signIn, user, loading } = useAuth();
 
-  // 🎨 Tema + BrandColor
   const { theme, toggleTheme } = useTheme();
   const { brandColor } = useBrandColor();
 
-  /* ============================================================
-     🔥 Aplicar tema e cor primária no HTML
-  ============================================================ */
+  /* 🎨 Aplicar tema + cor primária */
   useEffect(() => {
     document.documentElement.setAttribute("data-theme-variant", theme);
   }, [theme]);
@@ -33,39 +36,32 @@ export default function Login() {
     }
   }, [brandColor]);
 
-  /* ============================================================
-     🔄 Mensagens
-  ============================================================ */
+  /* Mensagens da URL */
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
 
     if (params.get("logged_out") === "1") {
-      toast.success("Sessão encerrada com sucesso! 👋");
-      params.delete("logged_out");
+      toast.success("Sessão encerrada com sucesso!");
       window.history.replaceState({}, "", "/login");
     }
 
     if (params.get("checkEmail") === "1") {
-      toast.info("Enviamos um email de confirmação! Verifique sua caixa de entrada.");
+      toast.info("Verifique seu email para confirmar o cadastro.");
     }
 
     if (params.get("confirmed") === "1") {
-      toast.success("Email confirmado! Faça login para continuar.");
+      toast.success("Email confirmado! Faça login.");
     }
   }, []);
 
-  /* ============================================================
-     🔁 Redirecionar se já estiver logado
-  ============================================================ */
+  /* Redireciona se já estiver logado */
   useEffect(() => {
     if (!loading && user) {
       navigate("/dashboard", { replace: true });
     }
   }, [user, loading, navigate]);
 
-  /* ============================================================
-     🚪 Login
-  ============================================================ */
+  /* LOGIN */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -73,18 +69,44 @@ export default function Login() {
     try {
       await signIn(email.trim(), senha);
     } catch (err: any) {
-      console.error("Erro no login:", err);
       if (err?.message?.includes("Invalid login credentials")) {
-        setError("Credenciais inválidas. Verifique email e senha.");
+        setError("Email ou senha inválidos.");
       } else {
         setError(err?.message || "Erro ao fazer login.");
       }
     }
   };
 
-  /* ============================================================
-     JSX
-  ============================================================ */
+  /* RESET PASSWORD */
+  const handleResetPassword = async () => {
+    const targetEmail = resetEmail.trim() || email.trim();
+
+    if (!targetEmail) {
+      toast.warn("Informe o email para redefinir a senha.");
+      return;
+    }
+
+    setResetLoading(true);
+
+    try {
+      const redirectTo = `${window.location.origin}/force-reset`;
+
+      const { error } = await supabase.auth.resetPasswordForEmail(targetEmail, {
+        redirectTo,
+      });
+
+      if (error) throw error;
+
+      toast.success("Enviamos um link de redefinição para seu email.");
+      setShowReset(false);
+      setResetEmail("");
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao enviar o link de redefinição.");
+    }
+
+    setResetLoading(false);
+  };
+
   return (
     <div className={`${styles.wrap} ${theme === "dark" ? styles.dark : ""}`}>
       <div className={styles.card}>
@@ -100,7 +122,6 @@ export default function Login() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            autoComplete="email"
           />
 
           <input
@@ -109,8 +130,36 @@ export default function Login() {
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
             required
-            autoComplete="current-password"
           />
+
+          {/* ---------------------- RESET BLOCK ---------------------- */}
+          <button
+            type="button"
+            className={styles.forgotPassword}
+            onClick={() => setShowReset((p) => !p)}
+          >
+            Esqueceu a senha?
+          </button>
+
+          {showReset && (
+            <div className={styles.resetBox}>
+              <input
+                type="email"
+                placeholder="Seu email"
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+              />
+              <button
+                type="button"
+                className={styles.resetButton}
+                disabled={resetLoading}
+                onClick={handleResetPassword}
+              >
+                {resetLoading ? "Enviando..." : "Enviar link de redefinição"}
+              </button>
+            </div>
+          )}
+          {/* ---------------------------------------------------------- */}
 
           <button type="submit" disabled={!email || !senha || loading}>
             {loading ? "Entrando..." : "Entrar"}
@@ -121,12 +170,12 @@ export default function Login() {
           Ainda não tem conta? <Link to="/register">Registrar</Link>
         </p>
 
-        {/* Alternador de tema dentro da tela de login */}
         <div className={styles.themeToggleWrapper}>
           <button className={styles.themeToggle} onClick={toggleTheme}>
             {theme === "light" ? "🌙 Dark Mode" : "🌞 Light Mode"}
           </button>
         </div>
+
       </div>
     </div>
   );

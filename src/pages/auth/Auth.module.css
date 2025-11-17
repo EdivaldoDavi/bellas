@@ -56,3 +56,32 @@ button:hover {
   text-decoration: none;
   font-weight: bold;
 }
+.forgotPassword {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: 0.85rem;
+  margin-top: 4px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  text-align: right;
+  width: 100%;
+  text-decoration: underline;
+}
+
+.resetBox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.resetButton {
+  background: var(--color-primary);
+  border: none;
+  color: white;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
