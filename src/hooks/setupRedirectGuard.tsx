@@ -1,14 +1,13 @@
-
-import {  useLocation, Navigate } from "react-router-dom";
-import { useUserAndTenant } from "../hooks/useUserAndTenant";
+// src/guards/SetupRedirectGuard.tsx
+import { useLocation, Navigate } from "react-router-dom";
+import { useUserTenant } from "../context/UserTenantProvider";
 import { useAuth } from "../context/AuthProvider";
 
 export function SetupRedirectGuard({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
-  const { needsSetup, loading } = useUserAndTenant();
+  const { needsSetup, loading } = useUserTenant();
   const location = useLocation();
 
-  // 🔎 DEBUG opcional
   console.log("🔍 SetupRedirectGuard", {
     path: location.pathname,
     loading,
@@ -16,24 +15,24 @@ export function SetupRedirectGuard({ children }: { children: React.ReactNode }) 
     userId: user?.id,
   });
 
-  // ⏳ Enquanto carregando, não decide nada
+  // ⏳ Ainda carregando? Não decide nada.
   if (loading) return <>{children}</>;
 
-  // 🔐 Sem usuário → não faz nada (Login/Registro tratarão isso)
+  // 🔐 Usuário não autenticado → Login trata isso
   if (!user) return <>{children}</>;
 
   const isSetupPage = location.pathname === "/setup";
 
-  // 🟥 1) Deve ir para /setup
+  // 🟥 1) Usuário precisa fazer setup → direcionar para /setup
   if (needsSetup && !isSetupPage) {
     return <Navigate to="/setup" replace />;
   }
 
-  // 🟩 2) Já fez setup → mas está na página de setup → manda para dashboard
+  // 🟩 2) Usuário já configurou tenant → mas está em /setup → manda pro dashboard
   if (!needsSetup && isSetupPage) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // ✔️ Continua para a rota
+  // ✔️ Permite continuar a rota normal
   return <>{children}</>;
 }

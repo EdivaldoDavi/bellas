@@ -1,11 +1,13 @@
+// src/pages/setup/Setup.tsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUserAndTenant } from "../../hooks/useUserAndTenant";
 import { supabase } from "../../lib/supabaseCleint";
 import { toast } from "react-toastify";
 
+import { useUserTenant } from "../../context/UserTenantProvider";  // <-- AGORA CORRETO
+
 export default function Setup() {
-  const { loading, profile, tenant, reloadProfile } = useUserAndTenant();
+  const { loading, profile, tenant, reloadProfile } = useUserTenant();
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
@@ -15,7 +17,7 @@ export default function Setup() {
   const [saving, setSaving] = useState(false);
 
   /* ============================================================
-     🔄 CARREGAR DADOS DO TENANT SE JÁ EXISTIR
+     🔄 Carregar dados do tenant se já existir
   ============================================================ */
   useEffect(() => {
     if (tenant) {
@@ -68,7 +70,7 @@ export default function Setup() {
       let tenantId = tenant?.id ?? null;
 
       /* ============================================================
-         1️⃣ CRIAR TENANT SE NÃO EXISTIR
+         1️⃣ Criar tenant se não existir
       ============================================================ */
       if (!tenantId) {
         const { data: newTenant, error: tenantErr } = await supabase
@@ -80,7 +82,7 @@ export default function Setup() {
             secondary_color: secondary,
             theme_variant: variant,
             setup_complete: true,
-            created_by: profile.user_id, // 🔥 campo correto
+            created_by: profile.user_id,
           })
           .select("*")
           .single();
@@ -95,13 +97,13 @@ export default function Setup() {
         const { error: profileErr } = await supabase
           .from("profiles")
           .update({ tenant_id: tenantId })
-          .eq("user_id", profile.user_id); // 🔥 agora user_id (correto)
+          .eq("user_id", profile.user_id);
 
         if (profileErr) throw profileErr;
       }
 
       /* ============================================================
-         2️⃣ ATUALIZAR TENANT EXISTENTE
+         2️⃣ Atualizar tenant existente
       ============================================================ */
       const { error: updateErr } = await supabase
         .from("tenants")
@@ -117,12 +119,13 @@ export default function Setup() {
       if (updateErr) throw updateErr;
 
       /* ============================================================
-         3️⃣ RECARREGAR PERFIL E REDIRECIONAR
+         3️⃣ Recarregar perfil e redirecionar
       ============================================================ */
-      await reloadProfile();
+      await reloadProfile(); // agora GLOBAL
 
       toast.success("Salão configurado com sucesso!");
       navigate("/dashboard", { replace: true });
+
     } catch (err: any) {
       console.error("Erro ao salvar setup:", err);
       toast.error(err?.message ?? "Erro ao configurar o salão.");
@@ -136,6 +139,7 @@ export default function Setup() {
       <h3>Configurar seu salão</h3>
 
       <div className="row g-3">
+
         {/* Nome */}
         <div className="col-12 col-md-6">
           <label className="form-label">Nome do salão</label>
@@ -168,21 +172,17 @@ export default function Setup() {
           />
         </div>
 
-        {/* Tema light/dark */}
+        {/* Tema */}
         <div className="col-12">
           <div className="btn-group" role="group">
             <button
-              className={`btn ${
-                variant === "light" ? "btn-primary" : "btn-outline-primary"
-              }`}
+              className={`btn ${variant === "light" ? "btn-primary" : "btn-outline-primary"}`}
               onClick={() => setVariant("light")}
             >
               🌞 Light
             </button>
             <button
-              className={`btn ${
-                variant === "dark" ? "btn-primary" : "btn-outline-primary"
-              }`}
+              className={`btn ${variant === "dark" ? "btn-primary" : "btn-outline-primary"}`}
               onClick={() => setVariant("dark")}
             >
               🌙 Dark
@@ -200,6 +200,7 @@ export default function Setup() {
             {saving ? "Salvando..." : "Salvar e continuar"}
           </button>
         </div>
+
       </div>
     </div>
   );
