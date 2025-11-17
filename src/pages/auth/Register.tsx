@@ -5,7 +5,7 @@ import { supabase } from "../../lib/supabaseCleint";
 import { Link } from "react-router-dom";
 import { useTheme } from "../../hooks/useTheme";
 import { useBrandColor } from "../../hooks/useBrandColor";
-import styles from "./Register.module.css";
+import styles from "../../css/Register.module.css"
 
 export default function Register() {
   const [email, setEmail] = useState("");
