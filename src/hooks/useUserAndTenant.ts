@@ -191,7 +191,8 @@ const reloadProfile = useCallback(async () => {
   /* ============================================================
      🎯 Detectar se precisa fazer o setup
   ============================================================ */
-  const needsSetup = Boolean(user && profile && !tenant);
+ 
+const needsSetup = Boolean(!loading && user && profile && !tenant);
 
   /* ============================================================
      📤 Retorno do hook
