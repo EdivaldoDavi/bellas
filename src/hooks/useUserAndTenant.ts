@@ -55,61 +55,126 @@ export function useUserAndTenant() {
   /* ============================================================
      🔥 Carregamento principal
   ============================================================ */
-const reloadProfile = useCallback(async () => {
-  setLoading(true);
-  setError(null);
+  const reloadProfile = useCallback(async () => {
+    setLoading(true);
+    setError(null);
 
-  try {
-    const { data: sessionData } = await supabase.auth.getSession();
-    const currentUser = sessionData.session?.user ?? null;
+    try {
+      /* 1️⃣ Buscar sessão atual */
+      const { data: sessionData, error: sessErr } = await supabase.auth.getSession();
+      if (sessErr) throw sessErr;
 
-    if (!currentUser) {
+      const currentUser = sessionData.session?.user ?? null;
+      setUser(currentUser);
+
+      if (!currentUser) {
+        clearAll();
+        return;
+      }
+
+      /* 2️⃣ Buscar o profile correto usando user_id */
+      const { data: pData, error: pErr } = await supabase
+        .from("profiles")
+        .select("user_id, tenant_id, role, full_name, avatar_url")
+        .eq("user_id", currentUser.id)
+        .maybeSingle();
+
+      if (pErr) throw pErr;
+
+      const finalProfile: Profile = {
+        user_id: currentUser.id,
+        email: currentUser.email,
+        role: pData?.role ?? null, // 🔥 sem fallback perigoso
+        full_name:
+          pData?.full_name ??
+          currentUser.user_metadata?.full_name ??
+          "",
+        avatar_url:
+          pData?.avatar_url ??
+          currentUser.user_metadata?.avatar_url ??
+          null,
+        tenant_id: pData?.tenant_id ?? null,
+      };
+
+      setProfile(finalProfile);
+
+      /* 3️⃣ Se não tem tenant → parar aqui (setup) */
+      if (!finalProfile.tenant_id) {
+        setTenant(null);
+        return;
+      }
+
+      /* 4️⃣ Buscar tenant */
+      const { data: tData, error: tErr } = await supabase
+        .from("tenants")
+        .select(
+          "id, name, theme_variant, primary_color, secondary_color, setup_complete, plan_id, whatsapp_number"
+        )
+        .eq("id", finalProfile.tenant_id)
+        .maybeSingle();
+
+      if (tErr) throw tErr;
+
+      setTenant(tData);
+
+      /* 🎨 Aplicar tema */
+      if (tData?.theme_variant)
+        document.documentElement.setAttribute("data-theme-variant", tData.theme_variant);
+
+      if (tData?.primary_color)
+        document.documentElement.style.setProperty("--color-primary", tData.primary_color);
+
+      if (tData?.secondary_color)
+        document.documentElement.style.setProperty("--color-secondary", tData.secondary_color);
+
+      /* 5️⃣ Assinatura */
+      const { data: subData } = await supabase
+        .from("subscriptions")
+        .select("*")
+        .eq("tenant_id", tData?.id)
+        .maybeSingle();
+
+      setSubscription(subData ?? null);
+
+      /* 6️⃣ Plano */
+      if (tData?.plan_id) {
+        const { data: planData } = await supabase
+          .from("plans")
+          .select("*")
+          .eq("id", tData.plan_id)
+          .maybeSingle();
+
+        setPlan(planData ?? null);
+
+        /* 7️⃣ Features */
+        const { data: feats } = await supabase
+          .from("plan_features")
+          .select("feature_key, enabled")
+          .eq("plan_id", tData.plan_id);
+
+        setFeatures((feats ?? []).filter(f => f.enabled).map(f => f.feature_key));
+      } else {
+        setPlan(null);
+        setFeatures([]);
+      }
+
+      /* 8️⃣ Permissões */
+      const { data: perms } = await supabase
+        .from("permissions")
+        .select("permission_key, allowed")
+        .eq("tenant_id", finalProfile.tenant_id)
+        .eq("user_id", currentUser.id);
+
+      setPermissions((perms ?? []).filter(p => p.allowed).map(p => p.permission_key));
+
+    } catch (err: any) {
+      console.error("Erro em useUserAndTenant:", err);
+      setError(err.message ?? "Erro ao carregar dados.");
       clearAll();
-      setUser(null);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setUser(currentUser);
-
-    const { data: pData } = await supabase
-      .from("profiles")
-      .select("user_id, tenant_id, role, full_name, avatar_url")
-      .eq("user_id", currentUser.id)
-      .single();
-
-    const profile: Profile = {
-      user_id: currentUser.id,
-      email: currentUser.email,
-      role: pData?.role ?? null,
-      full_name: pData?.full_name ?? currentUser.user_metadata?.full_name ?? "",
-      avatar_url: pData?.avatar_url ?? currentUser.user_metadata?.avatar_url ?? null,
-      tenant_id: pData?.tenant_id ?? null,
-    };
-
-    setProfile(profile);
-
-    if (!profile.tenant_id) {
-      setTenant(null);
-      setLoading(false);
-      return;
-    }
-
-    const { data: tData } = await supabase
-      .from("tenants")
-      .select("*")
-      .eq("id", profile.tenant_id)
-      .single();
-
-    setTenant(tData);
-    
-  } catch (err: any) {
-    console.error(err);
-    clearAll();
-  } finally {
-    setLoading(false);
-  }
-}, []); // ← SEM DEPENDÊNCIAS
+  }, [clearAll]);
 
   /* ============================================================
      ⏳ Executar ao montar
@@ -121,8 +186,7 @@ const reloadProfile = useCallback(async () => {
   /* ============================================================
      🎯 Detectar se precisa fazer o setup
   ============================================================ */
- 
-const needsSetup = Boolean(!loading && user && profile && !tenant);
+  const needsSetup = Boolean(user && profile && !tenant);
 
   /* ============================================================
      📤 Retorno do hook
