@@ -3,7 +3,27 @@ import { toast } from "react-toastify";
 import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 import styles from "../css/PerfilPage.module.css";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Check } from "lucide-react";
+
+type PasswordStrength = "empty" | "weak" | "medium" | "strong" | "very-strong";
+
+/* ============================================================
+  FUNÇÃO DE FORÇA DA SENHA (mesmo padrão do ForcePasswordReset)
+============================================================== */
+function getPasswordStrength(pwd: string): PasswordStrength {
+  if (!pwd) return "empty";
+
+  let score = 0;
+  if (pwd.length >= 8) score++;
+  if (/[A-Z]/.test(pwd)) score++;
+  if (/[0-9]/.test(pwd)) score++;
+  if (/[^A-Za-z0-9]/.test(pwd)) score++;
+
+  if (score <= 1) return "weak";
+  if (score === 2) return "medium";
+  if (score === 3) return "strong";
+  return "very-strong";
+}
 
 export default function PerfilPage() {
   const { profile, reloadProfile } = useUserAndTenant();
@@ -16,12 +36,13 @@ export default function PerfilPage() {
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [mostrarConfirmar, setMostrarConfirmar] = useState(false);
 
-  const [forca, setForca] = useState(0);
+  const strength = getPasswordStrength(novaSenha);
+
   const [loading, setLoading] = useState(false);
 
-  // ===================================================
-  // 🔹 Atualiza estados quando profile é carregado
-  // ===================================================
+  /* ============================================================
+    CARREGA PERFIL
+  ============================================================ */
   useEffect(() => {
     if (profile) {
       setNome(profile.full_name || "");
@@ -29,28 +50,9 @@ export default function PerfilPage() {
     }
   }, [profile]);
 
-  // ===================================================
-  // 🔹 Medidor de força da senha
-  // ===================================================
-  const avaliarForcaSenha = (senha: string) => {
-    let pontos = 0;
-
-    if (senha.length >= 6) pontos++;
-    if (/[A-Z]/.test(senha)) pontos++;
-    if (/[0-9]/.test(senha)) pontos++;
-    if (/[^A-Za-z0-9]/.test(senha)) pontos++;
-
-    setForca(pontos);
-  };
-
-  const handleNovaSenha = (senha: string) => {
-    setNovaSenha(senha);
-    avaliarForcaSenha(senha);
-  };
-
-  // ===================================================
-  // 🔹 Atualizar perfil
-  // ===================================================
+  /* ============================================================
+     SALVAR DADOS DO PERFIL
+  ============================================================ */
   const handleSalvarPerfil = async () => {
     setLoading(true);
     try {
@@ -78,17 +80,22 @@ export default function PerfilPage() {
     }
   };
 
-  // ===================================================
-  // 🔹 Alterar senha
-  // ===================================================
+  /* ============================================================
+     ALTERAR SENHA
+  ============================================================ */
   const handleAlterarSenha = async () => {
+    if (!novaSenha || !confirmarSenha) {
+      toast.warning("Preencha a nova senha e a confirmação.");
+      return;
+    }
+
     if (novaSenha !== confirmarSenha) {
       toast.warning("As senhas não coincidem!");
       return;
     }
 
-    if (forca < 2) {
-      toast.warning("A senha está muito fraca!");
+    if (strength === "weak" || strength === "empty") {
+      toast.warning("A senha está muito fraca.");
       return;
     }
 
@@ -97,64 +104,43 @@ export default function PerfilPage() {
     const { error } = await supabase.auth.updateUser({ password: novaSenha });
 
     if (error) {
-      toast.error("Erro ao alterar senha: " + error.message);
+      toast.error(error.message);
     } else {
       toast.success("Senha alterada com sucesso!");
       setNovaSenha("");
       setConfirmarSenha("");
-      setForca(0);
     }
 
     setLoading(false);
   };
 
-  // ===================================================
-  const avatarUrl =
-    profile?.avatar_url || "https://i.pravatar.cc/150?img=47";
+  const avatarUrl = profile?.avatar_url || "https://i.pravatar.cc/150?img=47";
   const role = profile?.role || "Usuário";
-
-  // ===================================================
-  // 🔹 Cores do medidor de força
-  // ===================================================
-  const getCorForca = () => {
-    switch (forca) {
-      case 0:
-      case 1:
-        return "#e74c3c"; // vermelho
-      case 2:
-        return "#f39c12"; // amarelo
-      case 3:
-        return "#27ae60"; // verde
-      case 4:
-        return "#2ecc71"; // verde forte
-    }
-  };
 
   return (
     <div className={styles.container}>
       <h2 className={styles.pageTitle}>Meu Perfil</h2>
 
       <div className="row g-4">
-        {/* ============================================
-              LADO ESQUERDO – Avatar
-        ============================================ */}
+
+        {/* ====================== LADO ESQUERDO (AVATAR) ====================== */}
         <div className="col-md-4">
           <div className={styles.card}>
             <div className={styles.avatarContainer}>
               <img src={avatarUrl} alt="Avatar" className={styles.avatar} />
             </div>
-            <div className="text-center">
+
+            <div className="text-center mt-2">
               <h5 className={styles.cardTitle}>{nome || "Usuário"}</h5>
               <p className={styles.manager}>{role}</p>
             </div>
           </div>
         </div>
 
-        {/* ============================================
-              LADO DIREITO – Informações e senha
-        ============================================ */}
+        {/* ====================== LADO DIREITO ====================== */}
         <div className="col-md-8">
-          {/* ======= Informações pessoais ======= */}
+
+          {/* ======= INFORMAÇÕES PESSOAIS ======= */}
           <div className={styles.card}>
             <h5 className={styles.cardTitle}>Informações Pessoais</h5>
 
@@ -162,7 +148,6 @@ export default function PerfilPage() {
               <div className="mb-3">
                 <label className={styles.label}>Nome Completo</label>
                 <input
-                  type="text"
                   className="form-control"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
@@ -171,16 +156,10 @@ export default function PerfilPage() {
 
               <div className="mb-3">
                 <label className={styles.label}>Email</label>
-                <input
-                  type="email"
-                  className="form-control"
-                  value={email}
-                  disabled
-                />
+                <input className="form-control" value={email} disabled />
               </div>
 
               <button
-                type="button"
                 className={styles.button}
                 onClick={handleSalvarPerfil}
                 disabled={loading}
@@ -190,69 +169,99 @@ export default function PerfilPage() {
             </div>
           </div>
 
-          {/* ======= Alterar senha ======= */}
+          {/* ======= ALTERAR SENHA ======= */}
           <div className={styles.card}>
             <h5 className={styles.cardTitle}>Alterar Senha</h5>
 
             <div className="mt-3">
-              <div className="row">
-                {/* NOVA SENHA */}
-                <div className="col-md-6 mb-3">
-                  <label className={styles.label}>Nova Senha</label>
-                  <div className={styles.inputSenhaWrapper}>
-                    <input
-                      type={mostrarSenha ? "text" : "password"}
-                      className="form-control"
-                      value={novaSenha}
-                      onChange={(e) => handleNovaSenha(e.target.value)}
-                    />
 
-                    <button
-                      type="button"
-                      className={styles.eyeButton}
-                      onClick={() => setMostrarSenha(!mostrarSenha)}
-                    >
-                      {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
+              {/* NOVA SENHA */}
+              <label className={styles.label}>Nova Senha</label>
+              <div className={styles.inputSenhaWrapper}>
+                <input
+                  type={mostrarSenha ? "text" : "password"}
+                  className="form-control"
+                  value={novaSenha}
+                  onChange={(e) => setNovaSenha(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className={styles.eyeButton}
+                  onClick={() => setMostrarSenha(!mostrarSenha)}
+                >
+                  {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
 
-                  {/* 🔥 Barra de força */}
-                  {novaSenha.length > 0 && (
-                    <div
-                      className={styles.forcaBar}
-                      style={{ backgroundColor: getCorForca(), width: `${forca * 25}%` }}
-                    ></div>
-                  )}
+              {/* BARRA DE FORÇA */}
+              {novaSenha && (
+                <div className={styles.strengthWrapper}>
+                  <div
+                    className={`${styles.strengthBar} ${
+                      strength === "weak"
+                        ? styles.weak
+                        : strength === "medium"
+                        ? styles.medium
+                        : strength === "strong"
+                        ? styles.strong
+                        : styles.veryStrong
+                    }`}
+                  />
+                  <span className={styles.strengthLabel}>
+                    {strength === "weak"
+                      ? "Fraca"
+                      : strength === "medium"
+                      ? "Média"
+                      : strength === "strong"
+                      ? "Forte"
+                      : "Muito forte"}
+                  </span>
                 </div>
+              )}
 
-                {/* CONFIRMAR SENHA */}
-                <div className="col-md-6 mb-3">
-                  <label className={styles.label}>Confirmar Senha</label>
-                  <div className={styles.inputSenhaWrapper}>
-                    <input
-                      type={mostrarConfirmar ? "text" : "password"}
-                      className="form-control"
-                      value={confirmarSenha}
-                      onChange={(e) => setConfirmarSenha(e.target.value)}
-                    />
+              {/* CONFIRMAR SENHA */}
+              <label className={`${styles.label} mt-3`}>
+                Confirmar Nova Senha
+              </label>
+              <div className={styles.inputSenhaWrapper}>
+                <input
+                  type={mostrarConfirmar ? "text" : "password"}
+                  className="form-control"
+                  value={confirmarSenha}
+                  onChange={(e) => setConfirmarSenha(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className={styles.eyeButton}
+                  onClick={() => setMostrarConfirmar(!mostrarConfirmar)}
+                >
+                  {mostrarConfirmar ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
 
-                    <button
-                      type="button"
-                      className={styles.eyeButton}
-                      onClick={() => setMostrarConfirmar(!mostrarConfirmar)}
-                    >
-                      {mostrarConfirmar ? (
-                        <EyeOff size={18} />
-                      ) : (
-                        <Eye size={18} />
-                      )}
-                    </button>
-                  </div>
-                </div>
+              {/* CHECKLIST */}
+              <div className={styles.requirements}>
+                <p className={styles.requirementsTitle}>A senha deve conter:</p>
+                <ul>
+                  <li className={novaSenha.length >= 8 ? styles.reqOk : ""}>
+                    {novaSenha.length >= 8 && <Check size={14} />} Pelo menos 8 caracteres
+                  </li>
+
+                  <li className={/[A-Z]/.test(novaSenha) ? styles.reqOk : ""}>
+                    {/[A-Z]/.test(novaSenha) && <Check size={14} />} Uma letra maiúscula
+                  </li>
+
+                  <li className={/[0-9]/.test(novaSenha) ? styles.reqOk : ""}>
+                    {/[0-9]/.test(novaSenha) && <Check size={14} />} Um número
+                  </li>
+
+                  <li className={styles.reqOptional}>
+                    Opcional: caractere especial
+                  </li>
+                </ul>
               </div>
 
               <button
-                type="button"
                 className={styles.button}
                 onClick={handleAlterarSenha}
                 disabled={loading}
