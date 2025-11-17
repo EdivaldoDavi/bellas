@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { useTheme } from "../hooks/useTheme";
 import { useBrandColor } from "../hooks/useBrandColor";
 
-import styles from "../css/ForceReset.module.css";
+import styles from "../css/ForcePasswordReset.module.css";
 
 export default function ForcePasswordReset() {
   const navigate = useNavigate();
