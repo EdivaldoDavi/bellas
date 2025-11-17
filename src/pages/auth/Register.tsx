@@ -1,6 +1,11 @@
-import { useState } from "react";
+// src/pages/auth/Register.tsx
+
+import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseCleint";
 import { Link } from "react-router-dom";
+import { useTheme } from "../../hooks/useTheme";
+import { useBrandColor } from "../../hooks/useBrandColor";
+import styles from "./Register.module.css";
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -9,6 +14,31 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
+  // 🎨 Tema global
+  const { theme, toggleTheme } = useTheme();
+
+  // 🎨 BrandColor global
+  const { brandColor } = useBrandColor();
+
+  /* ============================================================
+     Aplicar tema no HTML
+  ============================================================ */
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme-variant", theme);
+  }, [theme]);
+
+  /* ============================================================
+     Aplicar cor primária
+  ============================================================ */
+  useEffect(() => {
+    if (brandColor) {
+      document.documentElement.style.setProperty("--color-primary", brandColor);
+    }
+  }, [brandColor]);
+
+  /* ============================================================
+     Registrar
+  ============================================================ */
   const handleRegister = async () => {
     setLoading(true);
     setMessage("");
@@ -17,9 +47,7 @@ export default function Register() {
       email,
       password,
       options: {
-        data: {
-          full_name: fullName,
-        },
+        data: { full_name: fullName },
       },
     });
 
@@ -30,45 +58,60 @@ export default function Register() {
       return;
     }
 
-    setMessage(
-      "Cadastro criado! Verifique seu e-mail para confirmar."
-    );
+    setMessage("Cadastro criado! Verifique seu e-mail para confirmar.");
   };
 
   return (
-    <div className="auth-container">
-      <h2>Criar Conta</h2>
+    <div className={`${styles.wrap} ${theme === "dark" ? styles.dark : ""}`}>
+      <div className={styles.card}>
 
-      {message && <p>{message}</p>}
+        <h2 className={styles.title}>Criar Conta</h2>
 
-      <input
-        type="text"
-        placeholder="Seu nome"
-        value={fullName}
-        onChange={(e) => setFullName(e.target.value)}
-      />
+        {message && <p className={styles.message}>{message}</p>}
 
-      <input
-        type="email"
-        placeholder="E-mail"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
+        <input
+          type="text"
+          placeholder="Seu nome"
+          className={styles.input}
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+        />
 
-      <input
-        type="password"
-        placeholder="Senha"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+        <input
+          type="email"
+          placeholder="E-mail"
+          className={styles.input}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-      <button disabled={loading} onClick={handleRegister}>
-        {loading ? "Registrando..." : "Criar conta"}
-      </button>
+        <input
+          type="password"
+          placeholder="Senha"
+          className={styles.input}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
 
-      <p>
-        Já possui conta? <Link to="/login">Entrar</Link>
-      </p>
+        <button
+          disabled={loading}
+          onClick={handleRegister}
+          className={styles.button}
+        >
+          {loading ? "Registrando..." : "Criar conta"}
+        </button>
+
+        <p className={styles.linkText}>
+          Já possui conta? <Link to="/login">Entrar</Link>
+        </p>
+
+        {/* Botão de alternar tema */}
+        <div className={styles.themeToggleWrapper}>
+          <button className={styles.themeToggle} onClick={toggleTheme}>
+            {theme === "light" ? "🌙 Dark Mode" : "🌞 Light Mode"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

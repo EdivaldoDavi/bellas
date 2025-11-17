@@ -18,7 +18,7 @@ export default function Login() {
 
   // 🎨 Tema + BrandColor
   const { theme, toggleTheme } = useTheme();
-  const { brandColor, setBrandColor } = useBrandColor();
+  const { brandColor } = useBrandColor();
 
   /* ============================================================
      🔥 Aplicar tema e cor primária no HTML
