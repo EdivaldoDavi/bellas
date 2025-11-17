@@ -112,7 +112,7 @@
   right: 0.65rem;
   top: 50%;
   transform: translateY(-50%);
-
+  
   width: 28px;
   height: 28px;
   display: flex;
@@ -122,33 +122,27 @@
   background: transparent !important;
   border: none !important;
 
-  /* 👇 AQUI É O PONTO CRÍTICO */
-  color: var(--text) !important;
-  opacity: 0.85 !important;   /* deixa visível no dark */
+  /* 👇 VISÍVEL SOBRE INPUT BRANCO NO LIGHT E NO DARK */
+  color: #555 !important;
 
+  opacity: 0.9;
   cursor: pointer;
   padding: 0;
   margin: 0;
 
-  /* impedir Bootstrap de apagar o ícone */
-  -webkit-text-fill-color: var(--text) !important;
+  transition: color 0.2s ease, opacity 0.2s ease;
 }
 
-/* estados do botão que o Bootstrap tenta sobrescrever */
 .eyeButton:hover,
-.eyeButton:focus,
-.eyeButton:active,
-.eyeButton:visited {
-  color: var(--text) !important;
-  opacity: 1 !important;
-  background: transparent !important;
-  -webkit-text-fill-color: var(--text) !important;
+.eyeButton:focus {
+  color: #222 !important; /* mais escuro e visível */
+  opacity: 1;
 }
 
-/* impede que o input deixe o botão transparente */
-.inputSenhaWrapper button svg {
-  color: var(--text) !important;
-  stroke: var(--text) !important;
+/* garante que NENHUM bootstrap esconda o svg */
+.eyeButton svg {
+  color: inherit !important;
+  stroke: currentColor !important;
   opacity: 1 !important;
 }
 
