@@ -10,8 +10,8 @@ import ModalNewService from "../components/ModalNewService";
 import ModalNewProfessional from "../components/ModalNewProfessional";
 
 import { CalendarDays, Clock } from "lucide-react";
+import { useTheme } from "../hooks/useTheme";
 
-// Utils
 import {
   isPastDateLocal,
   getWeekdayLocal,
@@ -27,7 +27,7 @@ type Service = { id: string; name: string; duration_min?: number | null };
 
 interface ModalScheduleWizardProps {
   open: boolean;
-  tenantId: string;    // usado apenas nos INSERTS
+  tenantId: string;
   onClose: () => void;
   onBooked?: () => void;
 }
@@ -38,22 +38,23 @@ export default function ModalScheduleWizard({
   onClose,
   onBooked
 }: ModalScheduleWizardProps) {
+  
+  /* -------------------------------- THEME -------------------------------- */
+  const { theme } = useTheme();
 
+  /* -------------------------------- STATES -------------------------------- */
   const [step, setStep] = useState(1);
   const totalSteps = 6;
 
-  // Modais
   const [showNewCustomer, setShowNewCustomer] = useState(false);
   const [showNewService, setShowNewService] = useState(false);
   const [showNewProfessional, setShowNewProfessional] = useState(false);
 
   const clientRef = useRef<any>(null);
 
-  // Busca
   const [searchProfessional, setSearchProfessional] = useState("");
   const [searchService, setSearchService] = useState("");
 
-  // Dados
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [professionalId, setProfessionalId] = useState("");
   const [professionalName, setProfessionalName] = useState("");
@@ -71,7 +72,6 @@ export default function ModalScheduleWizard({
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
 
   /* -------------------------------- RESET -------------------------------- */
-
   function resetAll() {
     setStep(1);
     setProfessionalId("");
@@ -92,7 +92,6 @@ export default function ModalScheduleWizard({
   }
 
   /* ----------------------------- LOAD INICIAL ----------------------------- */
-
   useEffect(() => {
     if (!open) return;
     resetAll();
@@ -100,27 +99,22 @@ export default function ModalScheduleWizard({
   }, [open]);
 
   /* ------------------------------ LOAD DATA ------------------------------- */
-
-  // 🔥 SELECT sem tenant_id — RLS faz o filtro automático
   async function loadProfessionals() {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("professionals")
       .select("id,name")
       .order("name");
 
-    if (error) console.error(error);
     setProfessionals(data || []);
   }
 
   async function loadServices(profId: string) {
     if (!profId) return;
 
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("professional_services")
       .select("service:services(id,name,duration_min)")
       .eq("professional_id", profId);
-
-    if (error) console.error(error);
 
     setServices((data || []).map((r: any) => r.service));
   }
@@ -133,7 +127,6 @@ export default function ModalScheduleWizard({
 
     const weekday = getWeekdayLocal(date);
 
-    // Agenda do profissional
     const { data: schedule } = await supabase
       .from("professional_schedules")
       .select("*")
@@ -143,24 +136,18 @@ export default function ModalScheduleWizard({
 
     if (!schedule) return;
 
-    const workStart = combineLocalDateTime(date, schedule.start_time.slice(0,5));
-    const workEnd = combineLocalDateTime(date, schedule.end_time.slice(0,5));
+    const workStart = combineLocalDateTime(date, schedule.start_time.slice(0, 5));
+    const workEnd = combineLocalDateTime(date, schedule.end_time.slice(0, 5));
 
     const hasBreak =
       schedule.break_start_time !== "00:00:00" &&
       schedule.break_end_time !== "00:00:00";
 
-    const breakStart = hasBreak
-      ? combineLocalDateTime(date, schedule.break_start_time.slice(0,5))
-      : null;
-
-    const breakEnd = hasBreak
-      ? combineLocalDateTime(date, schedule.break_end_time.slice(0,5))
-      : null;
+    const breakStart = hasBreak ? combineLocalDateTime(date, schedule.break_start_time.slice(0, 5)) : null;
+    const breakEnd = hasBreak ? combineLocalDateTime(date, schedule.break_end_time.slice(0, 5)) : null;
 
     const { startISO, endISO } = getDayBoundsISO(date);
 
-    // Agendamentos existentes
     const { data: booked } = await supabase
       .from("appointments")
       .select("starts_at,ends_at")
@@ -169,8 +156,8 @@ export default function ModalScheduleWizard({
       .lte("ends_at", endISO);
 
     let t = new Date(workStart);
-    let slots: string[] = [];
     const now = new Date();
+    const slots: string[] = [];
 
     while (t < workEnd) {
       const end = new Date(t.getTime() + duration * 60000);
@@ -193,11 +180,7 @@ export default function ModalScheduleWizard({
       });
 
       if (!conflict) {
-        slots.push(
-          `${String(t.getHours()).padStart(2, "0")}:${String(
-            t.getMinutes()
-          ).padStart(2, "0")}`
-        );
+        slots.push(`${String(t.getHours()).padStart(2, "0")}:${String(t.getMinutes()).padStart(2, "0")}`);
       }
 
       t = new Date(t.getTime() + duration * 60000);
@@ -206,8 +189,7 @@ export default function ModalScheduleWizard({
     setAvailableTimes(slots);
   }
 
-  /* ------------------------------ Navegação ------------------------------ */
-
+  /* ----------------------------- NAVEGAÇÃO ----------------------------- */
   const canNext = useMemo(() => {
     switch (step) {
       case 1: return !!professionalId;
@@ -217,19 +199,10 @@ export default function ModalScheduleWizard({
       case 5: return !!selectedTime;
       default: return true;
     }
-  }, [
-    step,
-    professionalId,
-    serviceId,
-    serviceDuration,
-    customerId,
-    selectedDate,
-    selectedTime
-  ]);
+  }, [step, professionalId, serviceId, serviceDuration, customerId, selectedDate, selectedTime]);
 
   function goNext() {
     if (!canNext) return toast.warn("Complete esta etapa.");
-
     if (step === totalSteps) return saveAppointment();
     setStep((s) => s + 1);
   }
@@ -239,7 +212,6 @@ export default function ModalScheduleWizard({
   }
 
   /* --------------------------- SALVAR AGENDAMENTO ------------------------- */
-
   async function saveAppointment() {
     const { data: cli } = await supabase
       .from("customers")
@@ -251,7 +223,7 @@ export default function ModalScheduleWizard({
     const end = new Date(start.getTime() + (serviceDuration || 60) * 60000);
 
     const payload = {
-      tenant_id: tenantId,  // OK — somente INSERT usa tenant_id
+      tenant_id: tenantId,
       professional_id: professionalId,
       service_id: serviceId,
       customer_id: customerId,
@@ -265,7 +237,6 @@ export default function ModalScheduleWizard({
     const { error } = await supabase.from("appointments").insert([payload]);
 
     if (error) {
-      console.error(error);
       toast.error("Erro ao agendar.");
       return;
     }
@@ -276,7 +247,6 @@ export default function ModalScheduleWizard({
   }
 
   /* ------------------------------ RENDER JSX ------------------------------ */
-
   if (!open) return null;
 
   const filteredProfessionals = professionals.filter((p) =>
@@ -293,8 +263,8 @@ export default function ModalScheduleWizard({
   const stepPct = totalSteps > 1 ? ((step - 1) / (totalSteps - 1)) * 100 : 0;
 
   return (
-    <div className={styles.overlay}>
-      <div className={styles.modal}>
+    <div className={`${styles.overlay} ${theme === "dark" ? styles.dark : ""}`}>
+      <div className={`${styles.modal} ${theme === "dark" ? styles.modalDark : ""}`}>
 
         {/* HEADER */}
         <div className={styles.header}>
@@ -317,7 +287,7 @@ export default function ModalScheduleWizard({
             <div className={styles.headerProgressFill} style={{ width: `${stepPct}%` }} />
           </div>
 
-          <div className={styles.headerDots} aria-hidden="true">
+          <div className={styles.headerDots}>
             {Array.from({ length: totalSteps }).map((_, i) => (
               <span key={i} className={`${styles.dot} ${i < step ? styles.dotActive : ""}`} />
             ))}
@@ -327,7 +297,7 @@ export default function ModalScheduleWizard({
         {/* BODY */}
         <div className={styles.body}>
 
-          {/* STEP 1: PROFISSIONAL */}
+          {/* STEP 1 */}
           {step === 1 && (
             <div className={styles.step}>
               <h3 className={styles.stepTitle}>Selecione o profissional</h3>
@@ -365,7 +335,7 @@ export default function ModalScheduleWizard({
             </div>
           )}
 
-          {/* STEP 2: SERVIÇO */}
+          {/* STEP 2 */}
           {step === 2 && (
             <div className={styles.step}>
               <h3 className={styles.stepTitle}>Serviços de {professionalName}</h3>
@@ -384,8 +354,8 @@ export default function ModalScheduleWizard({
 
               <ul className={styles.list}>
                 {filteredServices.map((s) => {
-                  const dur = s.duration_min ?? 60;
                   const active = s.id === serviceId;
+                  const dur = s.duration_min ?? 60;
 
                   return (
                     <li key={s.id}>
@@ -409,7 +379,7 @@ export default function ModalScheduleWizard({
             </div>
           )}
 
-          {/* STEP 3: CLIENTE */}
+          {/* STEP 3 */}
           {step === 3 && (
             <div className={styles.step}>
               <h3 className={styles.stepTitle}>Cliente</h3>
@@ -431,13 +401,13 @@ export default function ModalScheduleWizard({
             </div>
           )}
 
-          {/* STEP 4: DATA */}
+          {/* STEP 4 */}
           {step === 4 && (
             <div className={styles.step}>
               <h3 className={styles.stepTitle}>Escolha a data</h3>
 
               <DatePickerModal
-               tenantId={tenantId}   
+                tenantId={tenantId}
                 professionalId={professionalId}
                 serviceDuration={serviceDuration || 60}
                 value={selectedDate}
@@ -462,7 +432,7 @@ export default function ModalScheduleWizard({
             </div>
           )}
 
-          {/* STEP 5: HORÁRIO */}
+          {/* STEP 5 */}
           {step === 5 && (
             <div className={styles.step}>
               <h3 className={styles.stepTitle}>Selecione o horário</h3>
@@ -487,7 +457,7 @@ export default function ModalScheduleWizard({
             </div>
           )}
 
-          {/* STEP 6: REVISÃO */}
+          {/* STEP 6 */}
           {step === 6 && (
             <div className={styles.step}>
               <h3 className={styles.stepTitle}>Confirme os dados</h3>
@@ -553,7 +523,6 @@ export default function ModalScheduleWizard({
 
       {/* ------------------------ MODAIS AUXILIARES ------------------------ */}
 
-      {/* CLIENTE */}
       {showNewCustomer && (
         <ModalNewCustomer
           tenantId={tenantId}
@@ -563,16 +532,13 @@ export default function ModalScheduleWizard({
           onSuccess={(id, name) => {
             setCustomerId(id);
             setCustomerName(name);
-            setShowNewCustomer(false);
-
             clientRef.current?.reload(id);
-
+            setShowNewCustomer(false);
             toast.success(`Cliente ${name} cadastrado!`);
           }}
         />
       )}
 
-      {/* PROFISSIONAL */}
       {showNewProfessional && (
         <ModalNewProfessional
           tenantId={tenantId}
@@ -582,36 +548,31 @@ export default function ModalScheduleWizard({
           onSuccess={async (id, name) => {
             setShowNewProfessional(false);
 
-            // reload profissional via RLS automático
             const { data } = await supabase
               .from("professionals")
               .select("id,name")
               .order("name");
 
-            const list = data || [];
-
-            const reordered = [
+            const ordered = [
               { id, name },
-              ...list.filter((p) => p.id !== id)
+              ...(data || []).filter((p) => p.id !== id)
             ];
 
-            setProfessionals(reordered);
+            setProfessionals(ordered);
             setProfessionalId(id);
             setProfessionalName(name);
 
             await loadServices(id);
-
             toast.success(`Profissional ${name} cadastrado!`);
           }}
         />
       )}
 
-      {/* SERVIÇO */}
       {showNewService && (
         <ModalNewService
           tenantId={tenantId}
-          show={showNewService}
           mode="agenda"
+          show={showNewService}
           onClose={() => setShowNewService(false)}
           onSuccess={async (id, name, duration) => {
             setShowNewService(false);
@@ -621,14 +582,12 @@ export default function ModalScheduleWizard({
               .select("service:services(id,name,duration_min)")
               .eq("professional_id", professionalId);
 
-            const list = (data || []).map((r: any) => r.service);
-
-            const reordered = [
+            const ordered = [
               { id, name, duration_min: duration },
-              ...list.filter((s) => s.id !== id)
+              ...(data || []).map((r: any) => r.service).filter((s) => s.id !== id)
             ];
 
-            setServices(reordered);
+            setServices(ordered);
             setServiceId(id);
             setServiceName(name);
             setServiceDuration(duration || 60);
