@@ -12,45 +12,50 @@ export default function Setup() {
   const [primary, setPrimary] = useState("#ff1493");
   const [secondary, setSecondary] = useState("#ffffff");
   const [variant, setVariant] = useState<"light" | "dark">("light");
+
   const [saving, setSaving] = useState(false);
 
-  /* ============================================================
-     🔄 CARREGAR DADOS DO TENANT SE JÁ EXISTIR
-  ============================================================ */
+  /* ============================================================================
+     1️⃣ REDIRECIONAMENTO SE O USUÁRIO JÁ TEM TENANT
+     - NUNCA mostrar a tela de setup para usuários que já configuraram o salão
+  ============================================================================ */
   useEffect(() => {
-    if (tenant) {
-      setName(tenant.name ?? "");
-      setPrimary(tenant.primary_color ?? "#ff1493");
-      setSecondary(tenant.secondary_color ?? "#ffffff");
-      setVariant(tenant.theme_variant ?? "light");
+    if (loading) return;
+    if (saving) return;
+
+    if (tenant?.id) {
+      navigate("/dashboard", { replace: true });
     }
+  }, [tenant?.id, loading, saving]);
+
+  /* ============================================================================
+     2️⃣ CARREGAR DADOS EXISTENTES
+  ============================================================================ */
+  useEffect(() => {
+    if (!tenant) return;
+
+    setName(tenant.name ?? "");
+    setPrimary(tenant.primary_color ?? "#ff1493");
+    setSecondary(tenant.secondary_color ?? "#ffffff");
+    setVariant(tenant.theme_variant ?? "light");
   }, [tenant]);
-useEffect(() => {
-  if (loading) return;
 
-  // 🚀 Se já tem tenant → sai imediatamente da página de setup
-  if (tenant?.id) {
-    navigate("/dashboard", { replace: true });
+  /* ============================================================================
+     3️⃣ PROTEÇÕES
+  ============================================================================ */
+
+  if (loading) {
+    return <div className="p-5 text-center">Carregando...</div>;
   }
-}, [tenant?.id, loading]);
-  /* ============================================================
-     ⏳ LOADING
-  ============================================================ */
-  if (loading) return <div className="p-5 text-center">Carregando...</div>;
 
-  /* ============================================================
-     ❌ SEM PERFIL (erro grave)
-  ============================================================ */
-  if (!profile)
+  if (!profile) {
     return (
       <p className="text-center p-4 text-danger">
         Erro: perfil não encontrado.
       </p>
     );
+  }
 
-  /* ============================================================
-     🚫 PROFISSIONAIS NÃO PODEM FAZER SETUP
-  ============================================================ */
   if (
     profile.role === "client" ||
     profile.role === "staff" ||
@@ -63,20 +68,16 @@ useEffect(() => {
     );
   }
 
-  /* ============================================================
-     🔥 SALVAR CONFIGURAÇÕES
-  ============================================================ */
+  /* ============================================================================
+     4️⃣ SALVAR CONFIGURAÇÕES
+  ============================================================================ */
   const save = async () => {
-    if (!profile) return;
-
     setSaving(true);
 
     try {
       let tenantId = tenant?.id ?? null;
 
-      /* ============================================================
-         1️⃣ CRIAR TENANT SE NÃO EXISTIR
-      ============================================================ */
+      // Criar tenant se não existir
       if (!tenantId) {
         const { data: newTenant, error: tenantErr } = await supabase
           .from("tenants")
@@ -87,7 +88,7 @@ useEffect(() => {
             secondary_color: secondary,
             theme_variant: variant,
             setup_complete: true,
-            created_by: profile.user_id, // 🔥 campo correto
+            created_by: profile.user_id,
           })
           .select("*")
           .single();
@@ -96,20 +97,15 @@ useEffect(() => {
 
         tenantId = newTenant.id;
 
-        /* ============================================================
-           🔗 Atualizar perfil do usuário com o tenant criado
-        ============================================================ */
         const { error: profileErr } = await supabase
           .from("profiles")
           .update({ tenant_id: tenantId })
-          .eq("user_id", profile.user_id); // 🔥 agora user_id (correto)
+          .eq("user_id", profile.user_id);
 
         if (profileErr) throw profileErr;
       }
 
-      /* ============================================================
-         2️⃣ ATUALIZAR TENANT EXISTENTE
-      ============================================================ */
+      // Atualizar tenant existente
       const { error: updateErr } = await supabase
         .from("tenants")
         .update({
@@ -123,9 +119,7 @@ useEffect(() => {
 
       if (updateErr) throw updateErr;
 
-      /* ============================================================
-         3️⃣ RECARREGAR PERFIL E REDIRECIONAR
-      ============================================================ */
+      // Reload e redireciona
       await reloadProfile();
 
       toast.success("Salão configurado com sucesso!");
@@ -138,12 +132,14 @@ useEffect(() => {
     setSaving(false);
   };
 
+  /* ============================================================================
+     5️⃣ UI
+  ============================================================================ */
   return (
     <div className="container py-4">
       <h3>Configurar seu salão</h3>
 
       <div className="row g-3">
-        {/* Nome */}
         <div className="col-12 col-md-6">
           <label className="form-label">Nome do salão</label>
           <input
@@ -153,7 +149,6 @@ useEffect(() => {
           />
         </div>
 
-        {/* Cor primária */}
         <div className="col-6 col-md-3">
           <label className="form-label">Cor primária</label>
           <input
@@ -164,7 +159,6 @@ useEffect(() => {
           />
         </div>
 
-        {/* Cor secundária */}
         <div className="col-6 col-md-3">
           <label className="form-label">Cor secundária</label>
           <input
@@ -175,7 +169,6 @@ useEffect(() => {
           />
         </div>
 
-        {/* Tema light/dark */}
         <div className="col-12">
           <div className="btn-group" role="group">
             <button
@@ -197,7 +190,6 @@ useEffect(() => {
           </div>
         </div>
 
-        {/* Botão salvar */}
         <div className="col-12">
           <button
             className="btn btn-success"
