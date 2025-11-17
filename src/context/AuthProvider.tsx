@@ -25,27 +25,30 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // 🔥 Função segura para processar mudança de sessão
+  const applySession = (newSession: Session | null) => {
+    setLoading(true);
+    setSession(newSession);
+    setUser(newSession?.user ?? null);
+    setLoading(false);
+  };
+
   useEffect(() => {
     let active = true;
 
-    async function load() {
+    async function loadInitial() {
       const { data, error } = await supabase.auth.getSession();
-      if (error) console.error("Erro getSession:", error);
-
       if (!active) return;
 
-      setSession(data.session ?? null);
-      setUser(data.session?.user ?? null);
-      setLoading(false);
+      if (error) console.error("Erro getSession:", error);
+      applySession(data.session ?? null);
     }
 
-    load();
+    loadInitial();
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
       if (!active) return;
-
-      setSession(newSession ?? null);
-      setUser(newSession?.user ?? null);
+      applySession(newSession ?? null);
     });
 
     return () => {
@@ -55,11 +58,14 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
+    setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(false);
     if (error) throw error;
   };
 
   const signUp = async (email: string, password: string, meta?: Record<string, any>) => {
+    setLoading(true);
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -68,11 +74,14 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
         emailRedirectTo: `${window.location.origin}/login?confirmed=1`,
       },
     });
+    setLoading(false);
     if (error) throw error;
   };
 
   const signOut = async () => {
+    setLoading(true);
     const { error } = await supabase.auth.signOut();
+    setLoading(false);
     if (error) throw error;
   };
 
