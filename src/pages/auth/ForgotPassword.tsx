@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseCleint";
-import { useNavigate, Link } from "react-router-dom";
+
 import { useTheme } from "../../hooks/useTheme";
 import { useBrandColor } from "../../hooks/useBrandColor";
 import styles from "../../css/ForgotPassword.module.css";
