@@ -1,216 +1,127 @@
-// src/hooks/useUserAndTenant.ts
-import { useEffect, useState, useCallback } from "react";
-import { supabase } from "../lib/supabaseCleint";
+// src/App.tsx
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { useEffect, type ReactNode } from "react";
+import { useUserAndTenant } from "./hooks/useUserAndTenant";
+import { applyTenantTheme } from "./utils/theme";
 
-/* ============================================================
-   📌 Tipos
-============================================================ */
-export type Profile = {
-  user_id: string;
-  email: string | undefined;
-  role: "owner" | "manager" | "professional" | "staff" | "client" | null;
-  full_name: string;
-  avatar_url: string | null;
-  tenant_id: string | null;
-};
+import { Layout } from "./components/layout";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+import Setup from "./pages/setup/Setup";
+import Dashboard from "./pages/dashboard/Dashboard";
+import SaloesPage from "./pages/SaloesPage";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import AssinaturasPage from "./pages/AssinaturasPage";
+import PerfilPage from "./pages/PerfilPage";
+import Agenda from "./components/Agenda";
+import EmDesenvolvimento from "./components/EmDesenvolvimento";
+import ConfigPage from "./pages/ConfigPage";
+import ForcePasswordReset from "./components/ForcePasswordReset";
+import ConnectWhatsAppPage from "./pages/ConnectWhatsAppPage";
+import GerenciarAcessosPage from "./config/GerenciarAcessosPage";
 
-export type Tenant = {
-  id: string;
-  name: string;
-  theme_variant: "light" | "dark";
-  primary_color: string;
-  secondary_color: string;
-  setup_complete: boolean;
-  plan_id: string | null;
-  whatsapp_number: string | null;
-};
+import { useAuth } from "./context/AuthProvider";
 
-/* ============================================================
-   📌 Hook principal — VERSÃO 100% ESTÁVEL
-============================================================ */
-export function useUserAndTenant() {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+// 🔹 Tela de loading global
+function LoadingScreen() {
+  return <div className="p-5 text-center">⏳ Carregando...</div>;
+}
 
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [tenant, setTenant] = useState<Tenant | null>(null);
+// 🔐 Rota privada
+function PrivateRoute({ children }: { children: ReactNode }) {
+  const { user, loading } = useAuth();
+  const location = useLocation();
 
-  const [subscription, setSubscription] = useState<any>(null);
-  const [plan, setPlan] = useState<any>(null);
-  const [features, setFeatures] = useState<string[]>([]);
-  const [permissions, setPermissions] = useState<string[]>([]);
+  if (loading) return <LoadingScreen />;
 
-  /* ============================================================
-     🧹 Reset seguro
-  ============================================================ */
-  const clearAll = useCallback(() => {
-    setUser(null);
-    setProfile(null);
-    setTenant(null);
-    setSubscription(null);
-    setPlan(null);
-    setFeatures([]);
-    setPermissions([]);
-  }, []);
+  if (!user) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
 
-  /* ============================================================
-     🔥 reloadProfile — SEM DEPENDÊNCIAS PARA EVITAR LOOP
-  ============================================================ */
-  const reloadProfile = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  return <>{children}</>;
+}
 
-    try {
-      // Buscar sessão
-      const { data: sessionData, error: sessErr } = await supabase.auth.getSession();
-      if (sessErr) throw sessErr;
+// 📌 Onboarding automático → Sem tenant → Vai para /setup
+function SetupRedirectGuard({ children }: { children: ReactNode }) {
+  const { needsSetup, loading } = useUserAndTenant();
+  const location = useLocation();
 
-      const currentUser = sessionData.session?.user ?? null;
+  if (loading) return <LoadingScreen />;
 
-      // Sem usuário → limpar tudo
-      if (!currentUser) {
-        clearAll();
-        setLoading(false);
-        return;
-      }
+  // Evita loop infinito se já estiver no /setup
+  
+if (!loading && needsSetup && location.pathname !== "/setup") {
+  return <Navigate to="/setup" replace />;
+}
 
-      setUser(currentUser);
+  return <>{children}</>;
+}
 
-      /* =============================
-         2️⃣ Buscar perfil
-      ============================= */
-      const { data: pData, error: pErr } = await supabase
-        .from("profiles")
-        .select("user_id, tenant_id, role, full_name, avatar_url")
-        .eq("user_id", currentUser.id)
-        .single();
+// 🔹 App principal
+export default function App() {
+  const { tenant } = useUserAndTenant();
 
-      if (pErr) throw pErr;
-
-      const profile: Profile = {
-        user_id: currentUser.id,
-        email: currentUser.email,
-        role: pData?.role ?? null,
-        full_name: pData?.full_name ?? currentUser.user_metadata?.full_name ?? "",
-        avatar_url: pData?.avatar_url ?? currentUser.user_metadata?.avatar_url ?? null,
-        tenant_id: pData?.tenant_id ?? null,
-      };
-
-      setProfile(profile);
-
-      /* =============================
-         3️⃣ Sem tenant → não segue
-      ============================= */
-      if (!profile.tenant_id) {
-        setTenant(null);
-        setLoading(false);
-        return;
-      }
-
-      /* =============================
-         4️⃣ Buscar tenant
-      ============================= */
-      const { data: tData, error: tErr } = await supabase
-        .from("tenants")
-        .select("*")
-        .eq("id", profile.tenant_id)
-        .single();
-
-      if (tErr) throw tErr;
-
-      setTenant(tData);
-
-      // Aplicar tema
-      if (tData?.theme_variant)
-        document.documentElement.setAttribute("data-theme-variant", tData.theme_variant);
-
-      if (tData?.primary_color)
-        document.documentElement.style.setProperty("--color-primary", tData.primary_color);
-
-      if (tData?.secondary_color)
-        document.documentElement.style.setProperty("--color-secondary", tData.secondary_color);
-
-      /* =============================
-         5️⃣ Assinatura
-      ============================= */
-      const { data: subData } = await supabase
-        .from("subscriptions")
-        .select("*")
-        .eq("tenant_id", tData.id)
-        .maybeSingle();
-
-      setSubscription(subData ?? null);
-
-      /* =============================
-         6️⃣ Plano + features
-      ============================= */
-      if (tData.plan_id) {
-        const { data: planData } = await supabase
-          .from("plans")
-          .select("*")
-          .eq("id", tData.plan_id)
-          .maybeSingle();
-
-        setPlan(planData ?? null);
-
-        const { data: feats } = await supabase
-          .from("plan_features")
-          .select("feature_key, enabled")
-          .eq("plan_id", tData.plan_id);
-
-        setFeatures((feats ?? []).filter(f => f.enabled).map(f => f.feature_key));
-      } else {
-        setPlan(null);
-        setFeatures([]);
-      }
-
-      /* =============================
-         7️⃣ Permissões
-      ============================= */
-      const { data: perms } = await supabase
-        .from("permissions")
-        .select("permission_key, allowed")
-        .eq("tenant_id", profile.tenant_id)
-        .eq("user_id", currentUser.id);
-
-      setPermissions((perms ?? []).filter(p => p.allowed).map(p => p.permission_key));
-
-    } catch (err: any) {
-      console.error("Erro em useUserAndTenant:", err);
-      setError(err.message);
-      clearAll();
-    } finally {
-      setLoading(false);
-    }
-  }, []); //  ← SEM DEPENDÊNCIAS (NÃO CRIA LOOP)
-
-  /* ============================================================
-     ⏳ Rodar SOMENTE ao montar
-  ============================================================ */
+  // Aplicar tema automaticamente
   useEffect(() => {
-    reloadProfile();
-  }, []); // ← roda apenas 1 vez!
+    applyTenantTheme(tenant);
+  }, [tenant]);
 
-  /* ============================================================
-     🎯 needsSetup — estável e correto
-  ============================================================ */
-  const needsSetup = Boolean(!loading && user && profile && !tenant);
+  return (
+    <BrowserRouter>
+      <SetupRedirectGuard>
+        <Routes>
+          {/* Root → Dashboard */}
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-  /* ============================================================
-     👉 Retorno do hook
-  ============================================================ */
-  return {
-    loading,
-    error,
-    user,
-    profile,
-    tenant,
-    subscription,
-    plan,
-    features,
-    permissions,
-    needsSetup,
-    reloadProfile,
-  };
+          {/* Rotas públicas */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/force-reset" element={<ForcePasswordReset />} />
+
+          {/* Setup (privada e SEM layout) */}
+          <Route
+            path="/setup"
+            element={
+              <PrivateRoute>
+                <Setup />
+              </PrivateRoute>
+            }
+          />
+
+          {/* Rota privada sem layout */}
+          <Route
+            path="/gerenciar-acessos"
+            element={
+              <PrivateRoute>
+                <GerenciarAcessosPage />
+              </PrivateRoute>
+            }
+          />
+
+          {/* Rota pública opcional */}
+          <Route path="/config" element={<ConfigPage />} />
+          <Route path="/em-desenvolvimento" element={<EmDesenvolvimento />} />
+
+          {/* Rotas privadas + layout */}
+          <Route
+            element={
+              <PrivateRoute>
+                <Layout />
+              </PrivateRoute>
+            }
+          >
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/saloes" element={<SaloesPage />} />
+            <Route path="/assinaturas" element={<AssinaturasPage />} />
+            <Route path="/perfil" element={<PerfilPage />} />
+            <Route path="/agenda" element={<Agenda />} />
+            <Route path="/integracoes/whatsapp" element={<ConnectWhatsAppPage />} />
+          </Route>
+        </Routes>
+      </SetupRedirectGuard>
+
+      <ToastContainer position="top-right" autoClose={3000} />
+    </BrowserRouter>
+  );
 }

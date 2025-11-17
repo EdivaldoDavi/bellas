@@ -1,14 +1,13 @@
-import React from "react";
+// src/main.tsx
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-import AuthProvider from "./context/AuthProvider";   // <-- AGORA ESTÁ CORRETO
+import AuthProvider from "./context/AuthProvider";
 import App from "./App.tsx";
 
 import { registerSW } from "virtual:pwa-register";
 
-// Ativar Service Worker
 registerSW({
   onNeedRefresh() {
     console.log("⚠️ Nova versão disponível. Atualize a página para aplicar.");
@@ -19,9 +18,7 @@ registerSW({
 });
 
 createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <AuthProvider>
-      <App />
-    </AuthProvider>
-  </React.StrictMode>
+  <AuthProvider>
+    <App />
+  </AuthProvider>
 );
