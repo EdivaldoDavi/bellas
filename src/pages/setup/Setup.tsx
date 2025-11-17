@@ -14,42 +14,36 @@ export default function Setup() {
   const [variant, setVariant] = useState<"light" | "dark">("light");
   const [saving, setSaving] = useState(false);
 
-  // 🔄 CARREGAR DADOS SE O TENANT JÁ EXISTE
+  // Carrega tenant existente
   useEffect(() => {
     if (tenant) {
-      setName(tenant.name || "");
-      setPrimary(tenant.primary_color || "#ff1493");
-      setSecondary(tenant.secondary_color || "#ffffff");
-      setVariant(tenant.theme_variant || "light");
+      setName(tenant.name ?? "");
+      setPrimary(tenant.primary_color ?? "#ff1493");
+      setSecondary(tenant.secondary_color ?? "#ffffff");
+      setVariant(tenant.theme_variant ?? "light");
     }
   }, [tenant]);
 
-  // 🔐 SE PERFIL OU AUTH AINDA NÃO CARREGOU
-  if (loading) {
+  if (loading)
     return <div className="p-5 text-center">Carregando...</div>;
-  }
 
-  // 🚫 SE NÃO TEM PROFILE (não deveria acontecer)
-  if (!profile) {
+  if (!profile)
     return (
       <p className="text-center p-4 text-danger">
         Erro: perfil não encontrado.
       </p>
     );
-  }
 
-  // 🚫 CLIENTE OU STAFF NÃO FAZEM SETUP
-  if (["client", "staff", "professional"].includes(profile.role)) {
+  if (["client", "staff", "professional"].includes(profile.role))
     return (
       <p className="text-center p-4 text-danger">
         Você não tem permissão para configurar o salão.
       </p>
     );
-  }
 
-  // -------------------------------------------------------
-  //  🔥 FUNÇÃO DE SALVAR (CRIAR OU EDITAR TENANT)
-  // -------------------------------------------------------
+  // ============================================================
+  // 🔥 FUNÇÃO DE SALVAR
+  // ============================================================
   const save = async () => {
     if (!profile) return;
 
@@ -58,37 +52,40 @@ export default function Setup() {
     try {
       let tenantId = tenant?.id;
 
-      // ===========================================
-      // 1️⃣ SE NÃO EXISTE TENANT → CRIAR
-      // ===========================================
+      // ============================================================
+      // 1️⃣ CRIAR TENANT (se não existir)
+      // ============================================================
       if (!tenantId) {
         const { data: newTenant, error: tenantErr } = await supabase
           .from("tenants")
           .insert({
+            id: crypto.randomUUID(),
+            owner_id: profile.user_id, // 🔥 AGORA OBRIGATÓRIO PARA RLS
             name,
             primary_color: primary,
             secondary_color: secondary,
             theme_variant: variant,
-            setup_complete: true,
+            setup_complete: true
           })
           .select("*")
           .single();
 
         if (tenantErr) throw tenantErr;
+
         tenantId = newTenant.id;
 
-        // 👍 1.1 Atualiza o profile do usuário com o tenant recém criado
+        // Atualiza o perfil do usuário com o tenant recém-criado
         const { error: profileErr } = await supabase
           .from("profiles")
           .update({ tenant_id: tenantId })
-          .eq("user_id", profile.user_id);
+          .eq("id", profile.user_id); // 🔥 AGORA CORRETO (id e não user_id)
 
         if (profileErr) throw profileErr;
       }
 
-      // ===========================================
-      // 2️⃣ SE TENANT EXISTE → EDITAR
-      // ===========================================
+      // ============================================================
+      // 2️⃣ ATUALIZAR TENANT EXISTENTE
+      // ============================================================
       if (tenantId) {
         const { error: updateErr } = await supabase
           .from("tenants")
@@ -97,36 +94,34 @@ export default function Setup() {
             primary_color: primary,
             secondary_color: secondary,
             theme_variant: variant,
-            setup_complete: true,
+            setup_complete: true
           })
           .eq("id", tenantId);
 
         if (updateErr) throw updateErr;
       }
 
-      // ===========================================
-      // 3️⃣ RECARREGAR PERFIL GERAL
-      // ===========================================
+      // ============================================================
+      // 3️⃣ RECARREGAR PERFIL
+      // ============================================================
       await reloadProfile();
 
       toast.success("Salão configurado com sucesso!");
       navigate("/dashboard", { replace: true });
+
     } catch (err: any) {
       console.error("Erro ao salvar:", err);
-      toast.error("Erro ao configurar o salão.");
+      toast.error(err?.message ?? "Erro ao configurar o salão.");
     }
 
     setSaving(false);
   };
-
-  // -------------------------------------------------------
 
   return (
     <div className="container py-4">
       <h3>Configurar seu salão</h3>
 
       <div className="row g-3">
-        {/* Nome */}
         <div className="col-12 col-md-6">
           <label className="form-label">Nome do salão</label>
           <input
@@ -136,7 +131,6 @@ export default function Setup() {
           />
         </div>
 
-        {/* Cor primária */}
         <div className="col-6 col-md-3">
           <label className="form-label">Cor primária</label>
           <input
@@ -147,7 +141,6 @@ export default function Setup() {
           />
         </div>
 
-        {/* Cor secundária */}
         <div className="col-6 col-md-3">
           <label className="form-label">Cor secundária</label>
           <input
@@ -158,7 +151,6 @@ export default function Setup() {
           />
         </div>
 
-        {/* Tema */}
         <div className="col-12">
           <div className="btn-group" role="group">
             <button
@@ -181,13 +173,8 @@ export default function Setup() {
           </div>
         </div>
 
-        {/* Botão */}
         <div className="col-12">
-          <button
-            className="btn btn-success"
-            onClick={save}
-            disabled={saving}
-          >
+          <button className="btn btn-success" onClick={save} disabled={saving}>
             {saving ? "Salvando..." : "Salvar e continuar"}
           </button>
         </div>
