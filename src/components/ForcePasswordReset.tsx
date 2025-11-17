@@ -46,25 +46,35 @@ export default function ForcePasswordReset() {
     run();
   }, []);
 
-  async function updatePassword() {
-    if (newPass.length < 6) {
-      toast.warn("A senha deve ter pelo menos 6 caracteres.");
-      return;
+async function updatePassword() {
+  if (newPass.length < 6) {
+    toast.warn("A senha deve ter pelo menos 6 caracteres.");
+    return;
+  }
+
+  const { error } = await supabase.auth.updateUser({
+    password: newPass
+  });
+
+  if (error) {
+    const msg = error.message.toLowerCase();
+
+    if (msg.includes("different") || msg.includes("same")) {
+      return toast.error("A nova senha deve ser diferente da senha atual.");
     }
 
-    const { error } = await supabase.auth.updateUser({
-      password: newPass,
-    });
+    if (msg.includes("password")) {
+      return toast.error("Não foi possível alterar a senha. Tente outra senha.");
+    }
 
-    if (error) return toast.error(error.message);
-
-    toast.success("Senha atualizada!");
-
-    // 🔥 FORÇAR LOGOUT
-    await supabase.auth.signOut();
-
-    navigate("/login");
+    return toast.error(error.message);
   }
+
+  toast.success("Senha atualizada! 🎉");
+
+  // após trocar a senha o Supabase já deixa a sessão válida
+  navigate("/dashboard");
+}
 
   if (loading) return <p>Carregando...</p>;
 
