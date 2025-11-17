@@ -69,7 +69,7 @@ export function useUserAndTenant() {
       /* 2️⃣ Buscar perfil (AGORA CORRETO) */
       const { data: pData, error: pErr } = await supabase
         .from("profiles")
-        .select("id, tenant_id, role, full_name, avatar_url")
+        .select("user_id, tenant_id, role, full_name, avatar_url")
         .eq("id", currentUser.id)
         .maybeSingle();
 
