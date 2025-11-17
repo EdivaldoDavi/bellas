@@ -1,6 +1,6 @@
 import { Menu, Sun, Moon, AlertTriangle } from "lucide-react";
 import styles from "../css/header.module.css";
-import { useUserTenant } from "../context/UserTenantProvider";   // ✔ correto
+import { useUserAndTenant } from "../hooks/useUserAndTenant";
 import { useTheme } from "../hooks/useTheme";
 import BrandColorMenu from "./BrandColorMenu";
 import { useState, useEffect } from "react";
@@ -8,7 +8,7 @@ import { useEvolutionConnection } from "../hooks/useEvolutionConnection";
 import "../index.css";
 
 export default function Header({ toggleSidebar }: { toggleSidebar: () => void }) {
-  const { profile, tenant } = useUserTenant();     // ✔ agora centralizado
+  const { profile, tenant } = useUserAndTenant();
   const { theme, toggleTheme } = useTheme();
 
   const { status } = useEvolutionConnection({
@@ -35,10 +35,15 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
 
   const isWhatsDisconnected =
     !status ||
-    ["DISCONNECTED", "LOGGED_OUT", "ERROR", "UNKNOWN", "IDLE"].includes(status);
+    status === "DISCONNECTED" ||
+    status === "LOGGED_OUT" ||
+    status === "ERROR" ||
+    status === "UNKNOWN" ||
+    status === "IDLE";
 
   return (
     <header className={styles.header}>
+      {/* BLOCO ESQUERDO: saudação + alerta */}
       <div className={styles.leftSection}>
         <div className={styles.greeting}>
           {greeting}, {userName}!
@@ -49,29 +54,46 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
             <AlertTriangle size={18} className={styles.alertIcon} />
             <span>
               Seu WhatsApp não está conectado. Para utilizar o agendamento com IA,
-              conecte o WhatsApp no menu.
+              é necessário conectar o WhatsApp na opção Whatsapp do menu.
             </span>
           </div>
         )}
       </div>
 
+      {/* BLOCO DIREITO */}
       <div className={styles.rightSection}>
-        <button className={styles.iconButton} onClick={toggleTheme}>
+        {/* Tema dark/light */}
+        <button
+          className={styles.iconButton}
+          onClick={toggleTheme}
+          title="Alternar tema"
+        >
           {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
         </button>
 
+        {/* Menu de cor primária */}
         <BrandColorMenu />
 
+        {/* Menu Mobile */}
         {isMobile && (
-          <button className={styles.iconButton} onClick={toggleSidebar}>
+          <button
+            className={styles.iconButton}
+            onClick={toggleSidebar}
+            title="Abrir menu"
+          >
             <Menu size={20} />
           </button>
         )}
 
         <div className={styles.separator}></div>
 
+        {/* Perfil */}
         <div className={styles.userProfile}>
-          <img src={avatarUrl} alt={userName} className={styles.avatar} />
+          <img
+            src={avatarUrl}
+            alt={`Avatar de ${userName}`}
+            className={styles.avatar}
+          />
           <div className={styles.userInfo}>
             <div className={styles.userName}>{userName}</div>
             <div className={styles.userRole}>{userRole}</div>
