@@ -114,7 +114,6 @@
 
   width: 28px;
   height: 28px;
-
   display: flex;
   align-items: center;
   justify-content: center;
@@ -124,15 +123,14 @@
   padding: 0;
   cursor: pointer;
 
-  color: var(--text);     /* sempre visível */
-  opacity: 0.6;           /* discreto igual apps modernos */
-  transition: opacity 0.2s ease, color 0.2s ease;
+  color: var(--text) !important;   /* <- FORÇA A VISIBILIDADE */
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
 }
 
-.eyeButton:hover,
-.eyeButton:focus {
-  opacity: 1;             /* totalmente visível no hover */
-  color: var(--text);     /* mantém contraste */
+.eyeButton:hover {
+  opacity: 1;
+  color: var(--text) !important;
 }
 
 /* ================================
