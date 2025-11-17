@@ -12,50 +12,38 @@ export default function Setup() {
   const [primary, setPrimary] = useState("#ff1493");
   const [secondary, setSecondary] = useState("#ffffff");
   const [variant, setVariant] = useState<"light" | "dark">("light");
-
   const [saving, setSaving] = useState(false);
 
-  /* ============================================================================
-     1️⃣ REDIRECIONAMENTO SE O USUÁRIO JÁ TEM TENANT
-     - NUNCA mostrar a tela de setup para usuários que já configuraram o salão
-  ============================================================================ */
+  /* ============================================================
+     🔄 CARREGAR DADOS DO TENANT SE JÁ EXISTIR
+  ============================================================ */
   useEffect(() => {
-    if (loading) return;
-    if (saving) return;
-
-    if (tenant?.id) {
-      navigate("/dashboard", { replace: true });
+    if (tenant) {
+      setName(tenant.name ?? "");
+      setPrimary(tenant.primary_color ?? "#ff1493");
+      setSecondary(tenant.secondary_color ?? "#ffffff");
+      setVariant(tenant.theme_variant ?? "light");
     }
-  }, [tenant?.id, loading, saving]);
-
-  /* ============================================================================
-     2️⃣ CARREGAR DADOS EXISTENTES
-  ============================================================================ */
-  useEffect(() => {
-    if (!tenant) return;
-
-    setName(tenant.name ?? "");
-    setPrimary(tenant.primary_color ?? "#ff1493");
-    setSecondary(tenant.secondary_color ?? "#ffffff");
-    setVariant(tenant.theme_variant ?? "light");
   }, [tenant]);
 
-  /* ============================================================================
-     3️⃣ PROTEÇÕES
-  ============================================================================ */
+  /* ============================================================
+     ⏳ LOADING
+  ============================================================ */
+  if (loading) return <div className="p-5 text-center">Carregando...</div>;
 
-  if (loading) {
-    return <div className="p-5 text-center">Carregando...</div>;
-  }
-
-  if (!profile) {
+  /* ============================================================
+     ❌ SEM PERFIL (erro grave)
+  ============================================================ */
+  if (!profile)
     return (
       <p className="text-center p-4 text-danger">
         Erro: perfil não encontrado.
       </p>
     );
-  }
 
+  /* ============================================================
+     🚫 PROFISSIONAIS NÃO PODEM FAZER SETUP
+  ============================================================ */
   if (
     profile.role === "client" ||
     profile.role === "staff" ||
@@ -68,16 +56,20 @@ export default function Setup() {
     );
   }
 
-  /* ============================================================================
-     4️⃣ SALVAR CONFIGURAÇÕES
-  ============================================================================ */
+  /* ============================================================
+     🔥 SALVAR CONFIGURAÇÕES
+  ============================================================ */
   const save = async () => {
+    if (!profile) return;
+
     setSaving(true);
 
     try {
       let tenantId = tenant?.id ?? null;
 
-      // Criar tenant se não existir
+      /* ============================================================
+         1️⃣ CRIAR TENANT SE NÃO EXISTIR
+      ============================================================ */
       if (!tenantId) {
         const { data: newTenant, error: tenantErr } = await supabase
           .from("tenants")
@@ -88,7 +80,7 @@ export default function Setup() {
             secondary_color: secondary,
             theme_variant: variant,
             setup_complete: true,
-            created_by: profile.user_id,
+            created_by: profile.user_id, // 🔥 campo correto
           })
           .select("*")
           .single();
@@ -97,15 +89,20 @@ export default function Setup() {
 
         tenantId = newTenant.id;
 
+        /* ============================================================
+           🔗 Atualizar perfil do usuário com o tenant criado
+        ============================================================ */
         const { error: profileErr } = await supabase
           .from("profiles")
           .update({ tenant_id: tenantId })
-          .eq("user_id", profile.user_id);
+          .eq("user_id", profile.user_id); // 🔥 agora user_id (correto)
 
         if (profileErr) throw profileErr;
       }
 
-      // Atualizar tenant existente
+      /* ============================================================
+         2️⃣ ATUALIZAR TENANT EXISTENTE
+      ============================================================ */
       const { error: updateErr } = await supabase
         .from("tenants")
         .update({
@@ -119,7 +116,9 @@ export default function Setup() {
 
       if (updateErr) throw updateErr;
 
-      // Reload e redireciona
+      /* ============================================================
+         3️⃣ RECARREGAR PERFIL E REDIRECIONAR
+      ============================================================ */
       await reloadProfile();
 
       toast.success("Salão configurado com sucesso!");
@@ -132,14 +131,12 @@ export default function Setup() {
     setSaving(false);
   };
 
-  /* ============================================================================
-     5️⃣ UI
-  ============================================================================ */
   return (
     <div className="container py-4">
       <h3>Configurar seu salão</h3>
 
       <div className="row g-3">
+        {/* Nome */}
         <div className="col-12 col-md-6">
           <label className="form-label">Nome do salão</label>
           <input
@@ -149,6 +146,7 @@ export default function Setup() {
           />
         </div>
 
+        {/* Cor primária */}
         <div className="col-6 col-md-3">
           <label className="form-label">Cor primária</label>
           <input
@@ -159,6 +157,7 @@ export default function Setup() {
           />
         </div>
 
+        {/* Cor secundária */}
         <div className="col-6 col-md-3">
           <label className="form-label">Cor secundária</label>
           <input
@@ -169,6 +168,7 @@ export default function Setup() {
           />
         </div>
 
+        {/* Tema light/dark */}
         <div className="col-12">
           <div className="btn-group" role="group">
             <button
@@ -190,6 +190,7 @@ export default function Setup() {
           </div>
         </div>
 
+        {/* Botão salvar */}
         <div className="col-12">
           <button
             className="btn btn-success"

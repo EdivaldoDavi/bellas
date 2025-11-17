@@ -48,11 +48,14 @@ function SetupRedirectGuard({ children }: { children: ReactNode }) {
   const location = useLocation();
 
   if (loading) return <LoadingScreen />;
-
-  // Evita loop infinito se já estiver no /setup
-  
+// 1) Quando precisa fazer setup → /setup
 if (!loading && needsSetup && location.pathname !== "/setup") {
   return <Navigate to="/setup" replace />;
+}
+
+// 2) Quando NÃO precisa de setup e está na página de setup → /dashboard
+if (!loading && !needsSetup && location.pathname === "/setup") {
+  return <Navigate to="/dashboard" replace />;
 }
 
   return <>{children}</>;
