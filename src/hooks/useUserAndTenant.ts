@@ -47,14 +47,14 @@ export function useUserAndTenant() {
   }, []);
 
   /* ============================================================
-     🔥 Função principal – Carrega tudo
+     🔥 Função principal – Carrega todo o contexto
   ============================================================ */
   const reloadProfile = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      /* 1️⃣ Buscar sessão do usuário */
+      /* 1️⃣ Buscar sessão */
       const { data: sessionData, error: sessErr } = await supabase.auth.getSession();
       if (sessErr) throw sessErr;
 
@@ -66,11 +66,11 @@ export function useUserAndTenant() {
         return;
       }
 
-      /* 2️⃣ Buscar perfil */
+      /* 2️⃣ Buscar perfil (AGORA CORRETO) */
       const { data: pData, error: pErr } = await supabase
         .from("profiles")
-        .select("user_id, tenant_id, role, full_name, avatar_url")
-        .eq("user_id", currentUser.id)
+        .select("id, tenant_id, role, full_name, avatar_url")
+        .eq("id", currentUser.id)
         .maybeSingle();
 
       if (pErr) throw pErr;
@@ -92,7 +92,7 @@ export function useUserAndTenant() {
 
       setProfile(finalProfile);
 
-      /* 3️⃣ Usuário sem tenant → para por aqui */
+      /* 3️⃣ Usuário ainda sem tenant → parar aqui */
       if (!finalProfile.tenant_id) {
         setTenant(null);
         return;
@@ -111,20 +111,17 @@ export function useUserAndTenant() {
 
       setTenant(tData);
 
-      /* 🎨 Aplicar tema */
-      if (tData?.theme_variant) {
+      /* 🎨 Aplicar tema do tenant */
+      if (tData?.theme_variant)
         document.documentElement.setAttribute("data-theme-variant", tData.theme_variant);
-      }
 
-      if (tData?.primary_color) {
+      if (tData?.primary_color)
         document.documentElement.style.setProperty("--color-primary", tData.primary_color);
-      }
 
-      if (tData?.secondary_color) {
+      if (tData?.secondary_color)
         document.documentElement.style.setProperty("--color-secondary", tData.secondary_color);
-      }
 
-      /* 5️⃣ Buscar assinatura do tenant */
+      /* 5️⃣ Assinatura do tenant */
       const { data: subData } = await supabase
         .from("subscriptions")
         .select("*")
@@ -138,18 +135,18 @@ export function useUserAndTenant() {
         const { data: planData } = await supabase
           .from("plans")
           .select("*")
-          .eq("id", tData.plan_id)
+          .eq("id", tData?.plan_id)
           .maybeSingle();
 
         setPlan(planData ?? null);
 
-        /* 7️⃣ Features do plano */
+        /* 7️⃣ Features */
         const { data: feats } = await supabase
           .from("plan_features")
           .select("feature_key, enabled")
-          .eq("plan_id", tData.plan_id);
+          .eq("plan_id", tData?.plan_id);
 
-        setFeatures((feats ?? []).filter((f) => f.enabled).map((f) => f.feature_key));
+        setFeatures((feats ?? []).filter(f => f.enabled).map(f => f.feature_key));
       } else {
         setPlan(null);
         setFeatures([]);
@@ -162,25 +159,23 @@ export function useUserAndTenant() {
         .eq("tenant_id", finalProfile.tenant_id)
         .eq("user_id", currentUser.id);
 
-      setPermissions((perms ?? []).filter((p) => p.allowed).map((p) => p.permission_key));
+      setPermissions((perms ?? []).filter(p => p.allowed).map(p => p.permission_key));
+
     } catch (err: any) {
       console.error("Erro em useUserAndTenant:", err);
-      setError(err.message || "Erro ao carregar dados do usuário.");
+      setError(err.message ?? "Erro ao carregar dados do usuário.");
       clearAll();
     } finally {
       setLoading(false);
     }
   }, [clearAll]);
 
-  /* ============================================================
-     🧪 Carregar automaticamente ao montar
-  ============================================================ */
   useEffect(() => {
     reloadProfile();
   }, [reloadProfile]);
 
   /* ============================================================
-     🚨 DETECÇÃO AUTOMÁTICA: Usuário logado mas sem tenant → Setup!
+     🚨 DETECÇÃO AUTOMÁTICA DE ONBOARDING
   ============================================================ */
   const needsSetup = Boolean(user && profile && !tenant);
 
