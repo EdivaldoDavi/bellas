@@ -105,25 +105,34 @@
   width: 100%;
   padding-right: 2.6rem !important;
 }
-
+/* ÍCONE DO OLHO — VISÍVEL EM TODOS OS TEMAS */
 .eyeButton {
   position: absolute;
   right: 0.65rem;
   top: 50%;
   transform: translateY(-50%);
-  background: transparent;
-  border: none;
-  cursor: pointer;
+
+  width: 28px;
+  height: 28px;
+
   display: flex;
-  width: 26px;
-  height: 26px;
   align-items: center;
   justify-content: center;
-  color: var(--text-muted, #777);
+
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+
+  color: var(--text);     /* sempre visível */
+  opacity: 0.6;           /* discreto igual apps modernos */
+  transition: opacity 0.2s ease, color 0.2s ease;
 }
 
-.eyeButton:hover {
-  color: var(--text);
+.eyeButton:hover,
+.eyeButton:focus {
+  opacity: 1;             /* totalmente visível no hover */
+  color: var(--text);     /* mantém contraste */
 }
 
 /* ================================
