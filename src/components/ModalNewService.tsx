@@ -33,13 +33,13 @@ export default function ModalNewService({
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [selectedProfessionals, setSelectedProfessionals] = useState<string[]>([]);
 
-  /* ---------------------------
-     Load Professionals
-  -----------------------------*/
+  /* =====================================================
+     LOAD PROFESSIONALS
+  =======================================================*/
   useEffect(() => {
     if (!tenantId || !show) return;
 
-    async function loadProfessionals() {
+    async function load() {
       const { data, error } = await supabase
         .from("professionals")
         .select("id, name")
@@ -47,19 +47,20 @@ export default function ModalNewService({
         .order("name");
 
       if (error) {
+        console.error(error);
         toast.error("Erro ao carregar profissionais");
         return;
       }
 
-      setProfessionals(data || []);
+      setProfessionals(data ?? []);
     }
 
-    loadProfessionals();
+    load();
   }, [tenantId, show]);
 
-  /* ---------------------------
-     Reset form
-  -----------------------------*/
+  /* =====================================================
+     FORM RESET
+  =======================================================*/
   function resetForm() {
     setName("");
     setPrice("");
@@ -67,21 +68,26 @@ export default function ModalNewService({
     setSelectedProfessionals([]);
   }
 
-  /* ---------------------------
-     Toggle checkbox
-  -----------------------------*/
+  /* =====================================================
+     CHECKBOX HANDLER
+  =======================================================*/
   function toggleProfessional(id: string) {
-    setSelectedProfessionals((prev) =>
+    setSelectedProfessionals(prev =>
       prev.includes(id)
-        ? prev.filter((x) => x !== id)
+        ? prev.filter(x => x !== id)
         : [...prev, id]
     );
   }
 
-  /* ---------------------------
-     SAVE SERVICE
-  -----------------------------*/
+  /* =====================================================
+     SAVE SERVICE (MAIN LOGIC)
+  =======================================================*/
   async function handleSave() {
+    if (!tenantId) {
+      toast.error("Tenant não encontrado.");
+      return;
+    }
+
     const serviceName = name.trim();
     const serviceDuration = Number(duration);
     const priceCents = Number(price) > 0 ? Number(price) * 100 : 0;
@@ -91,7 +97,7 @@ export default function ModalNewService({
       return;
     }
 
-    // 🚀 NOVA REGRA → se NÃO houver profissionais cadastrados, permitir cadastro SEM vínculo
+    // Regra: se há profissionais cadastrados → obrigar vínculo
     const mustLinkProfessionals = professionals.length > 0;
 
     if (mustLinkProfessionals && selectedProfessionals.length === 0) {
@@ -101,62 +107,81 @@ export default function ModalNewService({
 
     setLoading(true);
 
-    // --- Cadastrar serviço ---
-    const { data: service, error: srvErr } = await supabase
-      .from("services")
-      .insert([
-        {
-          tenant_id: tenantId,
-          name: serviceName,
-          price_cents: priceCents,
-          duration_min: serviceDuration
-        }
-      ])
-      .select()
-      .single();
+    try {
+      /* =====================================================
+         1) CRIAR SERVIÇO
+      =======================================================*/
+      const { data: service, error: srvErr } = await supabase
+        .from("services")
+        .insert([
+          {
+            tenant_id: tenantId,
+            name: serviceName,
+            price_cents: priceCents,
+            duration_min: serviceDuration
+          }
+        ])
+        .select()
+        .single();
 
-    if (srvErr) {
-      toast.error("Erro ao cadastrar serviço");
-      setLoading(false);
-      return;
-    }
-
-    const serviceId = service.id;
-
-    // --- Vincular profissionais SE existirem ---
-    if (mustLinkProfessionals && selectedProfessionals.length > 0) {
-      const rows = selectedProfessionals.map((pid) => ({
-        tenant_id: tenantId,
-        professional_id: pid,
-        service_id: serviceId
-      }));
-
-      const { error: linkErr } = await supabase
-        .from("professional_services")
-        .insert(rows);
-
-      if (linkErr) {
-        toast.error("Serviço criado, mas erro ao vincular profissionais");
-      } else {
-        toast.success("Serviço cadastrado!");
+      if (srvErr) {
+        console.error(srvErr);
+        toast.error("Erro ao cadastrar serviço");
+        setLoading(false);
+        return;
       }
-    } else {
-      // 🚀 Cadastrar SEM profissionais
-      toast.success("Serviço cadastrado! Vincule profissionais depois.");
+
+      const serviceId = service.id;
+
+      /* =====================================================
+         2) VINCULAR PROFISSIONAIS (SE EXISTIREM)
+      =======================================================*/
+      if (mustLinkProfessionals && selectedProfessionals.length > 0) {
+        const rows = selectedProfessionals.map(pid => ({
+          tenant_id: tenantId,
+          professional_id: pid,
+          service_id: serviceId
+        }));
+
+        const { error: linkErr } = await supabase
+          .from("professional_services")
+          .insert(rows);
+
+        if (linkErr) {
+          console.error(linkErr);
+          toast.error("Erro ao vincular profissionais");
+        } else {
+          toast.success("Serviço cadastrado com sucesso!");
+        }
+      } else {
+        toast.success("Serviço cadastrado! Você pode vincular profissionais depois.");
+      }
+
+      /* =====================================================
+         3) CALLBACK PARA AGENDA
+      =======================================================*/
+      onSuccess?.(serviceId, serviceName, serviceDuration);
+
+      /* =====================================================
+         4) FECHAR OU RESETAR
+      =======================================================*/
+      if (mode === "agenda") {
+        onClose();
+      } else {
+        resetForm();
+      }
+
+    } catch (err: any) {
+      console.error("Erro inesperado:", err);
+      toast.error("Erro inesperado ao cadastrar.");
     }
 
     setLoading(false);
-
-    // Callback para agenda
-    onSuccess?.(serviceId, serviceName, serviceDuration);
-
-    if (mode === "agenda") {
-      onClose();
-    } else {
-      resetForm();
-    }
   }
 
+  /* =====================================================
+     UI
+  =======================================================*/
   if (!show) return null;
 
   return (
@@ -219,8 +244,11 @@ export default function ModalNewService({
           disabled={loading}
           onClick={handleSave}
         >
-          {loading ? "Salvando..." :
-            mode === "cadastro" ? "Salvar e continuar" : "Salvar Serviço"}
+          {loading
+            ? "Salvando..."
+            : mode === "cadastro"
+            ? "Salvar e continuar"
+            : "Salvar Serviço"}
         </button>
 
       </div>
