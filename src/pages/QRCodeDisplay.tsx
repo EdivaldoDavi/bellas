@@ -31,24 +31,34 @@ export default function QRCodeDisplay({
     initialInstanceId: safeInstanceId,
   });
 
-  // ✅ Atualiza status visual no body
+  /* ============================================================
+     🔄 Atualizar visual global quando conectado
+  ============================================================ */
   useEffect(() => {
-    console.log("🔄 STATUS RECEBIDO DO HOOK:", status);
-    if (status === "CONNECTED") document.body.classList.add("wa-connected");
-    else document.body.classList.remove("wa-connected");
+    if (status === "CONNECTED") {
+      document.body.classList.add("wa-connected");
+    } else {
+      document.body.classList.remove("wa-connected");
+    }
   }, [status]);
 
-  // ✅ Refresh ao montar
+  /* ============================================================
+     🔄 Atualiza estado na montagem
+  ============================================================ */
   useEffect(() => {
     refresh();
   }, [refresh]);
 
-  // ✅ AutoStart (caso habilitado externamente)
+  /* ============================================================
+     🚀 AutoStart opcional
+  ============================================================ */
   useEffect(() => {
     if (autoStart && safeInstanceId) start();
   }, [autoStart, safeInstanceId, start]);
 
-  /* ---------------- UI STATES ---------------- */
+  /* ============================================================
+     🔍 UI STATES
+  ============================================================ */
   const isConnecting = loading || status === "OPENING";
   const isConnected = status === "CONNECTED";
   const isDisconnected =
@@ -56,12 +66,26 @@ export default function QRCodeDisplay({
     status === "LOGGED_OUT" ||
     status === "UNKNOWN" ||
     status === "IDLE";
+
   const showQR = !!qrBase64 && !isConnected && !isConnecting;
 
-  /* ---------------- RENDER ---------------- */
+  /* ============================================================
+     🛑 Remover erro “Not Found” ou erros irrelevantes
+  ============================================================ */
+  const hideError =
+    error === "Not Found" ||
+    status === "DISCONNECTED" ||
+    status === "UNKNOWN" ||
+    status === "IDLE" ||
+    status === "LOGGED_OUT";
+
+  /* ============================================================
+     🔽 RENDER
+  ============================================================ */
   return (
     <div className={styles.container}>
       <div className={styles.card}>
+        {/* CABEÇALHO */}
         <div className={styles.header}>
           <h2 className={styles.title}>WhatsApp · Conexão</h2>
           {realInstanceId && (
@@ -71,16 +95,18 @@ export default function QRCodeDisplay({
           )}
         </div>
 
-        {/* STATUS BOX */}
+        {/* STATUS */}
         <div className={styles.statusBox}>
           <span className={styles.statusDot} data-status={status} />
           <span className={styles.statusText}>{labelFromStatus(status)}</span>
         </div>
 
-        {/* ERRO */}
-        {error && <div className={styles.errorBox}>❌ {error}</div>}
+        {/* ERRO (filtrado) */}
+        {!hideError && error && (
+          <div className={styles.errorBox}>❌ {error}</div>
+        )}
 
-        {/* QR */}
+        {/* QR CODE */}
         {showQR && (
           <div className={styles.qrArea}>
             <img src={qrBase64} className={styles.qr} alt="QR Code" />
@@ -112,17 +138,22 @@ export default function QRCodeDisplay({
         <div className={styles.buttons}>
           {isDisconnected && (
             <>
-              {/* 🔹 Instruções antes de conectar */}
               <div className={styles.instructionsBox}>
                 <p className={styles.instructionsTitle}>
                   📱 Como conectar seu WhatsApp:
                 </p>
+
                 <ol className={styles.instructionsList}>
-                  <li>Abra o aplicativo <strong>WhatsApp</strong> no seu celular.</li>
                   <li>
-                    Vá em <strong> ... três pontinhos → Dispositivos conectados</strong>.
+                    Abra o aplicativo <strong>WhatsApp</strong> no seu celular.
                   </li>
-                  <li>Toque em <strong>“Conectar um dispositivo”</strong>.</li>
+                  <li>
+                    Vá em{" "}
+                    <strong> ... três pontinhos → Dispositivos conectados</strong>.
+                  </li>
+                  <li>
+                    Toque em <strong>“Conectar um dispositivo”</strong>.
+                  </li>
                   <li>Escaneie o QR Code exibido aqui na tela.</li>
                 </ol>
               </div>
@@ -152,9 +183,12 @@ export default function QRCodeDisplay({
   );
 }
 
-/* ---------------- LABEL ---------------- */
+/* ============================================================
+   ↪ LABEL DO STATUS
+============================================================ */
 function labelFromStatus(s: EvoStatus | string) {
   const up = (s || "UNKNOWN").toUpperCase();
+
   switch (up) {
     case "IDLE":
       return "Pronto";
