@@ -76,7 +76,8 @@ export async function computeAvailableDaysForMonth(opts: {
   serviceDuration: number;
   year: number;
   month: number;
-}) {
+}): Promise<Set<string>> {
+
   const { tenantId, professionalId, serviceDuration, year, month } = opts;
 
 

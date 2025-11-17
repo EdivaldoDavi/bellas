@@ -10,6 +10,7 @@ import {
 import { useAvailableDays } from "../hooks/useAvailableDays";
 
 interface Props {
+  tenantId: string;
   professionalId: string;
   serviceDuration: number;
   value?: string; // YYYY-MM-DD
