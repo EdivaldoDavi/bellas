@@ -7,7 +7,7 @@ import styles from "../css/ModalNewProfessional.module.css";
 interface ModalNewProfessionalProps {
   tenantId?: string;
   show: boolean;
-  mode?: "agenda" | "cadastro"; // ⭐ NOVO
+  mode?: "agenda" | "cadastro"; // como será usado
   onClose: () => void;
   onSuccess?: (id: string, name: string) => void;
 }
@@ -43,15 +43,18 @@ export default function ModalNewProfessional({
   onClose,
   onSuccess,
 }: ModalNewProfessionalProps) {
-  
   // ================= STATE =================
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const [services, setServices] = useState<Service[]>([]);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
-  const hasServices = useMemo(() => selectedServices.length > 0, [selectedServices]);
+  const hasServices = useMemo(
+    () => selectedServices.length > 0,
+    [selectedServices]
+  );
 
   const [copyToWeek, setCopyToWeek] = useState(true);
   const [monStart, setMonStart] = useState("09:00");
@@ -87,8 +90,7 @@ export default function ModalNewProfessional({
 
   // ================= CARREGAR SERVIÇOS =================
   useEffect(() => {
-    if (!show) return;
-    if (!tenantId) return;
+    if (!show || !tenantId) return;
 
     (async () => {
       const { data, error } = await supabase
@@ -97,19 +99,29 @@ export default function ModalNewProfessional({
         .eq("tenant_id", tenantId)
         .order("name");
 
-      if (error) toast.error("Erro ao carregar serviços");
+      if (error) {
+        console.error(error);
+        toast.error("Erro ao carregar serviços");
+        return;
+      }
+
       setServices(data || []);
     })();
   }, [tenantId, show]);
 
-  // ================= TOGGLE =================
+  // ================= TOGGLE SERVIÇO =================
   function toggleService(id: string) {
     setSelectedServices((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   }
 
-  function updateRow(weekday: number, field: keyof Omit<DayRow, "weekday">, value: string) {
+  // ================= EDITAR LINHA DE DIA =================
+  function updateRow(
+    weekday: number,
+    field: keyof Omit<DayRow, "weekday">,
+    value: string
+  ) {
     setWeekRows((prev) =>
       prev.map((r) => (r.weekday === weekday ? { ...r, [field]: value } : r))
     );
@@ -117,91 +129,133 @@ export default function ModalNewProfessional({
 
   // ================= SALVAR =================
   async function handleSave() {
-    if (!name.trim()) return toast.warn("Informe o nome");
-    if (!hasServices) return toast.warn("Selecione ao menos um serviço");
+    if (!tenantId) {
+      toast.error("Tenant não encontrado.");
+      return;
+    }
 
-    const { data: prof, error } = await supabase
-      .from("professionals")
-      .insert([{
-        tenant_id: tenantId,
-        name,
-        email: email || null,
-        phone: phone || null,
-      }])
-      .select()
-      .single();
+    if (!name.trim()) {
+      toast.warn("Informe o nome");
+      return;
+    }
 
-    if (error) return toast.error("Erro ao cadastrar profissional");
+    if (!hasServices) {
+      toast.warn("Selecione ao menos um serviço");
+      return;
+    }
 
-    const professionalId = prof.id;
-    
-    // vincular serviços
-    await supabase.from("professional_services").insert(
-      selectedServices.map((sid) => ({
+    setSaving(true);
+
+    try {
+      // 1️⃣ Cadastrar profissional
+      const { data: prof, error: profErr } = await supabase
+        .from("professionals")
+        .insert([
+          {
+            tenant_id: tenantId,
+            name: name.trim(),
+            email: email || null,
+            phone: phone || null,
+          },
+        ])
+        .select()
+        .single();
+
+      if (profErr) {
+        console.error("Erro ao cadastrar profissional:", profErr);
+        toast.error("Erro ao cadastrar profissional");
+        setSaving(false);
+        return;
+      }
+
+      const professionalId = prof.id as string;
+
+      // 2️⃣ Vincular serviços
+      const serviceRows = selectedServices.map((sid) => ({
         tenant_id: tenantId,
         professional_id: professionalId,
         service_id: sid,
-      }))
-    );
+      }));
 
-    // montar horários
-    const scheduleRows: any[] = [];
+      if (serviceRows.length > 0) {
+        const { error: linkErr } = await supabase
+          .from("professional_services")
+          .insert(serviceRows);
 
-    if (copyToWeek) {
-      const ws = padSeconds(monStart);
-      const we = padSeconds(monEnd);
-      const bs = padSeconds(monBreakStart);
-      const be = padSeconds(monBreakEnd);
+        if (linkErr) {
+          console.error("Erro ao vincular serviços:", linkErr);
+          toast.error("Profissional criado, mas houve erro ao vincular serviços.");
+        }
+      }
 
-      for (let d = 1; d <= 6; d++) {
-        scheduleRows.push({
-          tenant_id: tenantId,
-          professional_id: professionalId,
-          weekday: d,
-          start_time: ws,
-          end_time: we,
-          break_start_time: bs,
-          break_end_time: be,
+      // 3️⃣ Montar horários
+      const scheduleRows: any[] = [];
+
+      if (copyToWeek) {
+        const ws = padSeconds(monStart);
+        const we = padSeconds(monEnd);
+        const bs = padSeconds(monBreakStart);
+        const be = padSeconds(monBreakEnd);
+
+        // Segunda (1) até Sábado (6)
+        for (let d = 1; d <= 6; d++) {
+          scheduleRows.push({
+            tenant_id: tenantId,
+            professional_id: professionalId,
+            weekday: d,
+            start_time: ws,
+            end_time: we,
+            break_start_time: bs,
+            break_end_time: be,
+          });
+        }
+      } else {
+        weekRows.forEach((r) => {
+          if (!r.start || !r.end) return;
+          scheduleRows.push({
+            tenant_id: tenantId,
+            professional_id: professionalId,
+            weekday: r.weekday,
+            start_time: padSeconds(r.start),
+            end_time: padSeconds(r.end),
+            break_start_time: padSeconds(r.breakStart),
+            break_end_time: padSeconds(r.breakEnd),
+          });
         });
       }
-    } else {
-      weekRows.forEach((r) => {
-        if (!r.start || !r.end) return;
-        scheduleRows.push({
-          tenant_id: tenantId,
-          professional_id: professionalId,
-          weekday: r.weekday,
-          start_time: padSeconds(r.start),
-          end_time: padSeconds(r.end),
-          break_start_time: padSeconds(r.breakStart),
-          break_end_time: padSeconds(r.breakEnd),
-        });
-      });
+
+      if (scheduleRows.length > 0) {
+        const { error: schedErr } = await supabase
+          .from("professional_schedules")
+          .insert(scheduleRows);
+
+        if (schedErr) {
+          console.error("Erro ao salvar horários:", schedErr);
+          toast.error("Profissional criado, mas houve erro ao salvar horários.");
+        }
+      }
+
+      toast.success("Profissional cadastrado!");
+
+      // ========== COMPORTAMENTO POR MODE ==========
+      if (mode === "agenda") {
+        onSuccess?.(professionalId, name.trim());
+        onClose();
+      } else {
+        // "cadastro" → limpa para seguir cadastrando
+        setName("");
+        setEmail("");
+        setPhone("");
+        setSelectedServices([]);
+        setWeekRows(emptyWeekRows);
+        toast.success("Pronto! Pode cadastrar outro profissional.");
+      }
+    } catch (err: any) {
+      console.error("Erro inesperado ao salvar profissional:", err);
+      toast.error("Erro inesperado ao salvar profissional.");
     }
 
-    if (scheduleRows.length > 0)
-      await supabase.from("professional_schedules").insert(scheduleRows);
-
-    toast.success("Profissional cadastrado!");
-
-    // ========== COMPORTAMENTO POR MODE ==========
-    if (mode === "agenda") {
-      onSuccess?.(professionalId, name);
-      onClose();
-      return;
-    }
-
-    if (mode === "cadastro") {
-      // ⭐ LIMPA o formulário para continuar cadastrando
-      setName("");
-      setEmail("");
-      setPhone("");
-      setSelectedServices([]);
-      setWeekRows(emptyWeekRows);
-
-      toast.success("Pronto! Pode cadastrar outro profissional.");
-      return;
-    }
+    setSaving(false);
   }
 
   if (!show) return null;
@@ -210,35 +264,52 @@ export default function ModalNewProfessional({
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
-
         <button className={styles.closeBtn} onClick={onClose}>
           <X size={20} />
         </button>
 
         <h3>Novo Profissional</h3>
 
-        <input className={styles.input} placeholder="Nome completo"
-          value={name} onChange={(e) => setName(e.target.value)} />
+        <input
+          className={styles.input}
+          placeholder="Nome completo"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
 
-        <input className={styles.input} placeholder="E-mail (opcional)"
-          value={email} onChange={(e) => setEmail(e.target.value)} />
+        <input
+          className={styles.input}
+          placeholder="E-mail (opcional)"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-        <input className={styles.input} placeholder="Telefone (opcional)"
-          value={phone} onChange={(e) => setPhone(e.target.value)} />
+        <input
+          className={styles.input}
+          placeholder="Telefone (opcional)"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+        />
 
         <h4>Serviços que executa</h4>
-        <div className={styles.checkList}>
-          {services.map((s) => (
-            <label key={s.id} className={styles.checkItem}>
-              <input
-                type="checkbox"
-                checked={selectedServices.includes(s.id)}
-                onChange={() => toggleService(s.id)}
-              />
-              {s.name}
-            </label>
-          ))}
-        </div>
+        {services.length === 0 ? (
+          <p className={styles.emptyText}>
+            Nenhum serviço cadastrado ainda. Cadastre serviços primeiro.
+          </p>
+        ) : (
+          <div className={styles.checkList}>
+            {services.map((s) => (
+              <label key={s.id} className={styles.checkItem}>
+                <input
+                  type="checkbox"
+                  checked={selectedServices.includes(s.id)}
+                  onChange={() => toggleService(s.id)}
+                />
+                {s.name}
+              </label>
+            ))}
+          </div>
+        )}
 
         <h4>Horários de trabalho</h4>
 
@@ -246,7 +317,7 @@ export default function ModalNewProfessional({
           <input
             type="checkbox"
             checked={copyToWeek}
-            onChange={() => setCopyToWeek(!copyToWeek)}
+            onChange={() => setCopyToWeek((v) => !v)}
           />
           Copiar segunda para todos os dias
         </label>
@@ -255,10 +326,38 @@ export default function ModalNewProfessional({
           <>
             <div className={styles.dayTitle}>Segunda-feira</div>
             <div className={styles.timeGrid}>
-              <div><label>Entrada</label><input type="time" value={monStart} onChange={(e) => setMonStart(e.target.value)} /></div>
-              <div><label>Saída</label><input type="time" value={monEnd} onChange={(e) => setMonEnd(e.target.value)} /></div>
-              <div><label>Almoço início</label><input type="time" value={monBreakStart} onChange={(e) => setMonBreakStart(e.target.value)} /></div>
-              <div><label>Almoço fim</label><input type="time" value={monBreakEnd} onChange={(e) => setMonBreakEnd(e.target.value)} /></div>
+              <div>
+                <label>Entrada</label>
+                <input
+                  type="time"
+                  value={monStart}
+                  onChange={(e) => setMonStart(e.target.value)}
+                />
+              </div>
+              <div>
+                <label>Saída</label>
+                <input
+                  type="time"
+                  value={monEnd}
+                  onChange={(e) => setMonEnd(e.target.value)}
+                />
+              </div>
+              <div>
+                <label>Almoço início</label>
+                <input
+                  type="time"
+                  value={monBreakStart}
+                  onChange={(e) => setMonBreakStart(e.target.value)}
+                />
+              </div>
+              <div>
+                <label>Almoço fim</label>
+                <input
+                  type="time"
+                  value={monBreakEnd}
+                  onChange={(e) => setMonBreakEnd(e.target.value)}
+                />
+              </div>
             </div>
           </>
         ) : (
@@ -268,18 +367,54 @@ export default function ModalNewProfessional({
               <div key={d.id} className={styles.dayBlock}>
                 <div className={styles.dayTitle}>{d.label}</div>
                 <div className={styles.timeGrid}>
-                  <div><label>Entrada</label><input type="time" value={row.start} onChange={(e) => updateRow(d.id, "start", e.target.value)} /></div>
-                  <div><label>Saída</label><input type="time" value={row.end} onChange={(e) => updateRow(d.id, "end", e.target.value)} /></div>
-                  <div><label>Almoço início</label><input type="time" value={row.breakStart} onChange={(e) => updateRow(d.id, "breakStart", e.target.value)} /></div>
-                  <div><label>Almoço fim</label><input type="time" value={row.breakEnd} onChange={(e) => updateRow(d.id, "breakEnd", e.target.value)} /></div>
+                  <div>
+                    <label>Entrada</label>
+                    <input
+                      type="time"
+                      value={row.start}
+                      onChange={(e) => updateRow(d.id, "start", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label>Saída</label>
+                    <input
+                      type="time"
+                      value={row.end}
+                      onChange={(e) => updateRow(d.id, "end", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label>Almoço início</label>
+                    <input
+                      type="time"
+                      value={row.breakStart}
+                      onChange={(e) =>
+                        updateRow(d.id, "breakStart", e.target.value)
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label>Almoço fim</label>
+                    <input
+                      type="time"
+                      value={row.breakEnd}
+                      onChange={(e) =>
+                        updateRow(d.id, "breakEnd", e.target.value)
+                      }
+                    />
+                  </div>
                 </div>
               </div>
             );
           })
         )}
 
-        <button className={styles.saveBtn} onClick={handleSave}>
-          Salvar Profissional
+        <button
+          className={styles.saveBtn}
+          onClick={handleSave}
+          disabled={saving}
+        >
+          {saving ? "Salvando..." : "Salvar Profissional"}
         </button>
       </div>
     </div>
