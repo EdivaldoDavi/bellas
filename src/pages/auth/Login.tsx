@@ -134,12 +134,13 @@ export default function Login() {
 
           {/* ---------------------- RESET BLOCK ---------------------- */}
           <button
-            type="button"
-            className={styles.forgotPassword}
-            onClick={() => setShowReset((p) => !p)}
-          >
-            Esqueceu a senha?
-          </button>
+                type="button"
+                className={styles.forgotPassword}
+                onClick={() => navigate("/forgot-password")}
+              >
+          Esqueceu a senha?
+        </button>
+
 
           {showReset && (
             <div className={styles.resetBox}>

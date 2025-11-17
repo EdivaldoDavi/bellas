@@ -22,7 +22,7 @@ import ConfigPage from "./pages/ConfigPage";
 import ForcePasswordReset from "./components/ForcePasswordReset";
 import ConnectWhatsAppPage from "./pages/ConnectWhatsAppPage";
 import GerenciarAcessosPage from "./config/GerenciarAcessosPage";
-
+import ForgotPassword from "./pages/auth/ForgotPassword";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -95,6 +95,7 @@ export default function App() {
           {/* Rotas públicas */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/force-reset" element={<ForcePasswordReset />} />
 
           {/* Setup (Privada, Sem Layout) */}
