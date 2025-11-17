@@ -4,10 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseCleint";
 import { toast } from "react-toastify";
 
-import { useUserTenant } from "../../context/UserTenantProvider";  // <-- AGORA CORRETO
+import { useUserTenant } from "../../context/UserTenantProvider";
 
 export default function Setup() {
-  const { loading, profile, tenant, reloadProfile } = useUserTenant();
+  const { loading, profile, tenant, reloadAll } = useUserTenant();
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
@@ -17,40 +17,32 @@ export default function Setup() {
   const [saving, setSaving] = useState(false);
 
   /* ============================================================
-     🔄 Carregar dados do tenant se já existir
+     🔄 Preencher campos caso tenant já exista
   ============================================================ */
   useEffect(() => {
-    if (tenant) {
-      setName(tenant.name ?? "");
-      setPrimary(tenant.primary_color ?? "#ff1493");
-      setSecondary(tenant.secondary_color ?? "#ffffff");
-      setVariant(tenant.theme_variant ?? "light");
-    }
+    if (!tenant) return;
+
+    setName(tenant.name ?? "");
+    setPrimary(tenant.primary_color ?? "#ff1493");
+    setSecondary(tenant.secondary_color ?? "#ffffff");
+    setVariant(tenant.theme_variant ?? "light");
   }, [tenant]);
 
   /* ============================================================
-     ⏳ LOADING
+     ⏳ Loading
   ============================================================ */
   if (loading) return <div className="p-5 text-center">Carregando...</div>;
 
   /* ============================================================
-     ❌ SEM PERFIL (erro grave)
+     ❌ Sem profile (erro grave)
   ============================================================ */
   if (!profile)
-    return (
-      <p className="text-center p-4 text-danger">
-        Erro: perfil não encontrado.
-      </p>
-    );
+    return <p className="text-center p-4 text-danger">Erro: perfil não encontrado.</p>;
 
   /* ============================================================
-     🚫 PROFISSIONAIS NÃO PODEM FAZER SETUP
+     🚫 Permissões
   ============================================================ */
-  if (
-    profile.role === "client" ||
-    profile.role === "staff" ||
-    profile.role === "professional"
-  ) {
+  if (["client", "staff", "professional"].includes(profile.role ?? "")) {
     return (
       <p className="text-center p-4 text-danger">
         Você não tem permissão para configurar o salão.
@@ -59,7 +51,7 @@ export default function Setup() {
   }
 
   /* ============================================================
-     🔥 SALVAR CONFIGURAÇÕES
+     💾 Salvar configurações
   ============================================================ */
   const save = async () => {
     if (!profile) return;
@@ -70,13 +62,15 @@ export default function Setup() {
       let tenantId = tenant?.id ?? null;
 
       /* ============================================================
-         1️⃣ Criar tenant se não existir
+         1️⃣ Criar tenant caso ainda não exista
       ============================================================ */
       if (!tenantId) {
+        const generatedId = crypto.randomUUID();
+
         const { data: newTenant, error: tenantErr } = await supabase
           .from("tenants")
           .insert({
-            id: crypto.randomUUID(),
+            id: generatedId,
             name,
             primary_color: primary,
             secondary_color: secondary,
@@ -91,9 +85,7 @@ export default function Setup() {
 
         tenantId = newTenant.id;
 
-        /* ============================================================
-           🔗 Atualizar perfil do usuário com o tenant criado
-        ============================================================ */
+        /* Atualizar perfil */
         const { error: profileErr } = await supabase
           .from("profiles")
           .update({ tenant_id: tenantId })
@@ -119,9 +111,9 @@ export default function Setup() {
       if (updateErr) throw updateErr;
 
       /* ============================================================
-         3️⃣ Recarregar perfil e redirecionar
+         3️⃣ Recarregar tudo globalmente
       ============================================================ */
-      await reloadProfile(); // agora GLOBAL
+      await reloadAll();
 
       toast.success("Salão configurado com sucesso!");
       navigate("/dashboard", { replace: true });
@@ -134,6 +126,9 @@ export default function Setup() {
     setSaving(false);
   };
 
+  /* ============================================================
+     JSX
+  ============================================================ */
   return (
     <div className="container py-4">
       <h3>Configurar seu salão</h3>

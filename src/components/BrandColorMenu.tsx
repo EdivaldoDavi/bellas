@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { Palette } from "lucide-react";
 import { useBrandColor } from "../hooks/useBrandColor";
-import { useUserAndTenant } from "../hooks/useUserAndTenant";
+import { useUserTenant } from "../context/UserTenantProvider";  // <-- CORRETO
+import { supabase } from "../lib/supabaseCleint";
 import styles from "../css/brandColorMenu.module.css";
 
 const COLORS = [
@@ -11,22 +12,36 @@ const COLORS = [
   { hex: "#3b82f6", name: "Azul" },
   { hex: "#22c55e", name: "Verde" },
   { hex: "#f97316", name: "Laranja" },
-  { hex: "#ff0000ff", name: "Preto" },
+  { hex: "#ff0000", name: "Preto" },
 ];
 
 export default function BrandColorMenu() {
-  const { tenant } = useUserAndTenant();
+  const { tenant, refreshTenant } = useUserTenant(); // <-- Agora podemos forçar reload global
   const { brandColor, setBrandColor } = useBrandColor(tenant?.primary_color);
   const [open, setOpen] = useState(false);
 
-  const handleColorSelect = (color: string) => {
-    // ✅ Salva localmente
-    setBrandColor(color);
+  const handleColorSelect = async (color: string) => {
+    if (!tenant?.id) return;
 
-    // ✅ Aplica imediatamente como variável global
+    // 1️⃣ Atualiza localmente
+    setBrandColor(color);
     document.documentElement.style.setProperty("--color-primary", color);
 
-    // ✅ Fecha o menu
+    // 2️⃣ Salva no Supabase
+    const { error } = await supabase
+      .from("tenants")
+      .update({ primary_color: color })
+      .eq("id", tenant.id);
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    // 3️⃣ Atualiza contexto global (para não resetar ao navegar)
+    await refreshTenant();
+
+    // 4️⃣ Fecha o menu
     setOpen(false);
   };
 
