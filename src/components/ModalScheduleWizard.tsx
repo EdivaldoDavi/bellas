@@ -240,40 +240,50 @@ export default function ModalScheduleWizard({
 
   /* --------------------------- SALVAR AGENDAMENTO ------------------------- */
 
-  async function saveAppointment() {
-    const { data: cli } = await supabase
-      .from("customers")
-      .select("full_name,customer_phone")
-      .eq("id", customerId)
-      .single();
+async function saveAppointment() {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const jwtTenantId = sessionData?.session?.user?.user_metadata?.tenant_id;
 
-    const start = combineLocalDateTime(selectedDate, selectedTime);
-    const end = new Date(start.getTime() + (serviceDuration || 60) * 60000);
-
-    const payload = {
-      tenant_id: tenantId,  // OK — somente INSERT usa tenant_id
-      professional_id: professionalId,
-      service_id: serviceId,
-      customer_id: customerId,
-      customer_name: cli?.full_name,
-      customer_phone: cli?.customer_phone,
-      starts_at: start,
-      ends_at: end,
-      status: "scheduled"
-    };
-
-    const { error } = await supabase.from("appointments").insert([payload]);
-
-    if (error) {
-      console.error(error);
-      toast.error("Erro ao agendar.");
-      return;
-    }
-
-    toast.success("Agendado com sucesso!");
-    onBooked?.();
-    handleClose();
+  if (!jwtTenantId) {
+    toast.error("Erro: tenant_id não encontrado no JWT.");
+    return;
   }
+
+  const { data: cli } = await supabase
+    .from("customers")
+    .select("full_name,customer_phone")
+    .eq("id", customerId)
+    .single();
+
+  const start = combineLocalDateTime(selectedDate, selectedTime);
+  const end = new Date(start.getTime() + (serviceDuration || 60) * 60000);
+
+  const payload = {
+    tenant_id: jwtTenantId,     // 🔥 FIX ABSOLUTO
+    professional_id: professionalId,
+    service_id: serviceId,
+    customer_id: customerId,
+    customer_name: cli?.full_name,
+    customer_phone: cli?.customer_phone,
+    starts_at: start,
+    ends_at: end,
+    status: "scheduled",
+  };
+
+  console.log("PAYLOAD FINAL:", payload);
+
+  const { error } = await supabase.from("appointments").insert(payload);
+
+  if (error) {
+    console.error("Insert error:", error);
+    toast.error("Erro ao agendar.");
+    return;
+  }
+
+  toast.success("Agendado com sucesso!");
+  onBooked?.();
+  handleClose();
+}
 
   /* ------------------------------ RENDER JSX ------------------------------ */
 
