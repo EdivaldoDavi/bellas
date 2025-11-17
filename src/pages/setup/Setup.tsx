@@ -25,7 +25,14 @@ export default function Setup() {
       setVariant(tenant.theme_variant ?? "light");
     }
   }, [tenant]);
+useEffect(() => {
+  if (loading) return;
 
+  // 🚀 Se já tem tenant → sai imediatamente da página de setup
+  if (tenant?.id) {
+    navigate("/dashboard", { replace: true });
+  }
+}, [tenant?.id, loading]);
   /* ============================================================
      ⏳ LOADING
   ============================================================ */
