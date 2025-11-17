@@ -16,19 +16,38 @@ interface Props {
   onSelect: (date: string) => void;
 }
 
-/** Configuração da semana: 1 = segunda, 0 = domingo */
-const WEEK_STARTS_ON = 1; // ✅ começa na segunda-feira (Brasil)
+/* ============================================================
+   CONFIGURAÇÃO DA SEMANA (Brasil)
+   1 = Segunda (PT-BR)
+============================================================ */
+const WEEK_STARTS_ON = 1; // segunda-feira
+
 const WEEK_LABELS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+/* 
+    Se semana começa na segunda, reorganiza:
+    Dom → vai para o final
+*/
 const HEADER_LABELS =
   WEEK_STARTS_ON === 1
-    ? [...WEEK_LABELS.slice(0), WEEK_LABELS[0]] // ["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"]
+    ? ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
     : WEEK_LABELS;
 
-/** Converte getDay() (0=Dom..6=Sáb) para índice de coluna considerando início da semana */
+/* ============================================================
+   CONVERSÃO DO getDay()
+   getDay() → 0 = Domingo, 1 = Segunda...
+   Queremos 0 = Segunda, 6 = Domingo
+============================================================ */
 function startIndexForMonth(firstDayGetDay: number) {
-  return WEEK_STARTS_ON === 1 ? (firstDayGetDay + 6) % 7 : firstDayGetDay;
+  if (WEEK_STARTS_ON === 1) {
+    return (firstDayGetDay + 6) % 7;
+  }
+  return firstDayGetDay;
 }
 
+/* ============================================================
+   COMPONENTE
+============================================================ */
 export default function DatePickerModal({
   professionalId,
   serviceDuration,
@@ -37,12 +56,13 @@ export default function DatePickerModal({
 }: Props) {
   const [open, setOpen] = useState(false);
 
-  // estado do mês exibido
-  const start = value ? new Date(value) : new Date();
-  const [viewYear, setViewYear] = useState(start.getFullYear());
-  const [viewMonth, setViewMonth] = useState(start.getMonth() + 1); // 1..12
+  // mês inicial baseado no value ou no mês atual
+  const initialDate = value ? new Date(value) : new Date();
 
-  // hook que calcula dias com horários disponíveis
+  const [viewYear, setViewYear] = useState(initialDate.getFullYear());
+  const [viewMonth, setViewMonth] = useState(initialDate.getMonth() + 1); // 1..12
+
+  // Carrega disponibilidade via hook customizado
   const { loading, available } = useAvailableDays(
     professionalId,
     serviceDuration,
@@ -50,18 +70,22 @@ export default function DatePickerModal({
     viewMonth
   );
 
-  // matriz de dias do calendário
+  /* ============================================================
+     GERAÇÃO DA MATRIZ DE DIAS
+  ============================================================ */
   const matrix = useMemo(() => {
     const first = new Date(viewYear, viewMonth - 1, 1);
     const last = new Date(viewYear, viewMonth, 0);
-    const daysInMonth = last.getDate();
 
+    const daysInMonth = last.getDate();
     const startOffset = startIndexForMonth(first.getDay());
+
     const cells: { iso?: string; day?: number }[] = [];
 
-    // posições vazias antes do dia 1
+    // preenche vazios antes do dia 1
     for (let i = 0; i < startOffset; i++) cells.push({});
 
+    // preenche dias reais
     for (let d = 1; d <= daysInMonth; d++) {
       const iso = `${viewYear}-${String(viewMonth).padStart(2, "0")}-${String(
         d
@@ -69,36 +93,38 @@ export default function DatePickerModal({
       cells.push({ iso, day: d });
     }
 
-    // completa até múltiplo de 7
+    // completa para múltiplo de 7
     while (cells.length % 7 !== 0) cells.push({});
+
     return cells;
   }, [viewYear, viewMonth]);
 
-  // navegação entre meses
+  /* ============================================================
+     NAVEGAÇÃO
+  ============================================================ */
   function prevMonth() {
     const dt = new Date(viewYear, viewMonth - 2, 1);
     setViewYear(dt.getFullYear());
     setViewMonth(dt.getMonth() + 1);
   }
+
   function nextMonth() {
     const dt = new Date(viewYear, viewMonth, 1);
     setViewYear(dt.getFullYear());
     setViewMonth(dt.getMonth() + 1);
   }
 
-  // seleção da data
-  async function confirmPick(iso?: string) {
+  /* ============================================================
+     SELEÇÃO DE DATA
+  ============================================================ */
+  function confirmPick(iso?: string) {
     if (!iso) return;
 
-    // 🔒 bloqueia datas não disponíveis
     if (!available.has(iso)) {
-      toast.warn(
-        "Não há horários disponíveis para este profissional nesta data."
-      );
+      toast.warn("Nenhum horário disponível nesta data.");
       return;
     }
 
-    // 🔒 bloqueia datas inválidas (feriado, passado, domingo)
     if (isInvalidAppointmentDate(iso)) {
       toast.warn("Data indisponível para agendamento.");
       return;
@@ -108,9 +134,12 @@ export default function DatePickerModal({
     setOpen(false);
   }
 
+  /* ============================================================
+     RENDERIZAÇÃO
+  ============================================================ */
   return (
     <>
-      {/* Campo com ícone que abre o modal */}
+      {/* Input que abre o modal */}
       <div className={styles.inputWrapper} onClick={() => setOpen(true)}>
         <input
           type="text"
@@ -122,13 +151,10 @@ export default function DatePickerModal({
         <CalendarDays className={styles.icon} size={20} />
       </div>
 
-      {/* Modal do calendário */}
       {open && (
         <div className={styles.overlay} onClick={() => setOpen(false)}>
-          <div
-            className={styles.modal}
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            {/* Cabeçalho - mês atual */}
             <div className={styles.header}>
               <button className={styles.navBtn} onClick={prevMonth}>
                 <ChevronLeft size={18} />
@@ -146,19 +172,16 @@ export default function DatePickerModal({
               </button>
             </div>
 
-            {/* legenda */}
+            {/* Legenda */}
             <div className={styles.legend}>
               <span className={styles.badgeOk} /> Disponível
               <span className={styles.badgeNo} /> Indisponível
             </div>
 
-            {/* grade do calendário */}
+            {/* Calendário */}
             <div className={styles.grid}>
               {HEADER_LABELS.map((w) => (
-                <div
-                  key={w}
-                  className={`${styles.cell} ${styles.headerCell}`}
-                >
+                <div key={w} className={`${styles.cell} ${styles.headerCell}`}>
                   {w}
                 </div>
               ))}
@@ -176,7 +199,7 @@ export default function DatePickerModal({
                     disabled={!isAvailable}
                     onClick={() => isAvailable && confirmPick(iso)}
                     className={`${styles.cell} 
-                      ${isAvailable ? styles.cellOk : styles.cellNo} 
+                      ${isAvailable ? styles.cellOk : styles.cellNo}
                       ${isToday ? styles.today : ""}`}
                   >
                     {c.day ?? ""}
@@ -186,7 +209,9 @@ export default function DatePickerModal({
             </div>
 
             {loading && (
-              <div className={styles.loading}>Carregando disponibilidade...</div>
+              <div className={styles.loading}>
+                Carregando disponibilidade...
+              </div>
             )}
 
             <div className={styles.footerHint}>
