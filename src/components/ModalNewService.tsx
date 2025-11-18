@@ -250,7 +250,7 @@ export default function ModalNewService({
                       )
                     }
                   />
-                  {p.name}
+                  <span>{p.name}</span>
                 </label>
               ))}
             </div>
