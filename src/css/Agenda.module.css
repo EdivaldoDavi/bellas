@@ -26,20 +26,29 @@
 }
 
 .newButton {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
+
   background: var(--color-primary);
   color: #fff;
   border: none;
   border-radius: 12px;
+
   padding: 10px 16px;
   font-size: 0.95rem;
   font-weight: 600;
+
   cursor: pointer;
+  width: auto;            /* <-- impede de preencher horizontal */
+  max-width: max-content; /* <-- garante largura mínima */
+  flex-shrink: 0;         /* <-- impede ser esmagado */
+  
   box-shadow: 0 3px 12px color-mix(in srgb, var(--color-primary) 35%, transparent);
   transition: all 0.25s ease;
 }
+
 
 .newButton:hover {
   filter: brightness(1.1);
@@ -321,57 +330,76 @@ select:focus {
    RESPONSIVO
 =========================================================== */
 /* --- MOBILE: manter layout em linha como no desktop --- */
+/* ===========================================================
+   RESPONSIVO (MOBILE)
+=========================================================== */
 @media (max-width: 768px) {
-  /* Use grid 3 colunas: seta / centro / seta (estável e sem quebra) */
+
+  /* Caixa da navegação de datas */
   .dateNav {
     display: grid;
-    grid-template-columns: 44px 1fr 44px;
+    grid-template-columns: 44px 1fr 44px; /* seta / centro / seta */
     align-items: center;
-    justify-content: center;
     gap: 12px;
-    padding: 10px 12px;
-    margin: 16px 0 20px;
-    /* remove qualquer override anterior */
-    /* flex-direction: column;  <-- remova se existir */
+
+    padding: 12px;
+    margin: 18px 0;
+
+    border-radius: 14px;
+    background: var(--card-bg);
+    border: 1px solid var(--separator);
   }
 
+  /* Botões de navegação */
   .navButton {
     width: 44px;
     height: 44px;
-    border-radius: 12px;
+    flex: none; /* impede esticar */
     display: flex;
     align-items: center;
     justify-content: center;
-    flex: 0 0 auto; /* não deixa a seta esticar */
+
+    border-radius: 12px;
+    background: var(--color-primary);
+    color: #fff;
   }
 
+  /* Centro com o input e o texto da data */
   .dateCenter {
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-width: 0;     /* evita overflow do centro */
+    justify-content: center;
     gap: 6px;
+    min-width: 0; /* impede overflow */
   }
 
+  /* Wrapper do input */
   .datePickerWrapper {
     width: 100%;
-    max-width: 220px; /* centraliza e evita empurrar as setas */
+    max-width: 240px;
   }
 
+  /* Input estilizado */
   .datePicker {
-    appearance: auto;
-    -webkit-appearance: auto;
+    width: 100%;
+    padding: 8px 10px;
+
     background: var(--card-bg);
     color: var(--text);
+
     border: 1px solid var(--separator);
     border-radius: 10px;
-    padding: .5rem .7rem;
-    font-size: 14px;
+
+    font-size: 15px;
     text-align: center;
   }
 
+  /* Texto da data (abaixo do input) */
   .date {
-    font-size: 0.95rem;
+    font-size: 1rem;
+    font-weight: 600;
     text-align: center;
+    color: var(--text);
   }
 }
