@@ -220,9 +220,9 @@ export default function ServicosPage() {
                       title={svc.is_active ? "Inativar" : "Ativar"}
                     >
                      {svc.is_active ? (
-                      <EyeOff size={18} />   // Inativar
+                        <Eye size={18} />   // Inativar
                     ) : (
-                      <Eye size={18} />      // Ativar
+                      <EyeOff size={18} />      // Ativar
                     )}
                                         </button>
                   </div>

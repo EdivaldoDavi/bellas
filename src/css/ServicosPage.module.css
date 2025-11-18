@@ -16,16 +16,7 @@
   /* ... resto que você já tem ... */
 }
 
-.card {
-  background: #1b1922;
-  border-radius: 14px;
-  padding: 14px 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  color: #ffffff;              /* 👈 texto do card sempre branco */
-}
+
 
 .title {
   font-size: 1rem;
@@ -136,6 +127,16 @@
   justify-content: space-between;
   align-items: center;
   gap: 16px;
+  .card {
+  background: #1b1922;
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  color: #ffffff;              /* 👈 texto do card sempre branco */
+}
 }
 
 .title {
