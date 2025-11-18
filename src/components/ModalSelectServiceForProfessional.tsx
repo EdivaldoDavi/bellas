@@ -1,11 +1,13 @@
+// src/components/ModalSelectServiceForProfessional.tsx
+import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import styles from "../css/ModalNewProfessional.module.css";
 
-interface Service {
+type Service = {
   id: string;
   name: string;
   duration_min: number | null;
-}
+};
 
 interface Props {
   show: boolean;
@@ -22,91 +24,99 @@ export default function ModalSelectServiceForProfessional({
   onClose,
   onSave,
 }: Props) {
+  const [localSelected, setLocalSelected] = useState<string[]>([]);
+
+  // sempre que abrir o modal, sincroniza o estado local
+  useEffect(() => {
+    if (show) {
+      setLocalSelected(selectedIds);
+    }
+  }, [show, selectedIds]);
+
   if (!show) return null;
 
-  const allSelected =
-    services.length > 0 && selectedIds.length === services.length;
+  function toggle(id: string) {
+    setLocalSelected((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  }
 
-  function toggleId(id: string) {
-    if (selectedIds.includes(id)) {
-      onSave(selectedIds.filter((x) => x !== id));
+  function handleSelectAll(checked: boolean) {
+    if (checked) {
+      setLocalSelected(services.map((s) => s.id));
     } else {
-      onSave([...selectedIds, id]);
+      setLocalSelected([]);
     }
   }
 
-  function toggleAll() {
-    if (allSelected) {
-      onSave([]);
-    } else {
-      onSave(services.map((s) => s.id));
-    }
-  }
-
-  function handleConfirm() {
-    onSave(selectedIds);
-    onClose();
+  function handleSave() {
+    onSave(localSelected);
   }
 
   return (
     <div className={styles.servicesOverlay}>
-      <div className={styles.servicesModal}>
+      <div className={styles.servicesModal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.servicesHeader}>
           <h3>Selecionar serviços</h3>
-
           <button className={styles.closeBtn} onClick={onClose}>
             <X size={18} />
           </button>
         </div>
 
         <div className={styles.servicesList}>
-          {/* SELECT ALL */}
-          <label
-            className={styles.selectAllRow}
-            onClick={toggleAll}
-          >
-            <input
-              type="checkbox"
-              checked={allSelected}
-              onChange={toggleAll}
-              onClick={(e) => e.stopPropagation()}
-            />
-            <span className={styles.selectAllLabel}>Selecionar todos</span>
-          </label>
-
-          {/* SERVIÇOS */}
-          <div className={styles.servicesGrid}>
-            {services.map((s) => (
-              <label
-                key={s.id}
-                className={styles.serviceItem}
-                onClick={() => toggleId(s.id)}
-              >
-                {/* ORDEM IMPORTANTE: checkbox → nome → duração */}
+          {services.length === 0 ? (
+            <p className={styles.emptyText}>
+              Nenhum serviço cadastrado. Cadastre serviços primeiro.
+            </p>
+          ) : (
+            <>
+              <label className={styles.checkItem}>
                 <input
                   type="checkbox"
-                  checked={selectedIds.includes(s.id)}
-                  onChange={() => toggleId(s.id)}
-                  onClick={(e) => e.stopPropagation()}
+                  checked={
+                    services.length > 0 &&
+                    localSelected.length === services.length
+                  }
+                  onChange={(e) => handleSelectAll(e.target.checked)}
                 />
-
-                <span className={styles.serviceName}>{s.name}</span>
-
-                {typeof s.duration_min === "number" && (
-                  <span className={styles.serviceDuration}>
-                    {s.duration_min} min
-                  </span>
-                )}
+                <span>Selecionar todos</span>
               </label>
-            ))}
-          </div>
+
+              <div className={styles.servicesGrid}>
+                {services.map((s) => (
+                  <label key={s.id} className={styles.checkItem}>
+                    <input
+                      type="checkbox"
+                      checked={localSelected.includes(s.id)}
+                      onChange={() => toggle(s.id)}
+                    />
+                    <span>{s.name}</span>
+                    {s.duration_min != null && (
+                      <span className={styles.serviceDuration}>
+                        {s.duration_min} min
+                      </span>
+                    )}
+                  </label>
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         <div className={styles.servicesFooter}>
-          <button className={styles.cancelBtn} onClick={onClose}>
+          <button
+            type="button"
+            className={styles.cancelBtn}
+            onClick={onClose}
+          >
             Cancelar
           </button>
-          <button className={styles.saveBtn} onClick={handleConfirm}>
+
+          <button
+            type="button"
+            className={styles.saveBtn}
+            onClick={handleSave}
+          >
             Salvar seleção
           </button>
         </div>

@@ -199,12 +199,14 @@
   line-height: 1.2;
 }
 
-.serviceDuration {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  white-space: nowrap;
-  opacity: 0.8;
+
+  .serviceDuration {
+  font-size: 0.82rem;
+  opacity: 0.7;
+  margin-left: 6px;
+  white-space: nowrap; /* <--- ADICIONE ISSO: Impede a quebra de linha */
 }
+
 
 /* RODAPÉ BOTÕES */
 .servicesFooter {
@@ -423,11 +425,7 @@
   margin-top: 6px;
 }
 
-.serviceDuration {
-  font-size: 0.8rem;
-  opacity: 0.7;
-  margin-left: 6px;
-}
+
 
 .servicesFooter {
   display: flex;
@@ -480,31 +478,20 @@
   }
 }
 /* Mobile */
-
+@media (max-width: 480px) {
   .servicesModal {
     padding: 16px;
   }
 
   .serviceItem {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-
-  column-gap: 6px;   /* ERA 12 — agora bem mais próximo */
-
-  padding: 14px 15px;
-  border-radius: 12px;
-  background: var(--input-bg);
-  border: 1px solid var(--border);
-  cursor: pointer;
-  transition: background .18s ease, border-color .18s ease;
-}
-
+    grid-template-columns: auto 1fr;
+    row-gap: 4px;
+  }
 
   .serviceDuration {
     justify-self: flex-start;
   }
-
+}
 
 
 /* Fade-in */
