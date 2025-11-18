@@ -1,129 +1,254 @@
-/* Fundo escuro - modal overlay */
+/* ============================================================
+   OVERLAY DO MODAL PRINCIPAL
+============================================================ */
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.6);
+  background: rgba(0,0,0,0.60);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
 }
 
-/* Caixa do modal */
+/* ============================================================
+   MODAL PRINCIPAL
+============================================================ */
 .modal {
   width: 100%;
   max-width: 480px;
   max-height: 92vh;
   overflow-y: auto;
-  background: var(--card-bg, #fff);
-  color: var(--text, #000);
-  border-radius: 14px;
-  padding: 1.2rem;
+
+  background: var(--card-bg);
+  color: var(--text);
+
+  padding: 24px;
+  border-radius: 18px;
   position: relative;
-  animation: fadeIn .2s ease-out;
+
+  box-shadow: 0 12px 42px rgba(0,0,0,0.40);
+  animation: fadeIn .20s ease-out;
 }
 
 /* Botão fechar */
 .closeBtn {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  background: transparent;
-  border: 1px solid var(--separator, #ddd);
+  top: 12px;
+  right: 12px;
+
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
+  border: 1px solid var(--border);
+
+  background: var(--card-bg);
   color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  transition: 0.22s ease;
+}
+
+.closeBtn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 /* Títulos */
 .modal h3 {
   margin: 0 0 1rem;
-  font-size: 1.25rem;
-  font-weight: bold;
+  padding-right: 40px;
+  font-size: 1.28rem;
+  font-weight: 700;
 }
 
 .modal h4 {
-  margin: 1rem 0 .6rem;
+  margin: 1.2rem 0 .5rem;
   font-size: 1.05rem;
   font-weight: 600;
 }
 
-/* Inputs */
+
+/* ============================================================
+   INPUTS PADRÃO
+============================================================ */
 .input {
   width: 100%;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--separator);
-  background: var(--bg);
+  padding: 11px 13px;
+
+  border-radius: 10px;
+  border: 1px solid var(--border);
+
+  background: var(--input-bg);
   color: var(--text);
-  margin-bottom: 10px;
-  font-size: 14px;
-  transition: border-color .2s, box-shadow .2s, background .2s;
+  font-size: 0.95rem;
+
+  margin-bottom: 12px;
+  transition: all 0.22s ease;
 }
 
 .input::placeholder {
   color: var(--text-muted);
 }
 
-/* FOCUS correto para dark/light */
 .input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent);
   background: var(--card-bg);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent);
 }
 
 
-.checkList {
+/* ============================================================
+   BOTÃO SALVAR
+============================================================ */
+.saveBtn {
+  width: 100%;
+  padding: 0.9rem;
+
+  border-radius: 12px;
+  border: none;
+  background: var(--color-primary);
+  color: #fff;
+
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+
+  margin-top: 16px;
+  transition: 0.2s ease;
+}
+
+.saveBtn:hover {
+  opacity: 0.88;
+}
+
+.saveBtn:active {
+  transform: scale(0.97);
+}
+
+
+/* ============================================================
+   CHECKBOX "COPIAR SEGUNDA"
+============================================================ */
+.copyRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.copyRow input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary);
+}
+
+
+/* ============================================================
+   GRADE DE HORÁRIOS
+============================================================ */
+.dayTitle {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.dayBlock {
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.timeGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 12px 18px;
-  margin-top: 10px;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 
-/* =====================================
-   LISTA DE SERVIÇOS - alinhamento perfeito
-===================================== */
-/* ==============================
-   MODAL SELEÇÃO DE SERVIÇOS
-=================================*/
+.timeGrid input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  color: var(--text);
+}
+
+
+/* ============================================================
+   BOTÃO "SELECIONAR SERVIÇOS"
+============================================================ */
+.selectServicesBtn {
+  padding: 10px 16px;
+  background: var(--color-primary);
+  color: #fff;
+
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.selectServicesBtn:hover {
+  opacity: 0.9;
+}
+
+.selectedSummary {
+  font-size: 0.88rem;
+  opacity: 0.75;
+  margin-left: 8px;
+}
+
+
+/* ============================================================
+   MODAL DE SELEÇÃO DE SERVIÇOS (2º MODAL)
+============================================================ */
 .servicesOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(4px);
+  background: rgba(0,0,0,0.75);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10000; /* acima do modal principal */
+  backdrop-filter: blur(4px);
+  z-index: 10000;
 }
 
 .servicesModal {
   width: 92%;
-  max-width: 640px;
-  max-height: 80vh;
+  max-width: 620px;
+  max-height: 82vh;
   overflow-y: auto;
-  background: var(--modal-bg);
-  padding: 20px 22px;
+
+  background: var(--card-bg);
+  padding: 22px;
   border-radius: 18px;
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.6);
+
+  box-shadow: 0 16px 48px rgba(0,0,0,0.60);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
+
+  animation: fadeIn .20s ease-out;
 }
 
 .servicesHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
 }
 
-/* LISTA GERAL */
+/* Lista geral */
 .servicesList {
   display: flex;
   flex-direction: column;
@@ -133,20 +258,21 @@
 .servicesGrid {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 4px;
+  gap: 10px;
 }
 
-/* ===========================
-   SELECT ALL
-=========================== */
+
+/* ============================================================
+   ITEM "SELECIONAR TODOS"
+============================================================ */
 .selectAllRow {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 14px;
-  border-radius: 12px;
+
+  padding: 14px;
   background: var(--input-bg);
+  border-radius: 12px;
   border: 1px solid var(--border);
   cursor: pointer;
 }
@@ -154,88 +280,86 @@
 .selectAllRow input {
   width: 18px;
   height: 18px;
-  margin: 0;
   accent-color: var(--color-primary);
 }
 
 .selectAllLabel {
-  font-size: 0.95rem;
-  color: var(--text);
+  font-size: 0.96rem;
+  font-weight: 500;
 }
 
-/* ===========================
+
+/* ============================================================
    ITEM DE SERVIÇO
-=========================== */
+============================================================ */
 .serviceItem {
   display: grid;
-  grid-template-columns: auto 1fr auto; /* check | nome | duração */
+  grid-template-columns: 22px 1fr auto;
   align-items: center;
-  column-gap: 12px;
+  gap: 12px;
 
-  padding: 12px 14px;
+  padding: 14px;
   border-radius: 12px;
   background: var(--input-bg);
   border: 1px solid var(--border);
 
   cursor: pointer;
-  transition: background 0.18s ease, border-color 0.18s ease;
+  transition: 0.18s ease;
 }
 
 .serviceItem:hover {
-  border-color: var(--color-primary);
   background: color-mix(in srgb, var(--color-primary) 8%, var(--input-bg));
+  border-color: var(--color-primary);
 }
 
 .serviceItem input {
   width: 18px;
   height: 18px;
-  margin: 0;
   accent-color: var(--color-primary);
 }
 
 .serviceName {
-  font-size: 0.95rem;
-  color: var(--text);
-  line-height: 1.2;
+  font-size: 0.96rem;
+  font-weight: 500;
+}
+
+.serviceDuration {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  white-space: nowrap;
 }
 
 
-  .serviceDuration {
-  font-size: 0.82rem;
-  opacity: 0.7;
-  margin-left: 6px;
-  white-space: nowrap; /* <--- ADICIONE ISSO: Impede a quebra de linha */
-}
-
-
-/* RODAPÉ BOTÕES */
+/* ============================================================
+   RODAPÉ DO MODAL DE SERVIÇOS
+============================================================ */
 .servicesFooter {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 10px;
+  margin-top: 4px;
 }
 
 .cancelBtn {
   flex: 1;
-  border-radius: 999px;
-  border: 1px solid #555;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
   background: transparent;
-  padding: 10px 16px;
-  color: #fff;
+  color: var(--text);
   cursor: pointer;
 }
 
 .cancelBtn:hover {
-  background: #2a2833;
+  background: rgba(255,255,255,0.08);
 }
 
 .saveBtn {
   flex: 1;
-  border-radius: 999px;
-  border: none;
-  padding: 10px 16px;
+  padding: 12px;
+  border-radius: 12px;
   background: var(--color-primary);
+  border: none;
   color: #fff;
   font-weight: 600;
   cursor: pointer;
@@ -245,247 +369,22 @@
   opacity: 0.9;
 }
 
-/* Row "copiar semana" */
-.copyRow {
-  display: flex;
-  align-items: center;
-  gap: 6px;           /* distância pequena entre checkbox e texto */
-  cursor: pointer;
-  user-select: none;
-  font-size: 0.95rem;
-}
 
-.copyRow input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--primary);
-  cursor: pointer;
-}
-
-.copyRow span {
-  cursor: pointer;
-  line-height: 1;
-}
-
-
-/* Títulos dias */
-.dayTitle {
-  font-weight: 600;
-  margin-bottom: .4rem;
-}
-
-/* Caixa de dia */
-.dayBlock {
-  padding: .65rem;
-  border: 1px solid var(--separator);
-  border-radius: 10px;
-  margin-bottom: .65rem;
-}
-
-/* Grid horários */
-.timeGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: .65rem;
-}
-
-.timeGrid input {
-  width: 100%;
-  padding: .5rem;
-  border-radius: 8px;
-  border: 1px solid var(--separator);
-  background: var(--bg);
-  color: var(--text);
-}
-
-/* Observação */
-.note {
-  font-size: .9rem;
-  color: var(--text-muted);
-  margin-top: .3rem;
-}
-
-/* Botão salvar */
-.saveBtn {
-  width: 100%;
-  padding: .95rem;
-  border: none;
-  border-radius: 12px;
-  background: var(--color-primary);
-  color: #fff;
-  font-weight: 700;
-  margin-top: 1rem;
-  cursor: pointer;
-}
-
-.saveBtn:hover {
-  opacity: .9;
-}
-
-.servicesInlineRow {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 6px 0 12px;
-  flex-wrap: wrap;
-}
-
-.selectServicesBtn {
-  padding: 8px 14px;
-  border-radius: 10px;
-  border: none;
-  background: #6d28d9;
-  color: #fff;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.selectServicesBtn:hover {
-  background: #5b21b6;
-}
-
-.selectedSummary {
-  font-size: 0.9rem;
-  opacity: 0.8;
-}
-
-.servicesRow {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-}
-
-.selectServicesBtn {
-  padding: 8px 14px;
-  border-radius: 10px;
-  border: none;
-  background: #6d28d9;
-  color: #fff;
-  cursor: pointer;
-}
-
-.selectServicesBtn:hover {
-  background: #5b21b6;
-}
-
-.selectedSummary {
-  opacity: 0.8;
-  font-size: 0.9rem;
-}
-/* ==============================
-   MODAL SELEÇÃO DE SERVIÇOS
-=================================*/
-.servicesOverlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10000; /* maior que o overlay do modal principal */
-}
-
-.servicesModal {
-  width: 92%;
-  max-width: 640px;
-  max-height: 80vh;
-  overflow-y: auto;
-
-  background: var(--modal-bg);
-  padding: 20px 22px;
-  border-radius: 18px;
-
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.6);
-
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.servicesHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.servicesList {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.servicesGrid {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 6px;
-}
-
-
-
-.servicesFooter {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 8px;
-}
-
-/* você provavelmente já tem estes, mas se não, coloca */
-.selectServicesBtn {
-  width: 100%;
-  margin-top: 4px;
-  margin-bottom: 6px;
-  padding: 10px 14px;
-  border-radius: 999px;
-  border: none;
-  cursor: pointer;
-  background: var(--color-primary, #7c3aed);
-  color: #fff;
-  font-weight: 500;
-}
-
-.summaryText {
-  font-size: 0.85rem;
-  opacity: 0.75;
-  margin-bottom: 8px;
-}
-
-.cancelBtn {
-  border-radius: 999px;
-  border: 1px solid #555;
-  background: transparent;
-  padding: 8px 16px;
-  color: #fff;
-  cursor: pointer;
-}
-
-.cancelBtn:hover {
-  background: #2a2833;
-}
-
-
-/* Mobile */
+/* ============================================================
+   MOBILE
+============================================================ */
 @media (max-width: 480px) {
-  .timeGrid {
-    grid-template-columns: 1fr;
+  .modal {
+    padding: 18px;
   }
-  .checkList {
-    grid-template-columns: 1fr;
-  }
-}
-/* Mobile */
-@media (max-width: 480px) {
+
   .servicesModal {
-    padding: 16px;
+    padding: 18px;
   }
 
   .serviceItem {
-    grid-template-columns: auto 1fr;
-    row-gap: 4px;
+    grid-template-columns: 22px 1fr;
+    row-gap: 6px;
   }
 
   .serviceDuration {
@@ -494,8 +393,10 @@
 }
 
 
-/* Fade-in */
+/* ============================================================
+   FADE ANIMATION
+============================================================ */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
