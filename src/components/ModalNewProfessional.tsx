@@ -5,7 +5,7 @@ import { X } from "lucide-react";
 
 import ModalPickServicesForProfessional from "./ModalPickServicesForProfessional";
 import styles from "../css/ModalNewProfessional.module.css";
-
+import ModalSelectServiceForProfessional from "./ModalSelectServiceForProfessional";
 interface ModalNewProfessionalProps {
   tenantId?: string;
   show: boolean;
@@ -524,16 +524,17 @@ export default function ModalNewProfessional({
       </div>
 
       {/* MODAL DE SELEÇÃO DE SERVIÇOS */}
-      <ModalPickServicesForProfessional
-        show={showSelectServices}
-        services={services}
-        selectedIds={selectedServices}
-        onClose={() => setShowSelectServices(false)}
-        onSave={ids => {
-          setSelectedServices(ids);
-          setShowSelectServices(false);
-        }}
-      />
+      <ModalSelectServiceForProfessional
+  show={showSelectServices}
+  services={services}
+  selectedIds={selectedServices}
+  onClose={() => setShowSelectServices(false)}
+  onSave={(ids) => {
+    setSelectedServices(ids);
+    setShowSelectServices(false);
+  }}
+/>
+
     </>
   );
 }
