@@ -1,10 +1,13 @@
 // src/components/ModalNewService.tsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import styles from "../css/ModalNewService.module.css";
 import { supabase } from "../lib/supabaseCleint";
 import { toast } from "react-toastify";
 import { X } from "lucide-react";
 
+/* ============================================
+   TYPES
+============================================ */
 interface Service {
   id: string;
   name: string;
@@ -26,16 +29,20 @@ interface ModalNewServiceProps {
   onSuccess?: (id: string, name: string, duration: number) => void;
 }
 
+/* ============================================
+   COMPONENT
+============================================ */
 export default function ModalNewService({
   tenantId,
   show,
   mode,
   service,
   onClose,
-  onSuccess
+  onSuccess,
 }: ModalNewServiceProps) {
-
-  // ---------------------------- STATES ----------------------------
+  /* ============================================
+     FORM STATES
+  ============================================ */
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [duration, setDuration] = useState("");
@@ -44,55 +51,67 @@ export default function ModalNewService({
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [selectedProfessionals, setSelectedProfessionals] = useState<string[]>([]);
 
-  // ---------------------------- RESET FORM ----------------------------
-  function resetForm() {
+  /* ============================================
+     RESET FORM
+  ============================================ */
+  const resetForm = useCallback(() => {
     setName("");
     setPrice("");
     setDuration("");
     setSelectedProfessionals([]);
-  }
+  }, []);
 
-  // ---------------------------- LOAD PROFESSIONALS ----------------------------
+  /* ============================================
+     LOAD PROFESSIONALS
+  ============================================ */
   useEffect(() => {
     if (!show || !tenantId) return;
-    loadProfessionals();
-  }, [show, tenantId]);
 
-  async function loadProfessionals() {
-    const { data, error } = await supabase
-      .from("professionals")
-      .select("id,name")
-      .eq("tenant_id", tenantId)
-      .order("name");
+    async function load() {
+      const { data, error } = await supabase
+        .from("professionals")
+        .select("id,name")
+        .eq("tenant_id", tenantId)
+        .order("name");
 
-    if (error) {
-      toast.error("Erro ao carregar profissionais");
-      return;
+      if (error) {
+        toast.error("Erro ao carregar profissionais");
+        return;
+      }
+
+      setProfessionals(data ?? []);
     }
 
-    setProfessionals(data ?? []);
-  }
+    load();
+  }, [show, tenantId]);
 
-  // ---------------------------- LOAD SERVICE WHEN EDIT ----------------------------
+  /* ============================================
+     LOAD SERVICE DATA WHEN EDITING
+  ============================================ */
   useEffect(() => {
     if (!show) return;
 
     if (mode === "edit" && service) {
       setName(service.name);
       setDuration(String(service.duration_min ?? 60));
-      setPrice(service.price_cents ? String(service.price_cents / 100) : "");
+      setPrice(
+        service.price_cents ? String(service.price_cents / 100) : ""
+      );
     } else {
       resetForm();
     }
-  }, [show, mode, service]);
+  }, [show, mode, service, resetForm]);
 
-  // ---------------------------- SAVE ----------------------------
+  /* ============================================
+     SAVE (CREATE / UPDATE)
+  ============================================ */
   async function handleSave() {
     if (!tenantId) return toast.error("Tenant não encontrado.");
 
     const serviceName = name.trim();
     const dur = Number(duration);
-    const priceCents = Number(price) > 0 ? Math.round(Number(price) * 100) : null;
+    const priceCents =
+      Number(price) > 0 ? Math.round(Number(price) * 100) : null;
 
     if (!serviceName || !dur) {
       toast.warn("Preencha nome e duração");
@@ -102,10 +121,12 @@ export default function ModalNewService({
     setLoading(true);
 
     try {
-      let serviceId = service?.id ?? "";
+      const isEdit = mode === "edit" && service;
 
-      // EDITAR
-      if (mode === "edit" && service) {
+      /* ============================================
+         UPDATE (EDITAR)
+      ============================================ */
+      if (isEdit) {
         const { error } = await supabase
           .from("services")
           .update({
@@ -113,7 +134,7 @@ export default function ModalNewService({
             duration_min: dur,
             price_cents: priceCents,
           })
-          .eq("id", serviceId)
+          .eq("id", service.id)
           .eq("tenant_id", tenantId);
 
         if (error) throw error;
@@ -123,7 +144,9 @@ export default function ModalNewService({
         return;
       }
 
-      // CRIAR
+      /* ============================================
+         CREATE (CADASTRAR)
+      ============================================ */
       const { data, error } = await supabase
         .from("services")
         .insert([
@@ -139,16 +162,16 @@ export default function ModalNewService({
 
       if (error) throw error;
 
-      serviceId = data.id;
-
       toast.success("Serviço cadastrado!");
 
-      onSuccess?.(serviceId, serviceName, dur);
+      onSuccess?.(data.id, serviceName, dur);
 
-      if (mode === "agenda") return onClose();
+      if (mode === "agenda") {
+        onClose();
+        return;
+      }
 
       resetForm();
-
     } catch (err) {
       console.error(err);
       toast.error("Erro ao salvar serviço.");
@@ -157,19 +180,23 @@ export default function ModalNewService({
     }
   }
 
-  // ---------------------------- UI ----------------------------
+  /* ============================================
+     UI
+  ============================================ */
   if (!show) return null;
 
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
-
+        {/* CLOSE BUTTON */}
         <button className={styles.closeBtn} onClick={onClose}>
           <X size={18} />
         </button>
 
+        {/* TITLE */}
         <h3>{mode === "edit" ? "Editar Serviço" : "Novo Serviço"}</h3>
 
+        {/* INPUTS */}
         <input
           className={styles.input}
           placeholder="Nome do serviço"
@@ -193,6 +220,7 @@ export default function ModalNewService({
           onChange={(e) => setDuration(e.target.value)}
         />
 
+        {/* PROFESSIONALS */}
         {professionals.length > 0 && (
           <>
             <h4 className={styles.subtitle}>Profissionais</h4>
@@ -204,13 +232,14 @@ export default function ModalNewService({
                     type="checkbox"
                     checked={selectedProfessionals.includes(p.id)}
                     onChange={() =>
-                      setSelectedProfessionals((old) =>
-                        old.includes(p.id)
-                          ? old.filter((x) => x !== p.id)
-                          : [...old, p.id]
+                      setSelectedProfessionals((prev) =>
+                        prev.includes(p.id)
+                          ? prev.filter((x) => x !== p.id)
+                          : [...prev, p.id]
                       )
                     }
                   />
+
                   <span className={styles.profName}>{p.name}</span>
                 </label>
               ))}
@@ -218,6 +247,7 @@ export default function ModalNewService({
           </>
         )}
 
+        {/* SAVE BUTTON */}
         <button
           className={styles.saveButton}
           disabled={loading}
