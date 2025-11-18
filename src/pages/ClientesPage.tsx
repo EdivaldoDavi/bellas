@@ -44,26 +44,27 @@ export default function ClientesPage() {
   }, [tenantId]);
 
 async function load() {
-  if (!tenantId) return;
+  if (!tenantId) {
+    console.log("❌ Sem tenantId ainda.");
+    return;
+  }
 
-  setLoading(true);
+  console.log("🔎 Buscando clientes do tenant:", tenantId);
 
-  const { data, error } = await supabase
+  const query = supabase
     .from("customers")
-    .select(`
-      id,
-      full_name,
-      customer_phone,
-      is_active
-    `)
+    .select("id, full_name, customer_phone, is_active")
     .eq("tenant_id", tenantId)
     .order("full_name", { ascending: true });
 
-  if (error) {
-    console.error("LOAD ERROR:", error);
-  }
+  console.log("📌 Query gerada:", query);
 
-  setCustomers(data || []);
+  const { data, error } = await query;
+
+  console.log("📥 Dados recebidos:", data);
+  console.log("⚠️ Erro:", error);
+
+  if (!error) setCustomers(data || []);
   setLoading(false);
 }
 
