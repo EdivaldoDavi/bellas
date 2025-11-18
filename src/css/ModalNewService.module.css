@@ -137,36 +137,41 @@
 /* =====================================
    PROFESSIONAL LIST
 ===================================== */
-.checkList {
+checkList {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 10px;
+  width: 100%;
 }
 
+/* Cada linha de profissional */
 .checkItem {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 0.55rem;
+  gap: 10px;
 
-  font-size: 0.95rem;
-  padding: 6px 2px;
-
-  white-space: nowrap;
+  width: 100%;
+  padding: 8px 4px;
+  border-radius: 8px;
 }
 
-/* checkbox fixo e alinhado */
+/* Checkbox sempre colado ao nome */
 .checkItem input {
-  flex-shrink: 0;
+  flex-shrink: 0;       /* não encolhe */
+  width: 18px;
+  height: 18px;
   accent-color: var(--color-primary);
 }
 
-/* Nome sempre em uma linha */
-.checkItem span {
-  display: inline-block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: calc(100% - 30px);
+/* Nome do profissional */
+.profName {
+  flex: 1;               /* ocupa todo o espaço restante */
+  white-space: nowrap;   /* NÃO deixa quebrar */
+  overflow: hidden;      /* evita estourar o container */
+  text-overflow: ellipsis; /* coloca ... se muito longo */
+  font-size: 0.95rem;
+  color: var(--text);
 }
 
 /* =====================================
