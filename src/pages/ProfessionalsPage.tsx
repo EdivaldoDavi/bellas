@@ -4,7 +4,7 @@ import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
 import { X, Plus, Pencil, Eye, EyeOff } from "lucide-react";
 
-
+import { toast } from "react-toastify"; 
 import ModalNewProfessional from "../components/ModalNewProfessional";
 import styles from "../css/ProfessionalsPage.module.css";
 
@@ -30,6 +30,79 @@ export default function ProfessionalsPage() {
   useEffect(() => {
     if (tenantId) load();
   }, [tenantId]);
+
+
+
+async function toggleActive(p: Professional) {
+  const { error } = await supabase
+    .from("professionals")
+    .update({ is_active: !p.is_active })
+    .eq("tenant_id", tenantId)
+    .eq("id", p.id);
+
+  if (!error) {
+    setProfessionals((old) =>
+      old.map((x) =>
+        x.id === p.id ? { ...x, is_active: !x.is_active } : x
+      )
+    );
+  }
+}
+
+function confirmToggle(p: Professional) {
+  const action = p.is_active ? "inativar" : "ativar";
+
+  toast(
+    ({ closeToast }) => (
+      <div style={{ textAlign: "center" }}>
+        <p style={{ marginBottom: 12 }}>
+          Deseja realmente <b>{action}</b> o profissional:
+          <br />"{p.name}"?
+        </p>
+
+        <button
+          onClick={() => {
+            closeToast?.();
+            toggleActive(p);
+          }}
+          style={{
+            marginRight: 10,
+            padding: "6px 12px",
+            borderRadius: 8,
+            background: "#6d28d9",
+            color: "#fff",
+            border: "none",
+            cursor: "pointer"
+          }}
+        >
+          Confirmar
+        </button>
+
+        <button
+          onClick={closeToast}
+          style={{
+            padding: "6px 12px",
+            borderRadius: 8,
+            background: "#2a2833",
+            color: "#fff",
+            border: "1px solid #555",
+            cursor: "pointer"
+          }}
+        >
+          Cancelar
+        </button>
+      </div>
+    ),
+    {
+      autoClose: false,
+      draggable: false,
+      icon: false,
+      closeOnClick: false,
+      style: { background: "#1d1b23", color: "#fff" }
+    }
+  );
+}
+
 
   async function load() {
     setLoading(true);
@@ -62,21 +135,7 @@ export default function ProfessionalsPage() {
   }
 
   /* CONFIRMAR */
-  async function toggleActive(p: Professional) {
-    const { error } = await supabase
-      .from("professionals")
-      .update({ is_active: !p.is_active })
-      .eq("tenant_id", tenantId)
-      .eq("id", p.id);
-
-    if (!error) {
-      setProfessionals((old) =>
-        old.map((x) =>
-          x.id === p.id ? { ...x, is_active: !x.is_active } : x
-        )
-      );
-    }
-  }
+  
 
   return (
     <>
@@ -141,15 +200,12 @@ export default function ProfessionalsPage() {
                     </button>
 
                     <button
-                      className={`${styles.iconBtn} ${styles.danger}`}
-                      onClick={() => toggleActive(p)}
+                    className={`${styles.iconBtn} ${styles.danger}`}
+                    onClick={() => confirmToggle(p)}
                     >
-                      {p.is_active ? (
-                        <Eye size={18} />
-                      ) : (
-                        <EyeOff size={18} />
-                      )}
+                    {p.is_active ? <Eye size={18} /> : <EyeOff size={18} />}
                     </button>
+
                   </div>
                 </div>
               ))}
