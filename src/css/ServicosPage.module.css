@@ -21,11 +21,8 @@
 }
 
 /* header */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 18px;
+.header button {
+  flex-shrink: 0;
 }
 
 .header h2 {
@@ -35,11 +32,27 @@
 }
 
 .closeBtn {
+  width: 34px;
+  height: 34px;
   border: none;
-  background: none;
+  outline: none;
+  background: transparent !important;
+  color: #ffffff;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
   cursor: pointer;
-  color: #fff;
+
+  transition: background 0.2s ease-in-out;
 }
+
+.closeBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
 
 /* botão grande */
 .newBtn {
