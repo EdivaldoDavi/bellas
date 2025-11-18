@@ -1,10 +1,9 @@
-// src/pages/ServicosPage.tsx
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
-import { X, Plus,Eye, EyeOff} from "lucide-react";
+import { X, Plus, Pencil, Eye, EyeOff } from "lucide-react";
 import { toast } from "react-toastify";
 
 import ModalNewService from "../components/ModalNewService";
@@ -15,6 +14,7 @@ type Service = {
   name: string;
   duration_min: number | null;
   is_active: boolean;
+  price_cents?: number | null;
 };
 
 export default function ServicosPage() {
@@ -31,24 +31,17 @@ export default function ServicosPage() {
   const [openModal, setOpenModal] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
 
-  /* ============================================================
-     LOAD SERVICES
-  ============================================================ */
+  /* LOAD */
   useEffect(() => {
     if (tenantId) load();
   }, [tenantId]);
-useEffect(() => {
-  if (tenant?.primary_color) {
-    document.documentElement.style.setProperty("--primary", tenant.primary_color);
-  }
-}, [tenant]);
 
   async function load() {
     setLoading(true);
 
     const { data, error } = await supabase
       .from("services")
-     .select("id,name,duration_min,is_active,price_cents")
+      .select("id,name,duration_min,is_active,price_cents")
       .eq("tenant_id", tenantId)
       .order("name");
 
@@ -56,25 +49,19 @@ useEffect(() => {
     setLoading(false);
   }
 
-  /* ============================================================
-     FILTRO EM TEMPO REAL
-  ============================================================ */
+  /* FILTRO */
   const filtered = useMemo(() => {
     const t = search.trim().toLowerCase();
-    return !t ? services : services.filter(s => s.name.toLowerCase().includes(t));
+    return t ? services.filter(s => s.name.toLowerCase().includes(t)) : services;
   }, [search, services]);
 
-  /* ============================================================
-     EDITAR SERVIÇO
-  ============================================================ */
+  /* EDITAR */
   function openEdit(s: Service) {
     setEditingService(s);
     setOpenModal(true);
   }
 
-  /* ============================================================
-     ATIVAR / INATIVAR COM CONFIRMAÇÃO
-  ============================================================ */
+  /* CONFIRMAR */
   function confirmToggle(service: Service) {
     const action = service.is_active ? "inativar" : "ativar";
 
@@ -91,30 +78,12 @@ useEffect(() => {
               closeToast?.();
               toggleActive(service);
             }}
-            style={{
-              marginRight: 10,
-              padding: "6px 12px",
-              border: "none",
-              borderRadius: 8,
-              background: brandColor,
-              color: "#fff",
-              cursor: "pointer",
-            }}
+            className={styles.confirmBtn}
           >
             Confirmar
           </button>
 
-          <button
-            onClick={closeToast}
-            style={{
-              padding: "6px 12px",
-              border: "1px solid #555",
-              borderRadius: 8,
-              background: "#2a2833",
-              color: "#fff",
-              cursor: "pointer",
-            }}
-          >
+          <button onClick={closeToast} className={styles.cancelBtn}>
             Cancelar
           </button>
         </div>
@@ -138,34 +107,28 @@ useEffect(() => {
 
     if (!error) {
       setServices(old =>
-        old.map(s => (s.id === service.id ? { ...s, is_active: !s.is_active } : s))
+        old.map(s =>
+          s.id === service.id ? { ...s, is_active: !s.is_active } : s
+        )
       );
     }
   }
 
-  /* ============================================================
-     FECHAR MODAL
-  ============================================================ */
   function close() {
     navigate(-1);
   }
 
   return (
     <>
-      {/* OVERLAY */}
       <div className={styles.overlay} onClick={close}>
-        <div className={styles.modal} onClick={e => e.stopPropagation()}>
-          
-          {/* Header */}
+        <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
           <div className={styles.header}>
             <h2>Serviços</h2>
-
             <button className={styles.closeBtn} onClick={close}>
               <X size={20} />
             </button>
           </div>
 
-          {/* Novo serviço */}
           <button
             className={styles.newBtn}
             style={{ backgroundColor: brandColor }}
@@ -178,15 +141,13 @@ useEffect(() => {
             <span>Novo serviço</span>
           </button>
 
-          {/* Busca */}
           <input
             className={styles.search}
             placeholder="Buscar serviço..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={e => setSearch(e.target.value)}
           />
 
-          {/* Lista */}
           <div className={styles.list}>
             {loading && <div className={styles.empty}>Carregando...</div>}
 
@@ -195,50 +156,37 @@ useEffect(() => {
             )}
 
             {!loading &&
-              filtered.map((svc) => (
+              filtered.map(svc => (
                 <div key={svc.id} className={styles.card}>
-
                   <div>
                     <div className={styles.title}>{svc.name}</div>
                     <div className={styles.meta}>
-                      {svc.duration_min ?? 60} min · {svc.is_active ? "Ativo" : "Inativo"}
+                      {svc.duration_min ?? 60} min ·{" "}
+                      {svc.is_active ? "Ativo" : "Inativo"}
                     </div>
                   </div>
 
                   <div className={styles.actions}>
-                    {/* Editar */}
                     <button
                       className={styles.iconBtn}
                       onClick={() => openEdit(svc)}
-                      title="Editar serviço"
                     >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                        <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z"
-                          stroke="#fff" strokeWidth="1.5" />
-                      </svg>
+                      <Pencil size={18} />
                     </button>
 
-                    {/* Ativar / Inativar */}
                     <button
                       className={`${styles.iconBtn} ${styles.danger}`}
                       onClick={() => confirmToggle(svc)}
-                      title={svc.is_active ? "Inativar" : "Ativar"}
                     >
-                     {svc.is_active ? (
-                        <Eye size={18} />   // Inativar
-                    ) : (
-                      <EyeOff size={18} />      // Ativar
-                    )}
-                                        </button>
+                      {svc.is_active ? <Eye size={18} /> : <EyeOff size={18} />}
+                    </button>
                   </div>
-
                 </div>
               ))}
           </div>
         </div>
       </div>
 
-      {/* ModalNewService */}
       <ModalNewService
         tenantId={tenantId}
         show={openModal}
