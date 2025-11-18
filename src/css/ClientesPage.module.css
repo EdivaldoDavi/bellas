@@ -74,7 +74,7 @@
 }
 
 /* ================================
-   BOTÃO "NOVO SERVIÇO"
+   BOTÃO "NOVO CLIENTE"
 ================================ */
 .newBtn {
   width: 100%;
@@ -131,7 +131,7 @@
 }
 
 /* ================================
-   CARD DO SERVIÇO
+   CARD DO CLIENTE
 ================================ */
 .card {
   background: var(--card-bg);
@@ -197,7 +197,7 @@
    TEMA DARK
 ================================ */
 :root {
-  --primary: #7c5cff; /* Será sobrescrito pelo brandcolor */
+  --primary: #7c5cff;
   --modal-bg: #15141a;
   --card-bg: #1b1922;
   --input-bg: #1d1b23;
@@ -209,7 +209,7 @@
 /* ================================
    TEMA LIGHT
 ================================ */
-:root[data-theme='light'] {
+:root[data-theme="light"] {
   --modal-bg: #ffffff;
   --card-bg: #f7f7fa;
   --input-bg: #f2f2f7;
