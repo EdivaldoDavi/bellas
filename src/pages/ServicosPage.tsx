@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
-import { X, Plus, Ban, CheckCircle ,Eye, EyeOff} from "lucide-react";
+import { X, Plus,Eye, EyeOff} from "lucide-react";
 import { toast } from "react-toastify";
 
 import ModalNewService from "../components/ModalNewService";
