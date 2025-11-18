@@ -50,7 +50,8 @@ export default function ClientesPage() {
       .from("customers")
       .select("id, full_name, customer_phone, is_active")
       .eq("tenant_id", tenantId)
-      .order("full_name");
+      .order('"full_name"', { ascending: true })
+
 
     if (!error && data) {
       setCustomers(data as Customer[]);
