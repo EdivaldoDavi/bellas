@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 import { X, Edit2, Trash2, Plus } from "lucide-react";
-import styles from "../css/ServicesModal.module.css";
+import styles from "../css/ServicosModal.module.css";
 import ModalNewService from "../components/ModalNewService";
 
 type Service = {
