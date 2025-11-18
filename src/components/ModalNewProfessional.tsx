@@ -2,9 +2,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseCleint";
 import { toast } from "react-toastify";
 import { X } from "lucide-react";
+import styles from "../css/ModalNewProfessional.module.css"
 
-import ModalPickServicesForProfessional from "./ModalPickServicesForProfessional";
-import styles from "../css/ModalNewProfessional.module.css";
 import ModalSelectServiceForProfessional from "./ModalSelectServiceForProfessional";
 interface ModalNewProfessionalProps {
   tenantId?: string;
