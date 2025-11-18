@@ -178,45 +178,44 @@ export default function ClientesPage() {
             onChange={e => setSearch(e.target.value)}
           />
 
-          <div className={styles.list}>
-            
-            {loading && (
-              <div className={styles.empty}>Carregando...</div>
-            )}
+                <div className={styles.list}>
 
-            {!loading && customers.length === 0 && (
-              <div className={styles.empty}>Nenhum cliente cadastrado ainda.</div>
-            )}
+                {loading && (
+                    <div className={styles.empty}>Carregando...</div>
+                )}
 
-            {!loading && customers.length > 0 && filtered.length === 0 && (
-              <div className={styles.empty}>Nenhum cliente encontrado.</div>
-            )}
+                {!loading && customers.length === 0 && (
+                    <div className={styles.empty}>Nenhum cliente cadastrado ainda.</div>
+                )}
 
-            {!loading && filtered.length > 0 &&
-              filtered.map(c => (
-                <div key={c.id} className={styles.card}>
-                  <div>
-                    <div className={styles.title}>{c.full_name}</div>
-                    <div className={styles.meta}>
-                      {c.customer_phone} · {c.is_active ? "Ativo" : "Inativo"}
+                {!loading && customers.length > 0 && filtered.length === 0 && (
+                    <div className={styles.empty}>Nenhum cliente encontrado.</div>
+                )}
+
+                {!loading && filtered.length > 0 && filtered.map(c => (
+                    <div key={c.id} className={styles.card}>
+                    <div>
+                        <div className={styles.title}>{c.full_name}</div>
+                        <div className={styles.meta}>
+                        {c.customer_phone} · {c.is_active ? "Ativo" : "Inativo"}
+                        </div>
                     </div>
-                  </div>
 
-                  <div className={styles.actions}>
-                    <button className={styles.iconBtn} onClick={() => openEdit(c)}>
-                      ✏️
-                    </button>
+                    <div className={styles.actions}>
+                        <button className={styles.iconBtn} onClick={() => openEdit(c)}>
+                        ✏️
+                        </button>
+                        <button
+                        className={`${styles.iconBtn} ${styles.danger}`}
+                        onClick={() => confirmToggle(c)}
+                        >
+                        {c.is_active ? <Eye size={18}/> : <EyeOff size={18}/>}
+                        </button>
+                    </div>
+                    </div>
+                ))}
 
-                    <button
-                      className={`${styles.iconBtn} ${styles.danger}`}
-                      onClick={() => confirmToggle(c)}
-                    >
-                      {c.is_active ? <Eye size={18} /> : <EyeOff size={18} />}
-                    </button>
-                  </div>
                 </div>
-              ))}
-          </div>
 
         </div>
       </div>
