@@ -137,21 +137,20 @@
    PROFESSIONAL LIST
 ===================================== */
 .checkList {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-/* Cada profissional em uma linha, sem quebra */
 .checkItem {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.6rem;
+  font-size: 0.95rem;
 
-  white-space: nowrap;         /* impede quebra de linha */
-  overflow: hidden;            /* evita estourar layout */
-  text-overflow: ellipsis;     /* adiciona ... se nome for grande */
+  white-space: nowrap;
 }
+
 
 /* checkbox alinhado sempre */
 .checkItem input {
