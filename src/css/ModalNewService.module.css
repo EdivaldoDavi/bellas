@@ -150,54 +150,60 @@
 
 /* =========================================================
    ITEM – clicável, suave, alinhamento perfeito
-========================================================= */
-.checkItem {
+/* LISTA DE PROFISSIONAIS */
+.checkList {
   display: flex;
-  align-items: center;         /* já centraliza */
-  gap: 10px;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* Cada linha: checkbox + nome */
+.checkItem {
+  display: grid;
+  grid-template-columns: 18px 1fr; /* coluna do check + coluna do texto */
+  align-items: center;             /* centraliza os dois no meio */
+  column-gap: 10px;
 
   padding: 10px 12px;
   border-radius: 10px;
-
   background: var(--input-bg);
   border: 1px solid var(--border);
 
-  transition: background 0.2s ease, border-color 0.2s ease,
-              transform 0.15s ease;
   cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease,
+              transform 0.14s ease;
 }
 
-/* Ajuste FINO para alinhar checkbox com texto */
+/* remove qualquer deslocamento estranho do checkbox */
 .checkItem input {
-  flex-shrink: 0;
+  margin: 0;
   width: 18px;
   height: 18px;
   accent-color: var(--color-primary);
-  margin-top: 1px;     /* 🔥 AJUSTE MILIMÉTRICO */
 }
 
+/* texto alinhado certinho com o centro do check */
 .profName {
-  display: flex;
-  align-items: center;  /* 🔥 garante baseline perfeita */
-  line-height: 1;       /* evita salto vertical */
+  margin: 0;
   font-size: 0.95rem;
+  line-height: 1.1;
   color: var(--text);
-  white-space: nowrap;
-}
-
-/* Checkbox sempre alinhado */
-
-/* Nome sempre em linha */
-.profName {
-  flex: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-
-  font-size: 0.95rem;
-  color: var(--text);
-  cursor: pointer; /* clicável */
 }
+
+/* feedback visual ao passar o mouse / selecionar */
+.checkItem:hover {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--input-bg));
+}
+
+.checkItem:active {
+  transform: scale(0.99);
+}
+
 
 
 
