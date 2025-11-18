@@ -486,9 +486,20 @@
   }
 
   .serviceItem {
-    grid-template-columns: auto 1fr;
-    row-gap: 4px;
-  }
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+
+  column-gap: 6px;   /* ERA 12 — agora bem mais próximo */
+
+  padding: 14px 15px;
+  border-radius: 12px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: background .18s ease, border-color .18s ease;
+}
+
 
   .serviceDuration {
     justify-self: flex-start;
