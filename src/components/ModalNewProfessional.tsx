@@ -9,7 +9,7 @@ interface ModalNewProfessionalProps {
   show: boolean;
   mode?: "agenda" | "cadastro"; // como será usado
   onClose: () => void;
-  onSuccess?: (id?: string, name?: string) => void;
+onSuccess?: (id: string, name: string) => void;
 
   /** ID do profissional para edição (opcional) */
   editId?: string | null;
