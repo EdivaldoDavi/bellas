@@ -316,6 +316,10 @@
   width: 18px;
   height: 18px;
   accent-color: var(--color-primary);
+
+  align-self: center; /* garante alinhamento vertical */
+
+
 }
 
 .serviceName {

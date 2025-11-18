@@ -27,43 +27,37 @@ export default function ModalSelectServiceForProfessional({
   const allSelected =
     services.length > 0 && selectedIds.length === services.length;
 
-  /* --------------------------------------
-     Selecionar / remover 1 serviço
-  --------------------------------------- */
+  /* --------------------------------------------
+     Selecionar / remover item individual
+  -------------------------------------------- */
   function toggleId(id: string) {
-    const newList = selectedIds.includes(id)
-      ? selectedIds.filter((x) => x !== id)
-      : [...selectedIds, id];
-
-    onSave(newList);
+    onSave(
+      selectedIds.includes(id)
+        ? selectedIds.filter((x) => x !== id)
+        : [...selectedIds, id]
+    );
   }
 
-  /* --------------------------------------
+  /* --------------------------------------------
      Selecionar / remover todos
-  --------------------------------------- */
+  -------------------------------------------- */
   function toggleAll() {
-    if (allSelected) {
-      onSave([]);
-    } else {
-      onSave(services.map((s) => s.id));
-    }
+    onSave(allSelected ? [] : services.map((s) => s.id));
   }
 
-  /* --------------------------------------
+  /* --------------------------------------------
      Confirmar
-  --------------------------------------- */
+  -------------------------------------------- */
   function handleConfirm() {
-    onSave(selectedIds);
     onClose();
   }
 
-  /* ======================================
-       RENDER
-  ======================================= */
-
   return (
-    <div className={styles.servicesOverlay}>
-      <div className={styles.servicesModal} onClick={(e) => e.stopPropagation()}>
+    <div className={styles.servicesOverlay} onClick={onClose}>
+      <div
+        className={styles.servicesModal}
+        onClick={(e) => e.stopPropagation()} // 🔒 impede fechar ao clicar dentro
+      >
         {/* HEADER */}
         <div className={styles.servicesHeader}>
           <h3>Selecionar serviços</h3>
@@ -75,7 +69,6 @@ export default function ModalSelectServiceForProfessional({
 
         {/* LISTA */}
         <div className={styles.servicesList}>
-
           {/* SELECT ALL */}
           <label
             className={styles.serviceItem}
@@ -87,8 +80,11 @@ export default function ModalSelectServiceForProfessional({
             <input
               type="checkbox"
               checked={allSelected}
-              onChange={toggleAll}
-              onClick={(e) => e.stopPropagation()}
+              onChange={() => {}}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleAll();
+              }}
             />
             <span className={styles.serviceName}>Selecionar todos</span>
             <span className={styles.serviceDuration}></span>
@@ -105,21 +101,26 @@ export default function ModalSelectServiceForProfessional({
                   toggleId(s.id);
                 }}
               >
-                {/* CHECK */}
+                {/* CHECKBOX */}
                 <input
                   type="checkbox"
                   checked={selectedIds.includes(s.id)}
-                  onChange={() => toggleId(s.id)}
-                  onClick={(e) => e.stopPropagation()}
+                  onChange={() => {}}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleId(s.id);
+                  }}
                 />
 
-                {/* NOME */}
+                {/* TEXTO */}
                 <span className={styles.serviceName}>{s.name}</span>
 
                 {/* DURAÇÃO */}
-                <span className={styles.serviceDuration}>
-                  {s.duration_min ? `${s.duration_min} min` : ""}
-                </span>
+                {s.duration_min !== null && (
+                  <span className={styles.serviceDuration}>
+                    {s.duration_min} min
+                  </span>
+                )}
               </label>
             ))}
           </div>
@@ -130,6 +131,7 @@ export default function ModalSelectServiceForProfessional({
           <button className={styles.cancelBtn} onClick={onClose}>
             Cancelar
           </button>
+
           <button className={styles.saveBtn} onClick={handleConfirm}>
             Salvar seleção
           </button>
