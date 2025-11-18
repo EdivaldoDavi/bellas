@@ -23,7 +23,7 @@ import ForcePasswordReset from "./components/ForcePasswordReset";
 import ConnectWhatsAppPage from "./pages/ConnectWhatsAppPage";
 import GerenciarAcessosPage from "./config/GerenciarAcessosPage";
 import ForgotPassword from "./pages/auth/ForgotPassword";
-
+import ClientesPage from "./pages/ClientesPage";
 // 🔥 Importar suas novas páginas
 import ServicosPage from "./pages/ServicosPage";
 // você criará depois:
@@ -139,7 +139,7 @@ export default function App() {
             <Route path="/integracoes/whatsapp" element={<ConnectWhatsAppPage />} />
 
             {/* === 👇 NOVAS ROTAS DO SIDEBAR 👇 === */}
-           {/* <Route path="/clientes" element={<ClientesPage />} />*/}
+            <Route path="/clientes" element={<ClientesPage />} />
             <Route path="/servicos" element={<ServicosPage />} />
             {/* <Route path="/profissionais" element={<ProfissionaisPage />} />*/}
             {/*<Route path="/usuarios" element={<UsuariosPage />} />*/}
