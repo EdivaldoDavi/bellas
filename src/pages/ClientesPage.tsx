@@ -43,22 +43,29 @@ export default function ClientesPage() {
     if (tenantId) load();
   }, [tenantId]);
 
-  async function load() {
-    setLoading(true);
+async function load() {
+  if (!tenantId) return;
 
-    const { data, error } = await supabase
-      .from("customers")
-      .select("id, full_name, customer_phone, is_active")
-      .eq("tenant_id", tenantId)
-      .order('"full_name"', { ascending: true })
+  setLoading(true);
 
+  const { data, error } = await supabase
+    .from("customers")
+    .select(`
+      id,
+      full_name,
+      customer_phone,
+      is_active
+    `)
+    .eq("tenant_id", tenantId)
+    .order("full_name", { ascending: true });
 
-    if (!error && data) {
-      setCustomers(data as Customer[]);
-    }
-
-    setLoading(false);
+  if (error) {
+    console.error("LOAD ERROR:", error);
   }
+
+  setCustomers(data || []);
+  setLoading(false);
+}
 
   /* FILTRAGEM */
   const filtered = useMemo(() => {
