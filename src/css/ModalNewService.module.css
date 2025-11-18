@@ -1,175 +1,195 @@
-/* Fundo escuro - modal overlay */
+/* =====================================
+   OVERLAY - Fundo escurecido
+===================================== */
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.6);
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
 }
 
-/* Caixa do modal */
+/* =====================================
+   MODAL
+===================================== */
 .modal {
   width: 100%;
-  max-width: 480px;
+  max-width: 460px;
   max-height: 92vh;
   overflow-y: auto;
-  background: var(--card-bg, #fff);
-  color: var(--text, #000);
-  border-radius: 14px;
-  padding: 1.2rem;
+
+  background: var(--card-bg);
+  color: var(--text);
+
+  padding: 24px;
+  border-radius: 18px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+
   position: relative;
-  animation: fadeIn .2s ease-out;
+  animation: fadeIn 0.22s ease-out;
 }
 
-/* Botão fechar */
+/* Fade animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* =====================================
+   CLOSE BUTTON - COMPLETAMENTE REFEITO
+===================================== */
 .closeBtn {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  background: transparent;
-  border: 1px solid var(--separator, #ddd);
-  width: 34px;
-  height: 34px;
+  top: 14px;
+  right: 14px;
+
+  width: 36px;
+  height: 36px;
+
+  border: 1px solid var(--border);
   border-radius: 50%;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
+
+  background: var(--card-bg);
   color: var(--text);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
 
-/* Títulos */
+.closeBtn:hover {
+  background: var(--hover-bg);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 35%, transparent);
+}
+
+.closeBtn:active {
+  transform: scale(0.95);
+}
+
+/* Light theme hover */
+:root[data-theme="light"] .closeBtn:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* Dark theme hover */
+:root[data-theme="dark"] .closeBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* =====================================
+   TITLES
+===================================== */
 .modal h3 {
-  margin: 0 0 1rem;
-  font-size: 1.25rem;
-  font-weight: bold;
+  margin: 0 0 1.2rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  padding-right: 45px;
 }
 
 .modal h4 {
-  margin: 1rem 0 .6rem;
-  font-size: 1.05rem;
+  margin: 1rem 0 0.6rem;
+  font-size: 1rem;
   font-weight: 600;
 }
 
-/* Inputs */
+/* =====================================
+   INPUTS
+===================================== */
 .input {
   width: 100%;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--separator);
-  background: var(--bg);
+  padding: 11px 13px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
   color: var(--text);
-  margin-bottom: 10px;
-  font-size: 14px;
-  transition: border-color .2s, box-shadow .2s, background .2s;
+
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
 }
 
 .input::placeholder {
   color: var(--text-muted);
 }
 
-/* FOCUS correto para dark/light */
 .input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent);
   background: var(--card-bg);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent);
 }
 
-
-/* Lista de serviços */
+/* =====================================
+   PROFESSIONAL LIST
+===================================== */
 .checkList {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: .5rem;
+  gap: 0.55rem;
 }
 
 .checkItem {
   display: flex;
-  gap: .45rem;
   align-items: center;
+  gap: 0.45rem;
+  font-size: 0.93rem;
 }
 
 .checkItem input {
   accent-color: var(--color-primary);
 }
 
-/* Row "copiar semana" */
-.copyRow {
-  display: flex;
-  gap: .45rem;
-  align-items: center;
-  margin: .5rem 0 .75rem;
-  font-size: .95rem;
-}
-
-/* Títulos dias */
-.dayTitle {
-  font-weight: 600;
-  margin-bottom: .4rem;
-}
-
-/* Caixa de dia */
-.dayBlock {
-  padding: .65rem;
-  border: 1px solid var(--separator);
-  border-radius: 10px;
-  margin-bottom: .65rem;
-}
-
-/* Grid horários */
-.timeGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: .65rem;
-}
-
-.timeGrid input {
+/* =====================================
+   SAVE BUTTON
+===================================== */
+.saveButton {
   width: 100%;
-  padding: .5rem;
-  border-radius: 8px;
-  border: 1px solid var(--separator);
-  background: var(--bg);
-  color: var(--text);
-}
+  padding: 0.9rem;
+  margin-top: 12px;
 
-/* Observação */
-.note {
-  font-size: .9rem;
-  color: var(--text-muted);
-  margin-top: .3rem;
-}
-
-/* Botão salvar */
-.saveBtn {
-  width: 100%;
-  padding: .95rem;
-  border: none;
-  border-radius: 12px;
   background: var(--color-primary);
   color: #fff;
   font-weight: 700;
-  margin-top: 1rem;
+  border-radius: 12px;
+  border: none;
   cursor: pointer;
+
+  font-size: 1rem;
+  transition: background 0.2s, opacity 0.2s;
 }
 
-.saveBtn:hover {
-  opacity: .9;
+.saveButton:hover {
+  opacity: 0.9;
 }
 
-/* Mobile */
+.saveButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* =====================================
+   RESPONSIVE
+===================================== */
 @media (max-width: 480px) {
-  .timeGrid {
-    grid-template-columns: 1fr;
-  }
   .checkList {
     grid-template-columns: 1fr;
   }
-}
 
-/* Fade-in */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  .modal {
+    padding: 20px;
+  }
 }
