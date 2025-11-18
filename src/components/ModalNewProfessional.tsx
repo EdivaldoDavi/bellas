@@ -69,8 +69,7 @@ export default function ModalNewProfessional({
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [showSelectServices, setShowSelectServices] = useState(false);
 
-  const hasServices = selectedServices.length > 0;
-
+  
   const [copyToWeek, setCopyToWeek] = useState(true);
   const [monStart, setMonStart] = useState("09:00");
   const [monEnd, setMonEnd] = useState("18:00");
