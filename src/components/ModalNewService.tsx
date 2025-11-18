@@ -225,25 +225,24 @@ export default function ModalNewService({
           <>
             <h4 className={styles.subtitle}>Profissionais</h4>
 
-            <div className={styles.checkList}>
-              {professionals.map((p) => (
-                <label key={p.id} className={styles.checkItem}>
-                  <input
-                    type="checkbox"
-                    checked={selectedProfessionals.includes(p.id)}
-                    onChange={() =>
-                      setSelectedProfessionals((prev) =>
-                        prev.includes(p.id)
-                          ? prev.filter((x) => x !== p.id)
-                          : [...prev, p.id]
-                      )
-                    }
-                  />
-
-                  <span className={styles.profName}>{p.name}</span>
-                </label>
-              ))}
-            </div>
+              <div className={styles.checkList}>
+                {professionals.map((p) => (
+                  <label key={p.id} className={styles.checkItem}>
+                    <input
+                      type="checkbox"
+                      checked={selectedProfessionals.includes(p.id)}
+                      onChange={() =>
+                        setSelectedProfessionals((old) =>
+                          old.includes(p.id)
+                            ? old.filter((x) => x !== p.id)
+                            : [...old, p.id]
+                        )
+                      }
+                    />
+                    <span className={styles.profName}>{p.name}</span>
+                  </label>
+                ))}
+              </div>
           </>
         )}
 
