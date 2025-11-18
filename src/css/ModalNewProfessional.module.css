@@ -111,11 +111,25 @@
 /* Row "copiar semana" */
 .copyRow {
   display: flex;
-  gap: .45rem;
   align-items: center;
-  margin: .5rem 0 .75rem;
-  font-size: .95rem;
+  gap: 6px;           /* distância pequena entre checkbox e texto */
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.95rem;
 }
+
+.copyRow input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.copyRow span {
+  cursor: pointer;
+  line-height: 1;
+}
+
 
 /* Títulos dias */
 .dayTitle {
