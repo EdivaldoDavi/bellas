@@ -78,21 +78,34 @@
 }
 
 
-/* Lista de serviços */
 .checkList {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: .5rem;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px 18px;
+  margin-top: 10px;
 }
 
 .checkItem {
   display: flex;
-  gap: .45rem;
   align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--card-bg);
+  border-radius: 10px;
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.06);
+
+  transition: 0.15s ease;
 }
 
-.checkItem input {
-  accent-color: var(--color-primary);
+.checkItem:hover {
+  background: rgba(255,255,255,0.07);
+}
+
+.checkItem input[type="checkbox"] {
+  accent-color: var(--primary);
+  width: 18px;
+  height: 18px;
 }
 
 /* Row "copiar semana" */
