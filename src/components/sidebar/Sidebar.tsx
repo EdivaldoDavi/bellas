@@ -10,9 +10,12 @@ import {
   User,
   BadgeDollarSign,
   LogOut,
-  PlusCircle,
   MessageCircle,
   ShieldCheck,
+  Users,
+  Scissors,
+  UserCog,
+  UserPlus,
 } from "lucide-react";
 
 import { supabase } from "../../lib/supabaseCleint";
@@ -48,13 +51,7 @@ export default function Sidebar({
       ? tenant.primary_color
       : "#FF4081";
 
-  const [showCadastroMenu, setShowCadastroMenu] = useState(false);
-
-  // Modais de cadastro rápido
-  const [openCustomerModal, setOpenCustomerModal] = useState(false);
-  const [openServiceModal, setOpenServiceModal] = useState(false);
-  const [openProfessionalModal, setOpenProfessionalModal] = useState(false);
-  const [openUserModal, setOpenUserModal] = useState(false);
+  
 
   const isMobile = typeof window !== "undefined" && window.innerWidth < 1024;
 
@@ -84,14 +81,20 @@ export default function Sidebar({
   } else if (role === "owner" || role === "manager") {
     // 👑 Dono ou gerente do salão
     menu = [
-      { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
-      { to: "/agenda", label: "Agenda", icon: <Calendar size={20} /> },
-      { to: "#cadastros", label: "Cadastros", icon: <PlusCircle size={20} /> },
-      { to: "/gerenciar-acessos", label: "Gerenciar Acessos", icon: <ShieldCheck size={20} /> },
-      { to: "/config", label: "Configurações", icon: <Settings size={20} /> },
-      { to: "/integracoes/whatsapp", label: "WhatsApp", icon: <MessageCircle size={20} /> },
-      { to: "/perfil", label: "Meu Perfil", icon: <User size={20} /> },
-    ];
+    { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
+    { to: "/agenda", label: "Agenda", icon: <Calendar size={20} /> },
+
+    // 👇 novos itens de cadastro
+    { to: "/clientes", label: "Clientes", icon: <Users size={20} /> },
+    { to: "/servicos", label: "Serviços", icon: <Scissors size={20} /> },
+    { to: "/profissionais", label: "Profissionais", icon: <UserCog size={20} /> },
+    { to: "/usuarios", label: "Usuários", icon: <UserPlus size={20} /> },
+
+    { to: "/gerenciar-acessos", label: "Gerenciar Acessos", icon: <ShieldCheck size={20} /> },
+    { to: "/config", label: "Configurações", icon: <Settings size={20} /> },
+    { to: "/integracoes/whatsapp", label: "WhatsApp", icon: <MessageCircle size={20} /> },
+    { to: "/perfil", label: "Meu Perfil", icon: <User size={20} /> },
+  ];
   } else {
     // 💅 Profissionais e demais papéis
     menu = [
@@ -138,29 +141,21 @@ export default function Sidebar({
         {/* MENU */}
         <nav className={styles.menu}>
           {menu.map((item) => (
-            <NavLink
-              key={item.label}
-              to={item.to === "#cadastros" ? "#" : item.to}
-              className={({ isActive }) =>
-                `${styles.menuItem} ${
-                  isActive && item.to !== "#cadastros" ? styles.active : ""
-                }`
-              }
-              onClick={(e) => {
-                if (item.to === "#cadastros") {
-                  e.preventDefault();
-                  setShowCadastroMenu(true);
-                  return;
-                }
-                if (isMobile) closeSidebar();
-              }}
-            >
-              <span className={styles.icon}>{item.icon}</span>
-              <span className={styles.label}>{item.label}</span>
-            </NavLink>
-          ))}
-        </nav>
-
+                  <NavLink
+            key={item.label}
+            to={item.to}
+            className={({ isActive }) =>
+              `${styles.menuItem} ${isActive ? styles.active : ""}`
+            }
+            onClick={() => {
+              if (isMobile) closeSidebar();
+            }}
+          >
+            <span className={styles.icon}>{item.icon}</span>
+            <span className={styles.label}>{item.label}</span>
+          </NavLink>
+        ))}
+      </nav>
         {/* FOOTER */}
         <div className={styles.footer}>
           <button className={styles.menuItem} onClick={handleLogout}>
@@ -172,84 +167,12 @@ export default function Sidebar({
         </div>
       </aside>
 
-      {/* ============================
+      {
+      /* ============================
           SUBMENU CADASTROS
       ============================= */}
-      {showCadastroMenu && (
-        <div className={styles.submenuOverlay} onClick={() => setShowCadastroMenu(false)}>
-          <div className={styles.submenuBox} onClick={(e) => e.stopPropagation()}>
-            <button
-              className={styles.subBtn}
-              onClick={() => {
-                setOpenCustomerModal(true);
-                setShowCadastroMenu(false);
-              }}
-            >
-              Novo Cliente
-            </button>
+      
 
-            <button
-              className={styles.subBtn}
-              onClick={() => {
-                setOpenServiceModal(true);
-                setShowCadastroMenu(false);
-              }}
-            >
-              Novo Serviço
-            </button>
-
-            <button
-              className={styles.subBtn}
-              onClick={() => {
-                setOpenProfessionalModal(true);
-                setShowCadastroMenu(false);
-              }}
-            >
-              Novo Profissional
-            </button>
-
-            <button
-              className={styles.subBtn}
-              onClick={() => {
-                setOpenUserModal(true);
-                setShowCadastroMenu(false);
-              }}
-            >
-              Novo Usuário
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ============================
-          MODAIS
-      ============================= */}
-      <ModalNewCustomer
-        tenantId={tenant?.id}
-        mode="cadastro"
-        show={openCustomerModal}
-        onClose={() => setOpenCustomerModal(false)}
-      />
-
-      <ModalNewService
-        tenantId={tenant?.id}
-        mode="cadastro"
-        show={openServiceModal}
-        onClose={() => setOpenServiceModal(false)}
-      />
-
-      <ModalNewProfessional
-        tenantId={tenant?.id}
-        mode="cadastro"
-        show={openProfessionalModal}
-        onClose={() => setOpenProfessionalModal(false)}
-      />
-
-      <ModalNewUser
-        tenantId={tenant?.id}
-        show={openUserModal}
-        onClose={() => setOpenUserModal(false)}
-      />
     </>
   );
 }

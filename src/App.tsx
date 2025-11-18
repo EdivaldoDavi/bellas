@@ -24,6 +24,13 @@ import ConnectWhatsAppPage from "./pages/ConnectWhatsAppPage";
 import GerenciarAcessosPage from "./config/GerenciarAcessosPage";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 
+// 🔥 Importar suas novas páginas
+import ServicosPage from "../../pages/ServicosPage";
+// você criará depois:
+//import ClientesPage from "./pages/ClientesPage";
+//import ProfissionaisPage from "./pages/ProfissionaisPage";
+//import UsuariosPage from "./pages/UsuariosPage";
+
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -41,16 +48,9 @@ function PrivateRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  // 🔥 IGNORA TUDO SE ESTIVER NO RESET
-  if (location.pathname === "/force-reset") {
-    return <>{children}</>;
-  }
-
+  if (location.pathname === "/force-reset") return <>{children}</>;
   if (loading) return <LoadingScreen />;
-
-  if (!user) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
-  }
+  if (!user) return <Navigate to="/login" replace state={{ from: location }} />;
 
   return <>{children}</>;
 }
@@ -62,24 +62,13 @@ function SetupRedirectGuard({ children }: { children: ReactNode }) {
   const { needsSetup, loading } = useUserTenant();
   const location = useLocation();
 
-  // 🔥 Nunca redirecionar dentro do reset
-  if (location.pathname === "/force-reset") {
-    return <>{children}</>;
-  }
-
+  if (location.pathname === "/force-reset") return <>{children}</>;
   if (loading) return <LoadingScreen />;
 
   const isSetupPage = location.pathname === "/setup";
 
-  // 1. Se precisa de setup → vá para setup
-  if (needsSetup && !isSetupPage) {
-    return <Navigate to="/setup" replace />;
-  }
-
-  // 2. Se não precisa e está no setup → dashboard
-  if (!needsSetup && isSetupPage) {
-    return <Navigate to="/dashboard" replace />;
-  }
+  if (needsSetup && !isSetupPage) return <Navigate to="/setup" replace />;
+  if (!needsSetup && isSetupPage) return <Navigate to="/dashboard" replace />;
 
   return <>{children}</>;
 }
@@ -90,7 +79,6 @@ function SetupRedirectGuard({ children }: { children: ReactNode }) {
 export default function App() {
   const { tenant } = useUserTenant();
 
-  // 🎨 Aplicar tema automaticamente
   useEffect(() => {
     applyTenantTheme(tenant);
   }, [tenant]);
@@ -108,7 +96,7 @@ export default function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
 
-          {/* 🔥 Reset não pode ser bloqueado */}
+          {/* Reset */}
           <Route path="/force-reset" element={<ForcePasswordReset />} />
 
           {/* Setup */}
@@ -149,6 +137,12 @@ export default function App() {
             <Route path="/perfil" element={<PerfilPage />} />
             <Route path="/agenda" element={<Agenda />} />
             <Route path="/integracoes/whatsapp" element={<ConnectWhatsAppPage />} />
+
+            {/* === 👇 NOVAS ROTAS DO SIDEBAR 👇 === */}
+           {/* <Route path="/clientes" element={<ClientesPage />} />*/}
+            <Route path="/servicos" element={<ServicosPage />} />
+            {/* <Route path="/profissionais" element={<ProfissionaisPage />} />*/}
+            <Route path="/usuarios" element={<UsuariosPage />} />
           </Route>
         </Routes>
       </SetupRedirectGuard>
