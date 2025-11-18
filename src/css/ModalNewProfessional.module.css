@@ -89,44 +89,52 @@
    LISTA DE SERVIÇOS - alinhamento perfeito
 ===================================== */
 
+/* ITEM - agora com 2 colunas: esquerda (check+nome) / direita (duração) */
 .checkItem {
   display: grid;
-  grid-template-columns: 20px 1fr; /* checkbox + texto */
-  align-items: center; 
-  column-gap: 10px;
+  grid-template-columns: 1fr auto; /* esquerda cresce, direita fica ajustada */
+  align-items: center;
+  column-gap: 12px;
 
-  padding: 10px 12px;
-  border-radius: 10px;
+  padding: 12px 15px;
+  border-radius: 12px;
   background: var(--input-bg);
   border: 1px solid var(--border);
 
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, transform 0.12s;
+  transition: background 0.18s ease, border-color 0.18s ease,
+              transform 0.14s ease;
 }
 
-.checkItem:hover {
-  border-color: var(--color-primary);
-  background: color-mix(in srgb, var(--color-primary) 10%, var(--input-bg));
+/* Conteúdo da esquerda (checkbox + nome) */
+.checkLeft {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  align-items: center;
+  column-gap: 10px;
 }
 
-.checkItem:active {
-  transform: scale(0.98);
-}
-
-/* Remove deslocamento no checkbox */
-.checkItem input[type="checkbox"] {
+/* Checkbox */
+.checkLeft input[type="checkbox"] {
   margin: 0;
   width: 18px;
   height: 18px;
   accent-color: var(--color-primary);
 }
 
-/* Texto certinho ao lado do check */
-.checkItem span {
-  margin: 0;
+/* Nome do serviço */
+.serviceName {
   font-size: 0.95rem;
   color: var(--text);
   line-height: 1.1;
+}
+
+/* Duração alinhada à direita */
+.serviceDuration {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  opacity: 0.8;
 }
 
 
@@ -310,11 +318,7 @@
   margin-top: 6px;
 }
 
-.serviceDuration {
-  font-size: 0.8rem;
-  opacity: 0.7;
-  margin-left: 6px;
-}
+
 
 .servicesFooter {
   display: flex;
