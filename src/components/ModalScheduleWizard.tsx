@@ -540,32 +540,33 @@ export default function ModalScheduleWizard({
       )}
 
       {showNewProfessional && (
-        <ModalNewProfessional
-          tenantId={tenantId}
-          mode="agenda"
-          show={showNewProfessional}
-          onClose={() => setShowNewProfessional(false)}
-          onSuccess={async (id, name) => {
-            setShowNewProfessional(false);
+<ModalNewProfessional
+  tenantId={tenantId}
+  mode="agenda"
+  show={showNewProfessional}
+  editId={null}   // <-- IMPORTANTE para o fluxo agenda
+  onClose={() => setShowNewProfessional(false)}
+  onSuccess={async (id, name) => {
+    setShowNewProfessional(false);
 
-            const { data } = await supabase
-              .from("professionals")
-              .select("id,name")
-              .order("name");
+    const { data } = await supabase
+      .from("professionals")
+      .select("id,name")
+      .order("name");
 
-            const ordered = [
-              { id, name },
-              ...(data || []).filter((p) => p.id !== id)
-            ];
+    const ordered = [
+      { id, name },
+      ...(data || []).filter((p) => p.id !== id)
+    ];
 
-            setProfessionals(ordered);
-            setProfessionalId(id);
-            setProfessionalName(name);
+    setProfessionals(ordered);
+    setProfessionalId(id);
+    setProfessionalName(name);
 
-            await loadServices(id);
-            toast.success(`Profissional ${name} cadastrado!`);
-          }}
-        />
+    await loadServices(id);
+    toast.success(`Profissional ${name} cadastrado!`);
+  }}
+/>
       )}
 
       {showNewService && (

@@ -7,7 +7,7 @@ import DatePickerAgenda from "../components/DatePickerAgenda";
 
 import ModalCalendar from "./ModalCalendar";
 import ModalScheduleTimes from "./ModalScheduletimes";
-import ModalSelectServiceForProfessional from "./ModalSelectServiceForProfessional";
+
 import ModalSelectProfessional from "./ModalSelectProfessional";
 import ModalScheduleWizard from "../components/ModalScheduleWizard";
 
@@ -418,18 +418,7 @@ export default function Agenda() {
         onSelect={() => setShowTimes(false)}
       />
 
-      <ModalSelectServiceForProfessional
-  show={showServiceModal}
-  services={professionalServices}
-  onClose={() => setShowServiceModal(false)}
-  onSelect={(id, _name, duration) => {
-    setServiceId(id);
-    setServiceDuration(duration);
-    setSelectedDate("");
-    setAvailableTimes([]);
-    setShowServiceModal(false);
-  }}
-/>
+    
 
 
       <ModalSelectProfessional
