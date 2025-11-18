@@ -21,10 +21,7 @@ import {
 import { supabase } from "../../lib/supabaseCleint";
 import { useUserAndTenant } from "../../hooks/useUserAndTenant";
 
-import ModalNewCustomer from "../../components/ModalNewCustomer";
-import ModalNewProfessional from "../../components/ModalNewProfessional";
-import ModalNewService from "../../components/ModalNewService";
-import ModalNewUser from "../../components/ModalNewUser";
+
 
 import styles from "../../css/Sidebar.module.css";
 
