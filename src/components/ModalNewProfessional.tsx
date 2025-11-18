@@ -492,14 +492,15 @@ export default function ModalNewProfessional({
 
             <h4>Horários de trabalho</h4>
 
-            <label className={styles.copyRow}>
+             <label className={styles.copyRow}>
               <input
                 type="checkbox"
                 checked={copyToWeek}
                 onChange={() => setCopyToWeek((v) => !v)}
               />
-              Copiar segunda para todos os dias
+              <span>Copiar segunda para todos os dias</span>
             </label>
+
 
             {copyToWeek ? (
               <>
