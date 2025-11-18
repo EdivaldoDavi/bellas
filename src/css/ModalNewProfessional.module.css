@@ -88,52 +88,159 @@
 /* =====================================
    LISTA DE SERVIÇOS - alinhamento perfeito
 ===================================== */
+/* ==============================
+   MODAL SELEÇÃO DE SERVIÇOS
+=================================*/
+.servicesOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000; /* acima do modal principal */
+}
 
-.checkItem {
+.servicesModal {
+  width: 92%;
+  max-width: 640px;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: var(--modal-bg);
+  padding: 20px 22px;
+  border-radius: 18px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.servicesHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* LISTA GERAL */
+.servicesList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.servicesGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* ===========================
+   SELECT ALL
+=========================== */
+.selectAllRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.selectAllRow input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--color-primary);
+}
+
+.selectAllLabel {
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+/* ===========================
+   ITEM DE SERVIÇO
+=========================== */
+.serviceItem {
   display: grid;
-  grid-template-columns: 20px 1fr; /* checkbox + texto */
-  align-items: center; 
-  column-gap: 10px;
+  grid-template-columns: auto 1fr auto; /* check | nome | duração */
+  align-items: center;
+  column-gap: 12px;
 
-  padding: 10px 12px;
-  border-radius: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
   background: var(--input-bg);
   border: 1px solid var(--border);
 
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, transform 0.12s;
+  transition: background 0.18s ease, border-color 0.18s ease;
 }
 
-.checkItem:hover {
+.serviceItem:hover {
   border-color: var(--color-primary);
-  background: color-mix(in srgb, var(--color-primary) 10%, var(--input-bg));
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--input-bg));
 }
 
-.checkItem:active {
-  transform: scale(0.98);
-}
-
-/* Remove deslocamento no checkbox */
-.checkItem input[type="checkbox"] {
-  margin: 0;
+.serviceItem input {
   width: 18px;
   height: 18px;
+  margin: 0;
   accent-color: var(--color-primary);
 }
 
-/* Texto certinho ao lado do check */
-.checkItem span {
-  margin: 0;
+.serviceName {
   font-size: 0.95rem;
   color: var(--text);
-  line-height: 1.1;
+  line-height: 1.2;
 }
 
-/* Para a duração */
 .serviceDuration {
-  font-size: 0.82rem;
-  opacity: 0.7;
-  margin-left: 6px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  opacity: 0.8;
+}
+
+/* RODAPÉ BOTÕES */
+.servicesFooter {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.cancelBtn {
+  flex: 1;
+  border-radius: 999px;
+  border: 1px solid #555;
+  background: transparent;
+  padding: 10px 16px;
+  color: #fff;
+  cursor: pointer;
+}
+
+.cancelBtn:hover {
+  background: #2a2833;
+}
+
+.saveBtn {
+  flex: 1;
+  border-radius: 999px;
+  border: none;
+  padding: 10px 16px;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.saveBtn:hover {
+  opacity: 0.9;
 }
 
 /* Row "copiar semana" */
@@ -372,6 +479,22 @@
     grid-template-columns: 1fr;
   }
 }
+/* Mobile */
+
+  .servicesModal {
+    padding: 16px;
+  }
+
+  .serviceItem {
+    grid-template-columns: auto 1fr;
+    row-gap: 4px;
+  }
+
+  .serviceDuration {
+    justify-self: flex-start;
+  }
+
+
 
 /* Fade-in */
 @keyframes fadeIn {
