@@ -89,76 +89,51 @@
    LISTA DE SERVIÇOS - alinhamento perfeito
 ===================================== */
 
-/* ITEM - agora com 2 colunas: esquerda (check+nome) / direita (duração) */
-/* ===========================
-   SELECT ALL (linha especial)
-=========================== */
-.selectAllRow {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-
-  padding: 14px 15px;
-  border-radius: 12px;
-  background: var(--input-bg);
-  border: 1px solid var(--border);
-  cursor: pointer;
-}
-
-.selectAllRow input {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--color-primary);
-}
-
-.selectAllLabel {
-  font-size: 0.95rem;
-  color: var(--text);
-  font-weight: 500;
-}
-
-
-/* ===========================
-   ITEM DE SERVIÇO
-=========================== */
-.serviceItem {
+.checkItem {
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  column-gap: 12px;
+  grid-template-columns: 20px 1fr; /* checkbox + texto */
+  align-items: center; 
+  column-gap: 10px;
 
-  padding: 14px 15px;
-  border-radius: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
   background: var(--input-bg);
   border: 1px solid var(--border);
 
   cursor: pointer;
-  transition: background .18s ease, border-color .18s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.12s;
 }
 
-.serviceItem:hover {
+.checkItem:hover {
   border-color: var(--color-primary);
-  background: color-mix(in srgb, var(--color-primary) 8%, var(--input-bg));
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--input-bg));
 }
 
-.serviceItem input {
+.checkItem:active {
+  transform: scale(0.98);
+}
+
+/* Remove deslocamento no checkbox */
+.checkItem input[type="checkbox"] {
+  margin: 0;
   width: 18px;
   height: 18px;
-  margin: 0;
   accent-color: var(--color-primary);
 }
 
-.serviceName {
+/* Texto certinho ao lado do check */
+.checkItem span {
+  margin: 0;
   font-size: 0.95rem;
   color: var(--text);
   line-height: 1.1;
 }
 
+/* Para a duração */
 .serviceDuration {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  white-space: nowrap;
-  opacity: 0.8;
+  font-size: 0.82rem;
+  opacity: 0.7;
+  margin-left: 6px;
 }
 
 /* Row "copiar semana" */
@@ -341,7 +316,11 @@
   margin-top: 6px;
 }
 
-
+.serviceDuration {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-left: 6px;
+}
 
 .servicesFooter {
   display: flex;
