@@ -90,53 +90,76 @@
 ===================================== */
 
 /* ITEM - agora com 2 colunas: esquerda (check+nome) / direita (duração) */
-.checkItem {
-  display: grid;
-  grid-template-columns: 1fr auto; /* esquerda cresce, direita fica ajustada */
+/* ===========================
+   SELECT ALL (linha especial)
+=========================== */
+.selectAllRow {
+  display: flex;
   align-items: center;
-  column-gap: 12px;
+  gap: 12px;
 
-  padding: 12px 15px;
+  padding: 14px 15px;
   border-radius: 12px;
   background: var(--input-bg);
   border: 1px solid var(--border);
-
   cursor: pointer;
-  transition: background 0.18s ease, border-color 0.18s ease,
-              transform 0.14s ease;
 }
 
-/* Conteúdo da esquerda (checkbox + nome) */
-.checkLeft {
-  display: grid;
-  grid-template-columns: 20px 1fr;
-  align-items: center;
-  column-gap: 10px;
-}
-
-/* Checkbox */
-.checkLeft input[type="checkbox"] {
-  margin: 0;
+.selectAllRow input {
   width: 18px;
   height: 18px;
   accent-color: var(--color-primary);
 }
 
-/* Nome do serviço */
+.selectAllLabel {
+  font-size: 0.95rem;
+  color: var(--text);
+  font-weight: 500;
+}
+
+
+/* ===========================
+   ITEM DE SERVIÇO
+=========================== */
+.serviceItem {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  column-gap: 12px;
+
+  padding: 14px 15px;
+  border-radius: 12px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+
+  cursor: pointer;
+  transition: background .18s ease, border-color .18s ease;
+}
+
+.serviceItem:hover {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--input-bg));
+}
+
+.serviceItem input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--color-primary);
+}
+
 .serviceName {
   font-size: 0.95rem;
   color: var(--text);
   line-height: 1.1;
 }
 
-/* Duração alinhada à direita */
 .serviceDuration {
   font-size: 0.85rem;
   color: var(--text-muted);
   white-space: nowrap;
   opacity: 0.8;
 }
-
 
 /* Row "copiar semana" */
 .copyRow {
