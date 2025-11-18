@@ -9,7 +9,7 @@ import { toast } from "react-toastify";
 
 import ModalNewCustomer from "../components/ModalNewCustomer";
 
-import styles from "../css/ServicosPage.module.css";
+import styles from "../css/ClientesPage.module.css";
 
 type Customer = {
   id: string;
