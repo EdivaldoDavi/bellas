@@ -228,17 +228,17 @@ async function load() {
         </div>
       </div>
 
-      <ModalNewCustomer
+        <ModalNewCustomer
         tenantId={tenantId}
         show={openModal}
         mode={editingCustomer ? "edit" : "cadastro"}
         customer={editingCustomer}
-        onClose={() => setOpenModal(false)}
-        onSuccess={() => {
-          load();
-          setOpenModal(false);
+        onClose={() => {
+            setOpenModal(false);
+            load();           // 👈 SEMPRE recarrega ao fechar (solução imediata)
         }}
-      />
+        onSuccess={() => load()}   // para o modo cadastro
+        />
     </>
   );
 }
