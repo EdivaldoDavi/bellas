@@ -191,11 +191,13 @@ export default function ClientesPage() {
 
           {/* LISTA */}
           <div className={styles.list}>
-            {loading && <div className={styles.empty}>Carregando...</div>}
+                {!loading && customers.length === 0 && (
+                <div className={styles.empty}>Nenhum cliente cadastrado ainda.</div>
+                )}
 
-            {!loading && filtered.length === 0 && (
-              <div className={styles.empty}>Nenhum cliente encontrado.</div>
-            )}
+                {!loading && customers.length > 0 && filtered.length === 0 && (
+                <div className={styles.empty}>Nenhum cliente encontrado.</div>
+                )}
 
             {!loading &&
               filtered.map(c => (
