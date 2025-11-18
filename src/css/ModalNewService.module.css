@@ -45,7 +45,7 @@
 }
 
 /* =====================================
-   CLOSE BUTTON - COMPLETAMENTE REFEITO
+   CLOSE BUTTON (refinado + hover perfeito)
 ===================================== */
 .closeBtn {
   position: absolute;
@@ -66,17 +66,18 @@
   justify-content: center;
   cursor: pointer;
 
-  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+  transition: all 0.22s ease;
 }
 
 .closeBtn:hover {
-  background: var(--hover-bg);
+  background: var(--hover-bg, rgba(0,0,0,0.06));
   border-color: var(--color-primary);
+  color: var(--color-primary);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 35%, transparent);
 }
 
 .closeBtn:active {
-  transform: scale(0.95);
+  transform: scale(0.92);
 }
 
 /* Light theme hover */
@@ -86,7 +87,7 @@
 
 /* Dark theme hover */
 :root[data-theme="dark"] .closeBtn:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 /* =====================================
@@ -96,7 +97,7 @@
   margin: 0 0 1.2rem;
   font-size: 1.35rem;
   font-weight: 700;
-  padding-right: 45px;
+  padding-right: 50px; /* Para não cobrir o X */
 }
 
 .modal h4 {
@@ -145,35 +146,36 @@
 .checkItem {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.55rem;
+
   font-size: 0.95rem;
+  padding: 6px 2px;
 
   white-space: nowrap;
 }
 
-
-/* checkbox alinhado sempre */
+/* checkbox fixo e alinhado */
 .checkItem input {
   flex-shrink: 0;
   accent-color: var(--color-primary);
 }
 
-/* texto do profissional sempre na mesma linha */
+/* Nome sempre em uma linha */
 .checkItem span {
   display: inline-block;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: calc(100% - 30px);
 }
-
 
 /* =====================================
    SAVE BUTTON
 ===================================== */
 .saveButton {
   width: 100%;
-  padding: 0.9rem;
-  margin-top: 12px;
+  padding: 0.95rem;
+  margin-top: 14px;
 
   background: var(--color-primary);
   color: #fff;
@@ -182,16 +184,20 @@
   border: none;
   cursor: pointer;
 
-  font-size: 1rem;
-  transition: background 0.2s, opacity 0.2s;
+  font-size: 1.05rem;
+  transition: opacity 0.25s ease, transform 0.12s ease;
 }
 
 .saveButton:hover {
-  opacity: 0.9;
+  opacity: 0.88;
+}
+
+.saveButton:active {
+  transform: scale(0.97);
 }
 
 .saveButton:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
@@ -199,11 +205,11 @@
    RESPONSIVE
 ===================================== */
 @media (max-width: 480px) {
-  .checkList {
-    grid-template-columns: 1fr;
-  }
-
   .modal {
     padding: 20px;
+  }
+
+  .checkItem span {
+    max-width: 100%;
   }
 }

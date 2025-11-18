@@ -32,25 +32,19 @@ export default function ModalNewService({
   mode,
   service,
   onClose,
-  onSuccess,
+  onSuccess
 }: ModalNewServiceProps) {
-  /* ================================================
-     FORM STATES
-  ================================================= */
+
+  // ---------------------------- STATES ----------------------------
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [duration, setDuration] = useState("");
   const [loading, setLoading] = useState(false);
 
-  /* ================================================
-     PROFESSIONALS
-  ================================================= */
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [selectedProfessionals, setSelectedProfessionals] = useState<string[]>([]);
 
-  /* ================================================
-     RESET FORM
-  ================================================= */
+  // ---------------------------- RESET FORM ----------------------------
   function resetForm() {
     setName("");
     setPrice("");
@@ -58,9 +52,7 @@ export default function ModalNewService({
     setSelectedProfessionals([]);
   }
 
-  /* ================================================
-     LOAD PROFESSIONALS WHEN MODAL OPENS
-  ================================================= */
+  // ---------------------------- LOAD PROFESSIONALS ----------------------------
   useEffect(() => {
     if (!show || !tenantId) return;
     loadProfessionals();
@@ -81,9 +73,7 @@ export default function ModalNewService({
     setProfessionals(data ?? []);
   }
 
-  /* ================================================
-     LOAD SERVICE DATA WHEN EDITING
-  ================================================= */
+  // ---------------------------- LOAD SERVICE WHEN EDIT ----------------------------
   useEffect(() => {
     if (!show) return;
 
@@ -91,35 +81,14 @@ export default function ModalNewService({
       setName(service.name);
       setDuration(String(service.duration_min ?? 60));
       setPrice(service.price_cents ? String(service.price_cents / 100) : "");
-
-      // caso queira carregar profissionais vinculados:
-      // loadSelectedProfessionals(service.id);
-
     } else {
       resetForm();
     }
   }, [show, mode, service]);
 
-  // Caso você tenha tabela pivot service_professionals:
-  /*
-  async function loadSelectedProfessionals(serviceId: string) {
-    const { data } = await supabase
-      .from("service_professionals")
-      .select("professional_id")
-      .eq("service_id", serviceId);
-
-    setSelectedProfessionals(data?.map(d => d.professional_id) ?? []);
-  }
-  */
-
-  /* ================================================
-     HANDLE SAVE
-  ================================================= */
+  // ---------------------------- SAVE ----------------------------
   async function handleSave() {
-    if (!tenantId) {
-      toast.error("Tenant não encontrado.");
-      return;
-    }
+    if (!tenantId) return toast.error("Tenant não encontrado.");
 
     const serviceName = name.trim();
     const dur = Number(duration);
@@ -135,9 +104,7 @@ export default function ModalNewService({
     try {
       let serviceId = service?.id ?? "";
 
-      // =====================
       // EDITAR
-      // =====================
       if (mode === "edit" && service) {
         const { error } = await supabase
           .from("services")
@@ -156,9 +123,7 @@ export default function ModalNewService({
         return;
       }
 
-      // =====================
       // CRIAR
-      // =====================
       const { data, error } = await supabase
         .from("services")
         .insert([
@@ -180,12 +145,10 @@ export default function ModalNewService({
 
       onSuccess?.(serviceId, serviceName, dur);
 
-      if (mode === "agenda") {
-        onClose();
-        return;
-      }
+      if (mode === "agenda") return onClose();
 
       resetForm();
+
     } catch (err) {
       console.error(err);
       toast.error("Erro ao salvar serviço.");
@@ -194,16 +157,15 @@ export default function ModalNewService({
     }
   }
 
-  /* ================================================
-     UI
-  ================================================= */
+  // ---------------------------- UI ----------------------------
   if (!show) return null;
 
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
+
         <button className={styles.closeBtn} onClick={onClose}>
-          <X size={20} />
+          <X size={18} />
         </button>
 
         <h3>{mode === "edit" ? "Editar Serviço" : "Novo Serviço"}</h3>
@@ -231,7 +193,6 @@ export default function ModalNewService({
           onChange={(e) => setDuration(e.target.value)}
         />
 
-        {/* Profissionais sempre visíveis (não mais oculto no editar) */}
         {professionals.length > 0 && (
           <>
             <h4 className={styles.subtitle}>Profissionais</h4>
@@ -250,7 +211,7 @@ export default function ModalNewService({
                       )
                     }
                   />
-                  <span>{p.name}</span>
+                  <span className={styles.profName}>{p.name}</span>
                 </label>
               ))}
             </div>
