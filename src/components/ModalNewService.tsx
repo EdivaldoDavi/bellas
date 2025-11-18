@@ -92,81 +92,88 @@ export default function ModalNewService({
   /* =====================================================
      SAVE SERVICE
   =======================================================*/
-  async function handleSave() {
-    if (!tenantId) return toast.error("Tenant não encontrado.");
+async function handleSave() {
+  if (!tenantId) {
+    toast.error("Tenant não encontrado.");
+    return;
+  }
 
-    const serviceName = name.trim();
-    const dur = Number(duration);
-    const priceCents = Number(price) > 0 ? Number(price) * 100 : null;
+  const serviceName = name.trim();
+  const dur = Number(duration);
+  const priceCents = Number(price) > 0 ? Number(price) * 100 : null;
 
-    if (!serviceName || !dur) {
-      return toast.warn("Preencha nome e duração");
-    }
+  if (!serviceName || !dur) {
+    toast.warn("Preencha nome e duração");
+    return;
+  }
 
-    setLoading(true);
+  setLoading(true);
 
-    try {
+  try {
     let serviceId = service?.id ?? "";
 
-
-      /* =======================
-         EDITAR
-      =========================*/
-      if (mode === "edit" && service) {
-        const { error } = await supabase
-          .from("services")
-          .update({
-            name: serviceName,
-            duration_min: dur,
-            price_cents: priceCents,
-          })
-          .eq("id", service.id)
-          .eq("tenant_id", tenantId);
-
-        if (error) throw error;
-
-        toast.success("Serviço atualizado!");
-        onClose();
-        return;
-      }
-
-      /* =======================
-         CRIAR
-      =========================*/
-      const { data, error } = await supabase
+    // =======================
+    // EDITAR
+    // =======================
+    if (mode === "edit" && service) {
+      const { error } = await supabase
         .from("services")
-        .insert([
-          {
-            tenant_id: tenantId,
-            name: serviceName,
-            duration_min: dur,
-            price_cents: priceCents,
-          }
-        ])
-        .select()
-        .single();
+        .update({
+          name: serviceName,
+          duration_min: dur,
+          price_cents: priceCents,
+        })
+        .eq("id", serviceId)
+        .eq("tenant_id", tenantId);
 
-      if (error) throw error;
-
-      serviceId = data.id;
-
-      toast.success("Serviço cadastrado!");
-
-      onSuccess?.(serviceId, serviceName, dur);
-
-      if (mode === "agenda") {
-        onClose();
-      } else {
-        resetForm();
+      if (error) {
+        throw error;
       }
 
-    } catch (e) {
-      console.error(e);
-      toast.error("Erro ao salvar serviço.");
+      toast.success("Serviço atualizado!");
+      onClose();
+      return; // <- agora o return está DENTRO do try, mas o finally ainda roda
     }
 
+    // =======================
+    // CRIAR
+    // =======================
+    const { data, error } = await supabase
+      .from("services")
+      .insert([
+        {
+          tenant_id: tenantId,
+          name: serviceName,
+          duration_min: dur,
+          price_cents: priceCents,
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    serviceId = data.id;
+
+    toast.success("Serviço cadastrado!");
+
+    onSuccess?.(serviceId, serviceName, dur);
+
+    if (mode === "agenda") {
+      onClose();
+    } else {
+      resetForm();
+    }
+  } catch (e) {
+    console.error(e);
+    toast.error("Erro ao salvar serviço.");
+  } finally {
+    // 🔥 SEMPRE volta pro estado normal, mesmo em edit
     setLoading(false);
   }
+}
 
   /* =====================================================
      UI

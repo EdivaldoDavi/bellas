@@ -12,12 +12,39 @@
 /* caixa central */
 .modal {
   background: #15141a;
-  width: min(900px, 94%);
-  max-height: 90vh;
-  overflow-y: auto;
-  border-radius: 22px;
-  padding: 24px;
-  box-shadow: 0px 12px 40px rgba(0,0,0,0.5);
+  color: #ffffff;              /* 👈 garante texto branco dentro do modal */
+  /* ... resto que você já tem ... */
+}
+
+.card {
+  background: #1b1922;
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  color: #ffffff;              /* 👈 texto do card sempre branco */
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;              /* 👈 reforça título branco */
+}
+
+.meta {
+  font-size: 0.85rem;
+  color: #b3a8c7;              /* 👈 cinza clarinho */
+}
+
+.search {
+  /* ... o que você já tem ... */
+  color: #f5f5f7;              /* 👈 texto do input visível */
+}
+
+.empty {
+  color: #b3a8c7;              /* texto de "carregando"/"nenhum serviço" visível */
 }
 
 .header {
