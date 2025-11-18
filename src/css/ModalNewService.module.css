@@ -139,19 +139,34 @@
 .checkList {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.55rem;
+  gap: 0.6rem;
 }
 
+/* Cada profissional em uma linha, sem quebra */
 .checkItem {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  font-size: 0.93rem;
+  gap: 0.55rem;
+
+  white-space: nowrap;         /* impede quebra de linha */
+  overflow: hidden;            /* evita estourar layout */
+  text-overflow: ellipsis;     /* adiciona ... se nome for grande */
 }
 
+/* checkbox alinhado sempre */
 .checkItem input {
+  flex-shrink: 0;
   accent-color: var(--color-primary);
 }
+
+/* texto do profissional sempre na mesma linha */
+.checkItem span {
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 
 /* =====================================
    SAVE BUTTON
