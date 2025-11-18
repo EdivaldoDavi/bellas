@@ -10,7 +10,7 @@ type Professional = {
   name: string;
   email?: string;
   phone?: string;
-  active: boolean;
+  is_active: boolean;
 };
 
 export default function ProfessionalsPage() {
@@ -32,7 +32,7 @@ export default function ProfessionalsPage() {
 
     const { data, error } = await supabase
       .from("professionals")
-      .select("id, name, email, phone, active")
+      .select("id, name, email, phone, is_active ")
       .eq("tenant_id", tenantId)
       .order("name");
 
