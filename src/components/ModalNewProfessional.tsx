@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect,  useState } from "react";
 import { supabase } from "../lib/supabaseCleint";
 import { toast } from "react-toastify";
 import { X } from "lucide-react";
@@ -47,7 +47,7 @@ function stripSeconds(t?: string | null) {
 export default function ModalNewProfessional({
   tenantId,
   show,
-  mode = "agenda",
+
   onClose,
   onSuccess,
   editId,
@@ -64,7 +64,7 @@ export default function ModalNewProfessional({
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [showServicesModal, setShowServicesModal] = useState(false);
 
-  const hasServices = selectedServices.length > 0;
+  
 
   const [copyToWeek, setCopyToWeek] = useState(true);
   const [monStart, setMonStart] = useState("09:00");
