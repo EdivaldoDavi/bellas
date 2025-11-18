@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
-import { X, Plus, Ban, CheckCircle } from "lucide-react";
+import { X, Plus, Ban, CheckCircle ,Eye, EyeOff} from "lucide-react";
 import { toast } from "react-toastify";
 
 import ModalNewService from "../components/ModalNewService";
@@ -43,7 +43,7 @@ export default function ServicosPage() {
 
     const { data, error } = await supabase
       .from("services")
-      .select("id,name,duration_min,is_active")
+     .select("id,name,duration_min,is_active,price_cents")
       .eq("tenant_id", tenantId)
       .order("name");
 
@@ -219,8 +219,12 @@ export default function ServicosPage() {
                       onClick={() => confirmToggle(svc)}
                       title={svc.is_active ? "Inativar" : "Ativar"}
                     >
-                      {svc.is_active ? <Ban size={18} /> : <CheckCircle size={18} />}
-                    </button>
+                     {svc.is_active ? (
+                      <EyeOff size={18} />   // Inativar
+                    ) : (
+                      <Eye size={18} />      // Ativar
+                    )}
+                                        </button>
                   </div>
 
                 </div>
