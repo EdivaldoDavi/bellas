@@ -27,38 +27,30 @@ export default function ModalSelectServiceForProfessional({
   const allSelected =
     services.length > 0 && selectedIds.length === services.length;
 
-  /* --------------------------------------------
-     Selecionar / remover item individual
-  -------------------------------------------- */
-  function toggleId(id: string) {
-    onSave(
-      selectedIds.includes(id)
-        ? selectedIds.filter((x) => x !== id)
-        : [...selectedIds, id]
-    );
-  }
+  const toggleId = (id: string) => {
+    const newList = selectedIds.includes(id)
+      ? selectedIds.filter((x) => x !== id)
+      : [...selectedIds, id];
 
-  /* --------------------------------------------
-     Selecionar / remover todos
-  -------------------------------------------- */
-  function toggleAll() {
+    onSave(newList);
+  };
+
+  const toggleAll = () => {
     onSave(allSelected ? [] : services.map((s) => s.id));
-  }
-
-  /* --------------------------------------------
-     Confirmar
-  -------------------------------------------- */
-  function handleConfirm() {
-    onClose();
-  }
+  };
 
   return (
-    <div className={styles.servicesOverlay} onClick={onClose}>
+    <div
+      className={styles.servicesOverlay}
+      onClick={(e) => {
+        e.stopPropagation(); // NÃO deixa subir para o modal principal
+        onClose();
+      }}
+    >
       <div
         className={styles.servicesModal}
-        onClick={(e) => e.stopPropagation()} // 🔒 impede fechar ao clicar dentro
+        onClick={(e) => e.stopPropagation()} // impede fechar ao clicar dentro
       >
-        {/* HEADER */}
         <div className={styles.servicesHeader}>
           <h3>Selecionar serviços</h3>
 
@@ -67,72 +59,58 @@ export default function ModalSelectServiceForProfessional({
           </button>
         </div>
 
-        {/* LISTA */}
         <div className={styles.servicesList}>
-          {/* SELECT ALL */}
           <label
             className={styles.serviceItem}
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleAll();
-            }}
+            onClick={() => toggleAll()}
           >
             <input
               type="checkbox"
               checked={allSelected}
-              onChange={() => {}}
+              readOnly
               onClick={(e) => {
                 e.stopPropagation();
                 toggleAll();
               }}
             />
+
             <span className={styles.serviceName}>Selecionar todos</span>
             <span className={styles.serviceDuration}></span>
           </label>
 
-          {/* SERVIÇOS */}
           <div className={styles.servicesGrid}>
             {services.map((s) => (
               <label
                 key={s.id}
                 className={styles.serviceItem}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleId(s.id);
-                }}
+                onClick={() => toggleId(s.id)}
               >
-                {/* CHECKBOX */}
                 <input
                   type="checkbox"
                   checked={selectedIds.includes(s.id)}
-                  onChange={() => {}}
+                  readOnly
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleId(s.id);
                   }}
                 />
 
-                {/* TEXTO */}
                 <span className={styles.serviceName}>{s.name}</span>
 
-                {/* DURAÇÃO */}
-                {s.duration_min !== null && (
-                  <span className={styles.serviceDuration}>
-                    {s.duration_min} min
-                  </span>
-                )}
+                <span className={styles.serviceDuration}>
+                  {s.duration_min ? `${s.duration_min} min` : ""}
+                </span>
               </label>
             ))}
           </div>
         </div>
 
-        {/* FOOTER */}
         <div className={styles.servicesFooter}>
           <button className={styles.cancelBtn} onClick={onClose}>
             Cancelar
           </button>
 
-          <button className={styles.saveBtn} onClick={handleConfirm}>
+          <button className={styles.saveBtn} onClick={onClose}>
             Salvar seleção
           </button>
         </div>
