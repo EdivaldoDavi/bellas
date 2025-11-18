@@ -1,28 +1,59 @@
-.container {
-  padding: 24px;
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9998;
+}
+
+.modal {
+  width: 92%;
+  max-width: 760px;
+  background: var(--modal-bg);
+  padding: 28px;
+  border-radius: 22px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+}
+
+.closeBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
 }
 
 .newBtn {
-  background: var(--color-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  background: var(--primary);
   padding: 10px 16px;
-  border-radius: 10px;
+  border-radius: 12px;
   color: white;
   font-weight: 600;
-  cursor: pointer;
 }
 
-.loading,
-.empty {
-  padding: 40px 0;
-  text-align: center;
-  opacity: 0.6;
+.search {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  color: var(--text);
 }
 
 .list {
@@ -31,21 +62,23 @@
   gap: 16px;
 }
 
-.item {
+.card {
   background: var(--card-bg);
   padding: 16px;
   border-radius: 16px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.meta {
+  opacity: 0.7;
+  margin-top: 4px;
 }
 
 .actions {
@@ -53,26 +86,19 @@
   gap: 12px;
 }
 
-.editBtn {
-  background: var(--color-secondary);
-  padding: 8px 14px;
+.iconBtn {
+  background: var(--secondary);
   border-radius: 10px;
+  padding: 8px;
   color: white;
-  cursor: pointer;
 }
 
-.activeBtn {
-  background: #3cb371;
-  padding: 8px 14px;
-  border-radius: 10px;
-  color: white;
-  cursor: pointer;
-}
-
-.inactiveBtn {
+.danger {
   background: #c0392b;
-  padding: 8px 14px;
-  border-radius: 10px;
-  color: white;
-  cursor: pointer;
+}
+
+.empty {
+  opacity: 0.6;
+  text-align: center;
+  padding: 20px 0;
 }
