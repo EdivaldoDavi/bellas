@@ -137,42 +137,67 @@
 /* =====================================
    PROFESSIONAL LIST
 ===================================== */
-checkList {
-  display: flex;
-  flex-direction: column;
+/* =========================================================
+   LISTA – layout inteligente em colunas (auto-fit)
+========================================================= */
+.checkList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 10px;
   width: 100%;
+  margin-top: 6px;
 }
 
-/* Cada linha de profissional */
+/* =========================================================
+   ITEM – clicável, suave, alinhamento perfeito
+========================================================= */
 .checkItem {
   display: flex;
-  flex-direction: row;
   align-items: center;
   gap: 10px;
 
-  width: 100%;
-  padding: 8px 4px;
-  border-radius: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+
+  transition: background 0.2s ease, border-color 0.2s ease,
+              transform 0.15s ease;
+  cursor: pointer;
+  user-select: none; /* evita texto selecionando sem querer */
 }
 
-/* Checkbox sempre colado ao nome */
+/* Hover elegante */
+.checkItem:hover {
+  background: var(--hover-bg);
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+/* Checkbox sempre alinhado */
 .checkItem input {
-  flex-shrink: 0;       /* não encolhe */
+  flex-shrink: 0;
   width: 18px;
   height: 18px;
   accent-color: var(--color-primary);
+  cursor: pointer;
 }
 
-/* Nome do profissional */
+/* Nome sempre em linha */
 .profName {
-  flex: 1;               /* ocupa todo o espaço restante */
-  white-space: nowrap;   /* NÃO deixa quebrar */
-  overflow: hidden;      /* evita estourar o container */
-  text-overflow: ellipsis; /* coloca ... se muito longo */
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
   font-size: 0.95rem;
   color: var(--text);
+  cursor: pointer; /* clicável */
 }
+
+
+
 
 /* =====================================
    SAVE BUTTON
@@ -213,7 +238,9 @@ checkList {
   .modal {
     padding: 20px;
   }
-
+.checkList {
+    grid-template-columns: 1fr;
+  }
   .checkItem span {
     max-width: 100%;
   }
