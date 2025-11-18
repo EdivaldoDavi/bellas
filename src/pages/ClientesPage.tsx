@@ -8,7 +8,6 @@ import { X, Plus, Eye, EyeOff } from "lucide-react";
 import { toast } from "react-toastify";
 
 import ModalNewCustomer from "../components/ModalNewCustomer";
-
 import styles from "../css/ClientesPage.module.css";
 
 type Customer = {
@@ -32,52 +31,48 @@ export default function ClientesPage() {
   const [openModal, setOpenModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
 
-  /* BRAND COLOR */
+  /* aplica Brand Color */
   useEffect(() => {
     if (tenant?.primary_color) {
-      document.documentElement.style.setProperty(
-        "--primary",
-        tenant.primary_color
-      );
+      document.documentElement.style.setProperty("--primary", tenant.primary_color);
     }
   }, [tenant]);
 
-  /* LOAD CUSTOMERS */
+  /* LOAD customers */
   useEffect(() => {
     if (tenantId) load();
   }, [tenantId]);
 
-
-
-  
   async function load() {
     setLoading(true);
 
     const { data, error } = await supabase
       .from("customers")
-      .select("id,full_name,customer_phone,is_active")
+      .select("id, full_name, customer_phone, is_active")
       .eq("tenant_id", tenantId)
       .order("full_name");
 
-    if (!error) setCustomers(data as Customer[]);
+    if (!error && data) {
+      setCustomers(data as Customer[]);
+    }
+
     setLoading(false);
   }
 
-  /* FILTRO */
+  /* FILTRAGEM */
   const filtered = useMemo(() => {
     const t = search.trim().toLowerCase();
-    return !t
-      ? customers
-      : customers.filter(c => c.full_name.toLowerCase().includes(t));
-  }, [search, customers]);
+    return t
+      ? customers.filter(c => c.full_name.toLowerCase().includes(t))
+      : customers;
+  }, [customers, search]);
 
-  /* EDITAR */
   function openEdit(c: Customer) {
     setEditingCustomer(c);
     setOpenModal(true);
   }
 
-  /* CONFIRMAR ATIVAR / INATIVAR */
+  /* CONFIRMAR toggle */
   function confirmToggle(customer: Customer) {
     const action = customer.is_active ? "inativar" : "ativar";
 
@@ -97,11 +92,11 @@ export default function ClientesPage() {
             style={{
               marginRight: 10,
               padding: "6px 12px",
-              border: "none",
               borderRadius: 8,
               background: brandColor,
               color: "#fff",
-              cursor: "pointer",
+              border: "none",
+              cursor: "pointer"
             }}
           >
             Confirmar
@@ -111,11 +106,11 @@ export default function ClientesPage() {
             onClick={closeToast}
             style={{
               padding: "6px 12px",
-              border: "1px solid #555",
               borderRadius: 8,
               background: "#2a2833",
               color: "#fff",
-              cursor: "pointer",
+              border: "1px solid #555",
+              cursor: "pointer"
             }}
           >
             Cancelar
@@ -124,15 +119,14 @@ export default function ClientesPage() {
       ),
       {
         autoClose: false,
-        closeOnClick: false,
         draggable: false,
         icon: false,
+        closeOnClick: false,
         style: { background: "#1d1b23", color: "#fff" }
       }
     );
   }
 
-  /* ATIVAR / DESATIVAR */
   async function toggleActive(customer: Customer) {
     const { error } = await supabase
       .from("customers")
@@ -149,7 +143,6 @@ export default function ClientesPage() {
     }
   }
 
-  /* FECHAR MODAL */
   function close() {
     navigate(-1);
   }
@@ -159,16 +152,13 @@ export default function ClientesPage() {
       <div className={styles.overlay} onClick={close}>
         <div className={styles.modal} onClick={e => e.stopPropagation()}>
           
-          {/* HEADER */}
           <div className={styles.header}>
             <h2>Clientes</h2>
-
             <button className={styles.closeBtn} onClick={close}>
               <X size={20} />
             </button>
           </div>
 
-          {/* NOVO CLIENTE */}
           <button
             className={styles.newBtn}
             style={{ backgroundColor: brandColor }}
@@ -181,7 +171,6 @@ export default function ClientesPage() {
             <span>Novo cliente</span>
           </button>
 
-          {/* BUSCA */}
           <input
             className={styles.search}
             placeholder="Buscar cliente..."
@@ -189,20 +178,23 @@ export default function ClientesPage() {
             onChange={e => setSearch(e.target.value)}
           />
 
-          {/* LISTA */}
           <div className={styles.list}>
-                {!loading && customers.length === 0 && (
-                <div className={styles.empty}>Nenhum cliente cadastrado ainda.</div>
-                )}
+            
+            {loading && (
+              <div className={styles.empty}>Carregando...</div>
+            )}
 
-                {!loading && customers.length > 0 && filtered.length === 0 && (
-                <div className={styles.empty}>Nenhum cliente encontrado.</div>
-                )}
+            {!loading && customers.length === 0 && (
+              <div className={styles.empty}>Nenhum cliente cadastrado ainda.</div>
+            )}
 
-            {!loading &&
+            {!loading && customers.length > 0 && filtered.length === 0 && (
+              <div className={styles.empty}>Nenhum cliente encontrado.</div>
+            )}
+
+            {!loading && filtered.length > 0 &&
               filtered.map(c => (
                 <div key={c.id} className={styles.card}>
-
                   <div>
                     <div className={styles.title}>{c.full_name}</div>
                     <div className={styles.meta}>
@@ -211,43 +203,35 @@ export default function ClientesPage() {
                   </div>
 
                   <div className={styles.actions}>
-                    {/* EDITAR */}
-                    <button
-                      className={styles.iconBtn}
-                      onClick={() => openEdit(c)}
-                      title="Editar cliente"
-                    >
+                    <button className={styles.iconBtn} onClick={() => openEdit(c)}>
                       ✏️
                     </button>
 
-                    {/* ATIVAR / DESATIVAR */}
                     <button
                       className={`${styles.iconBtn} ${styles.danger}`}
                       onClick={() => confirmToggle(c)}
-                      title={c.is_active ? "Inativar" : "Ativar"}
                     >
-                      {c.is_active ? (
-                        <Eye size={18} />
-                      ) : (
-                        <EyeOff size={18} />
-                      )}
+                      {c.is_active ? <Eye size={18} /> : <EyeOff size={18} />}
                     </button>
                   </div>
                 </div>
               ))}
           </div>
+
         </div>
       </div>
 
-      {/* MODAL */}
-<ModalNewCustomer
-   tenantId={tenantId}
-   show={openModal}
-   mode={editingCustomer ? "edit" : "cadastro"}
-   customer={editingCustomer}
-   onClose={() => setOpenModal(false)}
-   onSuccess={() => load()}   // 👈 força reload real
-/>
+      <ModalNewCustomer
+        tenantId={tenantId}
+        show={openModal}
+        mode={editingCustomer ? "edit" : "cadastro"}
+        customer={editingCustomer}
+        onClose={() => setOpenModal(false)}
+        onSuccess={() => {
+          load();
+          setOpenModal(false);
+        }}
+      />
     </>
   );
 }

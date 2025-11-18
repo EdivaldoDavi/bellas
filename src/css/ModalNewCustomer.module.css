@@ -4,7 +4,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.55);
+  background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -16,50 +16,72 @@
    Modal Container
 ========================= */
 .modal {
-  background: var(--card-bg);
-  color: var(--text);
-  width: 92%;
-  max-width: 400px;
-  padding: 24px;
-  border-radius: 14px;
-  box-shadow: 0 6px 30px rgba(0,0,0,0.25);
   position: relative;
-  animation: fadeUp .25s ease;
+  width: 92%;
+  max-width: 420px;
+  padding: 26px 22px 22px;
+  border-radius: 18px;
+
+  background: var(--modal-bg, #ffffff);
+  color: var(--text, #111);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+
+  animation: fadeUp 0.22s ease-out;
 }
 
-/* Animation */
+/* Animação suave */
 @keyframes fadeUp {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(10px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
 /* =========================
-   Close Button
+   Close Button (X)
 ========================= */
 .closeBtn {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   background: transparent;
   border: none;
+  border-radius: 999px;
   cursor: pointer;
-  color: var(--text);
+  color: var(--text, #111);
+  transition: background 0.15s ease;
+}
+
+.closeBtn:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="dark"] .closeBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
 }
 
 /* =========================
-   Title
+   Título
+   (funciona com <h3> simples
+   ou className={styles.title})
 ========================= */
+.modal h3,
 .title {
-  font-size: 18px;
+  margin: 0 32px 18px 0; /* espaço pro X à direita */
+  font-size: 1.25rem;
   font-weight: 700;
-  margin-bottom: 18px;
-  text-align: center;
+  color: var(--text, #111);
 }
 
 /* =========================
@@ -68,44 +90,89 @@
 .input {
   width: 100%;
   padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--separator);
-  background: var(--bg);
-  color: var(--text);
+  border-radius: 10px;
+  border: 1px solid var(--separator, #ddd);
+  background: var(--input-bg, #f5f5f7);
+  color: var(--text, #111);
   margin-bottom: 10px;
-  font-size: 14px;
-  transition: border-color .2s, box-shadow .2s, background .2s;
+  font-size: 0.95rem;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease,
+    background 0.18s ease;
 }
 
 .input::placeholder {
-  color: var(--text-muted);
+  color: var(--text-muted, #888);
 }
 
-/* FOCUS correto para dark/light */
+/* focus bonito pra dark/light */
 .input:focus {
   outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent);
-  background: var(--card-bg);
+  border-color: var(--color-primary, #7c5cff);
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--color-primary, #7c5cff) 35%, transparent);
+  background: var(--card-bg, #ffffff);
 }
-
 
 /* =========================
-   Button
+   Botão Salvar
+   (aceita .saveBtn ou .saveButton)
 ========================= */
+.saveBtn,
 .saveButton {
   width: 100%;
-  background: var(--color-primary);
-  color: white;
+  margin-top: 10px;
   padding: 12px;
-  border-radius: 8px;
-  font-weight: 600;
+
   border: none;
+  border-radius: 10px;
+
+  background: var(--color-primary, #7c5cff);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.96rem;
   cursor: pointer;
-  margin-top: 8px;
-  transition: opacity .2s;
+
+  transition: transform 0.08s ease, box-shadow 0.12s ease,
+    opacity 0.15s ease;
 }
 
+.saveBtn:hover,
 .saveButton:hover {
-  opacity: .9;
+  opacity: 0.95;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.saveBtn:active,
+.saveButton:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.saveBtn:disabled,
+.saveButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+  box-shadow: none;
+}
+
+/* =========================
+   Temas (fallbacks)
+========================= */
+:root {
+  --modal-bg: #ffffff;
+  --card-bg: #ffffff;
+  --input-bg: #f5f5f7;
+  --text: #111111;
+  --text-muted: #777777;
+  --separator: #dddddd;
+  --color-primary: #7c5cff;
+}
+
+:root[data-theme="dark"] {
+  --modal-bg: #15141a;
+  --card-bg: #15141a;
+  --input-bg: #1f1e26;
+  --text: #ffffff;
+  --text-muted: #a9a6b7;
+  --separator: #2e2b37;
 }
