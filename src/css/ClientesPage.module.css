@@ -44,10 +44,14 @@
    HEADER
 ================================ */
 .header {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: relative; /* garante que nada sobreponha */
+  z-index: 2;
 }
+
 
 .header h2 {
   margin: 0;
@@ -56,17 +60,31 @@
 }
 
 .closeBtn {
-  border: none;
+  flex-shrink: 0;          /* impede de expandir/comprimir */
+  display: flex;           /* centra o ícone */
+  align-items: center;
+  justify-content: center;
+
+  width: 38px;
+  height: 38px;
+
+  border-radius: 50%;
   background: transparent;
+  border: 1px solid var(--border);
+
+  font-size: 20px;
   color: var(--text);
   cursor: pointer;
-  padding: 6px;
-  border-radius: 8px;
-  font-size: 20px;
+
+  transition: 0.15s ease-in-out;
 }
 
 .closeBtn:hover {
   background: rgba(255,255,255,0.12);
+}
+
+:root[data-theme="light"] .closeBtn:hover {
+  background: rgba(0,0,0,0.06);
 }
 
 /* ================================
