@@ -70,7 +70,7 @@ export default function Agenda() {
   /* CAMPOS PARA DATAS DISPONÍVEIS */
   const [professionalId, setProfessionalId] = useState("");
   const [serviceId, setServiceId] = useState("");
-  const [ setSelectedDate] = useState("");
+  const [ ,setSelectedDate] = useState("");
 
   const [serviceDuration ] = useState<number | null>(null);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
