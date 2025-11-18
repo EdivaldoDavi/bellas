@@ -30,11 +30,37 @@
 }
 
 .closeBtn {
-  background: transparent;
-  border: none;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #d63b71;
+  border-radius: 10px;
+
+  color: white;
   cursor: pointer;
-  color: var(--text);
+
+  border: none;
+  padding: 0;
+
+  transition: background 0.15s ease;
 }
+
+.closeBtn:hover {
+  background: #c03568;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 
 .newBtn {
   display: flex;
