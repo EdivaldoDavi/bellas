@@ -25,7 +25,7 @@ import GerenciarAcessosPage from "./config/GerenciarAcessosPage";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 
 // 🔥 Importar suas novas páginas
-import ServicosPage from "../../pages/ServicosPage";
+import ServicosPage from "./pages/ServicosPage";
 // você criará depois:
 //import ClientesPage from "./pages/ClientesPage";
 //import ProfissionaisPage from "./pages/ProfissionaisPage";
@@ -142,7 +142,7 @@ export default function App() {
            {/* <Route path="/clientes" element={<ClientesPage />} />*/}
             <Route path="/servicos" element={<ServicosPage />} />
             {/* <Route path="/profissionais" element={<ProfissionaisPage />} />*/}
-            <Route path="/usuarios" element={<UsuariosPage />} />
+            {/*<Route path="/usuarios" element={<UsuariosPage />} />*/}
           </Route>
         </Routes>
       </SetupRedirectGuard>
