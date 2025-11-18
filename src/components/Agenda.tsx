@@ -60,7 +60,7 @@ export default function Agenda() {
   const [showWizard, setShowWizard] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showTimes, setShowTimes] = useState(false);
-  const [showServiceModal, setShowServiceModal] = useState(false);
+  const [ setShowServiceModal] = useState(false);
   const [showProfessionalModal, setShowProfessionalModal] = useState(false);
 
   const [showNewCustomer, setShowNewCustomer] = useState(false);
@@ -73,7 +73,7 @@ export default function Agenda() {
   const [_, setSelectedDate] = useState("");
 
   /* Dados do profissional */
-  const [professionalServices, setProfessionalServices] = useState<any[]>([]);
+  const [ setProfessionalServices] = useState<any[]>([]);
   const [serviceDuration, setServiceDuration] = useState<number | null>(null);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
 
