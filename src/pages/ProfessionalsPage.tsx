@@ -56,7 +56,7 @@ export default function ProfessionalsPage() {
   async function toggleActive(id: string, current: boolean) {
     const { error } = await supabase
       .from("professionals")
-      .update({ active: !current })
+      .update({ is_active: !current })
       .eq("id", id)
       .eq("tenant_id", tenantId);
 
@@ -117,11 +117,11 @@ export default function ProfessionalsPage() {
 
                 <button
                   className={
-                    p.active ? styles.activeBtn : styles.inactiveBtn
+                    p.is_active ? styles.activeBtn : styles.inactiveBtn
                   }
-                  onClick={() => toggleActive(p.id, p.active)}
+                  onClick={() => toggleActive(p.id, p.is_active)}
                 >
-                  {p.active ? "Ativo" : "Inativo"}
+                  {p.is_active ? "Ativo" : "Inativo"}
                 </button>
               </div>
             </div>
