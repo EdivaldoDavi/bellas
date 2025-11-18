@@ -85,28 +85,50 @@
   margin-top: 10px;
 }
 
-.checkItem {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  background: var(--card-bg);
-  border-radius: 10px;
-  cursor: pointer;
-  border: 1px solid rgba(255,255,255,0.06);
+/* =====================================
+   LISTA DE SERVIÇOS - alinhamento perfeito
+===================================== */
 
-  transition: 0.15s ease;
+.checkItem {
+  display: grid;
+  grid-template-columns: 20px 1fr; /* checkbox + texto */
+  align-items: center; 
+  column-gap: 10px;
+
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.12s;
 }
 
 .checkItem:hover {
-  background: rgba(255,255,255,0.07);
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--input-bg));
 }
 
+.checkItem:active {
+  transform: scale(0.98);
+}
+
+/* Remove deslocamento no checkbox */
 .checkItem input[type="checkbox"] {
-  accent-color: var(--primary);
+  margin: 0;
   width: 18px;
   height: 18px;
+  accent-color: var(--color-primary);
 }
+
+/* Texto certinho ao lado do check */
+.checkItem span {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text);
+  line-height: 1.1;
+}
+
 
 /* Row "copiar semana" */
 .copyRow {
