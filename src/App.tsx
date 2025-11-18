@@ -28,7 +28,7 @@ import ClientesPage from "./pages/ClientesPage";
 import ServicosPage from "./pages/ServicosPage";
 // você criará depois:
 //import ClientesPage from "./pages/ClientesPage";
-//import ProfissionaisPage from "./pages/ProfissionaisPage";
+import ProfessionalsPage from "./pages/ProfessionalsPage";
 //import UsuariosPage from "./pages/UsuariosPage";
 
 import { ToastContainer } from "react-toastify";
@@ -141,7 +141,7 @@ export default function App() {
             {/* === 👇 NOVAS ROTAS DO SIDEBAR 👇 === */}
             <Route path="/clientes" element={<ClientesPage />} />
             <Route path="/servicos" element={<ServicosPage />} />
-            {/* <Route path="/profissionais" element={<ProfissionaisPage />} />*/}
+            <Route path="/profissionais" element={<ProfessionalsPage />} />
             {/*<Route path="/usuarios" element={<UsuariosPage />} />*/}
           </Route>
         </Routes>
