@@ -1,4 +1,4 @@
-/** AGENDA — CLEAN VERSION (sem estados não usados) **/
+/** AGENDA — CLEAN VERSION FINAL **/
 
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
@@ -52,34 +52,32 @@ export default function Agenda() {
   const tenantId = profile?.tenant_id ?? null;
   const role = profile?.role ?? null;
 
+  /* DATA */
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  /* Modais */
+  /* MODAIS */
   const [showWizard, setShowWizard] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showTimes, setShowTimes] = useState(false);
-  const [ setShowServiceModal] = useState(false);
   const [showProfessionalModal, setShowProfessionalModal] = useState(false);
 
   const [showNewCustomer, setShowNewCustomer] = useState(false);
   const [showNewService, setShowNewService] = useState(false);
   const [showNewProfessional, setShowNewProfessional] = useState(false);
 
-  /* Campos */
+  /* CAMPOS PARA DATAS DISPONÍVEIS */
   const [professionalId, setProfessionalId] = useState("");
   const [serviceId, setServiceId] = useState("");
-  const [_, setSelectedDate] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
 
-  /* Dados do profissional */
-  const [ setProfessionalServices] = useState<any[]>([]);
   const [serviceDuration, setServiceDuration] = useState<number | null>(null);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
 
-  /* ============================================
+  /* =============================
    * TEMA
-   * ============================================ */
+   * ============================= */
   useEffect(() => {
     if (theme) document.documentElement.setAttribute("data-theme", theme);
 
@@ -91,9 +89,9 @@ export default function Agenda() {
     }
   }, [theme, tenant]);
 
-  /* ============================================
-   * LOAD APPOINTMENTS
-   * ============================================ */
+  /* =============================
+   * CARREGAR AGENDAMENTOS
+   * ============================= */
   useEffect(() => {
     if (!tenantId) return;
     fetchAppointments();
@@ -143,24 +141,35 @@ export default function Agenda() {
     setLoading(false);
   }
 
-  /* ============================================
-   * OUTRAS FUNÇÕES
-   * ============================================ */
+  /* =============================
+   * CALENDÁRIO / HORÁRIOS
+   * ============================= */
 
-  async function fetchServicesByProfessional(id: string) {
-    const { data } = await supabase
-      .from("professional_services")
-      .select("service:services(id,name,duration_min)")
-      .eq("tenant_id", tenantId)
-      .eq("professional_id", id);
+  async function handleSelectDate(date: Date) {
+    if (!professionalId) return toast.warn("Selecione o profissional primeiro");
+    if (!serviceId || !serviceDuration)
+      return toast.warn("Selecione o serviço primeiro");
 
-    setProfessionalServices((data || []).map((r: any) => r.service));
+    const d = toLocalISOString(date).split("T")[0];
+
+    if (isHoliday(d)) return toast.warn("Feriado não permitido");
+
+    setSelectedDate(d);
+    setShowCalendar(false);
+
+    setTimeout(() => {
+      loadAvailableTimes(d, professionalId);
+      setShowTimes(true);
+    }, 10);
   }
 
   async function loadAvailableTimes(date: string, profId: string) {
     if (!tenantId || !profId || !serviceDuration) return;
 
-    if (isPastDateLocal(date) || isHoliday(date)) return setAvailableTimes([]);
+    if (isPastDateLocal(date) || isHoliday(date)) {
+      setAvailableTimes([]);
+      return;
+    }
 
     const weekday = getWeekdayLocal(date);
 
@@ -229,9 +238,11 @@ export default function Agenda() {
       });
 
       if (!conflict) {
-        slots.push(`${String(t.getHours()).padStart(2, "0")}:${String(
-          t.getMinutes()
-        ).padStart(2, "0")}`);
+        slots.push(
+          `${String(t.getHours()).padStart(2, "0")}:${String(
+            t.getMinutes()
+          ).padStart(2, "0")}`
+        );
       }
 
       t = new Date(t.getTime() + serviceDuration * 60000);
@@ -240,24 +251,9 @@ export default function Agenda() {
     setAvailableTimes(slots);
   }
 
-  async function handleSelectDate(date: Date) {
-    if (!professionalId) return toast.warn("Selecione o profissional primeiro");
-    if (!serviceId || !serviceDuration)
-      return toast.warn("Selecione o serviço primeiro");
-
-    const d = toLocalISOString(date).split("T")[0];
-
-    if (isHoliday(d)) return toast.warn("Feriado não permitido");
-
-    setSelectedDate(d);
-    setShowCalendar(false);
-
-    setTimeout(() => {
-      loadAvailableTimes(d, professionalId);
-      setShowTimes(true);
-    }, 10);
-  }
-
+  /* =============================
+   * CANCELAR
+   * ============================= */
   async function handleCancelAppointment(id: string) {
     if (!confirm("Deseja cancelar este agendamento?")) return;
 
@@ -272,9 +268,9 @@ export default function Agenda() {
     fetchAppointments();
   }
 
-  /* ============================================
+  /* =============================
    * RENDER
-   * ============================================ */
+   * ============================= */
 
   const formattedDate = currentDate.toLocaleDateString("pt-BR", {
     weekday: "long",
@@ -379,7 +375,7 @@ export default function Agenda() {
         )}
       </div>
 
-      {/* -- MODAIS AUXILIARES -- */}
+      {/* -- MODAIS -- */}
 
       <ModalNewCustomer
         tenantId={tenantId ?? ""}
@@ -418,24 +414,14 @@ export default function Agenda() {
         onSelect={() => setShowTimes(false)}
       />
 
-    
-
-
       <ModalSelectProfessional
         show={showProfessionalModal}
         professionals={[]}
         onClose={() => setShowProfessionalModal(false)}
-        onSelect={async (id) => {
+        onSelect={(id) => {
           setProfessionalId(id);
-          setServiceId("");
-          setServiceDuration(null);
-          setSelectedDate("");
-          setAvailableTimes([]);
-
-          await fetchServicesByProfessional(id);
-
           setShowProfessionalModal(false);
-          setShowServiceModal(true);
+          setShowCalendar(true);
         }}
       />
 
