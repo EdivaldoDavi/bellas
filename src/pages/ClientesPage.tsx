@@ -47,6 +47,9 @@ export default function ClientesPage() {
     if (tenantId) load();
   }, [tenantId]);
 
+
+
+  
   async function load() {
     setLoading(true);
 
@@ -235,17 +238,14 @@ export default function ClientesPage() {
       </div>
 
       {/* MODAL */}
-      <ModalNewCustomer
-        tenantId={tenantId}
-        show={openModal}
-        mode={editingCustomer ? "edit" : "cadastro"}
-        customer={editingCustomer ?? undefined}
-        onClose={() => {
-          setOpenModal(false);
-          setEditingCustomer(null);
-          load();
-        }}
-      />
+<ModalNewCustomer
+   tenantId={tenantId}
+   show={openModal}
+   mode={editingCustomer ? "edit" : "cadastro"}
+   customer={editingCustomer}
+   onClose={() => setOpenModal(false)}
+   onSuccess={() => load()}   // 👈 força reload real
+/>
     </>
   );
 }

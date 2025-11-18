@@ -140,11 +140,15 @@ export default function ModalNewCustomer({
         </button>
 
         {/* Título dinâmico */}
-        <h3>
-          {mode === "edit" ? "Editar Cliente" : "Novo Cliente"}
-        </h3>
+            <div className={styles.header}>
+        <h3>{mode === "edit" ? "Editar Cliente" : "Novo Cliente"}</h3>
 
-        {/* Nome */}
+        <button className={styles.closeBtn} onClick={onClose}>
+          <X size={22} />
+        </button>
+      </div>
+
+              {/* Nome */}
         <input
           className={styles.input}
           placeholder="Nome completo"

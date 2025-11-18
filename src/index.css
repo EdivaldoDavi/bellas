@@ -57,6 +57,13 @@
     --theme-invert: 1; /* ✅ inverte ícone no modo escuro */
 }
 
+.Toastify__toast-container {
+  z-index: 20000 !important;   /* acima do modal */
+}
+
+.Toastify__toast {
+  z-index: 20001 !important;
+}
 
 /* ===========================
    ELEMENTOS DO SIDEBAR
