@@ -7,8 +7,7 @@
   padding: 1rem 2rem;
   background-color: var(--header-bg, #ffffff);
   border-bottom: 1px solid var(--separator, #e5e5e5);
-   height: 64px; /* ou a altura do seu header */
-  padding-top: env(safe-area-inset-top);
+  height: 44px;
   transition: background 0.3s ease, color 0.3s ease;
 }
 
