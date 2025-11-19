@@ -152,7 +152,7 @@
   /* Área de conteúdo rola sob o header fixo */
 .pageContent {
 
-    padding-top: calc(var(--header-height) + env(safe-area-inset-top));
+    padding-top: var(--safe-top, 64px); 
     height: calc(100vh - var(--header-total-height, 64px));
   
 }
