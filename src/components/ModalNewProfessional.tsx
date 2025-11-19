@@ -311,7 +311,7 @@ export default function ModalNewProfessional({
       {/* ESCONDE O MODAL PRINCIPAL QUANDO O MODAL DE SERVIÇOS ESTÁ ABERTO */}
       <div
         className={styles.overlay}
-        style={{ display: showSelectServices ? "none" : "flex" }}
+       
       >
         <div
           className={styles.modal}
