@@ -7,9 +7,6 @@ import styles from "../css/ModalNewProfessional.module.css";
 import ModalSelectServiceForProfessional from "./ModalSelectServiceForProfessional";
 import ModalSelectScheduleForProfessional from "./ModalSelectScheduleForProfessional";
 
-/* ============================================================
-   TIPOS
-============================================================ */
 interface ModalNewProfessionalProps {
   tenantId?: string;
   show: boolean;
@@ -34,14 +31,24 @@ type DayRow = {
 };
 
 const WEEKDAYS_FULL = [
-  { id: 1, label: "Seg" },
-  { id: 2, label: "Ter" },
-  { id: 3, label: "Qua" },
-  { id: 4, label: "Qui" },
-  { id: 5, label: "Sex" },
-  { id: 6, label: "Sáb" },
-  { id: 7, label: "Dom" },
-];
+  { id: 1, label: "Segunda-feira" },
+  { id: 2, label: "Terça-feira" },
+  { id: 3, label: "Quarta-feira" },
+  { id: 4, label: "Quinta-feira" },
+  { id: 5, label: "Sexta-feira" },
+  { id: 6, label: "Sábado" },
+  { id: 7, label: "Domingo" },
+] as const;
+
+const WEEKDAY_LABEL_SHORT: Record<number, string> = {
+  1: "Segunda",
+  2: "Terça",
+  3: "Quarta",
+  4: "Quinta",
+  5: "Sexta",
+  6: "Sábado",
+  7: "Domingo",
+};
 
 function stripSeconds(t?: string | null) {
   if (!t) return "";
@@ -52,9 +59,106 @@ function padSeconds(t: string) {
   return t.length === 5 ? `${t}:00` : t;
 }
 
-/* ============================================================
-   COMPONENTE PRINCIPAL
-============================================================ */
+/**
+ * Monta o texto de resumo dos horários a partir dos weekRows.
+ * - Agrupa dias com o mesmo horário.
+ * - Exemplo: "Horários definidos: Segunda a Sexta 09:00–18:00 (12:00–13:00)"
+ * - Dias sem horário (sem start/end) são ignorados.
+ */
+function buildScheduleSummary(weekRows: DayRow[]): string {
+  // Considera só dias que têm horário definido
+  const activeDays = weekRows
+    .filter((d) => d.start && d.end)
+    .sort((a, b) => a.weekday - b.weekday);
+
+  if (activeDays.length === 0) {
+    return "Nenhum horário definido";
+  }
+
+  type Group = {
+    startDay: number;
+    endDay: number;
+    start: string;
+    end: string;
+    breakStart: string;
+    breakEnd: string;
+  };
+
+  const groups: Group[] = [];
+
+  const isSameSchedule = (a: DayRow, b: DayRow) =>
+    a.start === b.start &&
+    a.end === b.end &&
+    a.breakStart === b.breakStart &&
+    a.breakEnd === b.breakEnd;
+
+  let current: Group | null = null;
+
+  for (const day of activeDays) {
+    if (!current) {
+      current = {
+        startDay: day.weekday,
+        endDay: day.weekday,
+        start: day.start,
+        end: day.end,
+        breakStart: day.breakStart,
+        breakEnd: day.breakEnd,
+      };
+      continue;
+    }
+
+    const sameSchedule =
+      day.weekday === current.endDay + 1 &&
+      day.start === current.start &&
+      day.end === current.end &&
+      day.breakStart === current.breakStart &&
+      day.breakEnd === current.breakEnd;
+
+    if (sameSchedule) {
+      current.endDay = day.weekday;
+    } else {
+      groups.push(current);
+      current = {
+        startDay: day.weekday,
+        endDay: day.weekday,
+        start: day.start,
+        end: day.end,
+        breakStart: day.breakStart,
+        breakEnd: day.breakEnd,
+      };
+    }
+  }
+
+  if (current) groups.push(current);
+
+  const parts = groups.map((g) => {
+    const sameDay = g.startDay === g.endDay;
+
+    // Texto do intervalo de dias
+    const dayText = sameDay
+      ? WEEKDAY_LABEL_SHORT[g.startDay]
+      : `${WEEKDAY_LABEL_SHORT[g.startDay]} a ${
+          WEEKDAY_LABEL_SHORT[g.endDay]
+        }`;
+
+    // Texto de horário
+    const timeText = `${g.start}–${g.end}`;
+
+    // Intervalo de almoço (esconde se "00:00" ou vazio)
+    const hasBreak =
+      g.breakStart &&
+      g.breakEnd &&
+      g.breakStart !== "00:00" &&
+      g.breakEnd !== "00:00";
+
+    const breakText = hasBreak ? ` (${g.breakStart}–${g.breakEnd})` : "";
+
+    return `${dayText}: ${timeText}${breakText}`;
+  });
+
+  return `Horários definidos: ${parts.join(" | ")}`;
+}
+
 export default function ModalNewProfessional({
   tenantId,
   show,
@@ -65,17 +169,19 @@ export default function ModalNewProfessional({
 }: ModalNewProfessionalProps) {
   const isEditing = !!editId;
 
-  // CAMPOS PRINCIPAIS
+  /* STATE PRINCIPAL */
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
 
-  // SERVIÇOS
   const [services, setServices] = useState<Service[]>([]);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [showSelectServices, setShowSelectServices] = useState(false);
 
-  // HORÁRIOS
+  const [saving, setSaving] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(false);
+
+  /* HORÁRIOS */
   const emptyWeek: DayRow[] = WEEKDAYS_FULL.map((d) => ({
     weekday: d.id,
     start: "",
@@ -85,16 +191,15 @@ export default function ModalNewProfessional({
   }));
 
   const [copyToWeek, setCopyToWeek] = useState(true);
+  const [monStart, setMonStart] = useState("09:00");
+  const [monEnd, setMonEnd] = useState("18:00");
+  const [monBreakStart, setMonBreakStart] = useState("00:00");
+  const [monBreakEnd, setMonBreakEnd] = useState("00:00");
+
   const [weekRows, setWeekRows] = useState<DayRow[]>(emptyWeek);
   const [showSelectSchedule, setShowSelectSchedule] = useState(false);
 
-  // CONTROLE
-  const [saving, setSaving] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(false);
-
-  /* ============================================================
-     RESET AO ABRIR
-  ============================================================ */
+  /* RESET QUANDO ABRE (somente novo cadastro) */
   useEffect(() => {
     if (!show) return;
 
@@ -105,13 +210,15 @@ export default function ModalNewProfessional({
       setSelectedServices([]);
 
       setCopyToWeek(true);
+      setMonStart("09:00");
+      setMonEnd("18:00");
+      setMonBreakStart("00:00");
+      setMonBreakEnd("00:00");
       setWeekRows(emptyWeek);
     }
   }, [show, isEditing]);
 
-  /* ============================================================
-     CARREGAR SERVIÇOS
-  ============================================================ */
+  /* CARREGAR SERVIÇOS */
   useEffect(() => {
     if (!show || !tenantId) return;
 
@@ -122,14 +229,16 @@ export default function ModalNewProfessional({
         .eq("tenant_id", tenantId)
         .order("name");
 
-      if (error) return toast.error("Erro ao carregar serviços");
+      if (error) {
+        toast.error("Erro ao carregar serviços");
+        return;
+      }
+
       setServices(data || []);
     })();
   }, [show, tenantId]);
 
-  /* ============================================================
-     CARREGAR PROFISSIONAL PARA EDIÇÃO
-  ============================================================ */
+  /* CARREGAR DADOS DE EDIÇÃO */
   useEffect(() => {
     if (!show || !tenantId || !editId) return;
 
@@ -151,7 +260,7 @@ export default function ModalNewProfessional({
           setPhone(prof.phone ?? "");
         }
 
-        // Serviços selecionados
+        // Serviços vinculados
         const { data: links } = await supabase
           .from("professional_services")
           .select("service_id")
@@ -194,49 +303,20 @@ export default function ModalNewProfessional({
     })();
   }, [show, tenantId, editId]);
 
-  /* ============================================================
-     RESUMO DE HORÁRIOS (OPÇÃO D)
-  ============================================================ */
-  function renderScheduleSummary() {
-    const filled = weekRows.filter((r) => r.start && r.end);
-    if (filled.length === 0) return "Nenhum horário definido";
-
-    return (
-      <div style={{ marginTop: 6 }}>
-        <strong>🕒 Horários definidos</strong>
-        {filled.map((r) => {
-          const d = WEEKDAYS_FULL.find((w) => w.id === r.weekday)?.label;
-          const lunch =
-            r.breakStart && r.breakEnd
-              ? ` (${r.breakStart}–${r.breakEnd})`
-              : "";
-
-          return (
-            <div key={r.weekday}>
-              • {d}: {r.start}–{r.end}
-              {lunch}
-            </div>
-          );
-        })}
-      </div>
-    );
-  }
-
-  /* ============================================================
-     SALVAR PROFISSIONAL
-  ============================================================ */
+  /* SALVAR */
   async function handleSave() {
     if (!tenantId) return toast.error("Tenant inválido");
     if (!name.trim()) return toast.warn("Informe o nome");
-    if (selectedServices.length === 0)
+    if (selectedServices.length === 0) {
       return toast.warn("Selecione ao menos um serviço");
+    }
 
     setSaving(true);
 
     try {
       let professionalId = editId;
 
-      /* NOVO PROFISSIONAL */
+      // NOVO
       if (!isEditing) {
         const { data, error } = await supabase
           .from("professionals")
@@ -254,9 +334,8 @@ export default function ModalNewProfessional({
         if (error || !data) throw error;
         professionalId = data.id;
       }
-
-      /* EDITAR PROFISSIONAL */
-      else {
+      // EDITAR
+      else if (professionalId) {
         await supabase
           .from("professionals")
           .update({
@@ -270,7 +349,7 @@ export default function ModalNewProfessional({
 
       if (!professionalId) throw new Error("ID inválido");
 
-      /* SERVIÇOS */
+      // SERVIÇOS
       await supabase
         .from("professional_services")
         .delete()
@@ -285,33 +364,70 @@ export default function ModalNewProfessional({
         }))
       );
 
-      /* HORÁRIOS */
+      // HORÁRIOS
       await supabase
         .from("professional_schedules")
         .delete()
         .eq("tenant_id", tenantId)
         .eq("professional_id", professionalId);
 
-      const rows: any[] = [];
+      const rowsToInsert: any[] = [];
 
-      weekRows.forEach((w) => {
-        if (w.start && w.end) {
-          rows.push({
+      if (copyToWeek) {
+        // Usa segunda (monStart/monEnd/monBreak…) como base para Seg–Sáb
+        for (let d = 1; d <= 6; d++) {
+          rowsToInsert.push({
             tenant_id: tenantId,
             professional_id: professionalId,
-            weekday: w.weekday,
-            start_time: padSeconds(w.start),
-            end_time: padSeconds(w.end),
-            break_start_time: padSeconds(w.breakStart),
-            break_end_time: padSeconds(w.breakEnd),
+            weekday: d,
+            start_time: padSeconds(monStart),
+            end_time: padSeconds(monEnd),
+            break_start_time: padSeconds(monBreakStart),
+            break_end_time: padSeconds(monBreakEnd),
           });
         }
-      });
+      } else {
+        weekRows.forEach((w) => {
+          if (w.start && w.end) {
+            rowsToInsert.push({
+              tenant_id: tenantId,
+              professional_id: professionalId,
+              weekday: w.weekday,
+              start_time: padSeconds(w.start),
+              end_time: padSeconds(w.end),
+              break_start_time: padSeconds(w.breakStart),
+              break_end_time: padSeconds(w.breakEnd),
+            });
+          }
+        });
+      }
 
-      await supabase.from("professional_schedules").insert(rows);
+      if (rowsToInsert.length > 0) {
+        await supabase.from("professional_schedules").insert(rowsToInsert);
+      }
 
-      toast.success(isEditing ? "Profissional atualizado!" : "Profissional cadastrado!");
+      toast.success(
+        isEditing ? "Profissional atualizado!" : "Profissional cadastrado!"
+      );
+
       onSuccess?.(professionalId, name);
+
+      // Modo agenda: fecha direto
+      if (mode === "agenda") {
+        onClose();
+        return;
+      }
+
+      // Modo cadastro: reseta se for novo
+      if (!isEditing) {
+        setName("");
+        setEmail("");
+        setPhone("");
+        setSelectedServices([]);
+        setWeekRows(emptyWeek);
+        setCopyToWeek(true);
+      }
+
       onClose();
     } catch (e) {
       console.error(e);
@@ -323,14 +439,16 @@ export default function ModalNewProfessional({
 
   if (!show) return null;
 
-  /* ============================================================
-     RENDER
-  ============================================================ */
+  const scheduleSummary = buildScheduleSummary(weekRows);
+  const hideMainModal = showSelectServices || showSelectSchedule;
+
+  /* RENDER */
   return (
     <>
+      {/* Modal principal (profissional) */}
       <div
         className={styles.overlay}
-        style={{ display: showSelectServices || showSelectSchedule ? "none" : "flex" }}
+        style={{ display: hideMainModal ? "none" : "flex" }}
       >
         <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
           <button className={styles.closeBtn} onClick={onClose}>
@@ -340,7 +458,7 @@ export default function ModalNewProfessional({
           <h3>{isEditing ? "Editar profissional" : "Novo profissional"}</h3>
 
           {initialLoading ? (
-            <p>Carregando...</p>
+            <p className={styles.emptyText}>Carregando dados...</p>
           ) : (
             <>
               <input
@@ -364,21 +482,23 @@ export default function ModalNewProfessional({
                 onChange={(e) => setPhone(e.target.value)}
               />
 
-              {/* ========== SERVIÇOS ========== */}
+              {/* SERVIÇOS */}
               <h4>Serviços que executa</h4>
+
               <button
                 className={styles.selectServicesBtn}
                 onClick={() => setShowSelectServices(true)}
               >
                 Selecionar serviços
               </button>
+
               <p className={styles.summaryText}>
                 {selectedServices.length === 0
                   ? "Nenhum serviço selecionado"
                   : `${selectedServices.length} serviço(s) selecionado(s)`}
               </p>
 
-              {/* ========== HORÁRIOS ========== */}
+              {/* HORÁRIOS */}
               <h4>Horários de trabalho</h4>
 
               <button
@@ -388,9 +508,9 @@ export default function ModalNewProfessional({
                 Definir horários
               </button>
 
-              {renderScheduleSummary()}
+              <p className={styles.summaryText}>{scheduleSummary}</p>
 
-              {/* ========== SALVAR ========== */}
+              {/* BOTÃO DE SALVAR */}
               <button
                 className={styles.saveBtn}
                 onClick={handleSave}
@@ -407,7 +527,7 @@ export default function ModalNewProfessional({
         </div>
       </div>
 
-      {/* ========= MODAIS INTERNOS ========= */}
+      {/* MODAL DE SELEÇÃO DE SERVIÇOS */}
       <ModalSelectServiceForProfessional
         show={showSelectServices}
         services={services}
@@ -419,14 +539,15 @@ export default function ModalNewProfessional({
         }}
       />
 
+      {/* MODAL DE SELEÇÃO DE HORÁRIOS */}
       <ModalSelectScheduleForProfessional
         show={showSelectSchedule}
         weekRows={weekRows}
         copyToWeek={copyToWeek}
         onClose={() => setShowSelectSchedule(false)}
-        onSave={(rows, flag) => {
+        onSave={(rows, copyFlag) => {
           setWeekRows(rows);
-          setCopyToWeek(flag);
+          setCopyToWeek(copyFlag);
           setShowSelectSchedule(false);
         }}
       />
