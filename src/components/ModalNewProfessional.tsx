@@ -22,7 +22,7 @@ type Service = {
   duration_min: number | null;
 };
 
-type DayRow = {
+export type DayRow = {
   weekday: number;
   start: string;
   end: string;
@@ -40,6 +40,7 @@ const WEEKDAYS_FULL = [
   { id: 7, label: "Domingo" },
 ] as const;
 
+// Rótulos curtos para o resumo
 const WEEKDAY_LABEL_SHORT: Record<number, string> = {
   1: "Seg",
   2: "Ter",
@@ -56,6 +57,7 @@ function stripSeconds(t?: string | null) {
 }
 
 function padSeconds(t: string) {
+  if (!t) return "";
   return t.length === 5 ? `${t}:00` : t;
 }
 
@@ -84,7 +86,6 @@ function buildScheduleSummary(weekRows: DayRow[]): string {
   };
 
   const groups: Group[] = [];
-
   let current: Group | null = null;
 
   for (const day of activeDays) {
@@ -159,19 +160,19 @@ export default function ModalNewProfessional({
 }: ModalNewProfessionalProps) {
   const isEditing = !!editId;
 
-  // ========================
-  // STATE PRINCIPAL
-  // ========================
+  // CAMPOS PRINCIPAIS
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
 
-  // Serviços
   const [services, setServices] = useState<Service[]>([]);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [showSelectServices, setShowSelectServices] = useState(false);
 
-  // Horários
+  const [saving, setSaving] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(false);
+
+  // HORÁRIOS
   const emptyWeek: DayRow[] = WEEKDAYS_FULL.map((d) => ({
     weekday: d.id,
     start: "",
@@ -181,15 +182,10 @@ export default function ModalNewProfessional({
   }));
 
   const [weekRows, setWeekRows] = useState<DayRow[]>(emptyWeek);
-  const [copyToWeek, setCopyToWeek] = useState(true);
+  const [copyToWeek, setCopyToWeek] = useState(true); // só para reabrir o modal no mesmo modo
   const [showSelectSchedule, setShowSelectSchedule] = useState(false);
 
-  const [saving, setSaving] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(false);
-
-  // ========================
-  // RESET QUANDO ABRE (novo)
-  // ========================
+  /* RESET QUANDO ABRE (somente novo cadastro) */
   useEffect(() => {
     if (!show) return;
 
@@ -203,9 +199,7 @@ export default function ModalNewProfessional({
     }
   }, [show, isEditing]);
 
-  // ========================
-  // CARREGAR SERVIÇOS
-  // ========================
+  /* CARREGAR SERVIÇOS */
   useEffect(() => {
     if (!show || !tenantId) return;
 
@@ -225,9 +219,7 @@ export default function ModalNewProfessional({
     })();
   }, [show, tenantId]);
 
-  // ========================
-  // CARREGAR PARA EDIÇÃO
-  // ========================
+  /* CARREGAR DADOS DE EDIÇÃO */
   useEffect(() => {
     if (!show || !tenantId || !editId) return;
 
@@ -292,9 +284,7 @@ export default function ModalNewProfessional({
     })();
   }, [show, tenantId, editId]);
 
-  // ========================
-  // SALVAR
-  // ========================
+  /* SALVAR */
   async function handleSave() {
     if (!tenantId) return toast.error("Tenant inválido");
     if (!name.trim()) return toast.warn("Informe o nome");
@@ -355,7 +345,8 @@ export default function ModalNewProfessional({
         }))
       );
 
-      // HORÁRIOS: sempre a partir de weekRows
+      // HORÁRIOS (agora SEM branch de copyToWeek;
+      // weekRows já vem pronto do modal, inclusive quando copiar segunda)
       await supabase
         .from("professional_schedules")
         .delete()
@@ -370,8 +361,8 @@ export default function ModalNewProfessional({
           weekday: w.weekday,
           start_time: padSeconds(w.start),
           end_time: padSeconds(w.end),
-          break_start_time: padSeconds(w.breakStart),
-          break_end_time: padSeconds(w.breakEnd),
+          break_start_time: padSeconds(w.breakStart || "00:00"),
+          break_end_time: padSeconds(w.breakEnd || "00:00"),
         }));
 
       if (rowsToInsert.length > 0) {
@@ -384,13 +375,13 @@ export default function ModalNewProfessional({
 
       onSuccess?.(professionalId, name);
 
-      // Modo agenda: fecha direto
+      // Modo agenda: apenas fecha
       if (mode === "agenda") {
         onClose();
         return;
       }
 
-      // Modo cadastro: se for novo, limpa o formulário
+      // Modo cadastro: reseta se for novo
       if (!isEditing) {
         setName("");
         setEmail("");
@@ -414,9 +405,6 @@ export default function ModalNewProfessional({
   const scheduleSummary = buildScheduleSummary(weekRows);
   const hideMainModal = showSelectServices || showSelectSchedule;
 
-  // ========================
-  // RENDER
-  // ========================
   return (
     <>
       {/* MODAL PRINCIPAL (PROFISSIONAL) */}
@@ -484,7 +472,7 @@ export default function ModalNewProfessional({
 
               <p className={styles.summaryText}>{scheduleSummary}</p>
 
-              {/* BOTÃO DE SALVAR */}
+              {/* BOTÃO SALVAR */}
               <button
                 className={styles.saveBtn}
                 onClick={handleSave}
