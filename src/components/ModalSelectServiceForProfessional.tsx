@@ -60,39 +60,36 @@ export default function ModalSelectServiceForProfessional({
 
         <div className={styles.list}>
           {/* SELECT ALL */}
-          <label
-            className={styles.item}
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleAll();
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={allSelected}
-              onChange={toggleAll}
-              onClick={(e) => e.stopPropagation()}
-            />
+        <label
+            className={styles.item}
+            // Apenas bloqueia o clique para que ele não suba para o overlay pai
+            onClick={(e) => { 
+              e.stopPropagation(); // <-- ESSENCIAL para evitar o fechamento!
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={allSelected}
+              // A lógica de toggle acontece apenas AQUI.
+              onChange={toggleAll}
+            />
 
-            <span className={styles.name}>Selecionar todos</span>
-            <span className={styles.duration}></span>
-          </label>
+            <span className={styles.name}>Selecionar todos</span>
+            <span className={styles.duration}></span>
+          </label>
 
           {/* LISTA DE SERVIÇOS */}
           {services.map((s) => (
             <label
               key={s.id}
               className={styles.item}
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleId(s.id);
-              }}
+              
             >
               <input
                 type="checkbox"
                 checked={selectedIds.includes(s.id)}
                 onChange={() => toggleId(s.id)}
-                onClick={(e) => e.stopPropagation()}
+               
               />
 
               <span className={styles.name}>{s.name}</span>
