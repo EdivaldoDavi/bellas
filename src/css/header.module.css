@@ -7,7 +7,7 @@
   padding: 1rem 2rem;
   background-color: var(--header-bg, #ffffff);
   border-bottom: 1px solid var(--separator, #e5e5e5);
-  height: 44px;
+  height: 70px;
   transition: background 0.3s ease, color 0.3s ease;
 }
 

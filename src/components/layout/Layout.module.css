@@ -75,10 +75,10 @@
   padding: 1.5rem;
 
   /* altura dinâmica do header */
-    padding-top: var(--header-total-height, 44px);
+    padding-top: var(--header-total-height, 64px);
 
   overflow-y: auto;
-  height: calc(100vh - var(--header-total-height, 44px));
+  height: calc(100vh - var(--header-total-height, 64px));
 
   background: var(--bg);
   color: var(--text);
@@ -152,8 +152,8 @@
   /* Área de conteúdo rola sob o header fixo */
 .pageContent {
 
-      padding-top: var(--header-total-height, 44px);
-    height: calc(100vh - var(--header-total-height, 44px));
+      padding-top: var(--header-total-height, 64px);
+    height: calc(100vh - var(--header-total-height, 64px));
   
 }
 
