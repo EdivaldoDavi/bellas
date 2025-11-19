@@ -41,13 +41,13 @@ const WEEKDAYS_FULL = [
 ] as const;
 
 const WEEKDAY_LABEL_SHORT: Record<number, string> = {
-  1: "Segunda",
-  2: "Terça",
-  3: "Quarta",
-  4: "Quinta",
-  5: "Sexta",
-  6: "Sábado",
-  7: "Domingo",
+  1: "Seg",
+  2: "Ter",
+  3: "Qua",
+  4: "Qui",
+  5: "Sex",
+  6: "Sáb",
+  7: "Dom",
 };
 
 function stripSeconds(t?: string | null) {
@@ -61,12 +61,11 @@ function padSeconds(t: string) {
 
 /**
  * Monta o texto de resumo dos horários a partir dos weekRows.
- * - Agrupa dias com o mesmo horário.
- * - Exemplo: "Horários definidos: Segunda a Sexta 09:00–18:00 (12:00–13:00)"
+ * - Agrupa dias consecutivos com o mesmo horário.
+ * - Exemplo: "Horários definidos: Seg a Sex: 09:00–18:00 (12:00–13:00)"
  * - Dias sem horário (sem start/end) são ignorados.
  */
 function buildScheduleSummary(weekRows: DayRow[]): string {
-  // Considera só dias que têm horário definido
   const activeDays = weekRows
     .filter((d) => d.start && d.end)
     .sort((a, b) => a.weekday - b.weekday);
@@ -85,12 +84,6 @@ function buildScheduleSummary(weekRows: DayRow[]): string {
   };
 
   const groups: Group[] = [];
-
-  const isSameSchedule = (a: DayRow, b: DayRow) =>
-    a.start === b.start &&
-    a.end === b.end &&
-    a.breakStart === b.breakStart &&
-    a.breakEnd === b.breakEnd;
 
   let current: Group | null = null;
 
@@ -134,17 +127,14 @@ function buildScheduleSummary(weekRows: DayRow[]): string {
   const parts = groups.map((g) => {
     const sameDay = g.startDay === g.endDay;
 
-    // Texto do intervalo de dias
     const dayText = sameDay
       ? WEEKDAY_LABEL_SHORT[g.startDay]
       : `${WEEKDAY_LABEL_SHORT[g.startDay]} a ${
           WEEKDAY_LABEL_SHORT[g.endDay]
         }`;
 
-    // Texto de horário
     const timeText = `${g.start}–${g.end}`;
 
-    // Intervalo de almoço (esconde se "00:00" ou vazio)
     const hasBreak =
       g.breakStart &&
       g.breakEnd &&
@@ -169,19 +159,19 @@ export default function ModalNewProfessional({
 }: ModalNewProfessionalProps) {
   const isEditing = !!editId;
 
-  /* STATE PRINCIPAL */
+  // ========================
+  // STATE PRINCIPAL
+  // ========================
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
 
+  // Serviços
   const [services, setServices] = useState<Service[]>([]);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [showSelectServices, setShowSelectServices] = useState(false);
 
-  const [saving, setSaving] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(false);
-
-  /* HORÁRIOS */
+  // Horários
   const emptyWeek: DayRow[] = WEEKDAYS_FULL.map((d) => ({
     weekday: d.id,
     start: "",
@@ -190,16 +180,16 @@ export default function ModalNewProfessional({
     breakEnd: "",
   }));
 
-  const [copyToWeek, setCopyToWeek] = useState(true);
-  const [monStart, setMonStart] = useState("09:00");
-  const [monEnd, setMonEnd] = useState("18:00");
-  const [monBreakStart, setMonBreakStart] = useState("00:00");
-  const [monBreakEnd, setMonBreakEnd] = useState("00:00");
-
   const [weekRows, setWeekRows] = useState<DayRow[]>(emptyWeek);
+  const [copyToWeek, setCopyToWeek] = useState(true);
   const [showSelectSchedule, setShowSelectSchedule] = useState(false);
 
-  /* RESET QUANDO ABRE (somente novo cadastro) */
+  const [saving, setSaving] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(false);
+
+  // ========================
+  // RESET QUANDO ABRE (novo)
+  // ========================
   useEffect(() => {
     if (!show) return;
 
@@ -208,17 +198,14 @@ export default function ModalNewProfessional({
       setEmail("");
       setPhone("");
       setSelectedServices([]);
-
-      setCopyToWeek(true);
-      setMonStart("09:00");
-      setMonEnd("18:00");
-      setMonBreakStart("00:00");
-      setMonBreakEnd("00:00");
       setWeekRows(emptyWeek);
+      setCopyToWeek(true);
     }
   }, [show, isEditing]);
 
-  /* CARREGAR SERVIÇOS */
+  // ========================
+  // CARREGAR SERVIÇOS
+  // ========================
   useEffect(() => {
     if (!show || !tenantId) return;
 
@@ -238,7 +225,9 @@ export default function ModalNewProfessional({
     })();
   }, [show, tenantId]);
 
-  /* CARREGAR DADOS DE EDIÇÃO */
+  // ========================
+  // CARREGAR PARA EDIÇÃO
+  // ========================
   useEffect(() => {
     if (!show || !tenantId || !editId) return;
 
@@ -303,7 +292,9 @@ export default function ModalNewProfessional({
     })();
   }, [show, tenantId, editId]);
 
-  /* SALVAR */
+  // ========================
+  // SALVAR
+  // ========================
   async function handleSave() {
     if (!tenantId) return toast.error("Tenant inválido");
     if (!name.trim()) return toast.warn("Informe o nome");
@@ -364,43 +355,24 @@ export default function ModalNewProfessional({
         }))
       );
 
-      // HORÁRIOS
+      // HORÁRIOS: sempre a partir de weekRows
       await supabase
         .from("professional_schedules")
         .delete()
         .eq("tenant_id", tenantId)
         .eq("professional_id", professionalId);
 
-      const rowsToInsert: any[] = [];
-
-      if (copyToWeek) {
-        // Usa segunda (monStart/monEnd/monBreak…) como base para Seg–Sáb
-        for (let d = 1; d <= 6; d++) {
-          rowsToInsert.push({
-            tenant_id: tenantId,
-            professional_id: professionalId,
-            weekday: d,
-            start_time: padSeconds(monStart),
-            end_time: padSeconds(monEnd),
-            break_start_time: padSeconds(monBreakStart),
-            break_end_time: padSeconds(monBreakEnd),
-          });
-        }
-      } else {
-        weekRows.forEach((w) => {
-          if (w.start && w.end) {
-            rowsToInsert.push({
-              tenant_id: tenantId,
-              professional_id: professionalId,
-              weekday: w.weekday,
-              start_time: padSeconds(w.start),
-              end_time: padSeconds(w.end),
-              break_start_time: padSeconds(w.breakStart),
-              break_end_time: padSeconds(w.breakEnd),
-            });
-          }
-        });
-      }
+      const rowsToInsert = weekRows
+        .filter((w) => w.start && w.end)
+        .map((w) => ({
+          tenant_id: tenantId,
+          professional_id: professionalId,
+          weekday: w.weekday,
+          start_time: padSeconds(w.start),
+          end_time: padSeconds(w.end),
+          break_start_time: padSeconds(w.breakStart),
+          break_end_time: padSeconds(w.breakEnd),
+        }));
 
       if (rowsToInsert.length > 0) {
         await supabase.from("professional_schedules").insert(rowsToInsert);
@@ -418,7 +390,7 @@ export default function ModalNewProfessional({
         return;
       }
 
-      // Modo cadastro: reseta se for novo
+      // Modo cadastro: se for novo, limpa o formulário
       if (!isEditing) {
         setName("");
         setEmail("");
@@ -442,10 +414,12 @@ export default function ModalNewProfessional({
   const scheduleSummary = buildScheduleSummary(weekRows);
   const hideMainModal = showSelectServices || showSelectSchedule;
 
-  /* RENDER */
+  // ========================
+  // RENDER
+  // ========================
   return (
     <>
-      {/* Modal principal (profissional) */}
+      {/* MODAL PRINCIPAL (PROFISSIONAL) */}
       <div
         className={styles.overlay}
         style={{ display: hideMainModal ? "none" : "flex" }}
