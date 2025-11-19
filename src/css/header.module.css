@@ -80,32 +80,6 @@
   font-size: 0.8rem;
   color: var(--text-muted, #888);
 }
-/* Linha da saudação + botão sair */
-.topBar {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  margin-bottom: 12px;
-}
-
-/* empurra o botão para o extremo direito */
-.logoutHeaderButton {
-  margin-left: auto;
-  background: var(--brand-primary);
-  color: #fff;
-  border: none;
-  padding: 10px 14px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.logoutHeaderButton:hover {
-  opacity: 0.9;
-}
 
 /* Responsividade */
 
