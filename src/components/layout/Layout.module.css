@@ -6,7 +6,9 @@
   height: 100vh;
   overflow: hidden; /* sem scroll global */
 }
-
+:root {
+  --header-height: 70px; /* altura padrão */
+}
 /* Flag quando sidebar colapsa (aplicada no wrapper raiz) */
 .isCollapsed {}
 .isMobileSidebarOpen {}
@@ -70,7 +72,8 @@
 /* ===== CONTEÚDO SCROLLÁVEL ===== */
 .pageContent {
   flex: 1;
-  margin-top: 64px;                /* compensa header fixo */
+  margin-top: 64px;   
+   padding-top: var(--header-height);        /* compensa header fixo */
   padding: 1.5rem;
   overflow-y: auto;                /* só o conteúdo rola */
   height: calc(100vh - 64px);
@@ -80,11 +83,13 @@
 }
 /* ===== MOBILE MODE ===== */
 @media (max-width: 1024px) {
-  
+  :root {
+    --header-height: auto; /* header cresce automaticamente */
+  }
   /* Sidebar sobrepõe o conteúdo */
   .sidebar {
     position: fixed;
-    top: 0;
+  padding-top: var(--header-height);
     left: -260px; /* escondida por padrão */
     width: 240px;
     height: 100vh;
@@ -143,7 +148,7 @@
 
   /* Área de conteúdo rola sob o header fixo */
 .pageContent {
-  padding-top: 64px; /* substitui margin-top */
+padding-top: var(--header-height);
 }
 
 }
