@@ -5,7 +5,7 @@ import { X } from "lucide-react";
 
 import styles from "../css/ModalNewProfessional.module.css";
 import ModalSelectServiceForProfessional from "./ModalSelectServiceForProfessional";
-
+import ModalSelectScheduleForProfessional from "./ModalSelectScheduleForProfessional";
 interface ModalNewProfessionalProps {
   tenantId?: string;
   show: boolean;
@@ -85,7 +85,7 @@ export default function ModalNewProfessional({
   const [monEnd, setMonEnd] = useState("18:00");
   const [monBreakStart, setMonBreakStart] = useState("00:00");
   const [monBreakEnd, setMonBreakEnd] = useState("00:00");
-
+const [showSelectSchedule, setShowSelectSchedule] = useState(false);
   const [weekRows, setWeekRows] = useState<DayRow[]>(emptyWeek);
 
   /* RESET QUANDO ABRE */
@@ -365,141 +365,34 @@ export default function ModalNewProfessional({
               </p>
 
               {/* HORÁRIOS */}
-              <h4>Horários de trabalho</h4>
+<h4>Horários de trabalho</h4>
 
-              <label className={styles.copyRow}>
-                <input
-                  type="checkbox"
-                  checked={copyToWeek}
-                  onChange={() => setCopyToWeek((v) => !v)}
-                />
-                <span>Copiar segunda para todos os dias</span>
-              </label>
+<button
+  className={styles.selectServicesBtn}
+  onClick={() => setShowSelectSchedule(true)}
+>
+  Definir horários
+</button>
 
-              {copyToWeek ? (
-                <>
-                  <div className={styles.dayTitle}>Segunda-feira</div>
+<p className={styles.summaryText}>
+  {weekRows.some((w) => w.start) 
+    ? "Horários definidos" 
+    : "Nenhum horário definido"}
+</p>
 
-                  <div className={styles.timeGrid}>
-                    <div>
-                      <label>Entrada</label>
-                      <input
-                        type="time"
-                        value={monStart}
-                        onChange={(e) => setMonStart(e.target.value)}
-                      />
-                    </div>
+<ModalSelectScheduleForProfessional
+  show={showSelectSchedule}
+  weekRows={weekRows}
+  copyToWeek={copyToWeek}
+  onClose={() => setShowSelectSchedule(false)}
+  onSave={(rows, copyFlag) => {
+    setWeekRows(rows);
+    setCopyToWeek(copyFlag);
+    setShowSelectSchedule(false);
+  }}
+/>
 
-                    <div>
-                      <label>Saída</label>
-                      <input
-                        type="time"
-                        value={monEnd}
-                        onChange={(e) => setMonEnd(e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label>Almoço início</label>
-                      <input
-                        type="time"
-                        value={monBreakStart}
-                        onChange={(e) => setMonBreakStart(e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label>Almoço fim</label>
-                      <input
-                        type="time"
-                        value={monBreakEnd}
-                        onChange={(e) => setMonBreakEnd(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                </>
-              ) : (
-                WEEKDAYS_FULL.map((d) => {
-                  const r = weekRows.find((x) => x.weekday === d.id)!;
-
-                  return (
-                    <div key={d.id} className={styles.dayBlock}>
-                      <div className={styles.dayTitle}>{d.label}</div>
-
-                      <div className={styles.timeGrid}>
-                        <div>
-                          <label>Entrada</label>
-                          <input
-                            type="time"
-                            value={r.start}
-                            onChange={(e) =>
-                              setWeekRows((prev) =>
-                                prev.map((x) =>
-                                  x.weekday === d.id
-                                    ? { ...x, start: e.target.value }
-                                    : x
-                                )
-                              )
-                            }
-                          />
-                        </div>
-
-                        <div>
-                          <label>Saída</label>
-                          <input
-                            type="time"
-                            value={r.end}
-                            onChange={(e) =>
-                              setWeekRows((prev) =>
-                                prev.map((x) =>
-                                  x.weekday === d.id
-                                    ? { ...x, end: e.target.value }
-                                    : x
-                                )
-                              )
-                            }
-                          />
-                        </div>
-
-                        <div>
-                          <label>Almoço início</label>
-                          <input
-                            type="time"
-                            value={r.breakStart}
-                            onChange={(e) =>
-                              setWeekRows((prev) =>
-                                prev.map((x) =>
-                                  x.weekday === d.id
-                                    ? { ...x, breakStart: e.target.value }
-                                    : x
-                                )
-                              )
-                            }
-                          />
-                        </div>
-
-                        <div>
-                          <label>Almoço fim</label>
-                          <input
-                            type="time"
-                            value={r.breakEnd}
-                            onChange={(e) =>
-                              setWeekRows((prev) =>
-                                prev.map((x) =>
-                                  x.weekday === d.id
-                                    ? { ...x, breakEnd: e.target.value }
-                                    : x
-                                )
-                              )
-                            }
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-
+              {/* BOTÃO DE SALVAR */}
               <button
                 className={styles.saveBtn}
                 onClick={handleSave}
