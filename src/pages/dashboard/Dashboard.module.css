@@ -8,6 +8,7 @@
   transition: background 0.3s ease, color 0.3s ease;
 }
 
+
 .header {
   margin-bottom: 2rem;
 }
@@ -82,8 +83,9 @@
   .statsGrid {
     grid-template-columns: 1fr;
   }
-  .dashboardContainer {
-    padding: 1rem;
+ .dashboardContainer {
+    /* antes estava só padding: 1rem; */
+    padding: 5rem 1rem 1rem; /* 5rem de topo para “fugir” do header fixo */
   }
   .headerTitle {
     font-size: 1.5rem;
