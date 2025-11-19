@@ -2,7 +2,7 @@
 
 .dashboardContainer {
   background-color: var(--bg);
-  padding: 2rem;
+ padding-top: 110px !important; /* aumenta conforme sua navbar */
   min-height: 100vh;
   color: var(--text);
   transition: background 0.3s ease, color 0.3s ease;
@@ -85,7 +85,7 @@
   }
  .dashboardContainer {
     /* antes estava só padding: 1rem; */
-    padding: 5rem 1rem 1rem; /* 5rem de topo para “fugir” do header fixo */
+    padding-top: 110px !important; /* aumenta conforme sua navbar */
   }
   .headerTitle {
     font-size: 1.5rem;
