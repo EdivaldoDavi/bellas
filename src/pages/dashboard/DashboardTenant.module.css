@@ -181,13 +181,20 @@
 /* ===========================
    TOP 3 PROFISSIONAIS
 =========================== */
-
-topProfCard {
-  width: 100%;
-  background: var(--card-bg);
+.topProfCard {
+  background: var(--card-bg, #fff);
   border: 1px solid var(--separator);
   border-radius: 10px;
+
+  /* Padrão dos goalCard e appointmentCard */
   padding: 1.2rem 1.4rem;
+
+  /* Mesma sombra usada nos outros */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+  transition: background 0.3s ease, border 0.3s ease;
+
+width: 100%;
 }
 
 .rankItem {
