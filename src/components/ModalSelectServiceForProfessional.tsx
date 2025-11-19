@@ -90,7 +90,7 @@ export default function ModalSelectServiceForProfessional({
                 checked={selectedIds.includes(s.id)}
                 onChange={() => toggleId(s.id)}
                
-              />
+              /> 
 
               <span className={styles.name}>{s.name}</span>
 
