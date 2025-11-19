@@ -3,14 +3,27 @@ import styles from "../css/header.module.css";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 import { useTheme } from "../hooks/useTheme";
 import BrandColorMenu from "./BrandColorMenu";
-import { useState, useEffect } from "react";
+import { useState, useEffect,useRef } from "react";
 import { useEvolutionConnection } from "../hooks/useEvolutionConnection";
 import "../index.css";
 
 export default function Header({ toggleSidebar }: { toggleSidebar: () => void }) {
   const { profile, tenant } = useUserAndTenant();
   const { theme, toggleTheme } = useTheme();
+const ref = useRef<HTMLDivElement>(null);
 
+useEffect(() => {
+  const update = () => {
+    if (!ref.current) return;
+    const h = ref.current.offsetHeight;
+    document.documentElement.style.setProperty("--header-total-height", `${h}px`);
+  };
+
+  update();
+  window.addEventListener("resize", update);
+
+  return () => window.removeEventListener("resize", update);
+}, []);
   const { status } = useEvolutionConnection({
     baseUrl: import.meta.env.VITE_EVO_PROXY_URL ?? "http://localhost:3001/api",
     autostart: false,
@@ -42,7 +55,7 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
     status === "IDLE";
 
   return (
-    <header className={styles.header}>
+    <header ref={ref} className={styles.header}>
       {/* BLOCO ESQUERDO: saudação + alerta */}
       <div className={styles.leftSection}>
         <div className={styles.greeting}>

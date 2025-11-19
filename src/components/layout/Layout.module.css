@@ -72,11 +72,14 @@
 /* ===== CONTEÚDO SCROLLÁVEL ===== */
 .pageContent {
   flex: 1;
-  margin-top: 64px;   
-   padding-top: var(--header-height);        /* compensa header fixo */
   padding: 1.5rem;
-  overflow-y: auto;                /* só o conteúdo rola */
-  height: calc(100vh - 64px);
+
+  /* altura dinâmica do header */
+  padding-top: var(--header-total-height, 64px);
+
+  overflow-y: auto;
+  height: calc(100vh - var(--header-total-height, 64px));
+
   background: var(--bg);
   color: var(--text);
   box-sizing: border-box;
@@ -148,7 +151,11 @@
 
   /* Área de conteúdo rola sob o header fixo */
 .pageContent {
-padding-top: var(--header-height);
+
+    padding-top: var(--header-total-height, 64px);
+    height: calc(100vh - var(--header-total-height, 64px));
+  
 }
+
 
 }
