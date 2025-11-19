@@ -1,31 +1,34 @@
-import { Menu, Sun, Moon, AlertTriangle } from "lucide-react";
+import { Menu, Sun, Moon, AlertTriangle, LogOut } from "lucide-react";
 import styles from "../css/header.module.css";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 import { useTheme } from "../hooks/useTheme";
 import BrandColorMenu from "./BrandColorMenu";
-import { useState, useEffect,useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useEvolutionConnection } from "../hooks/useEvolutionConnection";
+import { supabase } from "../lib/supabaseCleint";
+import {  useNavigate } from "react-router-dom";
 import "../index.css";
 
 export default function Header({ toggleSidebar }: { toggleSidebar: () => void }) {
   const { profile, tenant } = useUserAndTenant();
   const { theme, toggleTheme } = useTheme();
-const ref = useRef<HTMLDivElement>(null);
 
-useEffect(() => {
-  const update = () => {
-    if (!ref.current) return;
-    const h = ref.current.offsetHeight;
-    document.documentElement.style.setProperty("--header-total-height", `${h}px`);
-  };
+  const ref = useRef<HTMLDivElement>(null);
+ const navigate = useNavigate();
+  /** Atualizar var do CSS para altura total do header */
+  useEffect(() => {
+    const update = () => {
+      if (!ref.current) return;
+      const h = ref.current.offsetHeight;
+      document.documentElement.style.setProperty("--header-total-height", `${h}px`);
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
 
-  update();
-  window.addEventListener("resize", update);
-
-  return () => window.removeEventListener("resize", update);
-}, []);
   const { status } = useEvolutionConnection({
-    baseUrl: import.meta.env.VITE_EVO_PROXY_URL ?? "http://localhost:3001/api",
+    baseUrl: import.meta.env.VITE_EVO_PROXY_URL ?? "https://bellas-agenda-evo-proxy.hu6h7e.easypanel.host/api",
     autostart: false,
     initialInstanceId: tenant?.id || "",
   });
@@ -54,6 +57,17 @@ useEffect(() => {
     status === "UNKNOWN" ||
     status === "IDLE";
 
+  /** --- LOGOUT --- */
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.warn("Erro ao deslogar:", e);
+    }
+    navigate("/login?logged_out=1", { replace: true });
+  };
+
+
   return (
     <header ref={ref} className={styles.header}>
       {/* BLOCO ESQUERDO: saudação + alerta */}
@@ -75,12 +89,9 @@ useEffect(() => {
 
       {/* BLOCO DIREITO */}
       <div className={styles.rightSection}>
+
         {/* Tema dark/light */}
-        <button
-          className={styles.iconButton}
-          onClick={toggleTheme}
-          title="Alternar tema"
-        >
+        <button className={styles.iconButton} onClick={toggleTheme} title="Alternar tema">
           {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
         </button>
 
@@ -100,18 +111,20 @@ useEffect(() => {
 
         <div className={styles.separator}></div>
 
-        {/* Perfil */}
+        {/* PERFIL */}
         <div className={styles.userProfile}>
-          <img
-            src={avatarUrl}
-            alt={`Avatar de ${userName}`}
-            className={styles.avatar}
-          />
+          <img src={avatarUrl} alt={`Avatar de ${userName}`} className={styles.avatar} />
           <div className={styles.userInfo}>
             <div className={styles.userName}>{userName}</div>
             <div className={styles.userRole}>{userRole}</div>
           </div>
         </div>
+
+        {/* 🔥 BOTÃO DE SAIR */}
+        <button className={styles.logoutButton} onClick={handleLogout}>
+          <LogOut size={20} />
+        </button>
+
       </div>
     </header>
   );
