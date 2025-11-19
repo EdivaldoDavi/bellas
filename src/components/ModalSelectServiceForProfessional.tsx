@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import styles from "../css/ModalSelectServiceForProfessional.module.css";
 
@@ -14,6 +15,7 @@ interface Props {
   onClose: () => void;
   onSave: (ids: string[]) => void;
 }
+
 export default function ModalSelectServiceForProfessional({
   show,
   services,
@@ -23,24 +25,32 @@ export default function ModalSelectServiceForProfessional({
 }: Props) {
   if (!show) return null;
 
+  // ✔ Estado local para manter seleção sem fechar modal
+  const [localSelected, setLocalSelected] = useState<string[]>(selectedIds);
+
+  // Quando abrir o modal, reseta o estado local
+  useEffect(() => {
+    setLocalSelected(selectedIds);
+  }, [show, selectedIds]);
+
   const allSelected =
-    services.length > 0 && selectedIds.length === services.length;
+    services.length > 0 && localSelected.length === services.length;
 
   function toggleId(id: string) {
-    const newList = selectedIds.includes(id)
-      ? selectedIds.filter((x) => x !== id)
-      : [...selectedIds, id];
-
-    onSave(newList);
+    setLocalSelected((prev) =>
+      prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : [...prev, id]
+    );
   }
 
   function toggleAll() {
-    if (allSelected) onSave([]);
-    else onSave(services.map((s) => s.id));
+    if (allSelected) setLocalSelected([]);
+    else setLocalSelected(services.map((s) => s.id));
   }
 
   function confirm() {
-    onSave(selectedIds);
+    onSave(localSelected); // ✔ Agora só salva aqui
     onClose();
   }
 
@@ -48,7 +58,7 @@ export default function ModalSelectServiceForProfessional({
     <div className={styles.overlay} onClick={onClose}>
       <div
         className={styles.modal}
-        onClick={(e) => e.stopPropagation()} // ← ESSENCIAL
+        onClick={(e) => e.stopPropagation()}
       >
         <div className={styles.header}>
           <h3 className={styles.title}>Selecionar serviços</h3>
@@ -60,25 +70,21 @@ export default function ModalSelectServiceForProfessional({
 
         <div className={styles.list}>
           {/* SELECT ALL */}
-        <label
-            className={styles.item}
-            // Apenas bloqueia o clique para que ele não suba para o overlay pai
-            onClick={(e) => { 
-              e.stopPropagation(); // <-- ESSENCIAL para evitar o fechamento!
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={allSelected}
-              // A lógica de toggle acontece apenas AQUI.
-              onChange={toggleAll}
-            />
+          <label
+            className={styles.item}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <input
+              type="checkbox"
+              checked={allSelected}
+              onChange={toggleAll}
+            />
 
-            <span className={styles.name}>Selecionar todos</span>
-            <span className={styles.duration}></span>
-          </label>
+            <span className={styles.name}>Selecionar todos</span>
+            <span className={styles.duration}></span>
+          </label>
 
-          {/* LISTA DE SERVIÇOS */}
+          {/* LISTA */}
           {services.map((s) => (
             <label
               key={s.id}
@@ -87,10 +93,9 @@ export default function ModalSelectServiceForProfessional({
             >
               <input
                 type="checkbox"
-                checked={selectedIds.includes(s.id)}
+                checked={localSelected.includes(s.id)}
                 onChange={() => toggleId(s.id)}
-               
-              /> 
+              />
 
               <span className={styles.name}>{s.name}</span>
 
