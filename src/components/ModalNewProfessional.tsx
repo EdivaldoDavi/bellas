@@ -326,220 +326,241 @@ export default function ModalNewProfessional({
   /* -----------------------------------------
    * RENDER
    * -------------------------------------- */
-  return (
-    <>
-      <div className={styles.overlay}>
-        <div className={styles.modal}>
-          <button className={styles.closeBtn} onClick={onClose}>
-            <X />
-          </button>
+return (
+  <>
+    {/* =============================
+        MODAL PRINCIPAL (NÃO FECHA MAIS SOZINHO)
+       ============================== */}
+    <div
+      className={styles.overlay}
+      style={{ pointerEvents: showSelectServices ? "none" : "auto" }}
+    >
+      <div
+        className={styles.modal}
+        style={{ pointerEvents: showSelectServices ? "none" : "auto" }}
+        onClick={(e) => e.stopPropagation()} // impede clique de vazar
+      >
+        {/* BOTÃO FECHAR */}
+        <button className={styles.closeBtn} onClick={onClose}>
+          <X />
+        </button>
 
-          <h3>{isEditing ? "Editar profissional" : "Novo profissional"}</h3>
+        <h3>{isEditing ? "Editar profissional" : "Novo profissional"}</h3>
 
-          {initialLoading ? (
-            <p className={styles.emptyText}>Carregando dados...</p>
-          ) : (
-            <>
+        {initialLoading ? (
+          <p className={styles.emptyText}>Carregando dados...</p>
+        ) : (
+          <>
+            {/* =============================
+                CAMPOS
+            ============================== */}
+            <input
+              className={styles.input}
+              placeholder="Nome completo"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+
+            <input
+              className={styles.input}
+              placeholder="E-mail (opcional)"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+
+            <input
+              className={styles.input}
+              placeholder="Telefone (opcional)"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+
+            {/* =============================
+                SERVIÇOS
+            ============================== */}
+            <h4>Serviços que executa</h4>
+
+            <button
+              className={styles.selectServicesBtn}
+              onClick={() => setShowSelectServices(true)}
+            >
+              Selecionar serviços
+            </button>
+
+            <p className={styles.summaryText}>
+              {selectedServices.length === 0
+                ? "Nenhum serviço selecionado"
+                : `${selectedServices.length} serviço(s) selecionado(s)`}
+            </p>
+
+            {/* =============================
+                HORÁRIOS
+            ============================== */}
+            <h4>Horários de trabalho</h4>
+
+            <label className={styles.copyRow}>
               <input
-                className={styles.input}
-                placeholder="Nome completo"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                type="checkbox"
+                checked={copyToWeek}
+                onChange={() => setCopyToWeek((v) => !v)}
               />
+              <span>Copiar segunda para todos os dias</span>
+            </label>
 
-              <input
-                className={styles.input}
-                placeholder="E-mail (opcional)"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
+            {copyToWeek ? (
+              <>
+                <div className={styles.dayTitle}>Segunda-feira</div>
 
-              <input
-                className={styles.input}
-                placeholder="Telefone (opcional)"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
-
-              {/* *** SERVIÇOS *** */}
-              <h4>Serviços que executa</h4>
-
-              <button
-                className={styles.selectServicesBtn}
-                onClick={() => setShowSelectServices(true)}
-              >
-                Selecionar serviços
-              </button>
-
-              <p className={styles.summaryText}>
-                {selectedServices.length === 0
-                  ? "Nenhum serviço selecionado"
-                  : `${selectedServices.length} serviço(s) selecionado(s)`}
-              </p>
-
-              {/* *** HORÁRIOS *** */}
-              <h4>Horários de trabalho</h4>
-
-              <label className={styles.copyRow}>
-                <input
-                  type="checkbox"
-                  checked={copyToWeek}
-                  onChange={() => setCopyToWeek((v) => !v)}
-                />
-                <span>Copiar segunda para todos os dias</span>
-              </label>
-
-              {copyToWeek ? (
-                <>
-                  <div className={styles.dayTitle}>Segunda-feira</div>
-
-                  <div className={styles.timeGrid}>
-                    <div>
-                      <label>Entrada</label>
-                      <input
-                        type="time"
-                        value={monStart}
-                        onChange={(e) => setMonStart(e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label>Saída</label>
-                      <input
-                        type="time"
-                        value={monEnd}
-                        onChange={(e) => setMonEnd(e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label>Almoço início</label>
-                      <input
-                        type="time"
-                        value={monBreakStart}
-                        onChange={(e) => setMonBreakStart(e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label>Almoço fim</label>
-                      <input
-                        type="time"
-                        value={monBreakEnd}
-                        onChange={(e) => setMonBreakEnd(e.target.value)}
-                      />
-                    </div>
+                <div className={styles.timeGrid}>
+                  <div>
+                    <label>Entrada</label>
+                    <input
+                      type="time"
+                      value={monStart}
+                      onChange={(e) => setMonStart(e.target.value)}
+                    />
                   </div>
-                </>
-              ) : (
-                WEEKDAYS_FULL.map((d) => {
-                  const r = weekRows.find((x) => x.weekday === d.id)!;
 
-                  return (
-                    <div key={d.id} className={styles.dayBlock}>
-                      <div className={styles.dayTitle}>{d.label}</div>
+                  <div>
+                    <label>Saída</label>
+                    <input
+                      type="time"
+                      value={monEnd}
+                      onChange={(e) => setMonEnd(e.target.value)}
+                    />
+                  </div>
 
-                      <div className={styles.timeGrid}>
-                        <div>
-                          <label>Entrada</label>
-                          <input
-                            type="time"
-                            value={r.start}
-                            onChange={(e) =>
-                              setWeekRows((prev) =>
-                                prev.map((x) =>
-                                  x.weekday === d.id
-                                    ? { ...x, start: e.target.value }
-                                    : x
-                                )
+                  <div>
+                    <label>Almoço início</label>
+                    <input
+                      type="time"
+                      value={monBreakStart}
+                      onChange={(e) => setMonBreakStart(e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <label>Almoço fim</label>
+                    <input
+                      type="time"
+                      value={monBreakEnd}
+                      onChange={(e) => setMonBreakEnd(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </>
+            ) : (
+              WEEKDAYS_FULL.map((d) => {
+                const r = weekRows.find((x) => x.weekday === d.id)!;
+
+                return (
+                  <div key={d.id} className={styles.dayBlock}>
+                    <div className={styles.dayTitle}>{d.label}</div>
+
+                    <div className={styles.timeGrid}>
+                      <div>
+                        <label>Entrada</label>
+                        <input
+                          type="time"
+                          value={r.start}
+                          onChange={(e) =>
+                            setWeekRows((prev) =>
+                              prev.map((x) =>
+                                x.weekday === d.id
+                                  ? { ...x, start: e.target.value }
+                                  : x
                               )
-                            }
-                          />
-                        </div>
+                            )
+                          }
+                        />
+                      </div>
 
-                        <div>
-                          <label>Saída</label>
-                          <input
-                            type="time"
-                            value={r.end}
-                            onChange={(e) =>
-                              setWeekRows((prev) =>
-                                prev.map((x) =>
-                                  x.weekday === d.id
-                                    ? { ...x, end: e.target.value }
-                                    : x
-                                )
+                      <div>
+                        <label>Saída</label>
+                        <input
+                          type="time"
+                          value={r.end}
+                          onChange={(e) =>
+                            setWeekRows((prev) =>
+                              prev.map((x) =>
+                                x.weekday === d.id
+                                  ? { ...x, end: e.target.value }
+                                  : x
                               )
-                            }
-                          />
-                        </div>
+                            )
+                          }
+                        />
+                      </div>
 
-                        <div>
-                          <label>Almoço início</label>
-                          <input
-                            type="time"
-                            value={r.breakStart}
-                            onChange={(e) =>
-                              setWeekRows((prev) =>
-                                prev.map((x) =>
-                                  x.weekday === d.id
-                                    ? { ...x, breakStart: e.target.value }
-                                    : x
-                                )
+                      <div>
+                        <label>Almoço início</label>
+                        <input
+                          type="time"
+                          value={r.breakStart}
+                          onChange={(e) =>
+                            setWeekRows((prev) =>
+                              prev.map((x) =>
+                                x.weekday === d.id
+                                  ? { ...x, breakStart: e.target.value }
+                                  : x
                               )
-                            }
-                          />
-                        </div>
+                            )
+                          }
+                        />
+                      </div>
 
-                        <div>
-                          <label>Almoço fim</label>
-                          <input
-                            type="time"
-                            value={r.breakEnd}
-                            onChange={(e) =>
-                              setWeekRows((prev) =>
-                                prev.map((x) =>
-                                  x.weekday === d.id
-                                    ? { ...x, breakEnd: e.target.value }
-                                    : x
-                                )
+                      <div>
+                        <label>Almoço fim</label>
+                        <input
+                          type="time"
+                          value={r.breakEnd}
+                          onChange={(e) =>
+                            setWeekRows((prev) =>
+                              prev.map((x) =>
+                                x.weekday === d.id
+                                  ? { ...x, breakEnd: e.target.value }
+                                  : x
                               )
-                            }
-                          />
-                        </div>
+                            )
+                          }
+                        />
                       </div>
                     </div>
-                  );
-                })
-              )}
+                  </div>
+                );
+              })
+            )}
 
-              <button
-                className={styles.saveBtn}
-                onClick={handleSave}
-                disabled={saving}
-              >
-                {saving
-                  ? "Salvando..."
-                  : isEditing
-                  ? "Salvar alterações"
-                  : "Salvar profissional"}
-              </button>
-            </>
-          )}
-        </div>
+            {/* BOTÃO SALVAR */}
+            <button
+              className={styles.saveBtn}
+              onClick={handleSave}
+              disabled={saving}
+            >
+              {saving
+                ? "Salvando..."
+                : isEditing
+                ? "Salvar alterações"
+                : "Salvar profissional"}
+            </button>
+          </>
+        )}
       </div>
+    </div>
 
-      {/* MODAL DE SELEÇÃO DE SERVIÇOS */}
-      <ModalSelectServiceForProfessional
-        show={showSelectServices}
-        services={services}
-        selectedIds={selectedServices}
-        onClose={() => setShowSelectServices(false)}
-        onSave={(ids) => {
-          setSelectedServices(ids);
-          setShowSelectServices(false);
-        }}
-      />
-    </>
-  );
+    {/* =============================
+        MODAL SECUNDÁRIO: SELEÇÃO DE SERVIÇOS
+       ============================== */}
+    <ModalSelectServiceForProfessional
+      show={showSelectServices}
+      services={services}
+      selectedIds={selectedServices}
+      onClose={() => setShowSelectServices(false)}
+      onSave={(ids) => {
+        setSelectedServices(ids);
+        setShowSelectServices(false);
+      }}
+    />
+  </>
+);
 }
