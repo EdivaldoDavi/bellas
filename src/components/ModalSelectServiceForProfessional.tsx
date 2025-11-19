@@ -83,7 +83,7 @@ export default function ModalSelectServiceForProfessional({
             <label
               key={s.id}
               className={styles.item}
-              
+              onClick={(e) => e.stopPropagation()}
             >
               <input
                 type="checkbox"
