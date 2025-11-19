@@ -72,7 +72,6 @@
   font-weight: 600;
 }
 
-
 /* ============================================================
    INPUTS PADRÃO
 ============================================================ */
@@ -102,7 +101,6 @@
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent);
 }
 
-
 /* ============================================================
    BOTÃO SALVAR
 ============================================================ */
@@ -131,7 +129,6 @@
   transform: scale(0.97);
 }
 
-
 /* ============================================================
    CHECKBOX "COPIAR SEGUNDA"
 ============================================================ */
@@ -149,7 +146,6 @@
   height: 18px;
   accent-color: var(--color-primary);
 }
-
 
 /* ============================================================
    GRADE DE HORÁRIOS
@@ -182,7 +178,6 @@
   color: var(--text);
 }
 
-
 /* ============================================================
    BOTÃO "SELECIONAR SERVIÇOS"
 ============================================================ */
@@ -209,171 +204,6 @@
   margin-left: 8px;
 }
 
-
-/* ============================================================
-   MODAL DE SELEÇÃO DE SERVIÇOS (2º MODAL)
-============================================================ */
-.servicesOverlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.75);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(4px);
-  z-index: 10000;
-}
-
-.servicesModal {
-  width: 92%;
-  max-width: 620px;
-  max-height: 82vh;
-  overflow-y: auto;
-
-  background: var(--card-bg);
-  padding: 22px;
-  border-radius: 18px;
-
-  box-shadow: 0 16px 48px rgba(0,0,0,0.60);
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-
-  animation: fadeIn .20s ease-out;
-}
-
-.servicesHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-/* Lista geral */
-.servicesList {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.servicesGrid {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-
-/* ============================================================
-   ITEM "SELECIONAR TODOS"
-============================================================ */
-.selectAllRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  padding: 14px;
-  background: var(--input-bg);
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  cursor: pointer;
-}
-
-.selectAllRow input {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--color-primary);
-}
-
-.selectAllLabel {
-  font-size: 0.96rem;
-  font-weight: 500;
-}
-
-
-/* ============================================================
-   ITEM DE SERVIÇO
-============================================================ */
-.serviceItem {
-  display: grid;
-  grid-template-columns: 22px 1fr auto;
-  align-items: center;
-  gap: 12px;
-
-  padding: 14px;
-  border-radius: 12px;
-  background: var(--input-bg);
-  border: 1px solid var(--border);
-
-  cursor: pointer;
-  transition: 0.18s ease;
-}
-
-.serviceItem:hover {
-  background: color-mix(in srgb, var(--color-primary) 8%, var(--input-bg));
-  border-color: var(--color-primary);
-}
-
-.serviceItem input {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--color-primary);
-
-  align-self: center; /* garante alinhamento vertical */
-
-
-}
-
-.serviceName {
-  font-size: 0.96rem;
-  font-weight: 500;
-}
-
-.serviceDuration {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
-
-/* ============================================================
-   RODAPÉ DO MODAL DE SERVIÇOS
-============================================================ */
-.servicesFooter {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 4px;
-}
-
-.cancelBtn {
-  flex: 1;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text);
-  cursor: pointer;
-}
-
-.cancelBtn:hover {
-  background: rgba(255,255,255,0.08);
-}
-
-.saveBtn {
-  flex: 1;
-  padding: 12px;
-  border-radius: 12px;
-  background: var(--color-primary);
-  border: none;
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.saveBtn:hover {
-  opacity: 0.9;
-}
-
-
 /* ============================================================
    MOBILE
 ============================================================ */
@@ -382,23 +212,13 @@
     padding: 18px;
   }
 
-  .servicesModal {
-    padding: 18px;
-  }
-
-  .serviceItem {
-    grid-template-columns: 22px 1fr;
-    row-gap: 6px;
-  }
-
-  .serviceDuration {
-    justify-self: flex-start;
+  .timeGrid {
+    grid-template-columns: 1fr;
   }
 }
 
-
 /* ============================================================
-   FADE ANIMATION
+   ANIMAÇÃO
 ============================================================ */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }

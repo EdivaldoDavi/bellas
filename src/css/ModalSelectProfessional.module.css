@@ -1,7 +1,10 @@
-.overlay {
+/* ============================================================
+   OVERLAY DO MODAL DE SELEÇÃO DE PROFISSIONAL
+============================================================ */
+.proSelectOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.55);
+  background: rgba(0,0,0,0.55);
   display: flex;
   justify-content: center;
   align-items: flex-end;
@@ -9,7 +12,10 @@
   z-index: 9999;
 }
 
-.modal {
+/* ============================================================
+   CONTAINER DO MODAL
+============================================================ */
+.proSelectModal {
   width: 100%;
   max-width: 420px;
   background: var(--card-bg);
@@ -17,10 +23,11 @@
   padding: 18px;
   position: relative;
   box-shadow: 0 -4px 20px rgba(0,0,0,.3);
+  animation: fadeIn 0.2s ease-out;
 }
 
-/* close X */
-.closeIcon {
+/* Botão fechar */
+.proSelectClose {
   position: absolute;
   top: 12px;
   right: 12px;
@@ -30,7 +37,8 @@
   color: var(--text);
 }
 
-.title {
+/* Título */
+.proSelectTitle {
   text-align: center;
   font-size: 18px;
   font-weight: 700;
@@ -38,7 +46,8 @@
   color: var(--text);
 }
 
-.searchInput {
+/* Campo buscar */
+.proSelectInput {
   width: 100%;
   padding: 10px;
   border-radius: 8px;
@@ -48,7 +57,8 @@
   margin-bottom: 10px;
 }
 
-.listBox {
+/* Lista */
+.proSelectList {
   max-height: 240px;
   overflow-y: auto;
   background: var(--card-bg);
@@ -56,7 +66,8 @@
   border: 1px solid var(--separator);
 }
 
-.item {
+/* Item */
+.proSelectItem {
   display: flex;
   align-items: center;
   padding: 12px;
@@ -65,54 +76,56 @@
   transition: background .15s;
 }
 
-.item:hover {
+.proSelectItem:hover {
   background: color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
 
-/* avatar circle */
-.avatar {
+/* Avatar */
+.proSelectAvatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
   background: var(--color-primary);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 10px;
   font-weight: 600;
-  color: white;
+  margin-right: 10px;
 }
 
-.name {
+/* Nome */
+.proSelectName {
   font-weight: 600;
   color: var(--text);
 }
 
-.empty {
+/* Vazio */
+.proSelectEmpty {
   padding: 10px;
   text-align: center;
   color: var(--text-muted);
   font-size: 14px;
 }
 
-/* buttons */
-.addButton {
+/* Botões */
+.proSelectAdd {
   margin-top: 10px;
   width: 100%;
   background: var(--color-primary);
   color: #fff;
   padding: 12px;
   border-radius: 10px;
+  border: none;
+  cursor: pointer;
   font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  border: none;
-  cursor: pointer;
 }
 
-.cancelButton {
+.proSelectCancel {
   margin-top: 8px;
   width: 100%;
   padding: 12px;
@@ -120,6 +133,11 @@
   color: var(--text);
   border-radius: 10px;
   border: 1px solid var(--separator);
-  cursor: pointer;
   font-weight: 600;
+  cursor: pointer;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
