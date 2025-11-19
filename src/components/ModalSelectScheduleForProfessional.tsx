@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import styles from "../css/ModalSelectSchedule.module.css";
+import styles from "../css/ModalSelectScheduleForProfessional.module.css";
 
 interface DayRow {
   weekday: number;
