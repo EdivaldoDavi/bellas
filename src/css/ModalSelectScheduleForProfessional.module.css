@@ -38,6 +38,41 @@
   background: var(--card-bg);
   cursor: pointer;
 }
+.item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+
+  padding: 14px 16px;
+  border-radius: 12px;
+
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.item:hover {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--input-bg));
+}
+
+/* Checkbox */
+.item input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--color-primary);
+}
+
+/* Nome do serviço */
+.name {
+  color: var(--text);
+  font-size: 0.95rem;
+  line-height: 1;
+  margin-left: 8px;
+}
 
 .copyRow {
   display: flex;

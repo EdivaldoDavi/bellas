@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import styles from "../css/ModalSelectScheduleForProfessional.module.css";
 
@@ -36,16 +37,29 @@ export default function ModalSelectScheduleForProfessional({
 }: Props) {
   if (!show) return null;
 
-  const localWeek = structuredClone(weekRows);
-  let localCopy = copyToWeek;
+  // ESTADOS CORRETOS — agora funciona!
+  const [localCopy, setLocalCopy] = useState(copyToWeek);
+  const [localWeek, setLocalWeek] = useState<DayRow[]>([]);
 
-  function updateRow(id: number, field: string, value: string) {
-    const row = localWeek.find((x) => x.weekday === id);
-    if (row) (row as any)[field] = value;
+  // sincronizar sempre que abrir
+  useEffect(() => {
+    if (show) {
+      setLocalCopy(copyToWeek);
+      setLocalWeek(structuredClone(weekRows));
+    }
+  }, [show, copyToWeek, weekRows]);
+
+  function updateRow(id: number, field: keyof DayRow, value: string) {
+    setLocalWeek((prev) =>
+      prev.map((row) =>
+        row.weekday === id ? { ...row, [field]: value } : row
+      )
+    );
   }
 
   function save() {
     onSave(localWeek, localCopy);
+    onClose();
   }
 
   return (
@@ -60,14 +74,11 @@ export default function ModalSelectScheduleForProfessional({
         </div>
 
         {/* COPIAR SEGUNDA */}
-        <label
-          className={styles.copyRow}
-          onClick={(e) => e.stopPropagation()}
-        >
+        <label className={styles.item} onClick={(e) => e.stopPropagation()}>
           <input
             type="checkbox"
             checked={localCopy}
-            onChange={() => (localCopy = !localCopy)}
+            onChange={() => setLocalCopy((v) => !v)}
           />
           <span>Copiar segunda para todos os dias</span>
         </label>
@@ -82,7 +93,7 @@ export default function ModalSelectScheduleForProfessional({
                 <label>Entrada</label>
                 <input
                   type="time"
-                  defaultValue={localWeek[0].start}
+                  value={localWeek[0]?.start || ""}
                   onChange={(e) =>
                     updateRow(1, "start", e.target.value)
                   }
@@ -93,7 +104,7 @@ export default function ModalSelectScheduleForProfessional({
                 <label>Saída</label>
                 <input
                   type="time"
-                  defaultValue={localWeek[0].end}
+                  value={localWeek[0]?.end || ""}
                   onChange={(e) => updateRow(1, "end", e.target.value)}
                 />
               </div>
@@ -102,7 +113,7 @@ export default function ModalSelectScheduleForProfessional({
                 <label>Almoço início</label>
                 <input
                   type="time"
-                  defaultValue={localWeek[0].breakStart}
+                  value={localWeek[0]?.breakStart || ""}
                   onChange={(e) =>
                     updateRow(1, "breakStart", e.target.value)
                   }
@@ -113,7 +124,7 @@ export default function ModalSelectScheduleForProfessional({
                 <label>Almoço fim</label>
                 <input
                   type="time"
-                  defaultValue={localWeek[0].breakEnd}
+                  value={localWeek[0]?.breakEnd || ""}
                   onChange={(e) =>
                     updateRow(1, "breakEnd", e.target.value)
                   }
@@ -124,6 +135,7 @@ export default function ModalSelectScheduleForProfessional({
         ) : (
           WEEKDAYS.map((d) => {
             const r = localWeek.find((x) => x.weekday === d.id)!;
+
             return (
               <div key={d.id} className={styles.block}>
                 <div className={styles.dayTitle}>{d.label}</div>
@@ -133,7 +145,7 @@ export default function ModalSelectScheduleForProfessional({
                     <label>Entrada</label>
                     <input
                       type="time"
-                      defaultValue={r.start}
+                      value={r.start}
                       onChange={(e) =>
                         updateRow(d.id, "start", e.target.value)
                       }
@@ -144,7 +156,7 @@ export default function ModalSelectScheduleForProfessional({
                     <label>Saída</label>
                     <input
                       type="time"
-                      defaultValue={r.end}
+                      value={r.end}
                       onChange={(e) =>
                         updateRow(d.id, "end", e.target.value)
                       }
@@ -155,7 +167,7 @@ export default function ModalSelectScheduleForProfessional({
                     <label>Almoço início</label>
                     <input
                       type="time"
-                      defaultValue={r.breakStart}
+                      value={r.breakStart}
                       onChange={(e) =>
                         updateRow(d.id, "breakStart", e.target.value)
                       }
@@ -166,7 +178,7 @@ export default function ModalSelectScheduleForProfessional({
                     <label>Almoço fim</label>
                     <input
                       type="time"
-                      defaultValue={r.breakEnd}
+                      value={r.breakEnd}
                       onChange={(e) =>
                         updateRow(d.id, "breakEnd", e.target.value)
                       }
