@@ -1,0 +1,199 @@
+/* ================================
+   OVERLAY
+================================ */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 999999; /* GARANTE que fica acima de todos */
+}
+
+/* ================================
+   MODAL BOX
+================================ */
+.modal {
+  width: 92%;
+  max-width: 620px;
+  max-height: 80vh;
+
+  background: var(--modal-bg);
+  padding: 22px 24px;
+  border-radius: 18px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  overflow-y: auto;
+
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.55);
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* ================================
+   HEADER
+================================ */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Close button */
+.closeBtn {
+  width: 34px;
+  height: 34px;
+
+  border: 1px solid var(--border);
+  border-radius: 50%;
+
+  background: var(--card-bg);
+  color: var(--text-muted);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.closeBtn:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent);
+}
+
+/* ================================
+   LISTA DE SERVIÇOS
+================================ */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+
+  padding: 14px 16px;
+  border-radius: 12px;
+
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.item:hover {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--input-bg));
+}
+
+/* Checkbox */
+.item input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--color-primary);
+}
+
+/* Nome do serviço */
+.name {
+  color: var(--text);
+  font-size: 0.95rem;
+  line-height: 1;
+  margin-left: 8px;
+}
+
+/* Duração */
+.duration {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ================================
+   FOOTER BUTTONS
+================================ */
+.footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cancelBtn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.cancelBtn:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.saveBtn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 999px;
+  border: none;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.saveBtn:hover {
+  opacity: 0.9;
+}
+
+/* ================================
+   Mobile
+================================ */
+@media (max-width: 480px) {
+  .modal {
+    padding: 18px;
+  }
+
+  .item {
+    grid-template-columns: auto 1fr;
+    row-gap: 4px;
+  }
+
+  .duration {
+    justify-self: flex-start;
+  }
+}
+
+/* ================================
+   ANIMATION
+================================ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
