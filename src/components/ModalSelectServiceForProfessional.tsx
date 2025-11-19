@@ -14,7 +14,6 @@ interface Props {
   onClose: () => void;
   onSave: (ids: string[]) => void;
 }
-
 export default function ModalSelectServiceForProfessional({
   show,
   services,
@@ -27,41 +26,30 @@ export default function ModalSelectServiceForProfessional({
   const allSelected =
     services.length > 0 && selectedIds.length === services.length;
 
-  /* ===========================================
-     Funções de seleção
-  ============================================ */
-
   function toggleId(id: string) {
-    const updated = selectedIds.includes(id)
+    const newList = selectedIds.includes(id)
       ? selectedIds.filter((x) => x !== id)
       : [...selectedIds, id];
 
-    onSave(updated);
+    onSave(newList);
   }
 
   function toggleAll() {
-    if (allSelected) {
-      onSave([]);
-    } else {
-      onSave(services.map((s) => s.id));
-    }
+    if (allSelected) onSave([]);
+    else onSave(services.map((s) => s.id));
   }
 
-  function handleConfirm() {
+  function confirm() {
     onSave(selectedIds);
     onClose();
   }
 
-  /* ===========================================
-     Render
-  ============================================ */
-
   return (
     <div className={styles.overlay} onClick={onClose}>
-      {/* impede fechar ao clicar dentro */}
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        
-        {/* HEADER */}
+      <div
+        className={styles.modal}
+        onClick={(e) => e.stopPropagation()} // ← ESSENCIAL
+      >
         <div className={styles.header}>
           <h3 className={styles.title}>Selecionar serviços</h3>
 
@@ -70,18 +58,19 @@ export default function ModalSelectServiceForProfessional({
           </button>
         </div>
 
-        {/* LISTA */}
         <div className={styles.list}>
-          
-          {/* Selecionar todos */}
+          {/* SELECT ALL */}
           <label
             className={styles.item}
-            onClick={() => toggleAll()}
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleAll();
+            }}
           >
             <input
               type="checkbox"
               checked={allSelected}
-              onChange={() => toggleAll()}
+              onChange={toggleAll}
               onClick={(e) => e.stopPropagation()}
             />
 
@@ -89,12 +78,15 @@ export default function ModalSelectServiceForProfessional({
             <span className={styles.duration}></span>
           </label>
 
-          {/* Serviços individuais */}
+          {/* LISTA DE SERVIÇOS */}
           {services.map((s) => (
             <label
               key={s.id}
               className={styles.item}
-              onClick={() => toggleId(s.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleId(s.id);
+              }}
             >
               <input
                 type="checkbox"
@@ -112,16 +104,11 @@ export default function ModalSelectServiceForProfessional({
           ))}
         </div>
 
-        {/* FOOTER */}
         <div className={styles.footer}>
           <button className={styles.cancelBtn} onClick={onClose}>
             Cancelar
           </button>
-
-          <button
-            className={styles.saveBtn}
-            onClick={handleConfirm}
-          >
+          <button className={styles.saveBtn} onClick={confirm}>
             Salvar seleção
           </button>
         </div>
