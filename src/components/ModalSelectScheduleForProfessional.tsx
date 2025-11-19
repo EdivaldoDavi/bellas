@@ -28,6 +28,21 @@ interface Props {
   onSave: (rows: DayRow[], copyFlag: boolean) => void;
 }
 
+/* Garantir semana completa */
+function ensureFullWeek(rows: DayRow[]): DayRow[] {
+  return WEEKDAYS.map((d) => {
+    return (
+      rows.find((x) => x.weekday === d.id) || {
+        weekday: d.id,
+        start: "",
+        end: "",
+        breakStart: "",
+        breakEnd: "",
+      }
+    );
+  });
+}
+
 export default function ModalSelectScheduleForProfessional({
   show,
   weekRows,
@@ -37,15 +52,13 @@ export default function ModalSelectScheduleForProfessional({
 }: Props) {
   if (!show) return null;
 
-  // ESTADOS CORRETOS — agora funciona!
   const [localCopy, setLocalCopy] = useState(copyToWeek);
-  const [localWeek, setLocalWeek] = useState<DayRow[]>([]);
+  const [localWeek, setLocalWeek] = useState<DayRow[]>(ensureFullWeek(weekRows));
 
-  // sincronizar sempre que abrir
   useEffect(() => {
     if (show) {
       setLocalCopy(copyToWeek);
-      setLocalWeek(structuredClone(weekRows));
+      setLocalWeek(ensureFullWeek(weekRows));
     }
   }, [show, copyToWeek, weekRows]);
 
@@ -58,7 +71,21 @@ export default function ModalSelectScheduleForProfessional({
   }
 
   function save() {
-    onSave(localWeek, localCopy);
+    let finalRows = [...localWeek];
+
+    // copiar segunda → recriar todos os outros dias
+    if (localCopy) {
+      const base = localWeek[0];
+      finalRows = WEEKDAYS.map((d) => ({
+        weekday: d.id,
+        start: base.start,
+        end: base.end,
+        breakStart: base.breakStart,
+        breakEnd: base.breakEnd,
+      }));
+    }
+
+    onSave(finalRows, localCopy);
     onClose();
   }
 
@@ -94,9 +121,7 @@ export default function ModalSelectScheduleForProfessional({
                 <input
                   type="time"
                   value={localWeek[0]?.start || ""}
-                  onChange={(e) =>
-                    updateRow(1, "start", e.target.value)
-                  }
+                  onChange={(e) => updateRow(1, "start", e.target.value)}
                 />
               </div>
 
@@ -114,9 +139,7 @@ export default function ModalSelectScheduleForProfessional({
                 <input
                   type="time"
                   value={localWeek[0]?.breakStart || ""}
-                  onChange={(e) =>
-                    updateRow(1, "breakStart", e.target.value)
-                  }
+                  onChange={(e) => updateRow(1, "breakStart", e.target.value)}
                 />
               </div>
 
@@ -125,16 +148,14 @@ export default function ModalSelectScheduleForProfessional({
                 <input
                   type="time"
                   value={localWeek[0]?.breakEnd || ""}
-                  onChange={(e) =>
-                    updateRow(1, "breakEnd", e.target.value)
-                  }
+                  onChange={(e) => updateRow(1, "breakEnd", e.target.value)}
                 />
               </div>
             </div>
           </div>
         ) : (
-          WEEKDAYS.map((d) => {
-            const r = localWeek.find((x) => x.weekday === d.id)!;
+          WEEKDAYS.map((d, idx) => {
+            const r = localWeek[idx]; // sempre existe agora
 
             return (
               <div key={d.id} className={styles.block}>
@@ -146,9 +167,7 @@ export default function ModalSelectScheduleForProfessional({
                     <input
                       type="time"
                       value={r.start}
-                      onChange={(e) =>
-                        updateRow(d.id, "start", e.target.value)
-                      }
+                      onChange={(e) => updateRow(d.id, "start", e.target.value)}
                     />
                   </div>
 
@@ -157,9 +176,7 @@ export default function ModalSelectScheduleForProfessional({
                     <input
                       type="time"
                       value={r.end}
-                      onChange={(e) =>
-                        updateRow(d.id, "end", e.target.value)
-                      }
+                      onChange={(e) => updateRow(d.id, "end", e.target.value)}
                     />
                   </div>
 
