@@ -14,6 +14,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,      // mantém sessão no localStorage
     autoRefreshToken: true,    // renova tokens em background
     detectSessionInUrl: true,  // necessário para email de confirmação
+     storage: sessionStorage, // ← AQUI!!!!!
   },
 });
 
@@ -70,12 +71,11 @@ export async function logout() {
     await supabase.auth.signOut({ scope: "local" });
   } catch {}
 
-  // limpeza total
-  localStorage.clear();
   sessionStorage.clear();
+  localStorage.clear(); // para garantir compatibilidade com versões antigas
 
-  // notificar providers
   window.dispatchEvent(new Event("supabase-signout"));
 
+  // reload garante que nenhum provider permaneça com user antigo
   window.location.replace("/login?logged_out=1");
 }

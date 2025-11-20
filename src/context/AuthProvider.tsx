@@ -67,15 +67,23 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event: any, newSession: any) => {
-      console.log("Auth event:", event);
+    } = supabase.auth.onAuthStateChange((event, session) => {
+  console.log("Auth event:", event);
 
-      if (event === "SIGNED_OUT") {
-        applySession(null);
-      } else {
-        applySession(newSession ?? null);
-      }
-    });
+  if (event === "SIGNED_OUT") {
+    applySession(null);
+    return;
+  }
+
+  if (event === "INITIAL_SESSION" && !session) {
+    // evitar recriação de sessão após logout
+    applySession(null);
+    return;
+  }
+
+  applySession(session);
+});
+
 
     /* Listener manual do logout forçado */
     const handler = () => {
