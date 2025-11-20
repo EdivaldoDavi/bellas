@@ -85,3 +85,26 @@ button:hover {
   cursor: pointer;
   font-size: 0.85rem;
 }
+.passwordWrapper {
+  width: 100%;
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.passwordInput {
+  width: 100%;
+  padding-right: 42px; /* espaço p/ o olho */
+}
+
+.eyeButton {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
