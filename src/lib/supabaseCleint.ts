@@ -68,14 +68,13 @@ export async function getCurrentProfile() {
 export async function logout() {
   try {
     await supabase.auth.signOut({ scope: "local" });
-  } catch (e) {}
+  } catch {}
 
-  // 🚨 Limpando cache do AuthProvider
-  window.localStorage.removeItem("sb-SESSION"); // ajusta se necessário
-  window.localStorage.removeItem("bellas-profile");
-  window.localStorage.removeItem("bellas-tenant");
+  // limpeza total
+  localStorage.clear();
+  sessionStorage.clear();
 
-  // Notify context listeners
+  // notificar providers
   window.dispatchEvent(new Event("supabase-signout"));
 
   window.location.replace("/login?logged_out=1");

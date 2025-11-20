@@ -26,7 +26,7 @@ export type Tenant = {
 };
 
 /* ============================================================
-   📌 Hook principal
+   📌 Hook
 ============================================================ */
 export function useUserAndTenant() {
   const [loading, setLoading] = useState(true);
@@ -45,6 +45,7 @@ export function useUserAndTenant() {
      🧹 Limpar tudo
   ============================================================ */
   const clearAll = useCallback(() => {
+    setUser(null);
     setProfile(null);
     setTenant(null);
     setSubscription(null);
@@ -54,43 +55,8 @@ export function useUserAndTenant() {
   }, []);
 
   /* ============================================================
-     🎨 Aplicar tema
-  ============================================================ */
-  const applyTheme = useCallback((t: Tenant | null) => {
-    if (!t) return;
-
-    if (t.theme_variant)
-      document.documentElement.setAttribute("data-theme-variant", t.theme_variant);
-
-    if (t.primary_color)
-      document.documentElement.style.setProperty("--color-primary", t.primary_color);
-
-    if (t.secondary_color)
-      document.documentElement.style.setProperty("--color-secondary", t.secondary_color);
-  }, []);
-
-  /* ============================================================
-     🔥 RELOAD TENANT
-  ============================================================ */
-  const reloadTenant = useCallback(async () => {
-    if (!profile?.tenant_id) return;
-
-    const { data, error } = await supabase
-      .from("tenants")
-      .select(
-        "id, name, theme_variant, primary_color, secondary_color, setup_complete, plan_id, whatsapp_number"
-      )
-      .eq("id", profile.tenant_id)
-      .maybeSingle();
-
-    if (!error && data) {
-      setTenant(data);
-      applyTheme(data);
-    }
-  }, [profile?.tenant_id, applyTheme]);
-
-  /* ============================================================
-     🔥 RELOAD PRINCIPAL (PROFILE + TENANT)
+     🔥 RELOAD PROFILE + TENANT
+     (Com a grande correção)
   ============================================================ */
   const reloadProfile = useCallback(async () => {
     setLoading(true);
@@ -104,6 +70,7 @@ export function useUserAndTenant() {
       const currentUser = sess.session?.user ?? null;
       setUser(currentUser);
 
+      /* ⛔️ SEM USUÁRIO? LIMPA TUDO E PARA! */
       if (!currentUser) {
         clearAll();
         return;
@@ -123,19 +90,15 @@ export function useUserAndTenant() {
         email: currentUser.email,
         role: pData?.role ?? null,
         full_name:
-          pData?.full_name ??
-          currentUser.user_metadata?.full_name ??
-          "",
+          pData?.full_name ?? currentUser.user_metadata?.full_name ?? "",
         avatar_url:
-          pData?.avatar_url ??
-          currentUser.user_metadata?.avatar_url ??
-          null,
+          pData?.avatar_url ?? currentUser.user_metadata?.avatar_url ?? null,
         tenant_id: pData?.tenant_id ?? null,
       };
 
       setProfile(finalProfile);
 
-      /* 3️⃣ Sem tenant → STOP (setup) */
+      /* 3️⃣ SEM TENANT → STOP */
       if (!finalProfile.tenant_id) {
         setTenant(null);
         return;
@@ -153,7 +116,6 @@ export function useUserAndTenant() {
       if (tErr) throw tErr;
 
       setTenant(tData);
-      applyTheme(tData);
 
       /* 5️⃣ Subscription */
       const { data: sub } = await supabase
@@ -180,7 +142,9 @@ export function useUserAndTenant() {
           .select("feature_key, enabled")
           .eq("plan_id", tData.plan_id);
 
-        setFeatures((feats ?? []).filter(f => f.enabled).map(f => f.feature_key));
+        setFeatures(
+          (feats ?? []).filter((f) => f.enabled).map((f) => f.feature_key)
+        );
       } else {
         setPlan(null);
         setFeatures([]);
@@ -193,24 +157,17 @@ export function useUserAndTenant() {
         .eq("tenant_id", finalProfile.tenant_id)
         .eq("user_id", currentUser.id);
 
-      setPermissions((perms ?? []).filter(p => p.allowed).map(p => p.permission_key));
-
+      setPermissions(
+        (perms ?? []).filter((p) => p.allowed).map((p) => p.permission_key)
+      );
     } catch (err: any) {
-      console.error("Erro em useUserAndTenant:", err);
-      setError(err.message ?? "Erro ao carregar dados.");
+      console.error("Erro useUserAndTenant:", err);
       clearAll();
+      setError(err.message ?? "Erro ao carregar dados.");
     } finally {
       setLoading(false);
     }
-  }, [clearAll, applyTheme]);
-
-  /* ============================================================
-     🔁 RELOAD ALL (PROFILE + TENANT)
-  ============================================================ */
-  const reloadAll = useCallback(async () => {
-    await reloadProfile();
-    await reloadTenant();
-  }, [reloadProfile, reloadTenant]);
+  }, [clearAll]);
 
   /* ============================================================
      ⏳ Carregar ao montar
@@ -224,9 +181,6 @@ export function useUserAndTenant() {
   ============================================================ */
   const needsSetup = Boolean(user && profile && !tenant);
 
-  /* ============================================================
-     📤 Retorno final
-  ============================================================ */
   return {
     loading,
     error,
@@ -238,9 +192,6 @@ export function useUserAndTenant() {
     features,
     permissions,
     needsSetup,
-
     reloadProfile,
-    reloadTenant,
-    reloadAll,
   };
 }
