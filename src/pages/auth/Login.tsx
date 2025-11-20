@@ -8,18 +8,13 @@ import { useBrandColor } from "../../hooks/useBrandColor";
 import { supabase } from "../../lib/supabaseCleint";
 import styles from "./Auth.module.css";
 import { toast } from "react-toastify";
-import { Eye, EyeOff } from "lucide-react"; // Importando os ícones
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [error, setError] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // Novo estado para visibilidade da senha
-
-  // 🔹 Estados do reset de senha
-  const [resetEmail, setResetEmail] = useState("");
-  const [showReset, setShowReset] = useState(false);
-  const [resetLoading, setResetLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
   const { signIn, user, loading } = useAuth();
@@ -27,7 +22,9 @@ export default function Login() {
   const { theme, toggleTheme } = useTheme();
   const { brandColor } = useBrandColor();
 
-  /* 🎨 Aplicar tema + cor primária */
+  /* ============================================================
+     🎨 Tema
+  ============================================================ */
   useEffect(() => {
     document.documentElement.setAttribute("data-theme-variant", theme);
   }, [theme]);
@@ -38,7 +35,9 @@ export default function Login() {
     }
   }, [brandColor]);
 
-  /* Mensagens da URL */
+  /* ============================================================
+     URL Messages
+  ============================================================ */
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
 
@@ -56,14 +55,18 @@ export default function Login() {
     }
   }, []);
 
-  /* Redireciona se já estiver logado */
+  /* ============================================================
+     Redirecionar se logado
+  ============================================================ */
   useEffect(() => {
     if (!loading && user) {
       navigate("/dashboard", { replace: true });
     }
   }, [user, loading, navigate]);
 
-  /* LOGIN */
+  /* ============================================================
+     Login
+  ============================================================ */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -79,45 +82,15 @@ export default function Login() {
     }
   };
 
-  /* RESET PASSWORD */
-  const handleResetPassword = async () => {
-    const targetEmail = resetEmail.trim() || email.trim();
-
-    if (!targetEmail) {
-      toast.warn("Informe o email para redefinir a senha.");
-      return;
-    }
-
-    setResetLoading(true);
-
-    try {
-      const redirectTo = `${window.location.origin}/force-reset`;
-
-      const { error } = await supabase.auth.resetPasswordForEmail(targetEmail, {
-        redirectTo,
-      });
-
-      if (error) throw error;
-
-      toast.success("Enviamos um link de redefinição para seu email.");
-      setShowReset(false);
-      setResetEmail("");
-    } catch (err: any) {
-      toast.error(err?.message || "Erro ao enviar o link de redefinição.");
-    }
-
-    setResetLoading(false);
-  };
-
   return (
     <div className={`${styles.wrap} ${theme === "dark" ? styles.dark : ""}`}>
       <div className={styles.card}>
-
         <h2 className={styles.loginTitle}>LOGIN</h2>
 
         <form onSubmit={handleSubmit}>
           {error && <p className={styles.errorMessage}>{error}</p>}
 
+          {/* EMAIL */}
           <input
             type="email"
             placeholder="Email"
@@ -126,7 +99,7 @@ export default function Login() {
             required
           />
 
-          {/* Campo de Senha com toggle */}
+          {/* SENHA + OLHO */}
           <div className={styles.passwordWrapper}>
             <input
               type={showPassword ? "text" : "password"}
@@ -136,61 +109,43 @@ export default function Login() {
               onChange={(e) => setSenha(e.target.value)}
               required
             />
+
             <button
               type="button"
               className={styles.eyeButton}
               onClick={() => setShowPassword((v) => !v)}
-              aria-label={showPassword ? "Ocultar senha" : "Ver senha"}
+              aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
 
-          {/* ---------------------- RESET BLOCK ---------------------- */}
+          {/* LINK "ESQUECEU A SENHA?" — fora do WRAPPER */}
           <button
-                type="button"
-                className={styles.forgotPassword}
-                onClick={() => navigate("/forgot-password")}
-              >
-          Esqueceu a senha?
-        </button>
+            type="button"
+            className={styles.forgotPassword}
+            onClick={() => navigate("/forgot-password")}
+          >
+            Esqueceu a senha?
+          </button>
 
-
-          {showReset && (
-            <div className={styles.resetBox}>
-              <input
-                type="email"
-                placeholder="Seu email"
-                value={resetEmail}
-                onChange={(e) => setResetEmail(e.target.value)}
-              />
-              <button
-                type="button"
-                className={styles.resetButton}
-                disabled={resetLoading}
-                onClick={handleResetPassword}
-              >
-                {resetLoading ? "Enviando..." : "Enviar link de redefinição"}
-              </button>
-            </div>
-          )}
-          {/* ---------------------------------------------------------- */}
-
+          {/* BOTÃO ENTRAR */}
           <button type="submit" disabled={!email || !senha || loading}>
             {loading ? "Entrando..." : "Entrar"}
           </button>
         </form>
 
+        {/* CADASTRE-SE */}
         <p className={styles.linkText}>
           Ainda não tem conta? <Link to="/register">Registrar</Link>
         </p>
 
+        {/* THEME BUTTON */}
         <div className={styles.themeToggleWrapper}>
           <button className={styles.themeToggle} onClick={toggleTheme}>
             {theme === "light" ? "🌙 Dark Mode" : "🌞 Light Mode"}
           </button>
         </div>
-
       </div>
     </div>
   );
