@@ -43,7 +43,7 @@ export default function Register() {
     setLoading(true);
     setMessage("");
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -63,6 +63,15 @@ export default function Register() {
       return;
     }
 
+    // Se não houve erro, mas nenhum usuário foi retornado,
+    // isso geralmente significa que o e-mail já existe e a confirmação de e-mail está ativada.
+    // Neste caso, o Supabase não cria um *novo* usuário, mas também não retorna um erro explícito.
+    if (!data.user) {
+      setMessage("Este e-mail já está cadastrado. Por favor, faça login ou use outro e-mail.");
+      return;
+    }
+
+    // Se chegamos aqui, um novo usuário foi criado com sucesso (mesmo que não confirmado ainda)
     setMessage("Cadastro criado! Verifique seu e-mail para confirmar.");
   };
 
