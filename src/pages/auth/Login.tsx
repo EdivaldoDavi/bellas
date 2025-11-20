@@ -5,7 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthProvider";
 import { useTheme } from "../../hooks/useTheme";
 import { useBrandColor } from "../../hooks/useBrandColor";
-import { supabase } from "../../lib/supabaseCleint";
+
 import styles from "./Auth.module.css";
 import { toast } from "react-toastify";
 import { Eye, EyeOff } from "lucide-react";
