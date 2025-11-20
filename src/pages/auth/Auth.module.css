@@ -85,26 +85,80 @@ button:hover {
   cursor: pointer;
   font-size: 0.85rem;
 }
+
+/* ============================================================
+   NOVOS ESTILOS PARA O CAMPO DE SENHA COM BOTÃO DE OLHO
+============================================================ */
 .passwordWrapper {
-  width: 100%;
   position: relative;
+  display: flex; /* Garante que o input e o botão fiquem na mesma linha */
+  align-items: center;
   margin-bottom: 12px;
 }
 
 .passwordInput {
   width: 100%;
-  padding-right: 42px; /* espaço p/ o olho */
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  padding: 12px 40px 12px 12px; /* Espaço extra à direita para o ícone */
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.passwordInput:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(255, 20, 147, 0.2);
 }
 
 .eyeButton {
   position: absolute;
+  right: 8px; /* Ajusta a posição do botão à direita */
   top: 50%;
-  right: 14px;
   transform: translateY(-50%);
-  background: transparent;
-  border: none;
-  cursor: pointer;
+  width: 32px; /* Tamanho fixo para o botão */
+  height: 32px; /* Tamanho fixo para o botão */
   display: flex;
   align-items: center;
   justify-content: center;
+  border: none; /* Remove a borda */
+  background: transparent; /* Fundo transparente para não ter a cor do botão global */
+  padding: 0; /* Remove o padding */
+  margin: 0; /* Remove a margem */
+  cursor: pointer;
+  color: #64748b; /* Cor padrão para o ícone */
+  transition: color 0.2s ease, background-color 0.2s ease; /* Adiciona transição para o background */
+  border-radius: 50%; /* Deixa o hover circular */
+}
+
+.eyeButton:hover {
+  color: var(--color-primary); /* Cor do tema no hover */
+  background-color: rgba(0, 0, 0, 0.05); /* Fundo leve no hover */
+}
+
+/* Garante que o ícone seja visível em ambos os temas */
+.eyeButton svg {
+  color: inherit !important;
+  stroke: currentColor !important;
+  opacity: 1 !important;
+}
+
+/* Estilos para o tema escuro */
+:root[data-theme="dark"] .card {
+  background: #1e1e1e;
+  color: #e8e8e8;
+}
+
+:root[data-theme="dark"] input {
+  background: #141414;
+  border-color: #333;
+  color: #e8e8e8;
+}
+
+:root[data-theme="dark"] .eyeButton {
+  color: #a9a6b7; /* Cor do ícone no tema escuro */
+}
+
+:root[data-theme="dark"] .eyeButton:hover {
+  background-color: rgba(255, 255, 255, 0.1); /* Fundo leve no hover no tema escuro */
 }
