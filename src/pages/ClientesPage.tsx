@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
-import { X, Plus, Eye, EyeOff } from "lucide-react";
+import { X, Plus, Pencil } from "lucide-react";
 import { toast } from "react-toastify";
 
 import ModalNewCustomer from "../components/ModalNewCustomer";
@@ -79,7 +79,7 @@ async function load() {
     setEditingCustomer(c);
     setOpenModal(true);
   }
- 
+
   /* CONFIRMAR toggle */
   function confirmToggle(customer: Customer) {
     const action = customer.is_active ? "inativar" : "ativar";
@@ -205,19 +205,23 @@ async function load() {
                     <div>
                         <div className={styles.title}>{c.full_name}</div>
                         <div className={styles.meta}>
-                        {c.customer_phone} · {c.is_active ? "Ativo" : "Inativo"}
+                        {c.customer_phone} ·{" "}
+                        <span style={{ color: c.is_active ? '#007bff' : '#dc3545', fontWeight: 'bold' }}>
+                          {c.is_active ? "Ativo" : "Inativo"}
+                        </span>
                         </div>
                     </div>
 
                     <div className={styles.actions}>
                         <button className={styles.iconBtn} onClick={() => openEdit(c)}>
-                        ✏️
+                        <Pencil size={18} />
                         </button>
                         <button
-                        className={`${styles.iconBtn} ${styles.danger}`}
+                        className={styles.statusToggleButton}
+                        style={{ backgroundColor: c.is_active ? '#dc3545' : '#007bff', color: '#fff' }}
                         onClick={() => confirmToggle(c)}
                         >
-                        {c.is_active ? <Eye size={18}/> : <EyeOff size={18}/>}
+                        {c.is_active ? 'Inativar' : 'Ativar'}
                         </button>
                     </div>
                     </div>

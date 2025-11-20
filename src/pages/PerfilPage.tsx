@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 import styles from "../css/PerfilPage.module.css";
-import { Eye, EyeOff, Check } from "lucide-react";
+import { Eye, EyeOff, Check, UploadCloud } from "lucide-react";
 
 /* ============================================================
   FUNÇÃO DE FORÇA DA SENHA (igual ao ForceReset)
@@ -35,6 +35,11 @@ export default function PerfilPage() {
   const [mostrarConfirmar, setMostrarConfirmar] = useState(false);
 
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // força real
   const strength = getPasswordStrength(novaSenha);
@@ -51,8 +56,78 @@ export default function PerfilPage() {
     if (profile) {
       setNome(profile.full_name || "");
       setEmail(profile.email || "");
+      setAvatarPreviewUrl(profile.avatar_url); // Define a URL do avatar existente
     }
   }, [profile]);
+
+  /* ================================
+        Lidar com seleção de arquivo
+  ================================ */
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setAvatarFile(file);
+      setAvatarPreviewUrl(URL.createObjectURL(file)); // Cria URL de preview
+    }
+  };
+
+  /* ================================
+        Upload de Avatar
+  ================================ */
+  const handleUploadAvatar = async () => {
+  if (!profile?.user_id || !avatarFile) {
+    toast.warn("Nenhum arquivo selecionado ou usuário não identificado.");
+    return;
+  }
+
+  setUploading(true);
+
+  try {
+    const fileExt = avatarFile.name.split(".").pop();
+    const fileName = `${profile.user_id}.${fileExt}`;
+
+    // caminho final do arquivo no bucket
+    const filePath = `${profile.user_id}/${fileName}`;
+
+    // 1) Upload no Storage
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(filePath, avatarFile, {
+        cacheControl: "3600",
+        upsert: true,
+      });
+
+    if (uploadError) throw uploadError;
+
+    // 2) Obter URL pública
+    const { data: publicData } = supabase.storage
+      .from("avatars")
+      .getPublicUrl(filePath);
+
+    if (!publicData?.publicUrl) {
+      throw new Error("Não foi possível gerar a URL pública do avatar.");
+    }
+
+    // 3) Atualiza no perfil
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({ avatar_url: publicData.publicUrl })
+      .eq("user_id", profile.user_id);
+
+    if (updateError) throw updateError;
+
+    toast.success("Avatar atualizado com sucesso!");
+    reloadProfile();
+
+  } catch (err: any) {
+    console.error("Erro ao enviar avatar:", err);
+    toast.error("Erro ao atualizar avatar: " + err.message);
+  } finally {
+    setUploading(false);
+    setAvatarFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+};
 
   /* ================================
         SALVAR PERFIL
@@ -128,27 +203,50 @@ export default function PerfilPage() {
       <div className="row g-4">
 
         {/* Lado Esquerdo */}
-        <div className="col-md-4">
+        <div className="col-12 col-md-4">
           <div className={styles.card}>
             <div className={styles.avatarContainer}>
               <img
                 src={
+                  avatarPreviewUrl ||
                   profile?.avatar_url ||
                   "https://i.pravatar.cc/150?img=47"
                 }
                 className={styles.avatar}
+                alt="Avatar do usuário"
               />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                ref={fileInputRef}
+                style={{ display: "none" }}
+                id="avatar-upload-input"
+              />
+              <label htmlFor="avatar-upload-input" className={styles.uploadButton}>
+                <UploadCloud size={20} />
+              </label>
             </div>
 
             <div className="text-center mt-2">
               <h5 className={styles.cardTitle}>{nome}</h5>
               <p className={styles.manager}>{profile?.role}</p>
             </div>
+
+            {avatarFile && (
+              <button
+                className={styles.button}
+                onClick={handleUploadAvatar}
+                disabled={uploading}
+              >
+                {uploading ? "Enviando..." : "Salvar Avatar"}
+              </button>
+            )}
           </div>
         </div>
 
         {/* Lado Direito */}
-        <div className="col-md-8">
+        <div className="col-12 col-md-8">
 
           {/* ===== Informações pessoais ===== */}
           <div className={styles.card}>

@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Outlet } from "react-router-dom";
 
-import Sidebar from "../sidebar/Sidebar"; 
+import Sidebar from "../sidebar/Sidebar";
 import Header from "../Header";
 import { useIsMobile } from "../../hooks/useIsMobile";
 
@@ -14,38 +14,16 @@ export default function Layout() {
   const toggleSidebar = () => setSidebarOpen((p) => !p);
   const closeSidebar = () => setSidebarOpen(false);
 
-  /** 
-   * REFERÊNCIA para medir o header ✔ 
+  /**
+   * REFERÊNCIA para medir o header
+   * O Header.tsx agora é o responsável por definir --header-total-height.
+   * Este ref ainda é útil para o Header.tsx medir sua própria altura.
    */
   const headerRef = useRef<HTMLDivElement | null>(null);
 
-  /**
-   * Pegamos do localStorage a flag que o Header atualiza
-   * sempre que o alerta do WhatsApp é mostrado ou escondido.
-   */
-  const whatsappAlertFlag =
-    typeof window !== "undefined"
-      ? localStorage.getItem("whatsapp-alert-visible") === "1"
-      : false;
-
-  useEffect(() => {
-    function updateHeaderHeight() {
-      if (!headerRef.current) return;
-
-      const height = headerRef.current.offsetHeight;
-
-      // Define a variável CSS usada no Layout.module.css
-      document.documentElement.style.setProperty(
-        "--safe-top",
-        `${height}px`
-      );
-    }
-
-    updateHeaderHeight();
-    window.addEventListener("resize", updateHeaderHeight);
-
-    return () => window.removeEventListener("resize", updateHeaderHeight);
-  }, [whatsappAlertFlag]); // ⭐ Recalcula quando o alerta aparece ou some
+  // Removida a lógica de `whatsappAlertFlag` e o `useEffect` correspondente.
+  // O `pageContent` agora depende diretamente de `--header-total-height`
+  // que é atualizado pelo componente `Header`.
 
   /** classes raiz */
   const rootClass = `

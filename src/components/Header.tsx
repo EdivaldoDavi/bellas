@@ -6,7 +6,7 @@ import BrandColorMenu from "./BrandColorMenu";
 import { useState, useEffect, useRef } from "react";
 import { useEvolutionConnection } from "../hooks/useEvolutionConnection";
 import { supabase } from "../lib/supabaseCleint";
-import {  useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "../index.css";
 
 export default function Header({ toggleSidebar }: { toggleSidebar: () => void }) {
@@ -14,18 +14,7 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
   const { theme, toggleTheme } = useTheme();
 
   const ref = useRef<HTMLDivElement>(null);
- const navigate = useNavigate();
-  /** Atualizar var do CSS para altura total do header */
-  useEffect(() => {
-    const update = () => {
-      if (!ref.current) return;
-      const h = ref.current.offsetHeight;
-      document.documentElement.style.setProperty("--header-total-height", `${h}px`);
-    };
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, []);
+  const navigate = useNavigate();
 
   const { status } = useEvolutionConnection({
     baseUrl: import.meta.env.VITE_EVO_PROXY_URL ?? "https://bellas-agenda-evo-proxy.hu6h7e.easypanel.host/api",
@@ -35,6 +24,42 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [greeting, setGreeting] = useState("");
+
+  const isWhatsDisconnected =
+    !status ||
+    status === "DISCONNECTED" ||
+    status === "LOGGED_OUT" ||
+    status === "ERROR" ||
+    status === "UNKNOWN" ||
+    status === "IDLE";
+
+  /**
+   * Atualizar var do CSS para altura total do header
+   * Agora depende de `isWhatsDisconnected` para recalcular quando o alerta aparece/some.
+   */
+  useEffect(() => {
+    const update = () => {
+      if (!ref.current) return;
+      const h = ref.current.offsetHeight;
+      document.documentElement.style.setProperty("--header-total-height", `${h}px`);
+    };
+    update(); // Executa na montagem e em cada mudança de dependência
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, [isWhatsDisconnected]); // <--- Adicionado isWhatsDisconnected aqui!
+
+  /**
+   * Gerencia a flag no localStorage para que o Layout possa reagir
+   * (embora o Layout.tsx será simplificado para não precisar mais disso).
+   */
+  useEffect(() => {
+    if (isWhatsDisconnected) {
+      localStorage.setItem("whatsapp-alert-visible", "1");
+    } else {
+      localStorage.removeItem("whatsapp-alert-visible");
+    }
+  }, [isWhatsDisconnected]);
+
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -49,13 +74,6 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
   const userRole = profile?.role || "...";
   const avatarUrl = profile?.avatar_url || "https://i.pravatar.cc/40";
 
-  const isWhatsDisconnected =
-    !status ||
-    status === "DISCONNECTED" ||
-    status === "LOGGED_OUT" ||
-    status === "ERROR" ||
-    status === "UNKNOWN" ||
-    status === "IDLE";
 
   /** --- LOGOUT --- */
   const handleLogout = async () => {

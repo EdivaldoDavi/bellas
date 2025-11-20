@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
-import { X, Plus, Pencil, Eye, EyeOff } from "lucide-react";
+import { X, Plus, Pencil } from "lucide-react";
 
 import { toast } from "react-toastify"; 
 import ModalNewProfessional from "../components/ModalNewProfessional";
@@ -187,7 +187,9 @@ function confirmToggle(p: Professional) {
                     <div className={styles.title}>{p.name}</div>
                     <div className={styles.meta}>
                       {p.email || "Sem e-mail"} ·{" "}
-                      {p.is_active ? "Ativo" : "Inativo"}
+                      <span style={{ color: p.is_active ? '#007bff' : '#dc3545', fontWeight: 'bold' }}>
+                        {p.is_active ? "Ativo" : "Inativo"}
+                      </span>
                     </div>
                   </div>
 
@@ -200,10 +202,11 @@ function confirmToggle(p: Professional) {
                     </button>
 
                     <button
-                    className={`${styles.iconBtn} ${styles.danger}`}
+                    className={styles.statusToggleButton}
+                    style={{ backgroundColor: p.is_active ? '#dc3545' : '#007bff', color: '#fff' }}
                     onClick={() => confirmToggle(p)}
                     >
-                    {p.is_active ? <Eye size={18} /> : <EyeOff size={18} />}
+                    {p.is_active ? 'Inativar' : 'Ativar'}
                     </button>
 
                   </div>

@@ -1,9 +1,10 @@
 import { useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate }
+ from "react-router-dom";
 import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
-import { X, Plus, Pencil, Eye, EyeOff } from "lucide-react";
+import { X, Plus, Pencil } from "lucide-react";
 import { toast } from "react-toastify";
 
 import ModalNewService from "../components/ModalNewService";
@@ -79,11 +80,29 @@ export default function ServicosPage() {
               toggleActive(service);
             }}
             className={styles.confirmBtn}
+            style={{
+              marginRight: 10,
+              padding: "6px 12px",
+              borderRadius: 8,
+              background: brandColor,
+              color: "#fff",
+              border: "none",
+              cursor: "pointer"
+            }}
           >
             Confirmar
           </button>
 
-          <button onClick={closeToast} className={styles.cancelBtn}>
+          <button onClick={closeToast} className={styles.cancelBtn}
+            style={{
+              padding: "6px 12px",
+              borderRadius: 8,
+              background: "#2a2833",
+              color: "#fff",
+              border: "1px solid #555",
+              cursor: "pointer"
+            }}
+          >
             Cancelar
           </button>
         </div>
@@ -162,7 +181,9 @@ export default function ServicosPage() {
                     <div className={styles.title}>{svc.name}</div>
                     <div className={styles.meta}>
                       {svc.duration_min ?? 60} min ·{" "}
-                      {svc.is_active ? "Ativo" : "Inativo"}
+                      <span style={{ color: svc.is_active ? '#007bff' : '#dc3545', fontWeight: 'bold' }}>
+                        {svc.is_active ? "Ativo" : "Inativo"}
+                      </span>
                     </div>
                   </div>
 
@@ -175,10 +196,11 @@ export default function ServicosPage() {
                     </button>
 
                     <button
-                      className={`${styles.iconBtn} ${styles.danger}`}
+                      className={styles.statusToggleButton}
+                      style={{ backgroundColor: svc.is_active ? '#dc3545' : '#007bff', color: '#fff' }}
                       onClick={() => confirmToggle(svc)}
                     >
-                      {svc.is_active ? <Eye size={18} /> : <EyeOff size={18} />}
+                      {svc.is_active ? 'Inativar' : 'Ativar'}
                     </button>
                   </div>
                 </div>
