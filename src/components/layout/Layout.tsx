@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Outlet } from "react-router-dom";
 
-import Sidebar from "../sidebar/Sidebar";
+import Sidebar from "../sidebar/Sidebar"; 
 import Header from "../Header";
 import { useIsMobile } from "../../hooks/useIsMobile";
 
