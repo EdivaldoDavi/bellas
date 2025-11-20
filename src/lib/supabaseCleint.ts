@@ -67,11 +67,16 @@ export async function getCurrentProfile() {
    ============================================================ */
 export async function logout() {
   try {
-    await supabase.auth.signOut();
-  } catch (e) {
-    console.warn("⚠ erro ao fazer logout:", e);
-  }
+    await supabase.auth.signOut({ scope: "local" });
+  } catch (e) {}
 
-  // redirecionamento seguro com hard reload
-  window.location.href = "/login?logged_out=1";
+  // 🚨 Limpando cache do AuthProvider
+  window.localStorage.removeItem("sb-SESSION"); // ajusta se necessário
+  window.localStorage.removeItem("bellas-profile");
+  window.localStorage.removeItem("bellas-tenant");
+
+  // Notify context listeners
+  window.dispatchEvent(new Event("supabase-signout"));
+
+  window.location.replace("/login?logged_out=1");
 }
