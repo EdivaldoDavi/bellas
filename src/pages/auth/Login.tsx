@@ -8,11 +8,13 @@ import { useBrandColor } from "../../hooks/useBrandColor";
 import { supabase } from "../../lib/supabaseCleint";
 import styles from "./Auth.module.css";
 import { toast } from "react-toastify";
+import { Eye, EyeOff } from "lucide-react"; // Importando os ícones
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // Novo estado para visibilidade da senha
 
   // 🔹 Estados do reset de senha
   const [resetEmail, setResetEmail] = useState("");
@@ -124,13 +126,25 @@ export default function Login() {
             required
           />
 
-          <input
-            type="password"
-            placeholder="Senha"
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-            required
-          />
+          {/* Campo de Senha com toggle */}
+          <div className={styles.passwordWrapper}>
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Senha"
+              className={styles.passwordInput}
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              required
+            />
+            <button
+              type="button"
+              className={styles.eyeButton}
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? "Ocultar senha" : "Ver senha"}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
 
           {/* ---------------------- RESET BLOCK ---------------------- */}
           <button
