@@ -54,7 +54,12 @@ export default function Register() {
     setLoading(false);
 
     if (error) {
-      setMessage(error.message);
+      // Verifica se o erro é de usuário já registrado
+      if (error.message.includes("User already registered")) {
+        setMessage("Este e-mail já está cadastrado. Por favor, faça login ou use outro e-mail.");
+      } else {
+        setMessage(error.message);
+      }
       return;
     }
 
