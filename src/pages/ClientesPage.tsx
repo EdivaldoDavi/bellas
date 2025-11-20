@@ -79,7 +79,7 @@ async function load() {
     setEditingCustomer(c);
     setOpenModal(true);
   }
-
+ 
   /* CONFIRMAR toggle */
   function confirmToggle(customer: Customer) {
     const action = customer.is_active ? "inativar" : "ativar";
