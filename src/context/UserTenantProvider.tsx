@@ -21,8 +21,9 @@ export interface UserTenantContextType {
   loading: boolean;
   needsSetup: boolean;
 
-  // Métodos globais
   refreshProfile: () => Promise<void>;
+  refreshTenant: () => Promise<void>;
+  reloadAll: () => Promise<void>;
 }
 
 /* ============================================================
@@ -34,7 +35,6 @@ const UserTenantContext = createContext<UserTenantContextType | null>(null);
    📌 Provider
 ============================================================ */
 export function UserTenantProvider({ children }: { children: ReactNode }) {
-  // Hook centralizado que carrega tudo (user, profile, tenant, etc)
   const {
     user,
     profile,
@@ -48,7 +48,24 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
     reloadProfile,
   } = useUserAndTenant();
 
-  // Memo evita re-render desnecessário da aplicação inteira
+  /* ============================================================
+     1️⃣ refreshTenant — recarrega somente o tenant
+     (simplesmente chamamos reloadProfile, ele recarrega tenant também)
+  ============================================================ */
+  const refreshTenant = async () => {
+    await reloadProfile();
+  };
+
+  /* ============================================================
+     2️⃣ reloadAll — recarrega tudo em ordem
+  ============================================================ */
+  const reloadAll = async () => {
+    await reloadProfile();
+  };
+
+  /* ============================================================
+     Memo do valor exposto
+  ============================================================ */
   const value = useMemo<UserTenantContextType>(
     () => ({
       user,
@@ -61,8 +78,9 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
       loading,
       needsSetup,
 
-      // Expor método principal
       refreshProfile: reloadProfile,
+      refreshTenant,
+      reloadAll,
     }),
     [
       user,
