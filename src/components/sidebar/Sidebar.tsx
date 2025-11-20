@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import {  type ReactNode, type CSSProperties } from "react";
 
 import {
@@ -18,7 +18,7 @@ import {
   UserPlus,
 } from "lucide-react";
 
-import { supabase } from "../../lib/supabaseCleint";
+import { logout } from "../../lib/supabaseCleint"; // Importa a função de logout centralizada
 import { useUserAndTenant } from "../../hooks/useUserAndTenant";
 
 
@@ -37,7 +37,6 @@ export default function Sidebar({
   toggleSidebar: () => void;
   closeSidebar: () => void;
 }) {
-  const navigate = useNavigate();
   const { profile, tenant } = useUserAndTenant();
 
   const role = profile?.role ?? "professional";
@@ -106,12 +105,7 @@ export default function Sidebar({
      LOGOUT
   ===================================*/
   const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-    } catch (e) {
-      console.warn("Erro ao deslogar:", e);
-    }
-    navigate("/login?logged_out=1", { replace: true });
+    await logout(); // Usa a função de logout centralizada
   };
 
   /* ================================

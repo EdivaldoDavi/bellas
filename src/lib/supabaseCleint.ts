@@ -72,6 +72,6 @@ export async function logout() {
     console.warn("⚠ erro ao fazer logout:", e);
   }
 
-  // redirecionamento seguro
-  window.location.href = "/login";
+  // redirecionamento seguro com hard reload
+  window.location.href = "/login?logged_out=1";
 }

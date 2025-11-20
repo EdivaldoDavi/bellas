@@ -5,8 +5,7 @@ import { useTheme } from "../hooks/useTheme";
 import BrandColorMenu from "./BrandColorMenu";
 import { useState, useEffect, useRef } from "react";
 import { useEvolutionConnection } from "../hooks/useEvolutionConnection";
-import { supabase } from "../lib/supabaseCleint";
-import { useNavigate } from "react-router-dom";
+import { logout } from "../lib/supabaseCleint"; // Importa a função de logout centralizada
 import "../index.css";
 
 export default function Header({ toggleSidebar }: { toggleSidebar: () => void }) {
@@ -14,7 +13,6 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
   const { theme, toggleTheme } = useTheme();
 
   const ref = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
 
   const { status } = useEvolutionConnection({
     baseUrl: import.meta.env.VITE_EVO_PROXY_URL ?? "https://bellas-agenda-evo-proxy.hu6h7e.easypanel.host/api",
@@ -77,12 +75,7 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
 
   /** --- LOGOUT --- */
   const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-    } catch (e) {
-      console.warn("Erro ao deslogar:", e);
-    }
-    navigate("/login?logged_out=1", { replace: true });
+    await logout(); // Usa a função de logout centralizada
   };
 
 
