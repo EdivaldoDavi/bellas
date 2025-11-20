@@ -7,61 +7,74 @@ import {
 } from "react";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
+/* ============================================================
+   📌 Tipagem do Contexto Global
+============================================================ */
 export interface UserTenantContextType {
   user: any;
   profile: any;
   tenant: any;
   subscription: any;
+  plan: any;
+  features: string[];
+  permissions: string[];
   loading: boolean;
   needsSetup: boolean;
 
-  // Métodos que serão usados globalmente
+  // Métodos globais
   refreshProfile: () => Promise<void>;
-  refreshTenant: () => Promise<void>;
-  reloadAll: () => Promise<void>;
 }
 
+/* ============================================================
+   📌 Criação do Contexto
+============================================================ */
 const UserTenantContext = createContext<UserTenantContextType | null>(null);
 
+/* ============================================================
+   📌 Provider
+============================================================ */
 export function UserTenantProvider({ children }: { children: ReactNode }) {
-  // 🔥 Hook executa apenas 1x aqui
+  // Hook centralizado que carrega tudo (user, profile, tenant, etc)
   const {
     user,
     profile,
     tenant,
     subscription,
+    plan,
+    features,
+    permissions,
     loading,
     needsSetup,
     reloadProfile,
-    reloadTenant,
-    reloadAll,
   } = useUserAndTenant();
 
-  // 🔥 Memoizado para evitar renders desnecessários
+  // Memo evita re-render desnecessário da aplicação inteira
   const value = useMemo<UserTenantContextType>(
     () => ({
       user,
       profile,
       tenant,
       subscription,
+      plan,
+      features,
+      permissions,
       loading,
       needsSetup,
 
-      // Expor métodos globalmente
+      // Expor método principal
       refreshProfile: reloadProfile,
-      refreshTenant: reloadTenant,
-      reloadAll,
     }),
     [
       user,
       profile,
       tenant,
       subscription,
+      plan,
+      features,
+      permissions,
       loading,
       needsSetup,
       reloadProfile,
-      reloadTenant,
-      reloadAll,
     ]
   );
 
@@ -72,6 +85,9 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/* ============================================================
+   📌 Hook de Acesso
+============================================================ */
 export function useUserTenant() {
   const ctx = useContext(UserTenantContext);
   if (!ctx) {
