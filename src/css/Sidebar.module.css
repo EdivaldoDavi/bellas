@@ -44,7 +44,14 @@
 .toggleBtn:hover { background: rgba(0,0,0,.06); }
 
 /* Navegação */
-.menu { flex: 1; padding: .5rem; display: flex; flex-direction: column; gap: .25rem; }
+.menu { 
+  flex: 1; 
+  padding: .5rem; 
+  display: flex; 
+  flex-direction: column; 
+  gap: .25rem; 
+  overflow-y: auto; /* Adicionado para rolagem do menu */
+}
 .menuItem {
   display: flex; align-items: center; gap: .75rem;
   padding: .6rem; border-radius: 6px;
@@ -78,7 +85,10 @@
 }
 
 /* Rodapé */
-.footer { padding: .5rem; }
+.footer { 
+  padding: .5rem; 
+  flex-shrink: 0; /* Adicionado para evitar que o rodapé seja espremido */
+}
 .footer .menuItem { background: var(--color-primary); color:#fff; }
 .footer .menuItem:hover { opacity:.9; }
 .submenuOverlay {
