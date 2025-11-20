@@ -39,41 +39,41 @@ export default function Register() {
   /* ============================================================
      Registrar
   ============================================================ */
-  const handleRegister = async () => {
-    setLoading(true);
-    setMessage("");
+const handleRegister = async () => {
+  setLoading(true);
+  setMessage("");
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName },
-      },
-    });
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { full_name: fullName },
+    },
+  });
 
-    setLoading(false);
+  setLoading(false);
 
-    if (error) {
-      // Verifica se o erro é de usuário já registrado
-      if (error.message.includes("User already registered")) {
-        setMessage("Este e-mail já está cadastrado. Por favor, faça login ou use outro e-mail.");
-      } else {
-        setMessage(error.message);
-      }
-      return;
-    }
+  // ❌ Erro técnico
+  if (error) {
+    setMessage(error.message);
+    return;
+  }
 
-    // Se não houve erro, mas nenhum usuário foi retornado,
-    // isso geralmente significa que o e-mail já existe e a confirmação de e-mail está ativada.
-    // Neste caso, o Supabase não cria um *novo* usuário, mas também não retorna um erro explícito.
-    if (!data.user) {
-      setMessage("Este e-mail já está cadastrado. Por favor, faça login ou use outro e-mail.");
-      return;
-    }
+  // ❗ Detecta e-mail já registrado (caso existente no Supabase)
+  if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+    setMessage("Este e-mail já está cadastrado. Por favor, faça login.");
+    return;
+  }
 
-    // Se chegamos aqui, um novo usuário foi criado com sucesso (mesmo que não confirmado ainda)
-    setMessage("Cadastro criado! Verifique seu e-mail para confirmar.");
-  };
+  // ❗ Detecta e-mail existente e não confirmado
+  if (!data.user) {
+    setMessage("Este e-mail já está cadastrado. Por favor, faça login.");
+    return;
+  }
+
+  // ✔ Novo usuário criado (mesmo que ainda precise confirmar)
+  setMessage("Cadastro criado! Verifique seu e-mail para confirmar.");
+};
 
   return (
     <div className={`${styles.wrap} ${theme === "dark" ? styles.dark : ""}`}>
