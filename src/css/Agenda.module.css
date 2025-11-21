@@ -337,7 +337,8 @@ select:focus {
 
   /* Empurra o conteúdo abaixo do header fixo */
   .container {
-    padding-top: 110px !important; /* aumenta conforme sua navbar */
+    /* padding-top: 110px !important; */ /* REMOVIDO */
+    padding-top: 1.5rem; /* Volta ao padding padrão */
   }
 
   /* Linha do título + botão */
