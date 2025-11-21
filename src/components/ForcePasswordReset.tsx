@@ -146,7 +146,7 @@ async function updatePassword() {
   await supabase.auth.signOut();
 
   // 🔥 Remove a sessão antiga armazenada
-  localStorage.removeItem("sb-" + supabase.supabaseKey + "-auth-token");
+await supabase.auth.signOut();
 
   // 🔥 Redireciona sempre para login
   navigate("/login?reset=1", { replace: true });
