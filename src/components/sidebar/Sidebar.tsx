@@ -23,8 +23,6 @@ import { useUserAndTenant } from "../../hooks/useUserAndTenant";
 
 import styles from "../../css/Sidebar.module.css";
 
-type MenuItem = { to: string; label: string; icon: ReactNode };
-
 export default function Sidebar({
   isOpen,
   toggleSidebar,
@@ -34,83 +32,78 @@ export default function Sidebar({
   toggleSidebar: () => void;
   closeSidebar: () => void;
 }) {
-  const { profile, tenant } = useUserAndTenant();
+  const { profile, tenant, loading } = useUserAndTenant();
 
-  // Role carregada corretamente
-  const role = profile?.role;
-  const hasTenant = !!tenant;
+  // Enquanto carrega → evita renderização incompleta
+  if (loading || !profile) {
+    return null;
+  }
 
-  // Cor primária do tenant
-  const sidebarPrimary = tenant?.primary_color?.trim() || "#FF4081";
+  const role = profile.role ?? "professional";
+
+  const sidebarPrimary =
+    tenant?.primary_color?.trim() || "#FF4081";
 
   const isMobile =
     typeof window !== "undefined" && window.innerWidth < 1024;
 
-  /* =============================================================
-      🔥 Função que gera os menus de forma limpa e confiável
-  ============================================================= */
-  const getMenu = (): MenuItem[] => {
-    // ⚠️ Enquanto o profile ainda não carregou → menu mínimo
-    if (!role) {
-      return [
-        { to: "/perfil", label: "Meu Perfil", icon: <User size={20} /> },
-      ];
-    }
+  type MenuItem = { to: string; label: string; icon: ReactNode };
 
-    /* 🌐 SEM TENANT — APENAS owner/manager tem dashboard */
-    if (!hasTenant) {
-      if (role === "owner" || role === "manager") {
-        return [
-          { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
-          { to: "/saloes", label: "Salões", icon: <Building2 size={20} /> },
-          { to: "/assinaturas", label: "Assinaturas", icon: <CreditCard size={20} /> },
-          { to: "/gerenciar-acessos", label: "Gerenciar Acessos", icon: <ShieldCheck size={20} /> },
-          { to: "/integracoes/whatsapp", label: "WhatsApp", icon: <MessageCircle size={20} /> },
-          { to: "/perfil", label: "Meu Perfil", icon: <User size={20} /> },
-        ];
-      }
+  let menu: MenuItem[] = [];
 
-      // Usuários sem tenant porém sem permissão
-      return [
-        { to: "/perfil", label: "Meu Perfil", icon: <User size={20} /> },
-      ];
-    }
-
-    /* 👑 COM TENANT — OWNER e MANAGER */
-    if (role === "owner" || role === "manager") {
-      return [
-        { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
-        { to: "/agenda", label: "Agenda", icon: <Calendar size={20} /> },
-
-        { to: "/clientes", label: "Clientes", icon: <Users size={20} /> },
-        { to: "/servicos", label: "Serviços", icon: <Scissors size={20} /> },
-        { to: "/profissionais", label: "Profissionais", icon: <UserCog size={20} /> },
-        { to: "/usuarios", label: "Usuários", icon: <UserPlus size={20} /> },
-
-        { to: "/gerenciar-acessos", label: "Gerenciar Acessos", icon: <ShieldCheck size={20} /> },
-        { to: "/config", label: "Configurações", icon: <Settings size={20} /> },
-        { to: "/integracoes/whatsapp", label: "WhatsApp", icon: <MessageCircle size={20} /> },
-        { to: "/perfil", label: "Meu Perfil", icon: <User size={20} /> },
-      ];
-    }
-
-    /* 💅 PROFISSIONAIS — NUNCA VERÃO DASHBOARD */
-    return [
-      { to: "/agenda", label: "Agenda", icon: <Calendar size={20} /> },
-      { to: "/comissoes", label: "Minhas Comissões", icon: <BadgeDollarSign size={20} /> },
+  /* ==========================
+        1 — SEM TENANT (modo global)
+     ========================== */
+  if (!tenant) {
+    menu = [
+      { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
+      { to: "/saloes", label: "Salões", icon: <Building2 size={20} /> },
+      { to: "/assinaturas", label: "Assinaturas", icon: <CreditCard size={20} /> },
+      { to: "/gerenciar-acessos", label: "Gerenciar Acessos", icon: <ShieldCheck size={20} /> },
+      { to: "/integracoes/whatsapp", label: "WhatsApp", icon: <MessageCircle size={20} /> },
       { to: "/perfil", label: "Meu Perfil", icon: <User size={20} /> },
     ];
-  };
+  }
 
-  const menu = getMenu();
+  /* ==========================
+        2 — OWNER / MANAGER
+     ========================== */
+  else if (role === "owner" || role === "manager") {
+    menu = [
+      { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
+      { to: "/agenda", label: "Agenda", icon: <Calendar size={20} /> },
+
+      { to: "/clientes", label: "Clientes", icon: <Users size={20} /> },
+      { to: "/servicos", label: "Serviços", icon: <Scissors size={20} /> },
+      { to: "/profissionais", label: "Profissionais", icon: <UserCog size={20} /> },
+      { to: "/usuarios", label: "Usuários", icon: <UserPlus size={20} /> },
+
+      { to: "/gerenciar-acessos", label: "Gerenciar Acessos", icon: <ShieldCheck size={20} /> },
+      { to: "/config", label: "Configurações", icon: <Settings size={20} /> },
+      { to: "/integracoes/whatsapp", label: "WhatsApp", icon: <MessageCircle size={20} /> },
+      { to: "/perfil", label: "Meu Perfil", icon: <User size={20} /> },
+    ];
+  }
+
+  /* ==========================
+        3 — PROFISSIONAL
+        Agora com 3 opções:
+        ✔ Dashboard do profissional
+        ✔ Agenda
+        ✔ Meu Perfil
+     ========================== */
+  else {
+    menu = [
+      { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
+      { to: "/agenda", label: "Agenda", icon: <Calendar size={20} /> },
+      { to: "/perfil", label: "Meu Perfil", icon: <User size={20} /> },
+    ];
+  }
 
   const handleLogout = async () => {
     await logout();
   };
 
-  /* =============================================================
-      RENDER
-  ============================================================= */
   return (
     <>
       {isMobile && isOpen && (
@@ -129,15 +122,13 @@ export default function Sidebar({
         }`}
         style={{ "--sidebar-primary": sidebarPrimary } as CSSProperties}
       >
-        {/* TOP */}
         <div className={styles.topSection}>
-          <span className={styles.logo}>bellas!</span>
+          <span className={styles.logo}>NailUp!</span>
           <button className={styles.toggleBtn} onClick={toggleSidebar}>
             ☰
           </button>
         </div>
 
-        {/* MENU */}
         <nav className={styles.menu}>
           {menu.map((item) => (
             <NavLink
@@ -146,7 +137,9 @@ export default function Sidebar({
               className={({ isActive }) =>
                 `${styles.menuItem} ${isActive ? styles.active : ""}`
               }
-              onClick={() => isMobile && closeSidebar()}
+              onClick={() => {
+                if (isMobile) closeSidebar();
+              }}
             >
               <span className={styles.icon}>{item.icon}</span>
               <span className={styles.label}>{item.label}</span>
@@ -154,7 +147,6 @@ export default function Sidebar({
           ))}
         </nav>
 
-        {/* FOOTER */}
         <div className={styles.footer}>
           <button className={styles.menuItem} onClick={handleLogout}>
             <span className={styles.icon}>
