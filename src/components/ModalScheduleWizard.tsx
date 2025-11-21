@@ -22,6 +22,8 @@ import {
   isHoliday
 } from "../utils/date";
 
+import { getAvailableTimeSlots } from "../utils/schedule"; // Importa a nova função
+
 type Professional = { id: string; name: string };
 type Service = { id: string; name: string; duration_min?: number | null };
 
@@ -122,71 +124,10 @@ export default function ModalScheduleWizard({
   async function loadTimes(date: string, profId: string, duration: number) {
     setAvailableTimes([]);
 
-    if (!date || !profId || !duration) return;
-    if (isPastDateLocal(date) || isHoliday(date)) return;
+    if (!tenantId || !date || !profId || !duration) return;
 
-    const weekday = getWeekdayLocal(date);
-
-    const { data: schedule } = await supabase
-      .from("professional_schedules")
-      .select("*")
-      .eq("professional_id", profId)
-      .eq("weekday", weekday)
-      .single();
-
-    if (!schedule) return;
-
-    const workStart = combineLocalDateTime(date, schedule.start_time.slice(0, 5));
-    const workEnd = combineLocalDateTime(date, schedule.end_time.slice(0, 5));
-
-    const hasBreak =
-      schedule.break_start_time !== "00:00:00" &&
-      schedule.break_end_time !== "00:00:00";
-
-    const breakStart = hasBreak ? combineLocalDateTime(date, schedule.break_start_time.slice(0, 5)) : null;
-    const breakEnd = hasBreak ? combineLocalDateTime(date, schedule.break_end_time.slice(0, 5)) : null;
-
-    const { startISO, endISO } = getDayBoundsISO(date);
-
-    const { data: booked } = await supabase
-      .from("appointments")
-      .select("starts_at,ends_at")
-      .eq("professional_id", profId)
-      .gte("starts_at", startISO)
-      .lte("ends_at", endISO);
-
-    let t = new Date(workStart);
-    const now = new Date();
-    const slots: string[] = [];
-
-    while (t < workEnd) {
-      const end = new Date(t.getTime() + duration * 60000);
-      if (end > workEnd) break;
-
-      if (hasBreak && breakStart && breakEnd && t < breakEnd && end > breakStart) {
-        t = new Date(breakEnd);
-        continue;
-      }
-
-      if (now.toDateString() === t.toDateString() && end <= now) {
-        t = new Date(t.getTime() + duration * 60000);
-        continue;
-      }
-
-      const conflict = (booked || []).some((b) => {
-        const s = new Date(b.starts_at);
-        const e = new Date(b.ends_at);
-        return t < e && end > s;
-      });
-
-      if (!conflict) {
-        slots.push(`${String(t.getHours()).padStart(2, "0")}:${String(t.getMinutes()).padStart(2, "0")}`);
-      }
-
-      t = new Date(t.getTime() + duration * 60000);
-    }
-
-    setAvailableTimes(slots);
+    const times = await getAvailableTimeSlots(tenantId, profId, duration, date);
+    setAvailableTimes(times);
   }
 
   /* ----------------------------- NAVEGAÇÃO ----------------------------- */
