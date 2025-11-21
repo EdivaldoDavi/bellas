@@ -4,15 +4,13 @@ import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
 export default function UsuariosPage() {
   const { tenant } = useUserAndTenant();
-  const [showUsersModal, setShowUsersModal] = useState(true); // já abre direto
-  // Se quiser abrir só ao clicar num botão, coloca false aqui
+  const [showUsersModal, setShowUsersModal] = useState(false); // Abre apenas ao clicar no botão
 
   return (
     <div style={{ padding: "1.5rem" }}>
       <h2>Usuários</h2>
       <p>Gerencie os usuários do seu salão.</p>
 
-      {/* Botão opcional, se quiser abrir/fechar o modal manualmente */}
       <button
         type="button"
         onClick={() => setShowUsersModal(true)}
@@ -26,12 +24,11 @@ export default function UsuariosPage() {
           cursor: "pointer",
         }}
       >
-        Novo Usuário
+        Convidar Novo Usuário
       </button>
 
       <ModalNewUser
         tenantId={tenant?.id}
-    
         show={showUsersModal}
         onClose={() => setShowUsersModal(false)}
       />

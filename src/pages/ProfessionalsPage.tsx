@@ -29,113 +29,116 @@ export default function ProfessionalsPage() {
   /* LOAD */
   useEffect(() => {
     if (tenantId) load();
-  }, [tenantId]);
+  }, [tenantId, search]); // Adicionado 'search' como dependência
 
+  async function toggleActive(p: Professional) {
+    const { error } = await supabase
+      .from("professionals")
+      .update({ is_active: !p.is_active })
+      .eq("tenant_id", tenantId)
+      .eq("id", p.id);
 
+    if (!error) {
+      setProfessionals((old) =>
+        old.map((x) =>
+          x.id === p.id ? { ...x, is_active: !x.is_active } : x
+        )
+      );
+    }
+  }
 
-async function toggleActive(p: Professional) {
-  const { error } = await supabase
-    .from("professionals")
-    .update({ is_active: !p.is_active })
-    .eq("tenant_id", tenantId)
-    .eq("id", p.id);
+  function confirmToggle(p: Professional) {
+    const action = p.is_active ? "inativar" : "ativar";
 
-  if (!error) {
-    setProfessionals((old) =>
-      old.map((x) =>
-        x.id === p.id ? { ...x, is_active: !x.is_active } : x
-      )
+    toast(
+      ({ closeToast }) => (
+        <div style={{ textAlign: "center" }}>
+          <p style={{ marginBottom: 12 }}>
+            Deseja realmente <b>{action}</b> o profissional:
+            <br />"{p.name}"?
+          </p>
+
+          <button
+            onClick={() => {
+              closeToast?.();
+              toggleActive(p);
+            }}
+            style={{
+              marginRight: 10,
+              padding: "6px 12px",
+              borderRadius: 8,
+              background: "#6d28d9",
+              color: "#fff",
+              border: "none",
+              cursor: "pointer"
+            }}
+          >
+            Confirmar
+          </button>
+
+          <button
+            onClick={closeToast}
+            style={{
+              padding: "6px 12px",
+              borderRadius: 8,
+              background: "#2a2833",
+              color: "#fff",
+              border: "1px solid #555",
+              cursor: "pointer"
+            }}
+          >
+            Cancelar
+          </button>
+        </div>
+      ),
+      {
+        autoClose: false,
+        draggable: false,
+        icon: false,
+        closeOnClick: false,
+        style: { background: "#1d1b23", color: "#fff" }
+      }
     );
   }
-}
-
-function confirmToggle(p: Professional) {
-  const action = p.is_active ? "inativar" : "ativar";
-
-  toast(
-    ({ closeToast }) => (
-      <div style={{ textAlign: "center" }}>
-        <p style={{ marginBottom: 12 }}>
-          Deseja realmente <b>{action}</b> o profissional:
-          <br />"{p.name}"?
-        </p>
-
-        <button
-          onClick={() => {
-            closeToast?.();
-            toggleActive(p);
-          }}
-          style={{
-            marginRight: 10,
-            padding: "6px 12px",
-            borderRadius: 8,
-            background: "#6d28d9",
-            color: "#fff",
-            border: "none",
-            cursor: "pointer"
-          }}
-        >
-          Confirmar
-        </button>
-
-        <button
-          onClick={closeToast}
-          style={{
-            padding: "6px 12px",
-            borderRadius: 8,
-            background: "#2a2833",
-            color: "#fff",
-            border: "1px solid #555",
-            cursor: "pointer"
-          }}
-        >
-          Cancelar
-        </button>
-      </div>
-    ),
-    {
-      autoClose: false,
-      draggable: false,
-      icon: false,
-      closeOnClick: false,
-      style: { background: "#1d1b23", color: "#fff" }
-    }
-  );
-}
-
 
   async function load() {
+    if (!tenantId) return;
+
     setLoading(true);
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("professionals")
-      .select("id, name, email, phone, is_active")
-      .eq("tenant_id", tenantId)
-      .order("name");
+      .select("id, name, email, phone, is_active, created_at") // Incluído created_at para ordenação
+      .eq("tenant_id", tenantId);
+
+    const searchTerm = search.trim();
+
+    if (searchTerm) {
+      // Se houver termo de busca, pesquisa em nome, email e telefone
+      query = query.or(`name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,phone.ilike.%${searchTerm}%`);
+      query = query.order("name"); // Ordena por nome ao buscar
+    } else {
+      // Se não houver termo de busca, carrega os 5 mais recentes
+      query = query.order("created_at", { ascending: false }).limit(5);
+    }
+
+    const { data, error } = await query;
 
     if (!error) {
       setProfessionals(data as Professional[]);
+    } else {
+      console.error("Erro ao carregar profissionais:", error);
+      toast.error("Erro ao carregar profissionais.");
     }
 
     setLoading(false);
   }
-
-  /* FILTRO */
-  const filtered = useMemo(() => {
-    const t = search.toLowerCase().trim();
-    return t
-      ? professionals.filter((p) => p.name.toLowerCase().includes(t))
-      : professionals;
-  }, [search, professionals]);
 
   /* EDITAR */
   function openEdit(id: string) {
     setEditId(id);
     setOpenModal(true);
   }
-
-  /* CONFIRMAR */
-  
 
   return (
     <>
@@ -176,12 +179,12 @@ function confirmToggle(p: Professional) {
           <div className={styles.list}>
             {loading && <div className={styles.empty}>Carregando...</div>}
 
-            {!loading && filtered.length === 0 && (
+            {!loading && professionals.length === 0 && (
               <div className={styles.empty}>Nenhum profissional encontrado.</div>
             )}
 
             {!loading &&
-              filtered.map((p) => (
+              professionals.map((p) => (
                 <div key={p.id} className={styles.card}>
                   <div>
                     <div className={styles.title}>{p.name}</div>
