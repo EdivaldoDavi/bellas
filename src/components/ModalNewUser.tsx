@@ -16,7 +16,6 @@ export default function ModalNewUser({ tenantId, show, onClose }: ModalNewUserPr
   const [role, setRole] = useState<"manager" | "professional">("professional");
   const [loading, setLoading] = useState(false);
 
-  /** Resetar campos quando o modal abre */
   useEffect(() => {
     if (show) {
       setEmail("");
@@ -28,8 +27,8 @@ export default function ModalNewUser({ tenantId, show, onClose }: ModalNewUserPr
   if (!show) return null;
 
   function gerarSenhaTemporaria() {
-    // Gera uma senha forte e aleatória
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+";
+    const chars =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+";
     let password = "";
     for (let i = 0; i < 12; i++) {
       password += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -37,90 +36,74 @@ export default function ModalNewUser({ tenantId, show, onClose }: ModalNewUserPr
     return password;
   }
 
+  const isValidEmail = (email: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
   async function handleInviteUser() {
+    console.clear();
+    console.log("🔥 Iniciando invite...");
+    console.log("tenantId:", tenantId);
+
     if (!tenantId) {
       toast.error("Tenant não encontrado.");
       return;
     }
-    if (!email.trim() || !fullName.trim()) {
-      toast.warn("Preencha o e-mail e o nome completo.");
+
+    if (!fullName.trim()) {
+      toast.warn("Nome obrigatório.");
+      return;
+    }
+
+    if (!email.trim() || !isValidEmail(email.trim())) {
+      toast.warn("Informe um email válido.");
       return;
     }
 
     setLoading(true);
 
     try {
-      // --- NOVA VERIFICAÇÃO: Impedir que o usuário logado convide a si mesmo ---
-      const { data: currentUserData } = await supabase.auth.getUser();
-      if (currentUserData.user && currentUserData.user.email?.toLowerCase() === email.trim().toLowerCase()) {
-        throw new Error("Você não pode convidar a si mesmo como um novo usuário. Se deseja alterar seu papel, use a tela 'Gerenciar Acessos'.");
-      }
-      // --- FIM DA NOVA VERIFICAÇÃO ---
-
       const tempPassword = gerarSenhaTemporaria();
 
-      // 1️⃣ Criar usuário no Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      console.log("📤 Enviando signup:", {
+        email,
+        fullName,
+        role,
+        tenantId,
+        tempPassword,
+      });
+
+      const redirectUrl = `${window.location.origin}/force-reset`;
+
+      console.log("🔗 Redirect URL:", redirectUrl);
+
+      const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password: tempPassword,
         options: {
-          emailRedirectTo: `${window.location.origin}/force-reset`, // Redireciona para forçar reset de senha
+          emailRedirectTo: redirectUrl,
           data: {
-            role: role,
-            tenant_id: tenantId,
             full_name: fullName.trim(),
+            tenant_id: tenantId,
+            role: role,
           },
         },
       });
 
-      if (authError) {
-        // Erro específico do Supabase Auth para e-mail já registrado
-        if (authError.message.includes("User already registered")) {
-          throw new Error("Este e-mail já está registrado no sistema. Por favor, faça login ou use outro e-mail.");
-        }
-        throw new Error(authError.message);
+      console.log("🔍 RESPOSTA SIGNUP:", data, error);
+
+      if (error) {
+        throw new Error(error.message);
       }
 
-      // Se authData.user é nulo, significa que o e-mail já existe e a confirmação está habilitada.
-      // Supabase retorna user nulo sem erro para evitar enumeração de e-mails.
-      if (!authData.user) {
-        throw new Error("Este e-mail já está registrado no sistema. Por favor, use outro e-mail ou gerencie o usuário existente.");
+      if (!data.user) {
+        throw new Error("Supabase não criou o usuário. Verifique os Redirect URLs.");
       }
 
-      const userId = authData.user.id;
-
-      // 2️⃣ Se o papel for 'professional', criar um registro na tabela 'professionals'
-      if (role === "professional") {
-        const { error: profError } = await supabase
-          .from("professionals")
-          .insert({
-            tenant_id: tenantId,
-            user_id: userId,
-            name: fullName.trim(),
-            email: email.trim(),
-            phone: null, // Pode ser adicionado depois
-            is_active: true,
-          });
-
-        if (profError) {
-          console.log("DEBUG: profError object:", profError); // Log para depuração
-          
-          // Verifica se é uma violação de chave única (código '23505')
-          // Isso ocorre se o user_id já estiver na tabela 'professionals'
-          if (profError.code === '23505') {
-            throw new Error("Este usuário já possui um perfil de profissional. Você pode alterar o papel dele na tela de 'Gerenciar Acessos'.");
-          }
-          // Fallback para outros erros de duplicidade ou FK (menos provável de ser o caso principal aqui)
-          throw new Error(profError.message || "Ocorreu um erro desconhecido ao adicionar o profissional.");
-        }
-      }
-
-      // Mensagem de sucesso aprimorada
-      toast.success("Convite enviado com sucesso! O usuário receberá um e-mail para definir a senha. Por favor, peça para ele verificar a caixa de entrada e a pasta de spam.");
+      toast.success("Convite enviado! O usuário deve verificar o email.");
       onClose();
     } catch (err: any) {
-      console.error("Erro ao convidar usuário:", err);
-      toast.error(err.message || "Ocorreu um erro inesperado.");
+      console.error("❌ Erro ao convidar usuário:", err);
+      toast.error(err.message || "Erro desconhecido.");
     } finally {
       setLoading(false);
     }
@@ -153,25 +136,22 @@ export default function ModalNewUser({ tenantId, show, onClose }: ModalNewUserPr
           disabled={loading}
         />
 
-        <div className={styles.fieldGroup}>
-          <label className={styles.label}>Papel</label>
-          <select
-            className={styles.input}
-            value={role}
-            onChange={(e) => setRole(e.target.value as "manager" | "professional")}
-            disabled={loading}
-          >
-            <option value="manager">Gerente</option>
-            <option value="professional">Profissional</option>
-          </select>
-        </div>
+        <select
+          className={styles.input}
+          value={role}
+          onChange={(e) => setRole(e.target.value as any)}
+          disabled={loading}
+        >
+          <option value="manager">Gerente</option>
+          <option value="professional">Profissional</option>
+        </select>
 
         <button
           className={styles.saveBtn}
-          disabled={loading || !email.trim() || !fullName.trim()}
+          disabled={loading}
           onClick={handleInviteUser}
         >
-          {loading ? "Enviando convite..." : "Convidar Usuário"}
+          {loading ? "Enviando..." : "Convidar Usuário"}
         </button>
       </div>
     </div>

@@ -4,35 +4,33 @@ import { useUserTenant } from "../context/UserTenantProvider";
 import { useAuth } from "../context/AuthProvider";
 
 export function SetupRedirectGuard({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-  const { needsSetup, loading } = useUserTenant();
+  const { needsSetup, loading, profile } = useUserTenant();
+  const { loading: authLoading } = useAuth();
   const location = useLocation();
 
-  console.log("🔍 SetupRedirectGuard", {
-    path: location.pathname,
-    loading,
-    needsSetup,
-    userId: user?.id,
-  });
+  // 🔥 Nunca interceptar force-reset
+  if (location.pathname === "/force-reset") {
+    return <>{children}</>;
+  }
 
-  // ⏳ Ainda carregando? Não decide nada.
-  if (loading) return <>{children}</>;
+  // 🔥 Não interfere durante login de convite
+  if (profile?.invited) {
+    return <>{children}</>;
+  }
 
-  // 🔐 Usuário não autenticado → Login trata isso
-  if (!user) return <>{children}</>;
+  if (loading || authLoading) {
+    return <div className="p-5 text-center">Carregando...</div>;
+  }
 
   const isSetupPage = location.pathname === "/setup";
 
-  // 🟥 1) Usuário precisa fazer setup → direcionar para /setup
   if (needsSetup && !isSetupPage) {
     return <Navigate to="/setup" replace />;
   }
 
-  // 🟩 2) Usuário já configurou tenant → mas está em /setup → manda pro dashboard
   if (!needsSetup && isSetupPage) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // ✔️ Permite continuar a rota normal
   return <>{children}</>;
 }

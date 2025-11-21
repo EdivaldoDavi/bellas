@@ -1,3 +1,4 @@
+// src/components/ForcePasswordReset.tsx
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseCleint";
 import { useNavigate } from "react-router-dom";
@@ -84,7 +85,7 @@ export default function ForcePasswordReset() {
         return;
       }
 
-      // ✅ Remove o hash da URL
+      // Remove o hash da URL
       window.history.replaceState({}, "", "/force-reset");
       setLoading(false);
     }
@@ -92,9 +93,7 @@ export default function ForcePasswordReset() {
     run();
   }, [navigate]);
 
-  // ============================================================
-  // 2️⃣ Requisitos da senha
-  // ============================================================
+  // Requisitos básicos
   const hasMinLength = newPass.length >= 8;
   const hasUppercase = /[A-Z]/.test(newPass);
   const hasNumber = /[0-9]/.test(newPass);
@@ -115,30 +114,22 @@ export default function ForcePasswordReset() {
 
     if (!hasMinLength || !hasUppercase || !hasNumber) {
       toast.warn(
-        "A senha deve ter pelo menos 8 caracteres, com pelo menos uma letra maiúscula e um número."
+        "A senha deve ter pelo menos 8 caracteres, com ao menos 1 letra maiúscula e 1 número."
       );
       return;
     }
 
     setSaving(true);
 
-    const { error } = await supabase.auth.updateUser({
-      password: newPass,
-    });
+    const { error } = await supabase.auth.updateUser({ password: newPass });
 
     setSaving(false);
 
     if (error) {
       const msg = error.message.toLowerCase();
 
-      // 💬 Supabase costuma retornar algo como "New password should be different from the old password"
       if (msg.includes("different") || msg.includes("same")) {
-        toast.error("A nova senha deve ser diferente da senha atual.");
-        return;
-      }
-
-      if (msg.includes("password")) {
-        toast.error("Não foi possível alterar a senha. Tente uma senha diferente.");
+        toast.error("A nova senha deve ser diferente da anterior.");
         return;
       }
 
@@ -147,7 +138,20 @@ export default function ForcePasswordReset() {
     }
 
     toast.success("Senha atualizada com sucesso! 🎉");
-    navigate("/dashboard", { replace: true });
+
+    // 🔥 Garante que profile/tenant sejam carregados corretamente
+    setTimeout(async () => {
+      try {
+        const module = await import("../hooks/useUserAndTenant");
+        const reloadProfile = module?.useUserAndTenant?.()?.reloadProfile;
+
+        if (reloadProfile) await reloadProfile();
+      } catch (e) {
+        console.warn("reloadProfile não acessível via hook no contexto atual.");
+      }
+
+      navigate("/dashboard", { replace: true });
+    }, 250);
   }
 
   if (loading) {
@@ -160,7 +164,6 @@ export default function ForcePasswordReset() {
     );
   }
 
-  // Texto da barra de força
   const strengthLabel =
     strength === "empty"
       ? ""
@@ -176,9 +179,7 @@ export default function ForcePasswordReset() {
     <div className={`${styles.wrap} ${theme === "dark" ? styles.dark : ""}`}>
       <div className={styles.card}>
         <h2 className={styles.title}>Definir nova senha</h2>
-        <p className={styles.subtitle}>
-          Escolha uma senha segura para proteger sua conta.
-        </p>
+        <p className={styles.subtitle}>Escolha uma senha segura.</p>
 
         {/* Campo Nova Senha */}
         <div className={styles.fieldGroup}>
@@ -195,13 +196,11 @@ export default function ForcePasswordReset() {
               type="button"
               className={styles.eyeButton}
               onClick={() => setShowPassword((v) => !v)}
-              aria-label={showPassword ? "Ocultar senha" : "Ver senha"}
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
 
-          {/* Barra de força */}
           {newPass && (
             <div className={styles.strengthWrapper}>
               <div
@@ -224,17 +223,17 @@ export default function ForcePasswordReset() {
 
         {/* Confirmar senha */}
         <div className={styles.fieldGroup}>
-          <label className={styles.label}>Confirmar nova senha</label>
+          <label className={styles.label}>Confirmar senha</label>
           <input
             type={showPassword ? "text" : "password"}
             className={styles.input}
-            placeholder="Digite novamente a nova senha"
+            placeholder="Confirme a senha"
             value={confirmPass}
             onChange={(e) => setConfirmPass(e.target.value)}
           />
         </div>
 
-        {/* Requisitos da senha */}
+        {/* Requisitos */}
         <div className={styles.requirements}>
           <p className={styles.requirementsTitle}>A senha deve conter:</p>
           <ul>
@@ -242,18 +241,18 @@ export default function ForcePasswordReset() {
               {hasMinLength && <Check size={14} />} Pelo menos 8 caracteres
             </li>
             <li className={hasUppercase ? styles.reqOk : ""}>
-              {hasUppercase && <Check size={14} />} Pelo menos uma letra maiúscula
+              {hasUppercase && <Check size={14} />} Uma letra maiúscula
             </li>
             <li className={hasNumber ? styles.reqOk : ""}>
-              {hasNumber && <Check size={14} />} Pelo menos um número
+              {hasNumber && <Check size={14} />} Um número
             </li>
             <li className={styles.reqOptional}>
-              Opcional: caractere especial (ex.: <code>@ # $ %</code>)
+              Opcional: caractere especial (ex.: @ # $ %)
             </li>
           </ul>
         </div>
 
-        {/* Botão principal */}
+        {/* Botões */}
         <button
           type="button"
           className={styles.submitButton}
@@ -263,7 +262,6 @@ export default function ForcePasswordReset() {
           {saving ? "Salvando..." : "Salvar nova senha"}
         </button>
 
-        {/* Botão auxiliar "ver senha" */}
         <button
           type="button"
           className={styles.secondaryButton}

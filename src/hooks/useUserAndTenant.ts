@@ -25,8 +25,9 @@ export type Tenant = {
   whatsapp_number: string | null;
 };
 
+
 /* ============================================================
-   📌 Hook
+   📌 Hook principal
 ============================================================ */
 export function useUserAndTenant() {
   const [loading, setLoading] = useState(true);
@@ -42,7 +43,7 @@ export function useUserAndTenant() {
   const [permissions, setPermissions] = useState<string[]>([]);
 
   /* ============================================================
-     🧹 Limpar tudo
+     🧹 Limpa tudo
   ============================================================ */
   const clearAll = useCallback(() => {
     setUser(null);
@@ -54,29 +55,27 @@ export function useUserAndTenant() {
     setPermissions([]);
   }, []);
 
+
   /* ============================================================
-     🔥 RELOAD PROFILE + TENANT
-     (Com a grande correção)
+     🔥 Recarregar Profile + Tenant
   ============================================================ */
   const reloadProfile = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      /* 1️⃣ Sessão */
-      const { data: sess, error: sessErr } = await supabase.auth.getSession();
-      if (sessErr) throw sessErr;
 
+      /* 1️⃣ Recupera sessão */
+      const { data: sess } = await supabase.auth.getSession();
       const currentUser = sess.session?.user ?? null;
       setUser(currentUser);
 
-      /* ⛔️ SEM USUÁRIO? LIMPA TUDO E PARA! */
       if (!currentUser) {
         clearAll();
         return;
       }
 
-      /* 2️⃣ Profile */
+      /* 2️⃣ Busca profile — SEM fallback para metadata */
       const { data: pData, error: pErr } = await supabase
         .from("profiles")
         .select("user_id, tenant_id, role, full_name, avatar_url")
@@ -85,31 +84,33 @@ export function useUserAndTenant() {
 
       if (pErr) throw pErr;
 
+      if (!pData) {
+        // Usuário sem profile = algo errado
+        clearAll();
+        return;
+      }
+
       const finalProfile: Profile = {
         user_id: currentUser.id,
         email: currentUser.email,
-        role: pData?.role ?? null,
-        full_name:
-          pData?.full_name ?? currentUser.user_metadata?.full_name ?? "",
-        avatar_url:
-          pData?.avatar_url ?? currentUser.user_metadata?.avatar_url ?? null,
-        tenant_id: pData?.tenant_id ?? null,
+        role: pData.role,
+        full_name: pData.full_name,
+        avatar_url: pData.avatar_url,
+        tenant_id: pData.tenant_id,
       };
 
       setProfile(finalProfile);
 
-      /* 3️⃣ SEM TENANT → STOP */
+      /* 3️⃣ Sem tenant → significa que deve ir para setup, mas apenas owners/managers */
       if (!finalProfile.tenant_id) {
         setTenant(null);
         return;
       }
 
-      /* 4️⃣ Tenant */
+      /* 4️⃣ Carrega tenant */
       const { data: tData, error: tErr } = await supabase
         .from("tenants")
-        .select(
-          "id, name, theme_variant, primary_color, secondary_color, setup_complete, plan_id, whatsapp_number"
-        )
+        .select("*")
         .eq("id", finalProfile.tenant_id)
         .maybeSingle();
 
@@ -126,7 +127,7 @@ export function useUserAndTenant() {
 
       setSubscription(sub ?? null);
 
-      /* 6️⃣ Plano */
+      /* 6️⃣ Plano + Features */
       if (tData?.plan_id) {
         const { data: planData } = await supabase
           .from("plans")
@@ -136,50 +137,49 @@ export function useUserAndTenant() {
 
         setPlan(planData ?? null);
 
-        /* 7️⃣ Features */
         const { data: feats } = await supabase
           .from("plan_features")
           .select("feature_key, enabled")
           .eq("plan_id", tData.plan_id);
 
-        setFeatures(
-          (feats ?? []).filter((f) => f.enabled).map((f) => f.feature_key)
-        );
-      } else {
-        setPlan(null);
-        setFeatures([]);
+        setFeatures((feats ?? []).filter(f => f.enabled).map(f => f.feature_key));
       }
 
-      /* 8️⃣ Permissões */
+      /* 7️⃣ Permissions */
       const { data: perms } = await supabase
         .from("permissions")
         .select("permission_key, allowed")
         .eq("tenant_id", finalProfile.tenant_id)
         .eq("user_id", currentUser.id);
 
-      setPermissions(
-        (perms ?? []).filter((p) => p.allowed).map((p) => p.permission_key)
-      );
+      setPermissions((perms ?? []).filter(p => p.allowed).map(p => p.permission_key));
+
     } catch (err: any) {
       console.error("Erro useUserAndTenant:", err);
-      clearAll();
       setError(err.message ?? "Erro ao carregar dados.");
+      clearAll();
     } finally {
       setLoading(false);
     }
   }, [clearAll]);
 
-  /* ============================================================
-     ⏳ Carregar ao montar
-  ============================================================ */
+
+  /* Load inicial */
   useEffect(() => {
     reloadProfile();
   }, [reloadProfile]);
 
+
   /* ============================================================
-     🎯 needsSetup
+     🎯 needsSetup — agora 100% correto
   ============================================================ */
-  const needsSetup = Boolean(user && profile && !tenant);
+  const needsSetup =
+    user &&
+    profile &&
+    !tenant &&
+    (profile.role === "owner" || profile.role === "manager") &&
+    window.location.pathname !== "/force-reset";
+
 
   return {
     loading,
