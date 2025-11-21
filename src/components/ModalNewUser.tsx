@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import styles from "../css/ModalNewUser.module.css"; // 💥 use um CSS específico!
+import styles from "../css/ModalNewUser.module.css";
 import { supabase } from "../lib/supabaseCleint";
 import { toast } from "react-toastify";
 import { X } from "lucide-react";
@@ -11,101 +11,120 @@ interface ModalNewUserProps {
 }
 
 export default function ModalNewUser({ tenantId, show, onClose }: ModalNewUserProps) {
-  const [search, setSearch] = useState("");
-  const [professionals, setProfessionals] = useState<any[]>([]);
-  const [selected, setSelected] = useState<any | null>(null);
+  const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [role, setRole] = useState<"manager" | "professional">("professional");
   const [loading, setLoading] = useState(false);
 
-  /** Carrega profissionais apenas quando modal abre E quando tenantId já existe */
+  /** Resetar campos quando o modal abre */
   useEffect(() => {
-    if (show && tenantId) {
-      setSelected(null);
-      setSearch("");
-      loadProfessionals();
+    if (show) {
+      setEmail("");
+      setFullName("");
+      setRole("professional");
     }
-  }, [show, tenantId]);
+  }, [show]);
 
-  /** Carregar profissionais sem duplicação */
-  async function loadProfessionals() {
-    if (!tenantId) return;
+  if (!show) return null;
 
-    const { data, error } = await supabase
-      .from("professionals")
-      .select("*")
-      .eq("tenant_id", tenantId)
-      .is("user_id", null); // apenas profissionais sem usuário
+  function gerarSenhaTemporaria() {
+    // Gera uma senha forte e aleatória
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+";
+    let password = "";
+    for (let i = 0; i < 12; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
+  }
 
-    if (error) {
-      console.error("Erro loadProfessionals:", error);
-      toast.error("Erro ao buscar profissionais");
+  async function handleInviteUser() {
+    if (!tenantId) {
+      toast.error("Tenant não encontrado.");
       return;
     }
-
-    setProfessionals(data || []);
-  }
-
-  function gerarSenha() {
-    return Math.random().toString(36).slice(-8) + "!Aa1";
-  }
-
-  async function gerarAcesso() {
-    if (!selected) return toast.warn("Selecione um profissional");
-
-    if (!selected.email) {
-      return toast.error("Este profissional não tem e-mail cadastrado!");
+    if (!email.trim() || !fullName.trim()) {
+      toast.warn("Preencha o e-mail e o nome completo.");
+      return;
     }
 
     setLoading(true);
 
     try {
-      const tempPassword = gerarSenha();
+      // --- NOVA VERIFICAÇÃO: Impedir que o usuário logado convide a si mesmo ---
+      const { data: currentUserData } = await supabase.auth.getUser();
+      if (currentUserData.user && currentUserData.user.email?.toLowerCase() === email.trim().toLowerCase()) {
+        throw new Error("Você não pode convidar a si mesmo como um novo usuário. Se deseja alterar seu papel, use a tela 'Gerenciar Acessos'.");
+      }
+      // --- FIM DA NOVA VERIFICAÇÃO ---
+
+      const tempPassword = gerarSenhaTemporaria();
 
       // 1️⃣ Criar usuário no Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
-  email: selected.email,
-  password: tempPassword,
-  options: {
-    emailRedirectTo: `${window.location.origin}/force-reset`,
-    data: {
-      role: "professional",
-      tenant_id: tenantId,
-      full_name: selected.name
-    }
-  }
-});
+        email: email.trim(),
+        password: tempPassword,
+        options: {
+          emailRedirectTo: `${window.location.origin}/force-reset`, // Redireciona para forçar reset de senha
+          data: {
+            role: role,
+            tenant_id: tenantId,
+            full_name: fullName.trim(),
+          },
+        },
+      });
 
-      if (authError || !authData.user) {
-        throw new Error(authError?.message || "Erro ao criar usuário.");
+      if (authError) {
+        // Erro específico do Supabase Auth para e-mail já registrado
+        if (authError.message.includes("User already registered")) {
+          throw new Error("Este e-mail já está registrado no sistema. Por favor, faça login ou use outro e-mail.");
+        }
+        throw new Error(authError.message);
+      }
+
+      // Se authData.user é nulo, significa que o e-mail já existe e a confirmação está habilitada.
+      // Supabase retorna user nulo sem erro para evitar enumeração de e-mails.
+      if (!authData.user) {
+        throw new Error("Este e-mail já está registrado no sistema. Por favor, use outro e-mail ou gerencie o usuário existente.");
       }
 
       const userId = authData.user.id;
 
-      // 2️⃣ Vincular profissional ao userId
-      const { error: linkErr } = await supabase
-        .from("professionals")
-        .update({ user_id: userId })
-        .eq("id", selected.id);
+      // 2️⃣ Se o papel for 'professional', criar um registro na tabela 'professionals'
+      if (role === "professional") {
+        const { error: profError } = await supabase
+          .from("professionals")
+          .insert({
+            tenant_id: tenantId,
+            user_id: userId,
+            name: fullName.trim(),
+            email: email.trim(),
+            phone: null, // Pode ser adicionado depois
+            is_active: true,
+          });
 
-      if (linkErr) throw linkErr;
+        if (profError) {
+          console.log("DEBUG: profError object:", profError); // Log para depuração
+          
+          // Verifica se é uma violação de chave única (código '23505')
+          // Isso ocorre se o user_id já estiver na tabela 'professionals'
+          if (profError.code === '23505') {
+            throw new Error("Este usuário já possui um perfil de profissional. Você pode alterar o papel dele na tela de 'Gerenciar Acessos'.");
+          }
+          // Fallback para outros erros de duplicidade ou FK (menos provável de ser o caso principal aqui)
+          throw new Error(profError.message || "Ocorreu um erro desconhecido ao adicionar o profissional.");
+        }
+      }
 
-      // 3️⃣ Gerar link de convite
-      const inviteUrl = `${window.location.origin}/convite?email=${encodeURIComponent(
-        selected.email
-      )}&tenant=${tenantId}`;
-
-      console.log("Convite:", inviteUrl);
-
-      toast.success("Acesso criado com sucesso! Envie o link ao profissional.");
+      // Mensagem de sucesso aprimorada
+      toast.success("Convite enviado com sucesso! O usuário receberá um e-mail para definir a senha. Por favor, peça para ele verificar a caixa de entrada e a pasta de spam.");
       onClose();
-
     } catch (err: any) {
-      toast.error(err.message);
+      console.error("Erro ao convidar usuário:", err);
+      toast.error(err.message || "Ocorreu um erro inesperado.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
-
-  if (!show) return null;
 
   return (
     <div className={styles.overlay}>
@@ -114,38 +133,45 @@ export default function ModalNewUser({ tenantId, show, onClose }: ModalNewUserPr
           <X size={20} />
         </button>
 
-        <h3>Dar acesso ao sistema</h3>
+        <h3>Convidar Novo Usuário</h3>
 
         <input
           className={styles.input}
-          placeholder="Buscar profissional..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          type="text"
+          placeholder="Nome Completo"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          disabled={loading}
         />
 
-        <div className={styles.resultsContainer}>
-          {professionals
-            .filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
-            .map((p) => (
-              <div
-                key={p.id}
-                className={`${styles.item} ${
-                  selected?.id === p.id ? styles.selected : ""
-                }`}
-                onClick={() => setSelected(p)}
-              >
-                <strong>{p.name}</strong>
-                <span>{p.email || "sem e-mail"}</span>
-              </div>
-            ))}
+        <input
+          className={styles.input}
+          type="email"
+          placeholder="E-mail"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={loading}
+        />
+
+        <div className={styles.fieldGroup}>
+          <label className={styles.label}>Papel</label>
+          <select
+            className={styles.input}
+            value={role}
+            onChange={(e) => setRole(e.target.value as "manager" | "professional")}
+            disabled={loading}
+          >
+            <option value="manager">Gerente</option>
+            <option value="professional">Profissional</option>
+          </select>
         </div>
 
         <button
           className={styles.saveBtn}
-          disabled={!selected || loading}
-          onClick={gerarAcesso}
+          disabled={loading || !email.trim() || !fullName.trim()}
+          onClick={handleInviteUser}
         >
-          {loading ? "Criando..." : "Gerar acesso"}
+          {loading ? "Enviando convite..." : "Convidar Usuário"}
         </button>
       </div>
     </div>

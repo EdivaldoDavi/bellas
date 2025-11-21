@@ -24,6 +24,8 @@ import ConnectWhatsAppPage from "./pages/ConnectWhatsAppPage";
 import GerenciarAcessosPage from "./config/GerenciarAcessosPage";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ClientesPage from "./pages/ClientesPage";
+import UsuariosPage from "./pages/UsuariosPage"; // <-- Importação adicionada
+
 // 🔥 Importar suas novas páginas
 import ServicosPage from "./pages/ServicosPage";
 // você criará depois:
@@ -142,7 +144,7 @@ export default function App() {
             <Route path="/clientes" element={<ClientesPage />} />
             <Route path="/servicos" element={<ServicosPage />} />
             <Route path="/profissionais" element={<ProfessionalsPage />} />
-            {/*<Route path="/usuarios" element={<UsuariosPage />} />*/}
+            <Route path="/usuarios" element={<UsuariosPage />} />
           </Route>
         </Routes>
       </SetupRedirectGuard>
