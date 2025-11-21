@@ -8,7 +8,7 @@ import {
   Calendar,
   Settings,
   User,
-  BadgeDollarSign,
+ 
   LogOut,
   MessageCircle,
   ShieldCheck,
