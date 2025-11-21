@@ -10,18 +10,21 @@ import { applyTenantTheme } from "./utils/theme";
 import { Layout } from "./components/layout";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ForcePasswordReset from "./components/ForcePasswordReset";
+
 import Setup from "./pages/setup/Setup";
 import Dashboard from "./pages/dashboard/Dashboard";
-import SaloesPage from "./pages/SaloesPage";
-import AssinaturasPage from "./pages/AssinaturasPage";
-import PerfilPage from "./pages/PerfilPage";
 import Agenda from "./components/Agenda";
-import EmDesenvolvimento from "./components/EmDesenvolvimento";
+
+import AssinaturasPage from "./pages/AssinaturasPage";
+import SaloesPage from "./pages/SaloesPage";
+import PerfilPage from "./pages/PerfilPage";
 import ConfigPage from "./pages/ConfigPage";
-import ForcePasswordReset from "./components/ForcePasswordReset";
 import ConnectWhatsAppPage from "./pages/ConnectWhatsAppPage";
 import GerenciarAcessosPage from "./config/GerenciarAcessosPage";
-import ForgotPassword from "./pages/auth/ForgotPassword";
+import EmDesenvolvimento from "./components/EmDesenvolvimento";
+
 import ClientesPage from "./pages/ClientesPage";
 import UsuariosPage from "./pages/UsuariosPage";
 import ServicosPage from "./pages/ServicosPage";
@@ -32,7 +35,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 
 // =============================
-// 🔹 Tela de loading global
+// 🔹 TELA DE LOADING GLOBAL
 // =============================
 function LoadingScreen() {
   return <div className="p-5 text-center">⏳ Carregando...</div>;
@@ -40,7 +43,7 @@ function LoadingScreen() {
 
 
 // =============================
-// 🔐 PrivateRoute
+// 🔐 PRIVATE ROUTE
 // =============================
 function PrivateRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -55,14 +58,14 @@ function PrivateRoute({ children }: { children: ReactNode }) {
 
 
 // =============================
-// 🛑 Guard específico do Dashboard
+// 🛑 GUARD: BLOQUEAR DASHBOARD PARA PROFISSIONAIS
 // =============================
 function DashboardGuard({ children }: { children: ReactNode }) {
   const { profile } = useUserTenant();
 
   if (!profile) return null;
 
-  // ❌ Profissional e staff NÃO podem acessar Dashboard
+  // Profissionais NÃO podem ver dashboard de gerente
   if (profile.role === "professional" || profile.role === "staff") {
     return <Navigate to="/agenda" replace />;
   }
@@ -72,12 +75,13 @@ function DashboardGuard({ children }: { children: ReactNode }) {
 
 
 // =============================
-// 🧭 Setup Guard
+// 🧭 GUARD DO SETUP
 // =============================
 function SetupRedirectGuard({ children }: { children: ReactNode }) {
   const { needsSetup, loading } = useUserTenant();
   const location = useLocation();
 
+  // Force reset nunca é bloqueado
   if (location.pathname === "/force-reset") return <>{children}</>;
   if (loading) return <LoadingScreen />;
 
@@ -96,7 +100,7 @@ function SetupRedirectGuard({ children }: { children: ReactNode }) {
 
 
 // =============================
-// 🔹 App principal
+// 🔹 APP PRINCIPAL
 // =============================
 export default function App() {
   const { tenant } = useUserTenant();
@@ -110,18 +114,16 @@ export default function App() {
       <SetupRedirectGuard>
         <Routes>
 
-          {/* Root */}
+          {/* ROOT */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-          {/* Rotas públicas */}
+          {/* PUBLIC ROUTES */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-
-          {/* Reset de senha */}
           <Route path="/force-reset" element={<ForcePasswordReset />} />
 
-          {/* Setup */}
+          {/* SETUP (private sem layout) */}
           <Route
             path="/setup"
             element={
@@ -131,7 +133,7 @@ export default function App() {
             }
           />
 
-          {/* Rotas sem Layout */}
+          {/* Rotas privadas SEM layout */}
           <Route
             path="/gerenciar-acessos"
             element={
@@ -141,11 +143,11 @@ export default function App() {
             }
           />
 
-          {/* Rota pública opcional */}
+          {/* Opcional público */}
           <Route path="/config" element={<ConfigPage />} />
           <Route path="/em-desenvolvimento" element={<EmDesenvolvimento />} />
 
-          {/* Rotas privadas com Layout */}
+          {/* PRIVATE + LAYOUT */}
           <Route
             element={
               <PrivateRoute>
@@ -153,7 +155,7 @@ export default function App() {
               </PrivateRoute>
             }
           >
-            {/* Dashboard com guard */}
+            {/* DASHBOARD COM GUARD */}
             <Route
               path="/dashboard"
               element={
@@ -163,18 +165,19 @@ export default function App() {
               }
             />
 
+            <Route path="/agenda" element={<Agenda />} />
             <Route path="/saloes" element={<SaloesPage />} />
             <Route path="/assinaturas" element={<AssinaturasPage />} />
             <Route path="/perfil" element={<PerfilPage />} />
-            <Route path="/agenda" element={<Agenda />} />
             <Route path="/integracoes/whatsapp" element={<ConnectWhatsAppPage />} />
 
-            {/* Novas rotas */}
+            {/* CRUDs */}
             <Route path="/clientes" element={<ClientesPage />} />
             <Route path="/servicos" element={<ServicosPage />} />
             <Route path="/profissionais" element={<ProfessionalsPage />} />
             <Route path="/usuarios" element={<UsuariosPage />} />
           </Route>
+
         </Routes>
       </SetupRedirectGuard>
 
