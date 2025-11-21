@@ -20,10 +20,6 @@ import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
 import {
   toLocalISOString,
-  isPastDateLocal,
-  getWeekdayLocal,
-  combineLocalDateTime,
-  getDayBoundsISO,
   isHoliday,
 } from "../utils/date";
 

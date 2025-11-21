@@ -39,7 +39,7 @@ function generateSlotsForDay(
   const now = new Date();
 
   // Loop enquanto o horário de início do slot for ANTES do horário de término do profissional
-  while (cursor.getTime() < end.getTime()) {
+  while (cursor.getTime() < end.getTime()) { // CORREÇÃO AQUI: permite que o serviço termine após o workEnd
     const s = new Date(cursor);
     const e = new Date(cursor.getTime() + durationMin * 60000);
 
