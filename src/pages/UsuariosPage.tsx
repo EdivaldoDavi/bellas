@@ -1,36 +1,29 @@
 import { useState } from "react";
 import ModalNewUser from "../components/ModalNewUser";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
+import styles from "../css/UsuariosPage.module.css"; // Importar o CSS para a página
 
 export default function UsuariosPage() {
   const { tenant } = useUserAndTenant();
-  const [showUsersModal, setShowUsersModal] = useState(false); // Abre apenas ao clicar no botão
+  const [showNewUserModal, setShowNewUserModal] = useState(false); // Alterado para false
 
   return (
-    <div style={{ padding: "1.5rem" }}>
-      <h2>Usuários</h2>
-      <p>Gerencie os usuários do seu salão.</p>
+    <div className={styles.container}> {/* Aplicar estilo de container */}
+      <h2 className={styles.title}>Usuários</h2> {/* Aplicar estilo de título */}
+      <p className={styles.description}>Gerencie os usuários do seu salão.</p> {/* Aplicar estilo de descrição */}
 
       <button
         type="button"
-        onClick={() => setShowUsersModal(true)}
-        style={{
-          marginTop: "1rem",
-          padding: "8px 14px",
-          borderRadius: 8,
-          border: "none",
-          background: "var(--color-primary)",
-          color: "#fff",
-          cursor: "pointer",
-        }}
+        onClick={() => setShowNewUserModal(true)}
+        className={styles.newUserButton} // Aplicar estilo de botão
       >
         Convidar Novo Usuário
       </button>
 
       <ModalNewUser
         tenantId={tenant?.id}
-        show={showUsersModal}
-        onClose={() => setShowUsersModal(false)}
+        show={showNewUserModal}
+        onClose={() => setShowNewUserModal(false)}
       />
     </div>
   );

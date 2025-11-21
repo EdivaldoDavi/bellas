@@ -1,0 +1,49 @@
+/* src/css/UsuariosPage.module.css */
+
+.container {
+  padding: 1.5rem;
+  background: var(--bg);
+  min-height: 100vh;
+  color: var(--text);
+}
+
+.title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.description {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.newUserButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+
+  padding: 10px 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+
+  cursor: pointer;
+  width: auto;
+  max-width: max-content;
+  flex-shrink: 0;
+  
+  box-shadow: 0 3px 12px color-mix(in srgb, var(--color-primary) 35%, transparent);
+  transition: all 0.25s ease;
+}
+
+.newUserButton:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+}
