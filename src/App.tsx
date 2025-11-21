@@ -56,6 +56,18 @@ function PrivateRoute({ children }: { children: ReactNode }) {
 
   return <>{children}</>;
 }
+function DashboardGuard({ children }: { children: ReactNode }) {
+  const { profile } = useUserTenant();
+
+  if (!profile) return null;
+
+  // Apenas owner e manager podem acessar dashboard
+  if (profile.role === "professional" || profile.role === "staff") {
+    return <Navigate to="/agenda" replace />;
+  }
+
+  return <>{children}</>;
+}
 
 // =============================
 // 📌 GUARD DO SETUP
@@ -133,7 +145,13 @@ export default function App() {
               </PrivateRoute>
             }
           >
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={
+              <PrivateRoute>
+                <DashboardGuard>
+                  <Dashboard />
+                </DashboardGuard>
+              </PrivateRoute>
+            } />
             <Route path="/saloes" element={<SaloesPage />} />
             <Route path="/assinaturas" element={<AssinaturasPage />} />
             <Route path="/perfil" element={<PerfilPage />} />
