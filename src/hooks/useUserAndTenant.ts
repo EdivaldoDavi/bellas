@@ -25,7 +25,6 @@ export type Tenant = {
   whatsapp_number: string | null;
 };
 
-
 /* ============================================================
    📌 Hook principal
 ============================================================ */
@@ -55,7 +54,6 @@ export function useUserAndTenant() {
     setPermissions([]);
   }, []);
 
-
   /* ============================================================
      🔥 Recarregar Profile + Tenant
   ============================================================ */
@@ -64,9 +62,10 @@ export function useUserAndTenant() {
     setError(null);
 
     try {
+      // 1️⃣ Recupera sessão
+      const { data: sess, error: sessErr } = await supabase.auth.getSession();
+      if (sessErr) throw sessErr;
 
-      /* 1️⃣ Recupera sessão */
-      const { data: sess } = await supabase.auth.getSession();
       const currentUser = sess.session?.user ?? null;
       setUser(currentUser);
 
@@ -75,7 +74,7 @@ export function useUserAndTenant() {
         return;
       }
 
-      /* 2️⃣ Busca profile — SEM fallback para metadata */
+      // 2️⃣ Busca profile
       const { data: pData, error: pErr } = await supabase
         .from("profiles")
         .select("user_id, tenant_id, role, full_name, avatar_url")
@@ -101,13 +100,13 @@ export function useUserAndTenant() {
 
       setProfile(finalProfile);
 
-      /* 3️⃣ Sem tenant → significa que deve ir para setup, mas apenas owners/managers */
+      // 3️⃣ Sem tenant → owners/managers caem no setup, outros seguem sem tenant
       if (!finalProfile.tenant_id) {
         setTenant(null);
         return;
       }
 
-      /* 4️⃣ Carrega tenant */
+      // 4️⃣ Carrega tenant
       const { data: tData, error: tErr } = await supabase
         .from("tenants")
         .select("*")
@@ -118,7 +117,7 @@ export function useUserAndTenant() {
 
       setTenant(tData);
 
-      /* 5️⃣ Subscription */
+      // 5️⃣ Subscription
       const { data: sub } = await supabase
         .from("subscriptions")
         .select("*")
@@ -127,7 +126,7 @@ export function useUserAndTenant() {
 
       setSubscription(sub ?? null);
 
-      /* 6️⃣ Plano + Features */
+      // 6️⃣ Plano + Features
       if (tData?.plan_id) {
         const { data: planData } = await supabase
           .from("plans")
@@ -142,18 +141,24 @@ export function useUserAndTenant() {
           .select("feature_key, enabled")
           .eq("plan_id", tData.plan_id);
 
-        setFeatures((feats ?? []).filter(f => f.enabled).map(f => f.feature_key));
+        setFeatures(
+          (feats ?? []).filter((f) => f.enabled).map((f) => f.feature_key)
+        );
+      } else {
+        setPlan(null);
+        setFeatures([]);
       }
 
-      /* 7️⃣ Permissions */
+      // 7️⃣ Permissions
       const { data: perms } = await supabase
         .from("permissions")
         .select("permission_key, allowed")
         .eq("tenant_id", finalProfile.tenant_id)
         .eq("user_id", currentUser.id);
 
-      setPermissions((perms ?? []).filter(p => p.allowed).map(p => p.permission_key));
-
+      setPermissions(
+        (perms ?? []).filter((p) => p.allowed).map((p) => p.permission_key)
+      );
     } catch (err: any) {
       console.error("Erro useUserAndTenant:", err);
       setError(err.message ?? "Erro ao carregar dados.");
@@ -163,15 +168,27 @@ export function useUserAndTenant() {
     }
   }, [clearAll]);
 
-
-  /* Load inicial */
+  /* 🔹 Load inicial */
   useEffect(() => {
     reloadProfile();
   }, [reloadProfile]);
 
+  /* 🔹 Recarregar sempre que a auth mudar (login, logout, reset, etc.) */
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, _session) => {
+      // console.log("Auth change (useUserAndTenant):", _event);
+      reloadProfile();
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [reloadProfile]);
 
   /* ============================================================
-     🎯 needsSetup — agora 100% correto
+     🎯 needsSetup — apenas owner/manager sem tenant (fora do force-reset)
   ============================================================ */
   const needsSetup =
     user &&
@@ -179,7 +196,6 @@ export function useUserAndTenant() {
     !tenant &&
     (profile.role === "owner" || profile.role === "manager") &&
     window.location.pathname !== "/force-reset";
-
 
   return {
     loading,
