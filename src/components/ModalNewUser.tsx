@@ -26,6 +26,9 @@ export default function ModalNewUser({ tenantId, show, onClose }: ModalNewUserPr
 
   if (!show) return null;
 
+  /* -------------------------------------------------------------
+     🔐 Função geradora de senha segura
+  ------------------------------------------------------------- */
   function gerarSenhaTemporaria() {
     const chars =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+";
@@ -39,48 +42,50 @@ export default function ModalNewUser({ tenantId, show, onClose }: ModalNewUserPr
   const isValidEmail = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
+  /* -------------------------------------------------------------
+     📨 Enviar convite
+  ------------------------------------------------------------- */
   async function handleInviteUser() {
-    console.clear();
-    console.log("🔥 Iniciando invite...");
-    console.log("tenantId:", tenantId);
-
-    if (!tenantId) {
-      toast.error("Tenant não encontrado.");
-      return;
-    }
-
-    if (!fullName.trim()) {
-      toast.warn("Nome obrigatório.");
-      return;
-    }
-
-    if (!email.trim() || !isValidEmail(email.trim())) {
-      toast.warn("Informe um email válido.");
-      return;
-    }
-
-    setLoading(true);
+    console.group("📨 INVITE USER DEBUG");
 
     try {
-      const tempPassword = gerarSenhaTemporaria();
+      if (!tenantId) {
+        toast.error("Tenant não encontrado.");
+        return;
+      }
 
-      console.log("📤 Enviando signup:", {
+      if (!fullName.trim()) {
+        toast.warn("Nome obrigatório.");
+        return;
+      }
+
+      if (!email.trim() || !isValidEmail(email.trim())) {
+        toast.warn("Informe um email válido.");
+        return;
+      }
+
+      setLoading(true);
+
+      const tempPassword = gerarSenhaTemporaria();
+      const redirectUrl = `${window.location.origin}/force-reset`;
+
+      console.log("➡️ Dados enviados ao Supabase:");
+      console.log({
         email,
         fullName,
         role,
         tenantId,
         tempPassword,
+        redirectUrl,
       });
-
-      const redirectUrl = `${window.location.origin}/force-reset`;
-
-      console.log("🔗 Redirect URL:", redirectUrl);
 
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password: tempPassword,
         options: {
           emailRedirectTo: redirectUrl,
+
+          // IMPORTANTÍSSIMO: usar "data"
           data: {
             full_name: fullName.trim(),
             tenant_id: tenantId,
@@ -89,23 +94,41 @@ export default function ModalNewUser({ tenantId, show, onClose }: ModalNewUserPr
         },
       });
 
-      console.log("🔍 RESPOSTA SIGNUP:", data, error);
+      console.log("🔍 RESPOSTA SIGNUP (user/session/error):", data, error);
 
       if (error) {
-        throw new Error(error.message);
+        console.error("❌ SIGNUP ERROR:", error);
+
+        if (error.message.includes("Database error saving new user")) {
+          toast.error(
+            "Erro no banco ao criar usuário. Verifique a trigger ou policies."
+          );
+        } else if (error.message.includes("invalid email") || error.message.includes("Unable to validate email")) {
+          toast.error("Email inválido.");
+        } else {
+          toast.error(error.message);
+        }
+
+        return;
       }
 
       if (!data.user) {
-        throw new Error("Supabase não criou o usuário. Verifique os Redirect URLs.");
+        console.error("❌ Supabase não retornou 'user'");
+        toast.error(
+          "Erro ao criar usuário. Pode ser redirect inválido ou trigger."
+        );
+        return;
       }
 
-      toast.success("Convite enviado! O usuário deve verificar o email.");
+      toast.success("Convite enviado! O usuário deve verificar o e-mail.");
       onClose();
+
     } catch (err: any) {
-      console.error("❌ Erro ao convidar usuário:", err);
-      toast.error(err.message || "Erro desconhecido.");
+      console.error("💥 ERRO GERAL NO INVITE:", err);
+      toast.error(err.message || "Erro inesperado.");
     } finally {
       setLoading(false);
+      console.groupEnd();
     }
   }
 
