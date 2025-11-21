@@ -11,11 +11,14 @@ import {
 /**
  * Gera os horários possíveis (slots) dentro de um bloco [start_time, end_time] em minutos,
  * respeitando a duração do serviço e filtrando “agora” quando o dia é hoje.
+ *
+ * IMPORTANTE: Este gerador de slots agora considera que o slot deve *começar* antes do `end_time`.
+ * O serviço pode *terminar* após o `end_time` se a duração o exigir.
  */
 function generateSlotsForDay(
   dateISO: string,
   start_time: string,
-  end_time: string,
+  end_time: string, // Este é o workEnd do profissional
   durationMin: number
 ) {
   const [sh, sm] = start_time.split(":").map(Number);
@@ -35,7 +38,8 @@ function generateSlotsForDay(
   const isToday = dateISO === toLocalISOString(new Date()).split("T")[0];
   const now = new Date();
 
-  while (cursor.getTime() + durationMin * 60000 <= end.getTime()) {
+  // Loop enquanto o horário de início do slot for ANTES do horário de término do profissional
+  while (cursor.getTime() < end.getTime()) {
     const s = new Date(cursor);
     const e = new Date(cursor.getTime() + durationMin * 60000);
 
@@ -137,6 +141,25 @@ export async function computeAvailableDaysForMonth(opts: {
 
     const blocks = byWeekday.get(wd) || [];
     if (blocks.length === 0) continue;
+
+    // NOVO: Verificar se todos os blocos de trabalho do dia já passaram (para o dia de hoje)
+    const isToday = iso === toLocalISOString(new Date()).split("T")[0];
+    const now = new Date();
+    let allWorkBlocksPassed = true;
+
+    for (const b of blocks) {
+      const workEndForBlock = combineLocalDateTime(iso, b.end_time.slice(0, 5));
+      // Se o horário de término do bloco de trabalho ainda não passou, então há potencial para agendamentos
+      if (now.getTime() < workEndForBlock.getTime()) {
+        allWorkBlocksPassed = false;
+        break;
+      }
+    }
+
+    // Se for hoje e todos os blocos de trabalho já tiverem passado, este dia não tem mais slots disponíveis.
+    if (isToday && allWorkBlocksPassed) {
+      continue;
+    }
 
     let hasAny = false;
 
