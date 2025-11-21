@@ -27,6 +27,8 @@ import {
   isHoliday,
 } from "../utils/date";
 
+import { getAvailableTimeSlots } from "../utils/schedule"; // Importa a nova função
+
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import styles from "../css/Agenda.module.css";
 
@@ -157,98 +159,13 @@ export default function Agenda() {
     setSelectedDate(d);
     setShowCalendar(false);
 
-    setTimeout(() => {
-      loadAvailableTimes(d, professionalId);
-      setShowTimes(true);
+    setTimeout(async () => { // Adicionado async aqui
+      if (tenantId && professionalId && serviceDuration) {
+        const times = await getAvailableTimeSlots(tenantId, professionalId, serviceDuration, d);
+        setAvailableTimes(times);
+        setShowTimes(true);
+      }
     }, 10);
-  }
-
-  async function loadAvailableTimes(date: string, profId: string) {
-    if (!tenantId || !profId || !serviceDuration) return;
-
-    if (isPastDateLocal(date) || isHoliday(date)) {
-      setAvailableTimes([]);
-      return;
-    }
-
-    const weekday = getWeekdayLocal(date);
-
-    const { data: schedule } = await supabase
-      .from("professional_schedules")
-      .select("*")
-      .eq("tenant_id", tenantId)
-      .eq("professional_id", profId)
-      .eq("weekday", weekday)
-      .maybeSingle();
-
-    if (!schedule) return setAvailableTimes([]);
-
-    const workStart = combineLocalDateTime(date, schedule.start_time.slice(0, 5));
-    const workEnd = combineLocalDateTime(date, schedule.end_time.slice(0, 5));
-
-    const hasBreak =
-      schedule.break_start_time !== "00:00:00" &&
-      schedule.break_end_time !== "00:00:00";
-
-    const breakStart = hasBreak
-      ? combineLocalDateTime(date, schedule.break_start_time.slice(0, 5))
-      : null;
-
-    const breakEnd = hasBreak
-      ? combineLocalDateTime(date, schedule.break_end_time.slice(0, 5))
-      : null;
-
-    const { startISO, endISO } = getDayBoundsISO(date);
-
-    const { data: booked } = await supabase
-      .from("appointments")
-      .select("starts_at, ends_at")
-      .eq("tenant_id", tenantId)
-      .eq("professional_id", profId)
-      .gte("starts_at", startISO)
-      .lte("ends_at", endISO);
-
-    const slots: string[] = [];
-    let t = new Date(workStart);
-
-    const now = new Date();
-    const isToday = toLocalISOString(now).split("T")[0] === date;
-
-    while (t < workEnd) {
-      const endSlot = new Date(t.getTime() + serviceDuration * 60000);
-      if (endSlot > workEnd) break;
-
-      const overlapBreak =
-        hasBreak && breakStart && breakEnd && t < breakEnd && endSlot > breakStart;
-
-      if (overlapBreak) {
-        t = new Date(breakEnd);
-        continue;
-      }
-
-      if (isToday && endSlot <= now) {
-        t = new Date(t.getTime() + serviceDuration * 60000);
-        continue;
-      }
-
-      const conflict = (booked || []).some((b) => {
-        const s = new Date(b.starts_at);
-        const e = new Date(b.ends_at);
-        return t < e && endSlot > s;
-      });
-
-      if (!conflict) {
-        slots.push(
-          `${String(t.getHours()).padStart(2, "0")}:${String(
-            t.getMinutes()
-          ).padStart(2, "0")}`
-        );
-      }
-
-      t = new Date(t.getTime() + serviceDuration * 60000);
-    }
-
-    setAvailableTimes(slots);
   }
 
   /* =============================
