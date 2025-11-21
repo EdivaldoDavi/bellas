@@ -79,13 +79,11 @@ export default function ModalNewUser({ tenantId, show, onClose }: ModalNewUserPr
         redirectUrl,
       });
 
-      const { data, error } = await supabase.auth.signUp({
+const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password: tempPassword,
         options: {
           emailRedirectTo: redirectUrl,
-
-          // IMPORTANTÍSSIMO: usar "data"
           data: {
             full_name: fullName.trim(),
             tenant_id: tenantId,
