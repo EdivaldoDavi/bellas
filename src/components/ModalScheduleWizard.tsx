@@ -13,13 +13,12 @@ import { CalendarDays, Clock } from "lucide-react";
 import { useTheme } from "../hooks/useTheme";
 
 import {
-  isPastDateLocal,
-  getWeekdayLocal,
+  
   combineLocalDateTime,
-  getDayBoundsISO,
+  
   weekdayName,
   dateBR,
-  isHoliday
+  
 } from "../utils/date";
 
 import { getAvailableTimeSlots } from "../utils/schedule"; // Importa a nova função
