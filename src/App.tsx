@@ -4,7 +4,6 @@ import { useEffect, type ReactNode } from "react";
 
 import { useUserTenant } from "./context/UserTenantProvider";
 import { useAuth } from "./context/AuthProvider";
-
 import { applyTenantTheme } from "./utils/theme";
 
 // Layout e páginas
@@ -24,27 +23,24 @@ import ConnectWhatsAppPage from "./pages/ConnectWhatsAppPage";
 import GerenciarAcessosPage from "./config/GerenciarAcessosPage";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ClientesPage from "./pages/ClientesPage";
-import UsuariosPage from "./pages/UsuariosPage"; // <-- Importação adicionada
-
-// 🔥 Importar suas novas páginas
+import UsuariosPage from "./pages/UsuariosPage";
 import ServicosPage from "./pages/ServicosPage";
-// você criará depois:
-//import ClientesPage from "./pages/ClientesPage";
 import ProfessionalsPage from "./pages/ProfessionalsPage";
-//import UsuariosPage from "./pages/UsuariosPage";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+
 // =============================
-// 🔹 TELA DE CARREGAMENTO GLOBAL
+// 🔹 Tela de loading global
 // =============================
 function LoadingScreen() {
   return <div className="p-5 text-center">⏳ Carregando...</div>;
 }
 
+
 // =============================
-// 🔐 ROTA PRIVADA COM EXCEÇÃO PARA /force-reset
+// 🔐 PrivateRoute
 // =============================
 function PrivateRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -56,12 +52,17 @@ function PrivateRoute({ children }: { children: ReactNode }) {
 
   return <>{children}</>;
 }
+
+
+// =============================
+// 🛑 Guard específico do Dashboard
+// =============================
 function DashboardGuard({ children }: { children: ReactNode }) {
   const { profile } = useUserTenant();
 
   if (!profile) return null;
 
-  // Apenas owner e manager podem acessar dashboard
+  // ❌ Profissional e staff NÃO podem acessar Dashboard
   if (profile.role === "professional" || profile.role === "staff") {
     return <Navigate to="/agenda" replace />;
   }
@@ -69,8 +70,9 @@ function DashboardGuard({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+
 // =============================
-// 📌 GUARD DO SETUP
+// 🧭 Setup Guard
 // =============================
 function SetupRedirectGuard({ children }: { children: ReactNode }) {
   const { needsSetup, loading } = useUserTenant();
@@ -81,14 +83,20 @@ function SetupRedirectGuard({ children }: { children: ReactNode }) {
 
   const isSetupPage = location.pathname === "/setup";
 
-  if (needsSetup && !isSetupPage) return <Navigate to="/setup" replace />;
-  if (!needsSetup && isSetupPage) return <Navigate to="/dashboard" replace />;
+  if (needsSetup && !isSetupPage) {
+    return <Navigate to="/setup" replace />;
+  }
+
+  if (!needsSetup && isSetupPage) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return <>{children}</>;
 }
 
+
 // =============================
-// 🔹 APP PRINCIPAL
+// 🔹 App principal
 // =============================
 export default function App() {
   const { tenant } = useUserTenant();
@@ -102,7 +110,7 @@ export default function App() {
       <SetupRedirectGuard>
         <Routes>
 
-          {/* Root → Dashboard */}
+          {/* Root */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
           {/* Rotas públicas */}
@@ -110,7 +118,7 @@ export default function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
 
-          {/* Reset */}
+          {/* Reset de senha */}
           <Route path="/force-reset" element={<ForcePasswordReset />} />
 
           {/* Setup */}
@@ -123,7 +131,7 @@ export default function App() {
             }
           />
 
-          {/* Sem Layout */}
+          {/* Rotas sem Layout */}
           <Route
             path="/gerenciar-acessos"
             element={
@@ -133,11 +141,11 @@ export default function App() {
             }
           />
 
-          {/* Páginas públicas opcionais */}
+          {/* Rota pública opcional */}
           <Route path="/config" element={<ConfigPage />} />
           <Route path="/em-desenvolvimento" element={<EmDesenvolvimento />} />
 
-          {/* Rotas privadas + Layout */}
+          {/* Rotas privadas com Layout */}
           <Route
             element={
               <PrivateRoute>
@@ -145,20 +153,23 @@ export default function App() {
               </PrivateRoute>
             }
           >
-            <Route path="/dashboard" element={
-              <PrivateRoute>
+            {/* Dashboard com guard */}
+            <Route
+              path="/dashboard"
+              element={
                 <DashboardGuard>
                   <Dashboard />
                 </DashboardGuard>
-              </PrivateRoute>
-            } />
+              }
+            />
+
             <Route path="/saloes" element={<SaloesPage />} />
             <Route path="/assinaturas" element={<AssinaturasPage />} />
             <Route path="/perfil" element={<PerfilPage />} />
             <Route path="/agenda" element={<Agenda />} />
             <Route path="/integracoes/whatsapp" element={<ConnectWhatsAppPage />} />
 
-            {/* === 👇 NOVAS ROTAS DO SIDEBAR 👇 === */}
+            {/* Novas rotas */}
             <Route path="/clientes" element={<ClientesPage />} />
             <Route path="/servicos" element={<ServicosPage />} />
             <Route path="/profissionais" element={<ProfessionalsPage />} />
