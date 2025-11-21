@@ -335,6 +335,7 @@
   border: 1px solid var(--separator);
   font-weight: 600;
   transition: .2s;
+  color: var(--text) !important; /* Garante que o texto seja visível em ambos os temas */
 }
 
 .timeBtn:hover {
