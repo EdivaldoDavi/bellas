@@ -5,11 +5,11 @@ import { useTheme } from "../hooks/useTheme";
 import BrandColorMenu from "./BrandColorMenu";
 import { useState, useEffect, useRef } from "react";
 import { useEvolutionConnection } from "../hooks/useEvolutionConnection";
-import { logout } from "../lib/supabaseCleint"; // Importa a função de logout centralizada
+import { logout } from "../lib/supabaseCleint";
 import "../index.css";
 
 export default function Header({ toggleSidebar }: { toggleSidebar: () => void }) {
-  const { profile, tenant } = useUserAndTenant();
+  const { profile, tenant, loading: profileLoading } = useUserAndTenant();
   const { theme, toggleTheme } = useTheme();
 
   const ref = useRef<HTMLDivElement>(null);
@@ -23,6 +23,21 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [greeting, setGreeting] = useState("");
 
+  // ============================================
+  // ⚠ EVITA LOOP → Skeleton até profile carregar
+  // ============================================
+  const isLoadingProfile = profileLoading || !profile?.full_name;
+
+  const userName = !isLoadingProfile
+    ? profile.full_name.split(" ")[0]
+    : "";
+
+  const userRole = !isLoadingProfile ? profile.role : "";
+
+  const avatarUrl = !isLoadingProfile
+    ? profile.avatar_url || "https://i.pravatar.cc/40"
+    : "";
+
   const isWhatsDisconnected =
     !status ||
     status === "DISCONNECTED" ||
@@ -31,25 +46,19 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
     status === "UNKNOWN" ||
     status === "IDLE";
 
-  /**
-   * Atualizar var do CSS para altura total do header
-   * Agora depende de `isWhatsDisconnected` para recalcular quando o alerta aparece/some.
-   */
+  // Atualiza var CSS da altura do header
   useEffect(() => {
     const update = () => {
       if (!ref.current) return;
       const h = ref.current.offsetHeight;
       document.documentElement.style.setProperty("--header-total-height", `${h}px`);
     };
-    update(); // Executa na montagem e em cada mudança de dependência
+    update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
-  }, [isWhatsDisconnected]); // <--- Adicionado isWhatsDisconnected aqui!
+  }, [isWhatsDisconnected]);
 
-  /**
-   * Gerencia a flag no localStorage para que o Layout possa reagir
-   * (embora o Layout.tsx será simplificado para não precisar mais disso).
-   */
+  // Flag no localStorage para o layout
   useEffect(() => {
     if (isWhatsDisconnected) {
       localStorage.setItem("whatsapp-alert-visible", "1");
@@ -58,7 +67,7 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
     }
   }, [isWhatsDisconnected]);
 
-
+  // Saudação + mobile resize
   useEffect(() => {
     const hour = new Date().getHours();
     setGreeting(hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite");
@@ -68,31 +77,29 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const userName = profile?.full_name?.split(" ")[0] || "Usuário";
-  const userRole = profile?.role || "...";
-  const avatarUrl = profile?.avatar_url || "https://i.pravatar.cc/40";
-
-
-  /** --- LOGOUT --- */
   const handleLogout = async () => {
-    await logout(); // Usa a função de logout centralizada
+    await logout();
   };
-
 
   return (
     <header ref={ref} className={styles.header}>
-      {/* BLOCO ESQUERDO: saudação + alerta */}
+
+      {/* BLOCO ESQUERDO */}
       <div className={styles.leftSection}>
-        <div className={styles.greeting}>
-          {greeting}, {userName}!
-        </div>
+        {!isLoadingProfile ? (
+          <div className={styles.greeting}>
+            {greeting}, {userName}!
+          </div>
+        ) : (
+          <div className={styles.greetingSkeleton}></div>
+        )}
 
         {isWhatsDisconnected && (
           <div className={styles.whatsappAlert}>
             <AlertTriangle size={18} className={styles.alertIcon} />
             <span>
               Seu WhatsApp não está conectado. Para utilizar o agendamento com IA,
-              é necessário conectar o WhatsApp na opção Whatsapp do menu.
+              conecte o WhatsApp no menu.
             </span>
           </div>
         )}
@@ -101,21 +108,16 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
       {/* BLOCO DIREITO */}
       <div className={styles.rightSection}>
 
-        {/* Tema dark/light */}
+        {/* Tema */}
         <button className={styles.iconButton} onClick={toggleTheme} title="Alternar tema">
           {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
         </button>
 
-        {/* Menu de cor primária */}
         <BrandColorMenu />
 
         {/* Menu Mobile */}
         {isMobile && (
-          <button
-            className={styles.iconButton}
-            onClick={toggleSidebar}
-            title="Abrir menu"
-          >
+          <button className={styles.iconButton} onClick={toggleSidebar} title="Abrir menu">
             <Menu size={20} />
           </button>
         )}
@@ -124,18 +126,31 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
 
         {/* PERFIL */}
         <div className={styles.userProfile}>
-          <img src={avatarUrl} alt={`Avatar de ${userName}`} className={styles.avatar} />
-          <div className={styles.userInfo}>
-            <div className={styles.userName}>{userName}</div>
-            <div className={styles.userRole}>{userRole}</div>
-          </div>
+          {isLoadingProfile ? (
+            <div className={styles.profileSkeleton}>
+              <div className={styles.avatarSkeleton}></div>
+              <div className={styles.infoSkeleton}>
+                <div className={styles.line1}></div>
+                <div className={styles.line2}></div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <img src={avatarUrl} className={styles.avatar} />
+              <div className={styles.userInfo}>
+                <div className={styles.userName}>{userName}</div>
+                <div className={styles.userRole}>{userRole}</div>
+              </div>
+            </>
+          )}
         </div>
 
-        {/* 🔥 BOTÃO DE SAIR */}
-        <button className={styles.logoutButton} onClick={handleLogout}>
-          <LogOut size={20} />
-        </button>
-
+        {/* LOGOUT */}
+        {!isLoadingProfile && (
+          <button className={styles.logoutButton} onClick={handleLogout}>
+            <LogOut size={20} />
+          </button>
+        )}
       </div>
     </header>
   );
