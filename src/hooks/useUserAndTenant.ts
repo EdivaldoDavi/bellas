@@ -191,6 +191,7 @@ export function useUserAndTenant() {
      🎯 needsSetup — apenas owner/manager sem tenant (fora do force-reset)
   ============================================================ */
   const needsSetup =
+    !loading &&
     user &&
     profile &&
     !tenant &&
