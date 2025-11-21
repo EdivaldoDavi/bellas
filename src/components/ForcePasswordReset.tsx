@@ -101,58 +101,56 @@ export default function ForcePasswordReset() {
   // ============================================================
   // 3️⃣ Atualizar senha
   // ============================================================
-  async function updatePassword() {
-    if (!newPass || !confirmPass) {
-      toast.warn("Preencha a nova senha e a confirmação.");
-      return;
-    }
+// 🔥 REMOVE COMPLETAMENTE O reloadProfile e o auto-login
+// 🔥 FORÇA LOGOUT + LIMPA LOCAL STORAGE + REDIRECIONA PRA LOGIN
 
-    if (newPass !== confirmPass) {
-      toast.warn("As senhas não coincidem.");
-      return;
-    }
-
-    if (!hasMinLength || !hasUppercase || !hasNumber) {
-      toast.warn(
-        "A senha deve ter pelo menos 8 caracteres, com ao menos 1 letra maiúscula e 1 número."
-      );
-      return;
-    }
-
-    setSaving(true);
-
-    const { error } = await supabase.auth.updateUser({ password: newPass });
-
-    setSaving(false);
-
-    if (error) {
-      const msg = error.message.toLowerCase();
-
-      if (msg.includes("different") || msg.includes("same")) {
-        toast.error("A nova senha deve ser diferente da anterior.");
-        return;
-      }
-
-      toast.error(error.message);
-      return;
-    }
-
-    toast.success("Senha atualizada com sucesso! 🎉");
-
-    // 🔥 Garante que profile/tenant sejam carregados corretamente
-    setTimeout(async () => {
-      try {
-        const module = await import("../hooks/useUserAndTenant");
-        const reloadProfile = module?.useUserAndTenant?.()?.reloadProfile;
-
-        if (reloadProfile) await reloadProfile();
-      } catch (e) {
-        console.warn("reloadProfile não acessível via hook no contexto atual.");
-      }
-
-      navigate("/dashboard", { replace: true });
-    }, 250);
+async function updatePassword() {
+  if (!newPass || !confirmPass) {
+    toast.warn("Preencha a nova senha e a confirmação.");
+    return;
   }
+
+  if (newPass !== confirmPass) {
+    toast.warn("As senhas não coincidem.");
+    return;
+  }
+
+  if (!hasMinLength || !hasUppercase || !hasNumber) {
+    toast.warn(
+      "A senha deve ter pelo menos 8 caracteres, com ao menos 1 letra maiúscula e 1 número."
+    );
+    return;
+  }
+
+  setSaving(true);
+
+  const { error } = await supabase.auth.updateUser({ password: newPass });
+
+  setSaving(false);
+
+  if (error) {
+    const msg = error.message.toLowerCase();
+
+    if (msg.includes("different") || msg.includes("same")) {
+      toast.error("A nova senha deve ser diferente da anterior.");
+      return;
+    }
+
+    toast.error(error.message);
+    return;
+  }
+
+  toast.success("Senha atualizada com sucesso! 🎉");
+
+  // 🔥 LOGOUT OBRIGATÓRIO — evita loop entre abas
+  await supabase.auth.signOut();
+
+  // 🔥 Remove a sessão antiga armazenada
+  localStorage.removeItem("sb-" + supabase.supabaseKey + "-auth-token");
+
+  // 🔥 Redireciona sempre para login
+  navigate("/login?reset=1", { replace: true });
+}
 
   if (loading) {
     return (
