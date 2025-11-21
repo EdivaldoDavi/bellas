@@ -8,7 +8,7 @@ import {
   combineLocalDateTime,
 } from "./date";
 
-const SLOT_INTERVAL_MIN = 30; // Intervalo fixo para gerar os slots
+const SLOT_INTERVAL_MIN = 15; // Intervalo fixo para gerar os slots (agora 15 minutos)
 
 /**
  * Gera os horários disponíveis para um dado profissional e serviço em uma data específica.
@@ -134,7 +134,7 @@ export async function getAvailableTimeSlots(
       );
     }
 
-    // Avança para o próximo intervalo de 30 minutos
+    // Avança para o próximo intervalo de 15 minutos
     currentTimeCursor = new Date(currentTimeCursor.getTime() + SLOT_INTERVAL_MIN * 60000);
   }
 

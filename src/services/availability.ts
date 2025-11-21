@@ -39,7 +39,7 @@ function generateSlotsForDay(
   const now = new Date();
 
   // Loop enquanto o horário de início do slot for ANTES do horário de término do profissional
-  while (cursor.getTime() < end.getTime()) { // CORREÇÃO AQUI: permite que o serviço termine após o workEnd
+  while (cursor.getTime() < end.getTime()) {
     const s = new Date(cursor);
     const e = new Date(cursor.getTime() + durationMin * 60000);
 
@@ -47,7 +47,7 @@ function generateSlotsForDay(
     if (!isToday || s.getTime() > now.getTime()) {
       slots.push({ start: s, end: e });
     }
-    cursor = new Date(cursor.getTime() + durationMin * 60000);
+    cursor = new Date(cursor.getTime() + 15 * 60000); // Intervalo de 15 minutos
   }
   return slots;
 }
