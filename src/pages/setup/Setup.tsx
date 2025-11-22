@@ -40,9 +40,13 @@ export default function Setup() {
     return <p className="text-center p-4 text-danger">Erro: perfil não encontrado.</p>;
 
   /* ============================================================
-     🚫 Permissões
+     🚫 Permissões (AJUSTADO AQUI)
   ============================================================ */
-  if (["client", "staff", "professional"].includes(profile.role ?? "")) {
+  // Permite owner e manager sempre.
+  // Permite professional SOMENTE SE ele não tiver um tenant_id ainda (significa que está configurando seu primeiro salão).
+  const canAccessSetup = profile.role === "owner" || profile.role === "manager" || (profile.role === "professional" && !profile.tenant_id);
+
+  if (!canAccessSetup) {
     return (
       <p className="text-center p-4 text-danger">
         Você não tem permissão para configurar o salão.
