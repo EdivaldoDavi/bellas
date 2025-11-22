@@ -62,7 +62,6 @@ export function useUserAndTenant() {
     setError(null);
 
     try {
-      // 1️⃣ Recupera sessão
       const { data: sess, error: sessErr } = await supabase.auth.getSession();
       if (sessErr) throw sessErr;
 
@@ -74,7 +73,7 @@ export function useUserAndTenant() {
         return;
       }
 
-      // 2️⃣ Busca profile
+      // PROFILE
       const { data: pData, error: pErr } = await supabase
         .from("profiles")
         .select("user_id, tenant_id, role, full_name, avatar_url")
@@ -84,7 +83,6 @@ export function useUserAndTenant() {
       if (pErr) throw pErr;
 
       if (!pData) {
-        // Usuário sem profile = algo errado
         clearAll();
         return;
       }
@@ -100,13 +98,13 @@ export function useUserAndTenant() {
 
       setProfile(finalProfile);
 
-      // 3️⃣ Sem tenant → owners/managers caem no setup, outros seguem sem tenant
+      // SEM TENANT → somente owners/managers podem ir para setup
       if (!finalProfile.tenant_id) {
         setTenant(null);
         return;
       }
 
-      // 4️⃣ Carrega tenant
+      // TENANT
       const { data: tData, error: tErr } = await supabase
         .from("tenants")
         .select("*")
@@ -117,7 +115,7 @@ export function useUserAndTenant() {
 
       setTenant(tData);
 
-      // 5️⃣ Subscription
+      // SUBSCRIPTION
       const { data: sub } = await supabase
         .from("subscriptions")
         .select("*")
@@ -126,7 +124,7 @@ export function useUserAndTenant() {
 
       setSubscription(sub ?? null);
 
-      // 6️⃣ Plano + Features
+      // PLAN + FEATURES
       if (tData?.plan_id) {
         const { data: planData } = await supabase
           .from("plans")
@@ -149,7 +147,7 @@ export function useUserAndTenant() {
         setFeatures([]);
       }
 
-      // 7️⃣ Permissions
+      // PERMISSIONS
       const { data: perms } = await supabase
         .from("permissions")
         .select("permission_key, allowed")
@@ -173,12 +171,25 @@ export function useUserAndTenant() {
     reloadProfile();
   }, [reloadProfile]);
 
-  /* 🔹 Recarregar sempre que a auth mudar (login, logout, reset, etc.) */
+  /* ============================================================
+     🔥 Listener de auth corrigido
+     (mesma proteção usada no AuthProvider)
+     ============================================================ */
+
+  let lastEvent = 0;
+
   useEffect(() => {
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, _session) => {
-      // console.log("Auth change (useUserAndTenant):", _event);
+    } = supabase.auth.onAuthStateChange((event, _session) => {
+      // Não recarregar quando a aba está oculta
+      if (document.visibilityState === "hidden") return;
+
+      // Debounce (evita SIGNED_IN duplicado ao trocar de aba)
+      const now = Date.now();
+      if (now - lastEvent < 1200) return;
+      lastEvent = now;
+
       reloadProfile();
     });
 
@@ -188,7 +199,7 @@ export function useUserAndTenant() {
   }, [reloadProfile]);
 
   /* ============================================================
-     🎯 needsSetup — apenas owner/manager sem tenant (fora do force-reset)
+     🎯 needsSetup — owner/manager sem tenant e sem force-reset
   ============================================================ */
   const needsSetup =
     !loading &&
