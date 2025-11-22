@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../lib/supabaseCleint";
 import { useAuth } from "../context/AuthProvider"; // Import useAuth
-import type { User } from "@supabase/supabase-js"; // Import User type
 
 /* ============================================================
    📌 Tipos
