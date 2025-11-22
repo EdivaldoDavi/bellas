@@ -236,42 +236,114 @@ width: 100%;
 /* ===========================
    DASHBOARD DO PROFISSIONAL
 =========================== */
-.goalCard.prof {
+.profStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Responsive grid */
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.profStatCard {
+  background: var(--card-bg);
+  border: 1px solid var(--separator);
+  border-radius: 12px;
+  padding: 1.2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 0.4rem;
-  position: relative;
+  gap: 0.5rem;
+  transition: transform 0.2s ease-in-out, background 0.3s ease, border 0.3s ease;
 }
 
-.goalCard.prof::before {
-  content: "";
-  width: 16px;
-  height: 16px;
+.profStatCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+}
+
+.profCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.profCardIcon {
+  width: 36px; /* Larger circle for icons */
+  height: 36px;
   border-radius: 50%;
-  position: absolute;
-  top: 1.4rem;
-  left: 1rem;
-  background: var(--color-primary);
-  opacity: 0.6;
-}
-
-.goalCard.prof h3 {
-  font-size: 0.95rem;
-  font-weight: 600;
-  margin-left: 1.8rem;
-  color: var(--text);
-}
-
-.goalCard.prof .goalValue {
-  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-weight: 700;
-  margin-left: 1.8rem;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+/* Specific colors for each icon */
+.profCardIcon.appointmentsToday { background: #e0f2fe; color: #0284c7; } /* Light blue */
+.profCardIcon.revenueMonth { background: #dcfce7; color: #16a34a; } /* Light green */
+.profCardIcon.completedMonth { background: #ede9fe; color: #7c3aed; } /* Light purple */
+.profCardIcon.rankingPosition { background: #fefce8; color: #eab308; } /* Light yellow */
+
+
+.profCardTitle {
+  font-weight: 500;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.profCardValue {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-top: 0.25rem;
+}
+
+/* Adjustments for the "Meus Próximos Atendimentos" section */
+.appointmentsSection {
+  background: var(--card-bg);
+  border: 1px solid var(--separator);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.sectionTitle {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
   color: var(--text);
 }
 
-.appointmentsSection.prof {
-  margin-top: 1.5rem;
+.appointmentAvatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+.appointmentInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.appointmentTitle {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.appointmentTime {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
+}
+
+.emptyState {
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 1rem 0;
 }
 
 /* ===========================
@@ -296,6 +368,9 @@ width: 100%;
   .goalsGrid {
     grid-template-columns: 1fr;
   }
+  .profStatsGrid {
+    grid-template-columns: repeat(2, 1fr); /* 2 colunas em tablets */
+  }
 }
 
 @media (max-width: 576px) {
@@ -312,5 +387,8 @@ width: 100%;
   }
   .appointmentTime {
     margin: 0;
+  }
+  .profStatsGrid {
+    grid-template-columns: 1fr; /* 1 coluna em celulares */
   }
 }
