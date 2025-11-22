@@ -70,6 +70,13 @@ export default function Register() {
 
     const tempPassword = gerarSenhaTemporaria(); // Gerar senha temporária
 
+    // 🚨 DEBUG: Log dos dados enviados para o Supabase
+    console.log("Register: Dados enviados para Supabase.auth.signUp:");
+    console.log("  Email:", email.trim());
+    console.log("  Full Name:", fullName.trim());
+    console.log("  Temporary Password:", tempPassword);
+    console.log("  Redirect URL:", `${window.location.origin}/force-reset`);
+
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password: tempPassword, // Usar a senha temporária
@@ -81,12 +88,16 @@ export default function Register() {
 
     setLoading(false);
 
-    // ❌ Erro técnico
+    // 🚨 DEBUG: Log do erro completo
     if (error) {
+      console.error("Register: Erro completo do Supabase.auth.signUp:", error);
       setMessage(error.message);
       toast.error(error.message);
       return;
     }
+
+    // 🚨 DEBUG: Log dos dados de sucesso
+    console.log("Register: Sucesso no Supabase.auth.signUp. Data:", data);
 
     // ❗ Detecta e-mail já registrado (caso existente no Supabase)
     if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
