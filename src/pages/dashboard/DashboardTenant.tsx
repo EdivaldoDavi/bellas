@@ -170,50 +170,6 @@ useEffect(() => {
       setLoading(false);
     }
   }
-// =============================================
-// 🔥 DASHBOARD TENANT — USE EFFECT CORRIGIDO
-// =============================================
-
-useEffect(() => {
-  let lastLoad = 0;
-
-  async function safeLoadDashboard() {
-    const now = Date.now();
-    if (now - lastLoad < 1500) return;  // evita múltiplos reloads
-    lastLoad = now;
-
-    await loadDashboard();
-  }
-
-  // 🔁 1) Carrega ao abrir a página (OK)
-  safeLoadDashboard();
-
-  // 🔄 2) Atualiza somente se ABA VOLTOU
-  const handleVisibilityChange = () => {
-    if (document.visibilityState === "visible") {
-      safeLoadDashboard();     // Agora com DEBOUNCE
-    }
-  };
-  document.addEventListener("visibilitychange", handleVisibilityChange);
-
-  // 🔄 3) Atualiza somente quando houver ALTERAÇÃO REAL no banco
-  const channel = supabase
-    .channel("dashboard-appointments")
-    .on(
-      "postgres_changes",
-      { event: "*", schema: "public", table: "appointments" },
-      (payload) => {
-        console.log("Update recebido:", payload);
-        safeLoadDashboard();
-      }
-    )
-    .subscribe();
-
-  return () => {
-    document.removeEventListener("visibilitychange", handleVisibilityChange);
-    supabase.removeChannel(channel);
-  };
-}, []);
 
   // 🔁 Carrega inicialmente
   loadDashboard();
@@ -246,7 +202,24 @@ useEffect(() => {
   };
 }, []);
 
+useEffect(() => {
+  const channel = supabase
+    .channel("appointments-changes")
+    .on(
+      "postgres_changes",
+      { event: "UPDATE", schema: "public", table: "appointments" },
+      (payload) => {
+        console.log("🟢 Atualização recebida:", payload);
+        // Recarrega dados
+    
+      }
+    )
+    .subscribe();
 
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, []);
 
   // ====================================================
   // === GERENTE ========================================
