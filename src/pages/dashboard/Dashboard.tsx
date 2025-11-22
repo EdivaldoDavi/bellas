@@ -6,16 +6,19 @@ import { Link, Navigate } from "react-router-dom";
 export default function Dashboard() {
   const { loading, profile } = useUserAndTenant();
 
-  // 🔄 LOADING
+  const role = profile?.role;
+  const hasTenant = !!profile?.tenant_id;
+
+  // 🔄 Loading SEM desmontar
   if (loading) {
     return (
-      <p style={{ textAlign: "center", padding: 20 }}>
-        Carregando informações...
-      </p>
+      <div style={{ padding: 20, textAlign: "center" }}>
+        Carregando informações…
+      </div>
     );
   }
 
-  // ❌ SEM PROFILE
+  // ❌ Profile ausente
   if (!profile) {
     return (
       <p style={{ textAlign: "center", padding: 20, color: "red" }}>
@@ -24,30 +27,21 @@ export default function Dashboard() {
     );
   }
 
-  const role = profile.role; // superuser | manager | professional | staff | client
-  const hasTenant = !!profile.tenant_id;
+  // OWNER
+  if (role === "owner") {
+    return <DashboardGlobal />;
+  }
 
-  // ---------------------------------------------------------
-  // SUPERUSER
-if (role === "owner") {
-  return <DashboardGlobal />;
-}
-
-
-  // ---------------------------------------------------------
   // MANAGER
-  // ---------------------------------------------------------
   if (role === "manager") {
-    // Primeira vez → ainda não tem tenant → redirecionar para SETUP
     if (!hasTenant) {
+      // só redireciono quando loading já é false
       return <Navigate to="/setup" replace />;
     }
 
-    // Manager com tenant → dashboard e permissões
     return (
-      <div>
+      <>
         <DashboardTenant />
-
         <div style={{ marginTop: 20, textAlign: "center" }}>
           <Link
             to="/gerenciar-acessos"
@@ -63,25 +57,16 @@ if (role === "owner") {
             Gerenciar Permissões
           </Link>
         </div>
-      </div>
+      </>
     );
   }
 
-  // ---------------------------------------------------------
   // PROFESSIONAL
-  // ---------------------------------------------------------
   if (role === "professional") {
-    if (!hasTenant) {
-      // só por segurança — normalmente nunca acontece
-      return <Navigate to="/setup" replace />;
-    }
-
     return <DashboardTenant />;
   }
 
-  // ---------------------------------------------------------
   // STAFF
-  // ---------------------------------------------------------
   if (role === "staff") {
     return (
       <p style={{ textAlign: "center", padding: 20 }}>
@@ -90,9 +75,7 @@ if (role === "owner") {
     );
   }
 
-  // ---------------------------------------------------------
   // CLIENT
-  // ---------------------------------------------------------
   if (role === "client") {
     return (
       <p style={{ textAlign: "center", padding: 20 }}>
@@ -101,12 +84,9 @@ if (role === "owner") {
     );
   }
 
-  // ---------------------------------------------------------
-  // FALLBACK (nunca deve acontecer)
-  // ---------------------------------------------------------
   return (
     <p style={{ textAlign: "center", padding: 20, color: "red" }}>
-      Acesso negado: papel inválido.
+      Papel inválido.
     </p>
   );
 }
