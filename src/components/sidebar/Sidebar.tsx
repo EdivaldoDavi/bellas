@@ -16,6 +16,7 @@ import {
   Scissors,
   UserCog,
   UserPlus,
+  Percent, // Importar o ícone de porcentagem para comissões
 } from "lucide-react";
 
 import { logout } from "../../lib/supabaseCleint";
@@ -33,6 +34,11 @@ export default function Sidebar({
   closeSidebar: () => void;
 }) {
   const { profile, tenant, loading } = useUserAndTenant();
+
+  // 🚨 DEBUG: Log do perfil e tenant na Sidebar
+  console.log("Sidebar: profile", profile);
+  console.log("Sidebar: tenant", tenant);
+  console.log("Sidebar: loading", loading);
 
   // Enquanto carrega → evita renderização incompleta
   if (loading || !profile) {
@@ -96,6 +102,7 @@ export default function Sidebar({
     menu = [
       { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
       { to: "/agenda", label: "Agenda", icon: <Calendar size={20} /> },
+      { to: "/commissions", label: "Minhas Comissões", icon: <Percent size={20} /> }, // Adicionado Minhas Comissões
       { to: "/perfil", label: "Meu Perfil", icon: <User size={20} /> },
     ];
   }

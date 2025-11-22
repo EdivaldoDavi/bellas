@@ -47,6 +47,10 @@ export default function Agenda() {
   const { profile, tenant } = useUserAndTenant();
   const { theme } = useTheme();
 
+  // 🚨 DEBUG: Log do perfil e tenant na Agenda
+  console.log("Agenda: profile", profile);
+  console.log("Agenda: tenant", tenant);
+
   const tenantId = profile?.tenant_id ?? null;
   const role = profile?.role ?? null;
 

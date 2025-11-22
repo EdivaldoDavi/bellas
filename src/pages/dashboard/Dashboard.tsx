@@ -4,7 +4,12 @@ import DashboardTenant from "./DashboardTenant";
 import { Link, Navigate } from "react-router-dom";
 
 export default function Dashboard() {
-  const { loading, profile } = useUserAndTenant();
+  const { loading, profile, tenant } = useUserAndTenant(); // Incluído tenant aqui
+
+  // 🚨 DEBUG: Log do perfil e tenant no Dashboard
+  console.log("Dashboard: profile", profile);
+  console.log("Dashboard: tenant", tenant);
+  console.log("Dashboard: loading", loading);
 
   const role = profile?.role;
   const hasTenant = !!profile?.tenant_id;
@@ -63,6 +68,15 @@ export default function Dashboard() {
 
   // PROFESSIONAL
   if (role === "professional") {
+    if (!hasTenant) {
+      // Professional without a tenant: show a message
+      return (
+        <p style={{ textAlign: "center", padding: 20 }}>
+          Você é um profissional e precisa ser associado a um salão para ver seu dashboard.
+          Por favor, entre em contato com o administrador do sistema.
+        </p>
+      );
+    }
     return <DashboardTenant />;
   }
 
