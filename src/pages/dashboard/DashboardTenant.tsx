@@ -39,7 +39,7 @@ export default function DashboardTenant() {
   const { tenant, profile, loading: userTenantLoading } = useUserAndTenant();
 
   const [loading, setLoading] = useState(true);
-  const [, setGreetingName] = useState<string>("");
+  const [greetingName, setGreetingName] = useState<string>("");
 
   const [role, setRole] = useState<string>("manager");
 
@@ -67,15 +67,20 @@ export default function DashboardTenant() {
   // Função global reutilizável, agora memoizada com useCallback
   // ==============================
   const loadDashboard = useCallback(async () => {
+    console.log("DashboardTenant: [loadDashboard] Função chamada.");
     try {
       setLoading(true);
       // Usar o profile do contexto, não buscar novamente
       if (userTenantLoading || !profile || !tenant) {
+        console.log("DashboardTenant: [loadDashboard] Condição de carregamento ou dados ausentes. userTenantLoading:", userTenantLoading, "profile:", !!profile, "tenant:", !!tenant);
         setLoading(false); // Ensure loading is false if tenant is null
         return;
       }
 
+      console.log("DashboardTenant: [loadDashboard] Profile:", profile.user_id, "Tenant:", tenant.id);
+
       setRole(profile.role ?? "manager");
+      console.log("DashboardTenant: [loadDashboard] Role definido como:", profile.role);
 
       const safeName = typeof profile.full_name === "string" && profile.full_name.trim() !== ""
         ? profile.full_name.split(" ")[0] // Only first name for greeting
@@ -86,6 +91,8 @@ export default function DashboardTenant() {
 
       // 🔥 Usar profile.professional_id aqui
       const professionalId: UUID | null = profile.professional_id || null;
+      console.log("DashboardTenant: [loadDashboard] Professional ID:", professionalId);
+
 
       const now = new Date();
       const todayISO = now.toISOString().slice(0, 10);
@@ -103,12 +110,16 @@ export default function DashboardTenant() {
 
       if (profile.role === "professional" && professionalId) {
         apptsTodayQuery = apptsTodayQuery.eq("professional_id", professionalId);
+        console.log("DashboardTenant: [loadDashboard] Filtrando agendamentos por professional_id:", professionalId);
       }
 
       const { data: apptsTodayData } = await apptsTodayQuery;
+      console.log("DashboardTenant: [loadDashboard] Agendamentos de hoje (raw):", apptsTodayData);
 
       const apptsToday = (apptsTodayData || []) as Appointment[];
       setAppointmentsToday(apptsToday.length);
+      console.log("DashboardTenant: [loadDashboard] Total de agendamentos hoje:", apptsToday.length);
+
 
       const serviceIds = apptsToday.map((a) => a.service_id).filter(Boolean) as UUID[];
       const profIds = apptsToday.map((a) => a.professional_id).filter(Boolean) as UUID[];
@@ -137,6 +148,8 @@ export default function DashboardTenant() {
           status: a.status,
         }))
       );
+      console.log("DashboardTenant: [loadDashboard] Agendamentos de hoje (formatados):", todaysAppointments);
+
 
       // ====== FATURAMENTO DO MÊS ======
       let monthDoneQuery = supabase
@@ -149,12 +162,17 @@ export default function DashboardTenant() {
 
       if (profile.role === "professional" && professionalId) {
         monthDoneQuery = monthDoneQuery.eq("professional_id", professionalId);
+        console.log("DashboardTenant: [loadDashboard] Filtrando faturamento por professional_id:", professionalId);
       }
 
       const { data: monthDone } = await monthDoneQuery;
+      console.log("DashboardTenant: [loadDashboard] Faturamento do mês (raw):", monthDone);
+
 
       const done = (monthDone || []) as { professional_id: UUID; service_id: UUID }[];
       setDoneThisMonth(done.length);
+      console.log("DashboardTenant: [loadDashboard] Atendimentos concluídos no mês:", done.length);
+
 
       const monthServiceIds = [...new Set(done.map((d) => d.service_id))];
       const { data: svcMonth } = await supabase
@@ -168,9 +186,12 @@ export default function DashboardTenant() {
         0
       );
       setRevenueThisMonth(totalCents / 100);
+      console.log("DashboardTenant: [loadDashboard] Faturamento total do mês:", totalCents / 100);
+
 
       // ranking (only for manager, or if professional wants to see their rank)
       if (profile.role === "manager" || (profile.role === "professional" && professionalId)) {
+        console.log("DashboardTenant: [loadDashboard] Calculando ranking.");
         const allDoneAppointments = await supabase
           .from("appointments")
           .select("professional_id, service_id")
@@ -200,25 +221,33 @@ export default function DashboardTenant() {
           .sort((a, b) => b.total - a.total);
 
         setTop3(allTop.slice(0, 3));
+        console.log("DashboardTenant: [loadDashboard] Top 3 Profissionais:", allTop.slice(0, 3));
+
 
         if (professionalId) {
           const pos = allTop.findIndex((t) => t.id === professionalId);
           setRankingPosition(pos >= 0 ? pos + 1 : null);
+          console.log("DashboardTenant: [loadDashboard] Posição no ranking do profissional:", pos >= 0 ? pos + 1 : null);
         }
       }
 
     } finally {
+      console.log("DashboardTenant: [loadDashboard] Finalizado. Definindo loading para false.");
       setLoading(false);
     }
   }, [userTenantLoading, profile, tenant]); // Dependencies for useCallback
 
   useEffect(() => {
-    // Apenas chama loadDashboard se não estiver carregando o perfil/tenant e o perfil existir
+    console.log("DashboardTenant: [useEffect principal] Disparado. userTenantLoading:", userTenantLoading, "profile:", !!profile);
     if (!userTenantLoading && profile) {
+      console.log("DashboardTenant: [useEffect principal] Profile carregado e não está em loading, chamando loadDashboard.");
       loadDashboard();
+    } else if (!userTenantLoading && !profile) {
+      console.log("DashboardTenant: [useEffect principal] Profile não carregado e não está em loading. Não chamando loadDashboard.");
     }
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
+        console.log("DashboardTenant: [visibilitychange] Aba visível, chamando loadDashboard.");
         loadDashboard();
       }
     };
@@ -230,7 +259,12 @@ export default function DashboardTenant() {
   }, [profile, userTenantLoading, loadDashboard]); // Dependências do useEffect
 
   useEffect(() => {
-    if (!tenant?.id) return;
+    if (!tenant?.id) {
+      console.log("DashboardTenant: [useEffect Supabase Channel] Sem tenant ID, não configurando canal.");
+      return;
+    }
+    console.log("DashboardTenant: [useEffect Supabase Channel] Configurando canal para tenant ID:", tenant.id);
+
 
     const channel = supabase
       .channel(`appointments-changes-${tenant.id}`)
@@ -238,18 +272,20 @@ export default function DashboardTenant() {
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "appointments" },
         (payload) => {
-          console.log("🟢 Atualização recebida:", payload);
+          console.log("DashboardTenant: [Supabase Channel] Atualização recebida:", payload);
           loadDashboard();
         }
       )
       .subscribe();
 
     return () => {
+      console.log("DashboardTenant: [Supabase Channel] Desinscrevendo do canal.");
       supabase.removeChannel(channel);
     };
   }, [tenant?.id, loadDashboard]);
 
   if (loading) {
+    console.log("DashboardTenant: Renderizando tela de carregamento.");
     return (
       <div style={{ padding: 20, textAlign: "center" }}>
         Carregando informações…
@@ -257,8 +293,8 @@ export default function DashboardTenant() {
     );
   }
 
-  // Explicitly handle case where tenant is null even if profile.tenant_id exists
   if (!tenant) {
+    console.log("DashboardTenant: Renderizando mensagem de tenant não encontrado.");
     return (
       <div className={styles.container}>
         <p style={{ textAlign: "center", padding: 20 }}>
@@ -270,6 +306,7 @@ export default function DashboardTenant() {
   }
 
   if (role === "manager") {
+    console.log("DashboardTenant: Renderizando dashboard para MANAGER.");
     return (
       <div
         className={styles.container}
@@ -411,8 +448,9 @@ export default function DashboardTenant() {
   }
 
   if (role === "professional") {
-    // 🔥 NOVO: Se o professional_id não estiver definido, exibe uma mensagem
+    console.log("DashboardTenant: Renderizando dashboard para PROFESSIONAL.");
     if (!profile?.professional_id) {
+      console.log("DashboardTenant: Professional sem professional_id vinculado.");
       return (
         <div className={styles.container}>
           <p style={{ textAlign: "center", padding: 20 }}>
@@ -503,5 +541,6 @@ export default function DashboardTenant() {
     );
   }
 
+  console.log("DashboardTenant: Renderizando null (papel não tratado).");
   return null;
 }

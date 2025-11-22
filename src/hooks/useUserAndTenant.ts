@@ -49,7 +49,7 @@ export function useUserAndTenant() {
      🧹 Limpa tudo
   ============================================================ */
   const clearAll = useCallback(() => {
-    console.log("useUserAndTenant: clearAll called.");
+    console.log("useUserAndTenant: [clearAll] Limpando todos os estados.");
     setProfile(null);
     setTenant(null);
     setSubscription(null);
@@ -63,20 +63,20 @@ export function useUserAndTenant() {
      🔥 Recarregar Profile + Tenant
   ============================================================ */
   const refreshProfile = useCallback(async () => {
-    console.log("useUserAndTenant: refreshProfile called.");
+    console.log("useUserAndTenant: [refreshProfile] Função chamada.");
     setLoading(true);
     setError(null);
     setProfessionalId(null); // Limpa antes de tentar carregar
 
     try {
-      // Use authUser directly from AuthProvider
       const currentUser = authUser;
 
       if (!currentUser) {
-        console.log("useUserAndTenant: No current user, clearing all.");
+        console.log("useUserAndTenant: [refreshProfile] Nenhum usuário autenticado, limpando tudo.");
         clearAll();
         return;
       }
+      console.log("useUserAndTenant: [refreshProfile] Usuário atual:", currentUser.id);
 
       // PROFILE
       const { data: pData, error: pErr } = await supabase
@@ -88,56 +88,61 @@ export function useUserAndTenant() {
       if (pErr) throw pErr;
 
       if (!pData) {
-        console.log("useUserAndTenant: Profile data not found for user, clearing all.");
+        console.log("useUserAndTenant: [refreshProfile] Perfil não encontrado para o usuário, limpando tudo.");
         clearAll();
         return;
       }
 
       const finalProfile: Profile = {
         user_id: currentUser.id,
-        email: currentUser.email, // Get email from currentUser
+        email: currentUser.email,
         role: pData.role,
         full_name: pData.full_name,
         avatar_url: pData.avatar_url,
         tenant_id: pData.tenant_id,
       };
 
-      // Only update profile state if there's a change to avoid unnecessary re-renders
       setProfile(prevProfile => {
         if (JSON.stringify(prevProfile) === JSON.stringify(finalProfile)) {
+          console.log("useUserAndTenant: [setProfile] Perfil inalterado, evitando re-render.");
           return prevProfile;
         }
-        console.log("useUserAndTenant: Setting new profile:", finalProfile);
+        console.log("useUserAndTenant: [setProfile] Atualizando perfil para:", finalProfile);
         return finalProfile;
       });
 
-      // 🔥 NOVO: Se for um profissional, busca o professional_id correspondente e armazena em estado separado
+      // PROFESSIONAL ID
       if (finalProfile.role === "professional" && finalProfile.tenant_id) {
         const { data: professionalEntry, error: profEntryError } = await supabase
           .from("professionals")
           .select("id")
-          .eq("user_id", currentUser.id) // Busca pelo user_id na tabela professionals
+          .eq("user_id", currentUser.id)
           .eq("tenant_id", finalProfile.tenant_id)
           .maybeSingle();
 
         if (profEntryError) {
-          console.error("useUserAndTenant: Erro ao buscar entrada de profissional:", profEntryError);
+          console.error("useUserAndTenant: [refreshProfile] Erro ao buscar entrada de profissional:", profEntryError);
         } else if (professionalEntry) {
           setProfessionalId(prevId => {
-            if (prevId === professionalEntry.id) return prevId;
-            console.log("useUserAndTenant: Setting new professionalId:", professionalEntry.id);
+            if (prevId === professionalEntry.id) {
+              console.log("useUserAndTenant: [setProfessionalId] ID do profissional inalterado, evitando re-render.");
+              return prevId;
+            }
+            console.log("useUserAndTenant: [setProfessionalId] Atualizando professionalId para:", professionalEntry.id);
             return professionalEntry.id;
           });
         } else {
-          setProfessionalId(null); // Ensure it's null if no entry found
+          setProfessionalId(null);
+          console.log("useUserAndTenant: [setProfessionalId] Nenhum professionalId encontrado, definindo como null.");
         }
       } else {
-        setProfessionalId(null); // Ensure it's null if not a professional or no tenant
+        setProfessionalId(null);
+        console.log("useUserAndTenant: [setProfessionalId] Não é profissional ou sem tenant, definindo como null.");
       }
 
-      // SEM TENANT_ID NO PERFIL → somente owners/managers podem ir para setup
+      // SEM TENANT_ID NO PERFIL
       if (!finalProfile.tenant_id) {
-        console.log("useUserAndTenant: Profile has no tenant_id, clearing tenant-related states.");
+        console.log("useUserAndTenant: [refreshProfile] Perfil sem tenant_id, limpando estados relacionados ao tenant.");
         setTenant(null);
         setSubscription(null);
         setPlan(null);
@@ -146,7 +151,7 @@ export function useUserAndTenant() {
         return;
       }
 
-      // TENANT (se houver tenant_id no perfil)
+      // TENANT
       const { data: tData, error: tErr } = await supabase
         .from("tenants")
         .select("*")
@@ -156,20 +161,21 @@ export function useUserAndTenant() {
       if (tErr) throw tErr;
 
       if (!tData) {
-        console.warn(`useUserAndTenant: Tenant with ID ${finalProfile.tenant_id} not found or inaccessible for user ${currentUser.id}. Clearing tenant data.`);
+        console.warn(`useUserAndTenant: [refreshProfile] Tenant com ID ${finalProfile.tenant_id} não encontrado ou inacessível. Limpando dados do tenant.`);
         setTenant(null);
         setSubscription(null);
         setPlan(null);
         setFeatures([]);
         setPermissions([]);
-        return; // Exit early as there's no valid tenant
+        return;
       }
 
       setTenant(prevTenant => {
         if (JSON.stringify(prevTenant) === JSON.stringify(tData)) {
+          console.log("useUserAndTenant: [setTenant] Tenant inalterado, evitando re-render.");
           return prevTenant;
         }
-        console.log("useUserAndTenant: Setting new tenant:", tData);
+        console.log("useUserAndTenant: [setTenant] Atualizando tenant para:", tData);
         return tData;
       });
 
@@ -180,11 +186,12 @@ export function useUserAndTenant() {
         .eq("tenant_id", tData?.id)
         .maybeSingle();
 
-      setSubscription((prevSub: any | null) => { // Explicitly type prevSub
+      setSubscription((prevSub: any | null) => {
         if (JSON.stringify(prevSub) === JSON.stringify(sub)) {
+          console.log("useUserAndTenant: [setSubscription] Assinatura inalterada, evitando re-render.");
           return prevSub;
         }
-        console.log("useUserAndTenant: Setting new subscription:", sub);
+        console.log("useUserAndTenant: [setSubscription] Atualizando assinatura para:", sub);
         return sub ?? null;
       });
 
@@ -196,11 +203,12 @@ export function useUserAndTenant() {
           .eq("id", tData.plan_id)
           .maybeSingle();
 
-        setPlan((prevPlan: any | null) => { // Explicitly type prevPlan
+        setPlan((prevPlan: any | null) => {
           if (JSON.stringify(prevPlan) === JSON.stringify(planData)) {
+            console.log("useUserAndTenant: [setPlan] Plano inalterado, evitando re-render.");
             return prevPlan;
           }
-          console.log("useUserAndTenant: Setting new plan:", planData);
+          console.log("useUserAndTenant: [setPlan] Atualizando plano para:", planData);
           return planData ?? null;
         });
 
@@ -212,14 +220,16 @@ export function useUserAndTenant() {
         const newFeatures = (feats ?? []).filter((f) => f.enabled).map((f) => f.feature_key);
         setFeatures(prevFeatures => {
           if (JSON.stringify(prevFeatures) === JSON.stringify(newFeatures)) {
+            console.log("useUserAndTenant: [setFeatures] Features inalteradas, evitando re-render.");
             return prevFeatures;
           }
-          console.log("useUserAndTenant: Setting new features:", newFeatures);
+          console.log("useUserAndTenant: [setFeatures] Atualizando features para:", newFeatures);
           return newFeatures;
         });
       } else {
         setPlan(null);
         setFeatures([]);
+        console.log("useUserAndTenant: [setPlan/setFeatures] Sem plan_id, definindo como null/vazio.");
       }
 
       // PERMISSIONS
@@ -232,47 +242,48 @@ export function useUserAndTenant() {
       const newPermissions = (perms ?? []).filter((p) => p.allowed).map((p) => p.permission_key);
       setPermissions(prevPermissions => {
         if (JSON.stringify(prevPermissions) === JSON.stringify(newPermissions)) {
+          console.log("useUserAndTenant: [setPermissions] Permissões inalteradas, evitando re-render.");
           return prevPermissions;
         }
-        console.log("useUserAndTenant: Setting new permissions:", newPermissions);
+        console.log("useUserAndTenant: [setPermissions] Atualizando permissões para:", newPermissions);
         return newPermissions;
       });
 
     } catch (err: any) {
-      console.error("useUserAndTenant: Erro ao carregar dados:", err);
+      console.error("useUserAndTenant: [refreshProfile] Erro ao carregar dados:", err);
       setError(err.message ?? "Erro ao carregar dados.");
       clearAll();
     } finally {
-      console.log("useUserAndTenant: Setting loading to false.");
+      console.log("useUserAndTenant: [refreshProfile] Finalizado. Definindo loading para false.");
       setLoading(false);
     }
-  }, [clearAll, authUser]); // Dependency on authUser
+  }, [clearAll, authUser]);
 
-  // 🔹 Load inicial (now depends on authUser and authLoading)
+  // 🔹 Load inicial (agora depende de authUser e authLoading)
   useEffect(() => {
-    console.log("useUserAndTenant: useEffect triggered. authLoading:", authLoading, "authUser:", authUser);
-    // Only trigger refreshProfile when authUser changes and AuthProvider is done loading
+    console.log("useUserAndTenant: [useEffect principal] Disparado. authLoading:", authLoading, "authUser:", authUser?.id);
     if (!authLoading) {
+      console.log("useUserAndTenant: [useEffect principal] AuthProvider terminou de carregar, chamando refreshProfile.");
       refreshProfile();
     }
-  }, [authUser, authLoading, refreshProfile]); // Add authUser and authLoading to dependencies
+  }, [authUser, authLoading, refreshProfile]);
 
   /* ============================================================
      🎯 needsSetup — owner/manager/professional sem tenant e sem force-reset
   ============================================================ */
   const needsSetup =
     !loading &&
-    authUser && // Use authUser here
+    authUser &&
     profile &&
-    !tenant && // Check if tenant is null
-    (profile.role === "owner" || profile.role === "manager" || profile.role === "professional") && // <-- MODIFICADO AQUI
+    !tenant &&
+    (profile.role === "owner" || profile.role === "manager" || profile.role === "professional") &&
     window.location.pathname !== "/force-reset";
 
   return {
     loading,
     error,
-    user: authUser, // Expose authUser from AuthProvider
-    profile: profile ? { ...profile, professional_id: professionalId } : null, // Add professional_id to profile object when returning
+    user: authUser,
+    profile: profile ? { ...profile, professional_id: professionalId } : null,
     tenant,
     subscription,
     plan,
@@ -280,7 +291,7 @@ export function useUserAndTenant() {
     permissions,
     needsSetup,
     refreshProfile,
-    refreshTenant: refreshProfile, // refreshTenant can also call refreshProfile
-    reloadAll: refreshProfile, // reloadAll can also call refreshProfile
+    refreshTenant: refreshProfile,
+    reloadAll: refreshProfile,
   };
 }
