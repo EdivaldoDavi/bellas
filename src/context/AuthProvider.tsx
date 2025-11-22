@@ -1,4 +1,3 @@
-// src/context/AuthProvider.tsx
 import {
   createContext,
   useContext,
@@ -33,6 +32,15 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
      Função segura para atualizar sessão/usuário
      ============================================================ */
   const applySession = (newSession: Session | null) => {
+    // NEW LOGIC: Só atualiza se o access_token ou o user.id realmente mudaram.
+    // Isso evita re-renderizações desnecessárias se o Supabase enviar uma nova
+    // referência de objeto de sessão, mas os dados subjacentes forem os mesmos.
+    if (
+      session?.access_token === newSession?.access_token &&
+      session?.user?.id === newSession?.user?.id
+    ) {
+      return; // Nenhuma mudança real na sessão ou usuário, então não faz nada.
+    }
     setSession(newSession);
     setUser(newSession?.user ?? null);
   };
@@ -70,7 +78,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange((event, newSession) => {
       console.log("Auth event:", event);
 
       // 1) Ignora triggers quando o usuário apenas voltou da aba
@@ -80,7 +88,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
       // 2) Debounce: evita múltiplos SIGNED_IN seguidos
       const now = Date.now();
-      if (now - lastAuthEvent < 1200) {
+      if (event === "SIGNED_IN" && now - lastAuthEvent < 1200) {
         return;
       }
       lastAuthEvent = now;
@@ -93,14 +101,8 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // Sessão inicial após logout → não forçar re-login
-      if (event === "INITIAL_SESSION" && !session) {
-        applySession(null);
-        return;
-      }
-
-      // Login, force-reset, email-redirect etc.
-      applySession(session);
+      // Aplica a sessão, deixando applySession decidir se é uma atualização redundante.
+      applySession(newSession);
     });
 
     /* Listener manual de logout forçado */
@@ -111,7 +113,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       subscription.unsubscribe();
       window.removeEventListener("supabase-signout", handler);
     };
-  }, []);
+  }, [session?.access_token, session?.user?.id]); // Adiciona dependências para re-executar o efeito se a sessão mudar
 
   /* ============================================================
      MÉTODOS DE AUTENTICAÇÃO
