@@ -12,7 +12,7 @@ export type Profile = {
   full_name: string;
   avatar_url: string | null;
   tenant_id: string | null;
-  professional_id: string | null; // 🔥 NOVO: ID do profissional na tabela 'professionals'
+  // professional_id: string | null; // 🔥 REMOVIDO: ID do profissional na tabela 'professionals'
 };
 
 export type Tenant = {
@@ -35,13 +35,16 @@ export function useUserAndTenant() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Remove local user state, it will come from useAuth
   const [profile, setProfile] = useState<Profile | null>(null);
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [subscription, setSubscription] = useState<any>(null);
   const [plan, setPlan] = useState<any>(null);
   const [features, setFeatures] = useState<string[]>([]);
   const [permissions, setPermissions] = useState<string[]>([]);
+
+  // 🔥 NOVO: Estado separado para professional_id, não parte do Profile
+  const [professionalId, setProfessionalId] = useState<string | null>(null);
+
 
   /* ============================================================
      🧹 Limpa tudo
@@ -53,6 +56,7 @@ export function useUserAndTenant() {
     setPlan(null);
     setFeatures([]);
     setPermissions([]);
+    setProfessionalId(null); // Limpa também o professionalId
   }, []);
 
   /* ============================================================
@@ -61,6 +65,7 @@ export function useUserAndTenant() {
   const refreshProfile = useCallback(async () => {
     setLoading(true);
     setError(null);
+    setProfessionalId(null); // Limpa antes de tentar carregar
 
     try {
       // Use authUser directly from AuthProvider
@@ -92,10 +97,12 @@ export function useUserAndTenant() {
         full_name: pData.full_name,
         avatar_url: pData.avatar_url,
         tenant_id: pData.tenant_id,
-        professional_id: null, // Inicializa como null
+        // professional_id removido daqui
       };
 
-      // 🔥 NOVO: Se for um profissional, busca o professional_id correspondente
+      setProfile(finalProfile);
+
+      // 🔥 NOVO: Se for um profissional, busca o professional_id correspondente e armazena em estado separado
       if (finalProfile.role === "professional" && finalProfile.tenant_id) {
         const { data: professionalEntry, error: profEntryError } = await supabase
           .from("professionals")
@@ -107,11 +114,9 @@ export function useUserAndTenant() {
         if (profEntryError) {
           console.error("Erro ao buscar entrada de profissional:", profEntryError);
         } else if (professionalEntry) {
-          finalProfile.professional_id = professionalEntry.id;
+          setProfessionalId(professionalEntry.id);
         }
       }
-
-      setProfile(finalProfile);
 
       // SEM TENANT_ID NO PERFIL → somente owners/managers podem ir para setup
       if (!finalProfile.tenant_id) {
@@ -206,8 +211,6 @@ export function useUserAndTenant() {
     }
   }, [authUser, authLoading, refreshProfile]); // Add authUser and authLoading to dependencies
 
-  // Remove the onAuthStateChange listener from here, as it's now handled by AuthProvider
-
   /* ============================================================
      🎯 needsSetup — owner/manager/professional sem tenant e sem force-reset
   ============================================================ */
@@ -223,7 +226,7 @@ export function useUserAndTenant() {
     loading,
     error,
     user: authUser, // Expose authUser from AuthProvider
-    profile,
+    profile: profile ? { ...profile, professional_id: professionalId } : null, // Add professional_id to profile object when returning
     tenant,
     subscription,
     plan,
