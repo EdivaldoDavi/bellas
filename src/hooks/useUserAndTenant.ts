@@ -209,14 +209,14 @@ export function useUserAndTenant() {
   // Remove the onAuthStateChange listener from here, as it's now handled by AuthProvider
 
   /* ============================================================
-     🎯 needsSetup — owner/manager sem tenant e sem force-reset
+     🎯 needsSetup — owner/manager/professional sem tenant e sem force-reset
   ============================================================ */
   const needsSetup =
     !loading &&
     authUser && // Use authUser here
     profile &&
     !tenant && // Check if tenant is null
-    (profile.role === "owner" || profile.role === "manager") &&
+    (profile.role === "owner" || profile.role === "manager" || profile.role === "professional") && // <-- MODIFICADO AQUI
     window.location.pathname !== "/force-reset";
 
   return {

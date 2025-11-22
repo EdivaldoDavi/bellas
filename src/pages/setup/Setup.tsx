@@ -60,6 +60,8 @@ export default function Setup() {
 
     try {
       let tenantId = tenant?.id ?? null;
+      const currentUserId = profile.user_id;
+      const currentUserRole = profile.role;
 
       /* ============================================================
          1️⃣ Criar tenant caso ainda não exista
@@ -76,7 +78,7 @@ export default function Setup() {
             secondary_color: secondary,
             theme_variant: variant,
             setup_complete: true,
-            created_by: profile.user_id,
+            created_by: currentUserId,
           })
           .select("*")
           .single();
@@ -85,30 +87,73 @@ export default function Setup() {
 
         tenantId = newTenant.id;
 
-        /* Atualizar perfil */
+        // Atualizar perfil: set tenant_id.
+        // Apenas atualiza o papel para 'manager' se não for 'owner' ou 'manager'
+        // (para não rebaixar um owner, por exemplo).
+        const updateProfilePayload: { tenant_id: string; role?: 'manager' } = { tenant_id: tenantId };
+        if (currentUserRole !== 'owner' && currentUserRole !== 'manager') {
+          updateProfilePayload.role = 'manager';
+        }
+
         const { error: profileErr } = await supabase
           .from("profiles")
-          .update({ tenant_id: tenantId })
-          .eq("user_id", profile.user_id);
+          .update(updateProfilePayload)
+          .eq("user_id", currentUserId);
 
         if (profileErr) throw profileErr;
+
+        // 🔥 NOVO: Criar entrada na tabela 'professionals' para o gerente
+        // Primeiro, verificar se já existe um profissional vinculado a este user_id e tenant_id
+        const { data: existingProfessional, error: checkProfError } = await supabase
+          .from("professionals")
+          .select("id")
+          .eq("user_id", currentUserId)
+          .eq("tenant_id", tenantId)
+          .maybeSingle();
+
+        if (checkProfError) throw checkProfError;
+
+        if (!existingProfessional) {
+          // Se não existe, cria um novo
+          const { error: createProfError } = await supabase
+            .from("professionals")
+            .insert({
+              tenant_id: tenantId,
+              name: profile.full_name,
+              email: profile.email || null, // Garante que seja string ou null
+              user_id: currentUserId,
+              is_active: true,
+            });
+
+          if (createProfError) throw createProfError;
+        }
+        // Se já existe, não faz nada.
+
+      } else {
+        /* ============================================================
+           2️⃣ Atualizar tenant existente (apenas se o usuário atual for owner/manager)
+        ============================================================ */
+        if (currentUserRole === 'owner' || currentUserRole === 'manager') {
+          const { error: updateErr } = await supabase
+            .from("tenants")
+            .update({
+              name,
+              primary_color: primary,
+              secondary_color: secondary,
+              theme_variant: variant,
+              setup_complete: true,
+            })
+            .eq("id", tenantId);
+
+          if (updateErr) throw updateErr;
+        } else {
+          // Se um usuário que não é owner/manager de alguma forma chegou aqui com um tenant existente,
+          // ele não deve poder salvar os detalhes do tenant.
+          toast.error("Você não tem permissão para atualizar as configurações do salão.");
+          setSaving(false);
+          return;
+        }
       }
-
-      /* ============================================================
-         2️⃣ Atualizar tenant existente
-      ============================================================ */
-      const { error: updateErr } = await supabase
-        .from("tenants")
-        .update({
-          name,
-          primary_color: primary,
-          secondary_color: secondary,
-          theme_variant: variant,
-          setup_complete: true,
-        })
-        .eq("id", tenantId);
-
-      if (updateErr) throw updateErr;
 
       /* ============================================================
          3️⃣ Recarregar tudo globalmente
