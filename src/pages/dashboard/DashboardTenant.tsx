@@ -38,8 +38,8 @@ const THEME_PRIMARY: Record<string, string> = {
 export default function DashboardTenant() {
   const { tenant, profile, loading: userTenantLoading } = useUserAndTenant();
 
-  const [loading, setLoading] = useState(true);
-  const [greetingName, setGreetingName] = useState<string>("");
+  const [ ,setLoading] = useState(true);
+  const [ ,setGreetingName] = useState<string>("");
 
   const [role, setRole] = useState<string>("manager");
 
