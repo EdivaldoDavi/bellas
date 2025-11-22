@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from "react"; // Adicionado useCallback
+import { useEffect, useMemo, useState, useCallback } from "react";
 
 import "react-loading-skeleton/dist/skeleton.css";
 import { supabase } from "../../lib/supabaseCleint";
@@ -39,7 +39,7 @@ export default function DashboardTenant() {
   const { tenant, profile, loading: userTenantLoading } = useUserAndTenant();
 
   const [loading, setLoading] = useState(true);
-  const [, setGreetingName] = useState<string>("");
+  const [greetingName, setGreetingName] = useState<string>("");
 
   const [role, setRole] = useState<string>("manager");
 
@@ -70,7 +70,7 @@ export default function DashboardTenant() {
     try {
       setLoading(true);
       // Usar o profile do contexto, não buscar novamente
-      if (userTenantLoading || !profile || !tenant) { // <-- Added !tenant check here
+      if (userTenantLoading || !profile || !tenant) {
         setLoading(false); // Ensure loading is false if tenant is null
         return;
       }
@@ -210,10 +210,11 @@ export default function DashboardTenant() {
     } finally {
       setLoading(false);
     }
-  }, [userTenantLoading, profile, tenant]); // Dependency on tenant object itself
+  }, [userTenantLoading, profile, tenant]); // Dependencies for useCallback
 
   useEffect(() => {
-    if (!userTenantLoading && profile) { // Removed tenant?.id from here
+    // Apenas chama loadDashboard se não estiver carregando o perfil/tenant e o perfil existir
+    if (!userTenantLoading && profile) {
       loadDashboard();
     }
     const handleVisibilityChange = () => {
@@ -226,7 +227,7 @@ export default function DashboardTenant() {
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [profile, userTenantLoading, loadDashboard]);
+  }, [profile, userTenantLoading, loadDashboard]); // Dependências do useEffect
 
   useEffect(() => {
     if (!tenant?.id) return;
