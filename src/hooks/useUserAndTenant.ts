@@ -103,7 +103,9 @@ export function useUserAndTenant() {
       };
 
       setProfile(prevProfile => {
-        if (JSON.stringify(prevProfile) === JSON.stringify(finalProfile)) {
+        const areEqual = JSON.stringify(prevProfile) === JSON.stringify(finalProfile);
+        console.log("useUserAndTenant: [setProfile] Comparando prevProfile vs finalProfile:", { prev: prevProfile, new: finalProfile, areEqual });
+        if (areEqual) {
           console.log("useUserAndTenant: [setProfile] Perfil inalterado, evitando re-render.");
           return prevProfile;
         }
@@ -124,7 +126,9 @@ export function useUserAndTenant() {
           console.error("useUserAndTenant: [refreshProfile] Erro ao buscar entrada de profissional:", profEntryError);
         } else if (professionalEntry) {
           setProfessionalId(prevId => {
-            if (prevId === professionalEntry.id) {
+            const areEqual = prevId === professionalEntry.id;
+            console.log("useUserAndTenant: [setProfessionalId] Comparando prevId vs professionalEntry.id:", { prev: prevId, new: professionalEntry.id, areEqual });
+            if (areEqual) {
               console.log("useUserAndTenant: [setProfessionalId] ID do profissional inalterado, evitando re-render.");
               return prevId;
             }
@@ -171,7 +175,9 @@ export function useUserAndTenant() {
       }
 
       setTenant(prevTenant => {
-        if (JSON.stringify(prevTenant) === JSON.stringify(tData)) {
+        const areEqual = JSON.stringify(prevTenant) === JSON.stringify(tData);
+        console.log("useUserAndTenant: [setTenant] Comparando prevTenant vs tData:", { prev: prevTenant, new: tData, areEqual });
+        if (areEqual) {
           console.log("useUserAndTenant: [setTenant] Tenant inalterado, evitando re-render.");
           return prevTenant;
         }
@@ -187,7 +193,9 @@ export function useUserAndTenant() {
         .maybeSingle();
 
       setSubscription((prevSub: any | null) => {
-        if (JSON.stringify(prevSub) === JSON.stringify(sub)) {
+        const areEqual = JSON.stringify(prevSub) === JSON.stringify(sub);
+        console.log("useUserAndTenant: [setSubscription] Comparando prevSub vs sub:", { prev: prevSub, new: sub, areEqual });
+        if (areEqual) {
           console.log("useUserAndTenant: [setSubscription] Assinatura inalterada, evitando re-render.");
           return prevSub;
         }
@@ -204,7 +212,9 @@ export function useUserAndTenant() {
           .maybeSingle();
 
         setPlan((prevPlan: any | null) => {
-          if (JSON.stringify(prevPlan) === JSON.stringify(planData)) {
+          const areEqual = JSON.stringify(prevPlan) === JSON.stringify(planData);
+          console.log("useUserAndTenant: [setPlan] Comparando prevPlan vs planData:", { prev: prevPlan, new: planData, areEqual });
+          if (areEqual) {
             console.log("useUserAndTenant: [setPlan] Plano inalterado, evitando re-render.");
             return prevPlan;
           }
@@ -219,7 +229,9 @@ export function useUserAndTenant() {
 
         const newFeatures = (feats ?? []).filter((f) => f.enabled).map((f) => f.feature_key);
         setFeatures(prevFeatures => {
-          if (JSON.stringify(prevFeatures) === JSON.stringify(newFeatures)) {
+          const areEqual = JSON.stringify(prevFeatures) === JSON.stringify(newFeatures);
+          console.log("useUserAndTenant: [setFeatures] Comparando prevFeatures vs newFeatures:", { prev: prevFeatures, new: newFeatures, areEqual });
+          if (areEqual) {
             console.log("useUserAndTenant: [setFeatures] Features inalteradas, evitando re-render.");
             return prevFeatures;
           }
@@ -241,7 +253,9 @@ export function useUserAndTenant() {
 
       const newPermissions = (perms ?? []).filter((p) => p.allowed).map((p) => p.permission_key);
       setPermissions(prevPermissions => {
-        if (JSON.stringify(prevPermissions) === JSON.stringify(newPermissions)) {
+        const areEqual = JSON.stringify(prevPermissions) === JSON.stringify(newPermissions);
+        console.log("useUserAndTenant: [setPermissions] Comparando prevPermissions vs newPermissions:", { prev: prevPermissions, new: newPermissions, areEqual });
+        if (areEqual) {
           console.log("useUserAndTenant: [setPermissions] Permissões inalteradas, evitando re-render.");
           return prevPermissions;
         }
