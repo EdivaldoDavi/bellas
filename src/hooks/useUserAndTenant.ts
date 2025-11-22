@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react"; // Importar useMemo
 import { supabase } from "../lib/supabaseCleint";
 import { useAuth } from "../context/AuthProvider"; // Import useAuth
 
@@ -12,6 +12,7 @@ export type Profile = {
   full_name: string;
   avatar_url: string | null;
   tenant_id: string | null;
+  professional_id: string | null; // Adicionado para refletir o objeto retornado pelo hook
 };
 
 export type Tenant = {
@@ -34,15 +35,15 @@ export function useUserAndTenant() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<Omit<Profile, 'professional_id'> | null>(null); // Tipo base do perfil sem professional_id
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [subscription, setSubscription] = useState<any>(null);
   const [plan, setPlan] = useState<any>(null);
   const [features, setFeatures] = useState<string[]>([]);
   const [permissions, setPermissions] = useState<string[]>([]);
 
-  // 🔥 NOVO: Estado separado para professional_id, não parte do Profile
-  const [professionalId, setProfessionalId] = useState<string | null>(null);
+  // Estado separado para professional_id
+  const [internalProfessionalId, setInternalProfessionalId] = useState<string | null>(null);
 
 
   /* ============================================================
@@ -56,7 +57,7 @@ export function useUserAndTenant() {
     setPlan(null);
     setFeatures([]);
     setPermissions([]);
-    setProfessionalId(null); // Limpa também o professionalId
+    setInternalProfessionalId(null); // Limpa também o professionalId
   }, []);
 
   /* ============================================================
@@ -66,7 +67,7 @@ export function useUserAndTenant() {
     console.log("useUserAndTenant: [refreshProfile] Função chamada.");
     setLoading(true);
     setError(null);
-    setProfessionalId(null); // Limpa antes de tentar carregar
+    setInternalProfessionalId(null); // Limpa antes de tentar carregar
 
     try {
       const currentUser = authUser;
@@ -93,7 +94,7 @@ export function useUserAndTenant() {
         return;
       }
 
-      const finalProfile: Profile = {
+      const baseProfile: Omit<Profile, 'professional_id'> = {
         user_id: currentUser.id,
         email: currentUser.email,
         role: pData.role,
@@ -103,49 +104,49 @@ export function useUserAndTenant() {
       };
 
       setProfile(prevProfile => {
-        const areEqual = JSON.stringify(prevProfile) === JSON.stringify(finalProfile);
-        console.log("useUserAndTenant: [setProfile] Comparando prevProfile vs finalProfile:", { prev: prevProfile, new: finalProfile, areEqual });
+        const areEqual = JSON.stringify(prevProfile) === JSON.stringify(baseProfile);
+        console.log("useUserAndTenant: [setProfile] Comparando prevProfile vs baseProfile:", { prev: prevProfile, new: baseProfile, areEqual });
         if (areEqual) {
           console.log("useUserAndTenant: [setProfile] Perfil inalterado, evitando re-render.");
           return prevProfile;
         }
-        console.log("useUserAndTenant: [setProfile] Atualizando perfil para:", finalProfile);
-        return finalProfile;
+        console.log("useUserAndTenant: [setProfile] Atualizando perfil para:", baseProfile);
+        return baseProfile;
       });
 
-      // PROFESSIONAL ID
-      if (finalProfile.role === "professional" && finalProfile.tenant_id) {
+      // PROFESSIONAL ID (buscado da tabela 'professionals')
+      if (baseProfile.role === "professional" && baseProfile.tenant_id) {
         const { data: professionalEntry, error: profEntryError } = await supabase
           .from("professionals")
           .select("id")
           .eq("user_id", currentUser.id)
-          .eq("tenant_id", finalProfile.tenant_id)
+          .eq("tenant_id", baseProfile.tenant_id)
           .maybeSingle();
 
         if (profEntryError) {
           console.error("useUserAndTenant: [refreshProfile] Erro ao buscar entrada de profissional:", profEntryError);
         } else if (professionalEntry) {
-          setProfessionalId(prevId => {
+          setInternalProfessionalId(prevId => {
             const areEqual = prevId === professionalEntry.id;
-            console.log("useUserAndTenant: [setProfessionalId] Comparando prevId vs professionalEntry.id:", { prev: prevId, new: professionalEntry.id, areEqual });
+            console.log("useUserAndTenant: [setInternalProfessionalId] Comparando prevId vs professionalEntry.id:", { prev: prevId, new: professionalEntry.id, areEqual });
             if (areEqual) {
-              console.log("useUserAndTenant: [setProfessionalId] ID do profissional inalterado, evitando re-render.");
+              console.log("useUserAndTenant: [setInternalProfessionalId] ID do profissional inalterado, evitando re-render.");
               return prevId;
             }
-            console.log("useUserAndTenant: [setProfessionalId] Atualizando professionalId para:", professionalEntry.id);
+            console.log("useUserAndTenant: [setInternalProfessionalId] Atualizando internalProfessionalId para:", professionalEntry.id);
             return professionalEntry.id;
           });
         } else {
-          setProfessionalId(null);
-          console.log("useUserAndTenant: [setProfessionalId] Nenhum professionalId encontrado, definindo como null.");
+          setInternalProfessionalId(null);
+          console.log("useUserAndTenant: [setInternalProfessionalId] Nenhum professionalId encontrado, definindo como null.");
         }
       } else {
-        setProfessionalId(null);
-        console.log("useUserAndTenant: [setProfessionalId] Não é profissional ou sem tenant, definindo como null.");
+        setInternalProfessionalId(null);
+        console.log("useUserAndTenant: [setInternalProfessionalId] Não é profissional ou sem tenant, definindo como null.");
       }
 
       // SEM TENANT_ID NO PERFIL
-      if (!finalProfile.tenant_id) {
+      if (!baseProfile.tenant_id) {
         console.log("useUserAndTenant: [refreshProfile] Perfil sem tenant_id, limpando estados relacionados ao tenant.");
         setTenant(null);
         setSubscription(null);
@@ -159,13 +160,13 @@ export function useUserAndTenant() {
       const { data: tData, error: tErr } = await supabase
         .from("tenants")
         .select("*")
-        .eq("id", finalProfile.tenant_id)
+        .eq("id", baseProfile.tenant_id)
         .maybeSingle();
 
       if (tErr) throw tErr;
 
       if (!tData) {
-        console.warn(`useUserAndTenant: [refreshProfile] Tenant com ID ${finalProfile.tenant_id} não encontrado ou inacessível. Limpando dados do tenant.`);
+        console.warn(`useUserAndTenant: [refreshProfile] Tenant com ID ${baseProfile.tenant_id} não encontrado ou inacessível. Limpando dados do tenant.`);
         setTenant(null);
         setSubscription(null);
         setPlan(null);
@@ -248,7 +249,7 @@ export function useUserAndTenant() {
       const { data: perms } = await supabase
         .from("permissions")
         .select("permission_key, allowed")
-        .eq("tenant_id", finalProfile.tenant_id)
+        .eq("tenant_id", baseProfile.tenant_id)
         .eq("user_id", currentUser.id);
 
       const newPermissions = (perms ?? []).filter((p) => p.allowed).map((p) => p.permission_key);
@@ -293,11 +294,17 @@ export function useUserAndTenant() {
     (profile.role === "owner" || profile.role === "manager" || profile.role === "professional") &&
     window.location.pathname !== "/force-reset";
 
+  // Memoizar o objeto profile retornado para garantir estabilidade de referência
+  const memoizedProfile = useMemo(() => {
+    if (!profile) return null;
+    return { ...profile, professional_id: internalProfessionalId };
+  }, [profile, internalProfessionalId]);
+
   return {
     loading,
     error,
     user: authUser,
-    profile: profile ? { ...profile, professional_id: professionalId } : null,
+    profile: memoizedProfile, // Usar o objeto memoizado aqui
     tenant,
     subscription,
     plan,

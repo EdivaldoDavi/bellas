@@ -4,15 +4,15 @@ import {
   type ReactNode,
   useMemo,
 } from "react";
-import { useUserAndTenant } from "../hooks/useUserAndTenant";
+import { useUserAndTenant, type Profile, type Tenant } from "../hooks/useUserAndTenant"; // Importar Profile e Tenant
 
 /* ============================================================
    📌 Tipagem do Contexto Global
 ============================================================ */
 export interface UserTenantContextType {
   user: any;                          // tipado pelo Supabase (via useUserAndTenant)
-  profile: any;
-  tenant: any;
+  profile: Profile | null;            // Usar o tipo Profile atualizado
+  tenant: Tenant | null;              // Usar o tipo Tenant
   subscription: any;
   plan: any;
   features: string[];
