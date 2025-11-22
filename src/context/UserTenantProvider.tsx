@@ -5,13 +5,12 @@ import {
   useMemo,
 } from "react";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
-import type { User } from "@supabase/supabase-js"; // Import User type
 
 /* ============================================================
    📌 Tipagem do Contexto Global
 ============================================================ */
 export interface UserTenantContextType {
-  user: User | null; // Use Supabase User type
+  user: any;                          // tipado pelo Supabase (via useUserAndTenant)
   profile: any;
   tenant: any;
   subscription: any;
@@ -19,7 +18,7 @@ export interface UserTenantContextType {
   features: string[];
   permissions: string[];
   loading: boolean;
-  needsSetup: boolean;
+  needsSetup: boolean | null;         // CORRIGIDO ✔
 
   refreshProfile: () => Promise<void>;
   refreshTenant: () => Promise<void>;
@@ -36,7 +35,7 @@ const UserTenantContext = createContext<UserTenantContextType | null>(null);
 ============================================================ */
 export function UserTenantProvider({ children }: { children: ReactNode }) {
   const {
-    user, // This `user` now comes from `useUserAndTenant` which gets it from `useAuth`
+    user,
     profile,
     tenant,
     subscription,
@@ -45,26 +44,25 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
     permissions,
     loading,
     needsSetup,
-    refreshProfile, // This is the function returned by useUserAndTenant
+    refreshProfile,
   } = useUserAndTenant();
 
   /* ============================================================
-     1️⃣ refreshTenant — recarrega somente o tenant
-     (simplesmente chamamos refreshProfile, ele recarrega tenant também)
+      Recarrega apenas o tenant
   ============================================================ */
   const refreshTenant = async () => {
     await refreshProfile();
   };
 
   /* ============================================================
-     2️⃣ reloadAll — recarrega tudo em ordem
+      Recarrega tudo
   ============================================================ */
   const reloadAll = async () => {
     await refreshProfile();
   };
 
   /* ============================================================
-     Memo do valor exposto
+      Memo — evita recriação desnecessária
   ============================================================ */
   const value = useMemo<UserTenantContextType>(
     () => ({
@@ -76,9 +74,11 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
       features,
       permissions,
       loading,
+
+      // needsSetup pode vir como boolean | null → mantemos assim
       needsSetup,
 
-      refreshProfile, // Directly use the function from the hook
+      refreshProfile,
       refreshTenant,
       reloadAll,
     }),
@@ -92,7 +92,7 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
       permissions,
       loading,
       needsSetup,
-      refreshProfile, // Add refreshProfile to dependencies
+      refreshProfile,
     ]
   );
 
@@ -104,14 +104,12 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
 }
 
 /* ============================================================
-   📌 Hook de Acesso
+   📌 Hook de Acesso ao Contexto
 ============================================================ */
 export function useUserTenant() {
   const ctx = useContext(UserTenantContext);
   if (!ctx) {
-    throw new Error(
-      "useUserTenant deve ser usado dentro de <UserTenantProvider>"
-    );
+    throw new Error("useUserTenant deve ser usado dentro de <UserTenantProvider>");
   }
   return ctx;
 }
