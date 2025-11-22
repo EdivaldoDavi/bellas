@@ -180,7 +180,7 @@ export function useUserAndTenant() {
         .eq("tenant_id", tData?.id)
         .maybeSingle();
 
-      setSubscription(prevSub => {
+      setSubscription((prevSub: any | null) => { // Explicitly type prevSub
         if (JSON.stringify(prevSub) === JSON.stringify(sub)) {
           return prevSub;
         }
@@ -196,7 +196,7 @@ export function useUserAndTenant() {
           .eq("id", tData.plan_id)
           .maybeSingle();
 
-        setPlan(prevPlan => {
+        setPlan((prevPlan: any | null) => { // Explicitly type prevPlan
           if (JSON.stringify(prevPlan) === JSON.stringify(planData)) {
             return prevPlan;
           }
