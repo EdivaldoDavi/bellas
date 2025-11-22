@@ -1,6 +1,7 @@
-// src/hooks/useUserAndTenant.ts
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../lib/supabaseCleint";
+import { useAuth } from "../context/AuthProvider"; // Import useAuth
+import type { User } from "@supabase/supabase-js"; // Import User type
 
 /* ============================================================
    📌 Tipos
@@ -29,13 +30,14 @@ export type Tenant = {
    📌 Hook principal
 ============================================================ */
 export function useUserAndTenant() {
+  const { user: authUser, loading: authLoading } = useAuth(); // Get user from AuthProvider
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [user, setUser] = useState<any>(null);
+  // Remove local user state, it will come from useAuth
   const [profile, setProfile] = useState<Profile | null>(null);
   const [tenant, setTenant] = useState<Tenant | null>(null);
-
   const [subscription, setSubscription] = useState<any>(null);
   const [plan, setPlan] = useState<any>(null);
   const [features, setFeatures] = useState<string[]>([]);
@@ -45,7 +47,6 @@ export function useUserAndTenant() {
      🧹 Limpa tudo
   ============================================================ */
   const clearAll = useCallback(() => {
-    setUser(null);
     setProfile(null);
     setTenant(null);
     setSubscription(null);
@@ -57,16 +58,13 @@ export function useUserAndTenant() {
   /* ============================================================
      🔥 Recarregar Profile + Tenant
   ============================================================ */
-  const reloadProfile = useCallback(async () => {
+  const refreshProfile = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const { data: sess, error: sessErr } = await supabase.auth.getSession();
-      if (sessErr) throw sessErr;
-
-      const currentUser = sess.session?.user ?? null;
-      setUser(currentUser);
+      // Use authUser directly from AuthProvider
+      const currentUser = authUser;
 
       if (!currentUser) {
         clearAll();
@@ -89,7 +87,7 @@ export function useUserAndTenant() {
 
       const finalProfile: Profile = {
         user_id: currentUser.id,
-        email: currentUser.email,
+        email: currentUser.email, // Get email from currentUser
         role: pData.role,
         full_name: pData.full_name,
         avatar_url: pData.avatar_url,
@@ -101,6 +99,10 @@ export function useUserAndTenant() {
       // SEM TENANT → somente owners/managers podem ir para setup
       if (!finalProfile.tenant_id) {
         setTenant(null);
+        setSubscription(null);
+        setPlan(null);
+        setFeatures([]);
+        setPermissions([]);
         return;
       }
 
@@ -164,46 +166,24 @@ export function useUserAndTenant() {
     } finally {
       setLoading(false);
     }
-  }, [clearAll]);
+  }, [clearAll, authUser]); // Dependency on authUser
 
-  /* 🔹 Load inicial */
+  // 🔹 Load inicial (now depends on authUser and authLoading)
   useEffect(() => {
-    reloadProfile();
-  }, [reloadProfile]);
+    // Only trigger refreshProfile when authUser changes and AuthProvider is done loading
+    if (!authLoading) {
+      refreshProfile();
+    }
+  }, [authUser, authLoading, refreshProfile]); // Add authUser and authLoading to dependencies
 
-  /* ============================================================
-     🔥 Listener de auth corrigido
-     (mesma proteção usada no AuthProvider)
-     ============================================================ */
-
-  let lastEvent = 0;
-
-  useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(( _session) => {
-      // Não recarregar quando a aba está oculta
-      if (document.visibilityState === "hidden") return;
-
-      // Debounce (evita SIGNED_IN duplicado ao trocar de aba)
-      const now = Date.now();
-      if (now - lastEvent < 1200) return;
-      lastEvent = now;
-
-      reloadProfile();
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [reloadProfile]);
+  // Remove the onAuthStateChange listener from here, as it's now handled by AuthProvider
 
   /* ============================================================
      🎯 needsSetup — owner/manager sem tenant e sem force-reset
   ============================================================ */
   const needsSetup =
     !loading &&
-    user &&
+    authUser && // Use authUser here
     profile &&
     !tenant &&
     (profile.role === "owner" || profile.role === "manager") &&
@@ -212,7 +192,7 @@ export function useUserAndTenant() {
   return {
     loading,
     error,
-    user,
+    user: authUser, // Expose authUser from AuthProvider
     profile,
     tenant,
     subscription,
@@ -220,6 +200,8 @@ export function useUserAndTenant() {
     features,
     permissions,
     needsSetup,
-    reloadProfile,
+    refreshProfile,
+    refreshTenant: refreshProfile, // refreshTenant can also call refreshProfile
+    reloadAll: refreshProfile, // reloadAll can also call refreshProfile
   };
 }

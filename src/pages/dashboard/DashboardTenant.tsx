@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react"; // Adicionado useCallback
 
 import "react-loading-skeleton/dist/skeleton.css";
-import { supabase, getCurrentProfile } from "../../lib/supabaseCleint";
+import { supabase } from "../../lib/supabaseCleint";
 import { useUserAndTenant } from "../../hooks/useUserAndTenant";
 import styles from "./DashboardTenant.module.css";
 
@@ -18,7 +18,11 @@ interface Appointment {
   status: "scheduled" | "done" | "canceled" | "no_show";
 }
 
-
+// Função auxiliar movida para antes do componente principal
+function formatHour(iso: string) {
+  const d = new Date(iso);
+  return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
 
 const REVENUE_GOAL_CENTS = 1_500_000; // 15.000
 const APPTS_GOAL = 200;
@@ -32,10 +36,10 @@ const THEME_PRIMARY: Record<string, string> = {
 };
 
 export default function DashboardTenant() {
-  const { tenant } = useUserAndTenant();
+  const { tenant, profile, loading: userTenantLoading } = useUserAndTenant();
 
-  const [_, setLoading] = useState(true);
-    const [__, setGreetingName] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [greetingName, setGreetingName] = useState("");
   const [role, setRole] = useState<string>("manager");
 
   const [appointmentsToday, setAppointmentsToday] = useState(0);
@@ -58,22 +62,20 @@ export default function DashboardTenant() {
     return Math.min(100, Math.round(pct));
   }, [appointmentsToday]);
 
-
-useEffect(() => {
   // ==============================
-  // Função global reutilizável
+  // Função global reutilizável, agora memoizada com useCallback
   // ==============================
-  async function loadDashboard() {
+  const loadDashboard = useCallback(async () => {
     try {
       setLoading(true);
-      const profile = await getCurrentProfile();
-      if (!profile) return;
+      // Usar o profile do contexto, não buscar novamente
+      if (userTenantLoading || !profile) return;
 
       setRole(profile.role);
       setGreetingName(profile.full_name || "Usuário");
 
       const tenantId: UUID = profile.tenant_id;
-      const professionalId: UUID | null = profile.professional_id || null;
+      const professionalId: UUID | null = profile.user_id || null; // Usar user_id como professional_id se aplicável
 
       const now = new Date();
       const todayISO = now.toISOString().slice(0, 10);
@@ -169,57 +171,48 @@ useEffect(() => {
     } finally {
       setLoading(false);
     }
-  }
+  }, [userTenantLoading, profile, tenant?.id]); // Dependências para useCallback
 
-  // 🔁 Carrega inicialmente
-  loadDashboard();
-
-  // 👇 Atualiza automaticamente ao voltar para a aba
-  const handleVisibilityChange = () => {
-    if (document.visibilityState === "visible") {
+  // 🔁 Carrega inicialmente e quando o perfil/tenant muda
+  useEffect(() => {
+    if (!userTenantLoading && profile && tenant?.id) {
       loadDashboard();
     }
-  };
-  document.addEventListener("visibilitychange", handleVisibilityChange);
-
-  // 👇 Atualiza automaticamente quando há UPDATE no Supabase
-  const channel = supabase
-    .channel("appointments-changes")
-    .on(
-      "postgres_changes",
-      { event: "UPDATE", schema: "public", table: "appointments" },
-      (payload) => {
-        console.log("🟢 Atualização recebida:", payload);
-        loadDashboard(); // ✅ agora recarrega automaticamente
+    // 👇 Atualiza automaticamente ao voltar para a aba
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        loadDashboard();
       }
-    )
-    .subscribe();
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
-  // cleanup
-  return () => {
-    document.removeEventListener("visibilitychange", handleVisibilityChange);
-    supabase.removeChannel(channel);
-  };
-}, []);
+    // cleanup
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [profile, userTenantLoading, tenant?.id, loadDashboard]); // Adicionado loadDashboard como dependência
 
-useEffect(() => {
-  const channel = supabase
-    .channel("appointments-changes")
-    .on(
-      "postgres_changes",
-      { event: "UPDATE", schema: "public", table: "appointments" },
-      (payload) => {
-        console.log("🟢 Atualização recebida:", payload);
-        // Recarrega dados
-    
-      }
-    )
-    .subscribe();
+  useEffect(() => {
+    // 👇 Atualiza automaticamente quando há UPDATE no Supabase
+    if (!tenant?.id) return; // Não subscreve se não houver tenantId
 
-  return () => {
-    supabase.removeChannel(channel);
-  };
-}, []);
+    const channel = supabase
+      .channel(`appointments-changes-${tenant.id}`) // Canal específico para o tenant
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "appointments" },
+        (payload) => {
+          console.log("🟢 Atualização recebida:", payload);
+          loadDashboard(); // ✅ agora recarrega automaticamente
+        }
+      )
+      .subscribe();
+
+    // cleanup
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [tenant?.id, loadDashboard]); // Depende do tenant.id e loadDashboard para recriar o canal se o tenant mudar
 
   // ====================================================
   // === GERENTE ========================================
@@ -441,9 +434,4 @@ todaysAppointments.map((item) => (
   }
 
   return null;
-}
-
-function formatHour(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }

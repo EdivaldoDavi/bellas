@@ -1,4 +1,3 @@
-// src/context/UserTenantProvider.tsx
 import {
   createContext,
   useContext,
@@ -6,12 +5,13 @@ import {
   useMemo,
 } from "react";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
+import type { User } from "@supabase/supabase-js"; // Import User type
 
 /* ============================================================
    📌 Tipagem do Contexto Global
 ============================================================ */
 export interface UserTenantContextType {
-  user: any;
+  user: User | null; // Use Supabase User type
   profile: any;
   tenant: any;
   subscription: any;
@@ -36,7 +36,7 @@ const UserTenantContext = createContext<UserTenantContextType | null>(null);
 ============================================================ */
 export function UserTenantProvider({ children }: { children: ReactNode }) {
   const {
-    user,
+    user, // This `user` now comes from `useUserAndTenant` which gets it from `useAuth`
     profile,
     tenant,
     subscription,
@@ -45,22 +45,22 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
     permissions,
     loading,
     needsSetup,
-    reloadProfile,
+    refreshProfile, // This is the function returned by useUserAndTenant
   } = useUserAndTenant();
 
   /* ============================================================
      1️⃣ refreshTenant — recarrega somente o tenant
-     (simplesmente chamamos reloadProfile, ele recarrega tenant também)
+     (simplesmente chamamos refreshProfile, ele recarrega tenant também)
   ============================================================ */
   const refreshTenant = async () => {
-    await reloadProfile();
+    await refreshProfile();
   };
 
   /* ============================================================
      2️⃣ reloadAll — recarrega tudo em ordem
   ============================================================ */
   const reloadAll = async () => {
-    await reloadProfile();
+    await refreshProfile();
   };
 
   /* ============================================================
@@ -78,7 +78,7 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
       loading,
       needsSetup,
 
-      refreshProfile: reloadProfile,
+      refreshProfile, // Directly use the function from the hook
       refreshTenant,
       reloadAll,
     }),
@@ -92,7 +92,7 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
       permissions,
       loading,
       needsSetup,
-      reloadProfile,
+      refreshProfile, // Add refreshProfile to dependencies
     ]
   );
 
