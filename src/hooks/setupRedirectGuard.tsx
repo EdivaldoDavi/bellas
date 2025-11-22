@@ -8,6 +8,8 @@ export function SetupRedirectGuard({ children }: { children: React.ReactNode }) 
   const { loading: authLoading } = useAuth();
   const location = useLocation();
 
+  const isSetupPage = location.pathname === "/setup";
+
   // 🔥 Nunca interceptar force-reset
   if (location.pathname === "/force-reset") {
     return <>{children}</>;
@@ -18,16 +20,21 @@ export function SetupRedirectGuard({ children }: { children: React.ReactNode }) 
     return <>{children}</>;
   }
 
+  // 🚫 IMPORTANTE:
+  // Enquanto estiver carregando, NÃO desmonta a tela atual.
+  // Isso evita o "refresh" visual ao voltar para a aba.
   if (loading || authLoading) {
-    return <div className="p-5 text-center">Carregando...</div>;
+    return <>{children}</>;
   }
 
-  const isSetupPage = location.pathname === "/setup";
+  // Agora, só faz redirect quando temos estado estável (sem loading)
 
+  // Precisa fazer setup e não está na página de setup -> manda pro /setup
   if (needsSetup && !isSetupPage) {
     return <Navigate to="/setup" replace />;
   }
 
+  // Não precisa mais de setup e está em /setup -> manda pro /dashboard
   if (!needsSetup && isSetupPage) {
     return <Navigate to="/dashboard" replace />;
   }
