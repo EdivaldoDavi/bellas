@@ -24,7 +24,8 @@ function getPasswordStrength(pwd: string) {
 }
 
 export default function PerfilPage() {
-  const { profile, reloadProfile } = useUserAndTenant();
+const { profile, refreshProfile } = useUserAndTenant();
+
 
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
@@ -117,7 +118,7 @@ export default function PerfilPage() {
     if (updateError) throw updateError;
 
     toast.success("Avatar atualizado com sucesso!");
-    reloadProfile();
+   refreshProfile();
 
   } catch (err: any) {
     console.error("Erro ao enviar avatar:", err);
@@ -151,7 +152,8 @@ export default function PerfilPage() {
       if (upd2) throw upd2;
 
       toast.success("Perfil atualizado com sucesso!");
-      reloadProfile();
+    refreshProfile();
+
     } catch (err: any) {
       toast.error("Erro ao salvar: " + err.message);
     } finally {

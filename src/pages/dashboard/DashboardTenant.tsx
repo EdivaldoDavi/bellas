@@ -72,10 +72,16 @@ export default function DashboardTenant() {
       // Usar o profile do contexto, não buscar novamente
       if (userTenantLoading || !profile) return;
 
-      setRole(profile.role);
-      setGreetingName(profile.full_name || "Usuário");
+    setRole(profile.role ?? "manager");
 
-      const tenantId: UUID = profile.tenant_id;
+    const safeName = typeof profile.full_name === "string" && profile.full_name.trim() !== ""
+  ? profile.full_name
+  : "Usuário";
+
+setGreetingName(safeName);
+     if (!profile.tenant_id) return;
+const tenantId: UUID = profile.tenant_id;
+
       const professionalId: UUID | null = profile.user_id || null; // Usar user_id como professional_id se aplicável
 
       const now = new Date();
