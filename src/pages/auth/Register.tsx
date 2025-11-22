@@ -6,11 +6,25 @@ import { Link } from "react-router-dom";
 import { useTheme } from "../../hooks/useTheme";
 import { useBrandColor } from "../../hooks/useBrandColor";
 import styles from "../../css/Register.module.css"
+import { toast } from "react-toastify"; // Importar toast para mensagens
+
+/* -------------------------------------------------------------
+   🔐 Função geradora de senha segura (reutilizada de ModalNewUser)
+------------------------------------------------------------- */
+function gerarSenhaTemporaria() {
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+";
+  let password = "";
+  for (let i = 0; i < 12; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return password;
+}
 
 export default function Register() {
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
-  const [password, setPassword] = useState("");
+  // Senha não é mais pedida ao usuário, será gerada
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -39,41 +53,59 @@ export default function Register() {
   /* ============================================================
      Registrar
   ============================================================ */
-const handleRegister = async () => {
-  setLoading(true);
-  setMessage("");
+  const handleRegister = async () => {
+    setLoading(true);
+    setMessage("");
 
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: { full_name: fullName },
-    },
-  });
+    if (!fullName.trim()) {
+      toast.warn("Por favor, insira seu nome completo.");
+      setLoading(false);
+      return;
+    }
+    if (!email.trim()) {
+      toast.warn("Por favor, insira seu e-mail.");
+      setLoading(false);
+      return;
+    }
 
-  setLoading(false);
+    const tempPassword = gerarSenhaTemporaria(); // Gerar senha temporária
 
-  // ❌ Erro técnico
-  if (error) {
-    setMessage(error.message);
-    return;
-  }
+    const { data, error } = await supabase.auth.signUp({
+      email: email.trim(),
+      password: tempPassword, // Usar a senha temporária
+      options: {
+        emailRedirectTo: `${window.location.origin}/force-reset`, // Redirecionar para force-reset
+        data: { full_name: fullName.trim() },
+      },
+    });
 
-  // ❗ Detecta e-mail já registrado (caso existente no Supabase)
-  if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
-    setMessage("Este e-mail já está cadastrado. Por favor, faça login.");
-    return;
-  }
+    setLoading(false);
 
-  // ❗ Detecta e-mail existente e não confirmado
-  if (!data.user) {
-    setMessage("Este e-mail já está cadastrado. Por favor, faça login.");
-    return;
-  }
+    // ❌ Erro técnico
+    if (error) {
+      setMessage(error.message);
+      toast.error(error.message);
+      return;
+    }
 
-  // ✔ Novo usuário criado (mesmo que ainda precise confirmar)
-  setMessage("Cadastro criado! Verifique seu e-mail para confirmar.");
-};
+    // ❗ Detecta e-mail já registrado (caso existente no Supabase)
+    if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+      setMessage("Este e-mail já está cadastrado. Por favor, faça login.");
+      toast.info("Este e-mail já está cadastrado. Por favor, faça login.");
+      return;
+    }
+
+    // ❗ Detecta e-mail existente e não confirmado
+    if (!data.user) {
+      setMessage("Este e-mail já está cadastrado. Por favor, faça login.");
+      toast.info("Este e-mail já está cadastrado. Por favor, faça login.");
+      return;
+    }
+
+    // ✔ Novo usuário criado (mesmo que ainda precise confirmar)
+    setMessage("Cadastro criado! Verifique seu e-mail para definir sua senha.");
+    toast.success("Cadastro criado! Verifique seu e-mail para definir sua senha.");
+  };
 
   return (
     <div className={`${styles.wrap} ${theme === "dark" ? styles.dark : ""}`}>
@@ -89,6 +121,7 @@ const handleRegister = async () => {
           className={styles.input}
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
+          disabled={loading}
         />
 
         <input
@@ -97,18 +130,13 @@ const handleRegister = async () => {
           className={styles.input}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          disabled={loading}
         />
 
-        <input
-          type="password"
-          placeholder="Senha"
-          className={styles.input}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        {/* O campo de senha foi removido */}
 
         <button
-          disabled={loading}
+          disabled={loading || !email.trim() || !fullName.trim()}
           onClick={handleRegister}
           className={styles.button}
         >
