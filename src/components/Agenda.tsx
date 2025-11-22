@@ -50,6 +50,9 @@ export default function Agenda() {
   const tenantId = profile?.tenant_id ?? null;
   const role = profile?.role ?? null;
 
+  // 🔥 NOVO: Usa o professional_id do perfil se o usuário for um profissional
+  const loggedInProfessionalId = profile?.role === "professional" ? profile.professional_id : null;
+
   /* DATA */
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,7 +69,8 @@ export default function Agenda() {
   const [showNewProfessional, setShowNewProfessional] = useState(false);
 
   /* CAMPOS PARA DATAS DISPONÍVEIS */
-  const [professionalId, setProfessionalId] = useState("");
+  // 🔥 NOVO: Inicializa professionalId com o ID do profissional logado, se houver
+  const [professionalId, setProfessionalId] = useState(loggedInProfessionalId || "");
   const [serviceId, setServiceId] = useState("");
   const [ ,setSelectedDate] = useState("");
 
@@ -93,7 +97,7 @@ export default function Agenda() {
   useEffect(() => {
     if (!tenantId) return;
     fetchAppointments();
-  }, [tenantId, currentDate]);
+  }, [tenantId, currentDate, loggedInProfessionalId]); // Adiciona loggedInProfessionalId como dependência
 
   async function fetchAppointments() {
     setLoading(true);
@@ -104,7 +108,7 @@ export default function Agenda() {
     const end = new Date(currentDate);
     end.setHours(23, 59, 59, 999);
 
-    const { data } = await supabase
+    let query = supabase
       .from("appointments")
       .select(
         `
@@ -118,6 +122,13 @@ export default function Agenda() {
       .gte("starts_at", start.toISOString())
       .lte("ends_at", end.toISOString())
       .order("starts_at");
+
+    // 🔥 NOVO: Filtra por professional_id se o usuário logado for um profissional
+    if (role === "professional" && loggedInProfessionalId) {
+      query = query.eq("professional_id", loggedInProfessionalId);
+    }
+
+    const { data } = await query;
 
     setAppointments(
       (data || []).map((a: any) => ({

@@ -38,8 +38,8 @@ const THEME_PRIMARY: Record<string, string> = {
 export default function DashboardTenant() {
   const { tenant, profile, loading: userTenantLoading } = useUserAndTenant();
 
-  const [ ,setLoading] = useState(true);
-  const [ ,setGreetingName] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [greetingName, setGreetingName] = useState<string>("");
 
   const [role, setRole] = useState<string>("manager");
 
@@ -70,19 +70,22 @@ export default function DashboardTenant() {
     try {
       setLoading(true);
       // Usar o profile do contexto, não buscar novamente
-      if (userTenantLoading || !profile) return;
+      if (userTenantLoading || !profile || !tenant) { // <-- Added !tenant check here
+        setLoading(false); // Ensure loading is false if tenant is null
+        return;
+      }
 
-    setRole(profile.role ?? "manager");
+      setRole(profile.role ?? "manager");
 
-    const safeName = typeof profile.full_name === "string" && profile.full_name.trim() !== ""
-  ? profile.full_name
-  : "Usuário";
+      const safeName = typeof profile.full_name === "string" && profile.full_name.trim() !== ""
+        ? profile.full_name.split(" ")[0] // Only first name for greeting
+        : "Usuário";
 
-setGreetingName(safeName);
-     if (!profile.tenant_id) return;
-const tenantId: UUID = profile.tenant_id;
+      setGreetingName(safeName);
+      const tenantId: UUID = tenant.id; // Use tenant.id directly
 
-      const professionalId: UUID | null = profile.user_id || null; // Usar user_id como professional_id se aplicável
+      // 🔥 Usar profile.professional_id aqui
+      const professionalId: UUID | null = profile.professional_id || null;
 
       const now = new Date();
       const todayISO = now.toISOString().slice(0, 10);
@@ -90,13 +93,19 @@ const tenantId: UUID = profile.tenant_id;
       const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString();
 
       // ====== AGENDAMENTOS DE HOJE ======
-      const { data: apptsTodayData } = await supabase
+      let apptsTodayQuery = supabase
         .from("appointments")
         .select("id, professional_id, service_id, customer_name, starts_at, ends_at, status")
         .eq("tenant_id", tenantId)
         .gte("starts_at", `${todayISO}T00:00:00`)
         .lte("starts_at", `${todayISO}T23:59:59`)
         .order("starts_at");
+
+      if (profile.role === "professional" && professionalId) {
+        apptsTodayQuery = apptsTodayQuery.eq("professional_id", professionalId);
+      }
+
+      const { data: apptsTodayData } = await apptsTodayQuery;
 
       const apptsToday = (apptsTodayData || []) as Appointment[];
       setAppointmentsToday(apptsToday.length);
@@ -130,13 +139,19 @@ const tenantId: UUID = profile.tenant_id;
       );
 
       // ====== FATURAMENTO DO MÊS ======
-      const { data: monthDone } = await supabase
+      let monthDoneQuery = supabase
         .from("appointments")
         .select("professional_id, service_id")
         .eq("tenant_id", tenantId)
         .eq("status", "done")
         .gte("starts_at", monthStart)
         .lt("starts_at", nextMonth);
+
+      if (profile.role === "professional" && professionalId) {
+        monthDoneQuery = monthDoneQuery.eq("professional_id", professionalId);
+      }
+
+      const { data: monthDone } = await monthDoneQuery;
 
       const done = (monthDone || []) as { professional_id: UUID; service_id: UUID }[];
       setDoneThisMonth(done.length);
@@ -154,38 +169,53 @@ const tenantId: UUID = profile.tenant_id;
       );
       setRevenueThisMonth(totalCents / 100);
 
-      // ranking
-      const byProf = new Map<string, number>();
-      done.forEach((d) => {
-        const prev = byProf.get(d.professional_id) || 0;
-        byProf.set(d.professional_id, prev + (svcMonthMap.get(d.service_id) || 0));
-      });
+      // ranking (only for manager, or if professional wants to see their rank)
+      if (profile.role === "manager" || (profile.role === "professional" && professionalId)) {
+        const allDoneAppointments = await supabase
+          .from("appointments")
+          .select("professional_id, service_id")
+          .eq("tenant_id", tenantId)
+          .eq("status", "done")
+          .gte("starts_at", monthStart)
+          .lt("starts_at", nextMonth);
 
-      const top = Array.from(byProf.entries())
-        .map(([id, totalCents]) => ({
-          id,
-          name: profMap.get(id)?.name || "Profissional",
-          total: totalCents,
-        }))
-        .sort((a, b) => b.total - a.total);
+        const allServicePrices = await supabase
+          .from("services")
+          .select("id, price_cents");
 
-      setTop3(top.slice(0, 3));
+        const allSvcPriceMap = new Map((allServicePrices.data || []).map((s) => [s.id, s.price_cents]));
 
-      if (professionalId) {
-        const pos = top.findIndex((t) => t.id === professionalId);
-        setRankingPosition(pos >= 0 ? pos + 1 : null);
+        const allByProf = new Map<string, number>();
+        (allDoneAppointments.data || []).forEach((d) => {
+          const prev = allByProf.get(d.professional_id) || 0;
+          allByProf.set(d.professional_id, prev + (allSvcPriceMap.get(d.service_id) || 0));
+        });
+
+        const allTop = Array.from(allByProf.entries())
+          .map(([id, totalCents]) => ({
+            id,
+            name: profMap.get(id)?.name || "Profissional",
+            total: totalCents,
+          }))
+          .sort((a, b) => b.total - a.total);
+
+        setTop3(allTop.slice(0, 3));
+
+        if (professionalId) {
+          const pos = allTop.findIndex((t) => t.id === professionalId);
+          setRankingPosition(pos >= 0 ? pos + 1 : null);
+        }
       }
+
     } finally {
       setLoading(false);
     }
-  }, [userTenantLoading, profile, tenant?.id]); // Dependências para useCallback
+  }, [userTenantLoading, profile, tenant]); // Dependency on tenant object itself
 
-  // 🔁 Carrega inicialmente e quando o perfil/tenant muda
   useEffect(() => {
-    if (!userTenantLoading && profile && tenant?.id) {
+    if (!userTenantLoading && profile) { // Removed tenant?.id from here
       loadDashboard();
     }
-    // 👇 Atualiza automaticamente ao voltar para a aba
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
         loadDashboard();
@@ -193,37 +223,51 @@ const tenantId: UUID = profile.tenant_id;
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    // cleanup
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [profile, userTenantLoading, tenant?.id, loadDashboard]); // Adicionado loadDashboard como dependência
+  }, [profile, userTenantLoading, loadDashboard]);
 
   useEffect(() => {
-    // 👇 Atualiza automaticamente quando há UPDATE no Supabase
-    if (!tenant?.id) return; // Não subscreve se não houver tenantId
+    if (!tenant?.id) return;
 
     const channel = supabase
-      .channel(`appointments-changes-${tenant.id}`) // Canal específico para o tenant
+      .channel(`appointments-changes-${tenant.id}`)
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "appointments" },
         (payload) => {
           console.log("🟢 Atualização recebida:", payload);
-          loadDashboard(); // ✅ agora recarrega automaticamente
+          loadDashboard();
         }
       )
       .subscribe();
 
-    // cleanup
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [tenant?.id, loadDashboard]); // Depende do tenant.id e loadDashboard para recriar o canal se o tenant mudar
+  }, [tenant?.id, loadDashboard]);
 
-  // ====================================================
-  // === GERENTE ========================================
-  // ====================================================
+  if (loading) {
+    return (
+      <div style={{ padding: 20, textAlign: "center" }}>
+        Carregando informações…
+      </div>
+    );
+  }
+
+  // Explicitly handle case where tenant is null even if profile.tenant_id exists
+  if (!tenant) {
+    return (
+      <div className={styles.container}>
+        <p style={{ textAlign: "center", padding: 20 }}>
+          Seu perfil está associado a um salão, mas não foi possível carregar as informações do salão.
+          Por favor, entre em contato com o administrador do sistema.
+        </p>
+      </div>
+    );
+  }
+
   if (role === "manager") {
     return (
       <div
@@ -234,12 +278,8 @@ const tenantId: UUID = profile.tenant_id;
           } as React.CSSProperties
         }
       >
-     
-
         <div className={styles.dashboardGrid}>
-          {/* ====== COLUNA ESQUERDA ====== */}
           <div className={styles.leftColumn}>
-            {/* ====== METAS ====== */}
             <div className={styles.goalsGrid}>
               <div className={styles.goalCard}>
                 <h4>Meta de Faturamento</h4>
@@ -274,69 +314,66 @@ const tenantId: UUID = profile.tenant_id;
               </div>
             </div>
 
-            {/* ====== PRÓXIMOS AGENDAMENTOS ====== */}
             <div className={styles.section}>
               <h3 className={styles.sectionTitle}>Próximos Agendamentos</h3>
               {todaysAppointments.length === 0 ? (
                 <p className={styles.emptyState}>Sem agendamentos para hoje.</p>
               ) : (
-todaysAppointments.map((item) => (
-  <div key={item.id} className={styles.appointmentCard}>
-    <img
-      className={styles.avatar}
-      src={PLACEHOLDER_AVATAR}
-      alt={item.professionalName}
-    />
+                todaysAppointments.map((item) => (
+                  <div key={item.id} className={styles.appointmentCard}>
+                    <img
+                      className={styles.avatar}
+                      src={PLACEHOLDER_AVATAR}
+                      alt={item.professionalName}
+                    />
 
-    <div className={styles.appointmentInfo}>
-      <div className={styles.appointmentTitle}>
-        {item.serviceName}{" "}
-        <span className={styles.gray}>
-          ({item.status === "scheduled" ? "Manutenção" : item.status})
-        </span>
-      </div>
+                    <div className={styles.appointmentInfo}>
+                      <div className={styles.appointmentTitle}>
+                        {item.serviceName}{" "}
+                        <span className={styles.gray}>
+                          ({item.status === "scheduled" ? "Manutenção" : item.status})
+                        </span>
+                      </div>
 
-      <div className={styles.appointmentSubtitle}>
-        com {item.professionalName}
-      </div>
+                      <div className={styles.appointmentSubtitle}>
+                        com {item.professionalName}
+                      </div>
 
-      <div className={styles.appointmentClient}>
-        Cliente: <strong>{item.customerName || "Não informado"}</strong>
-      </div>
-    </div>
+                      <div className={styles.appointmentClient}>
+                        Cliente: <strong>{item.customerName || "Não informado"}</strong>
+                      </div>
+                    </div>
 
-    <div className={styles.appointmentRight}>
-      <div className={styles.appointmentTime}>
-        {formatHour(item.startsAt)} – {formatHour(item.endsAt)}
-      </div>
-     <span
-  className={`${styles.statusBadge} ${
-    item.status === "done"
-      ? styles.done
-      : item.status === "canceled"
-      ? styles.canceled
-      : item.status === "rescheduled"
-      ? styles.rescheduled
-      : styles.scheduled
-  }`}
->
-  {item.status === "done"
-    ? "Realizado"
-    : item.status === "canceled"
-    ? "Cancelado"
-    : item.status === "rescheduled"
-    ? "Reagendado"
-    : "Agendado"}
-</span>
-
-    </div>
-  </div>
-))
+                    <div className={styles.appointmentRight}>
+                      <div className={styles.appointmentTime}>
+                        {formatHour(item.startsAt)} – {formatHour(item.endsAt)}
+                      </div>
+                      <span
+                        className={`${styles.statusBadge} ${
+                          item.status === "done"
+                            ? styles.done
+                            : item.status === "canceled"
+                            ? styles.canceled
+                            : item.status === "rescheduled"
+                            ? styles.rescheduled
+                            : styles.scheduled
+                        }`}
+                      >
+                        {item.status === "done"
+                          ? "Realizado"
+                          : item.status === "canceled"
+                          ? "Cancelado"
+                          : item.status === "rescheduled"
+                          ? "Reagendado"
+                          : "Agendado"}
+                      </span>
+                    </div>
+                  </div>
+                ))
               )}
             </div>
           </div>
 
-          {/* ====== COLUNA DIREITA ====== */}
           <div className={styles.rightColumn}>
             <div className={styles.topProfCard}>
               <h3 className={styles.sectionTitle}>Top 3 Profissionais (Mês)</h3>
@@ -372,10 +409,19 @@ todaysAppointments.map((item) => (
     );
   }
 
-  // ====================================================
-  // === PROFISSIONAL ===================================
-  // ====================================================
   if (role === "professional") {
+    // 🔥 NOVO: Se o professional_id não estiver definido, exibe uma mensagem
+    if (!profile?.professional_id) {
+      return (
+        <div className={styles.container}>
+          <p style={{ textAlign: "center", padding: 20 }}>
+            Seu perfil de usuário não está vinculado a um profissional cadastrado no salão.
+            Por favor, entre em contato com o administrador do sistema para vincular seu usuário a um profissional.
+          </p>
+        </div>
+      );
+    }
+
     return (
       <div
         className={styles.container}
@@ -385,17 +431,25 @@ todaysAppointments.map((item) => (
           } as React.CSSProperties
         }
       >
-       
-
-        <section className={styles.goalsGrid}>
-          <div className={`${styles.goalCard} ${styles.prof}`}>
-            <h3>Meus Agendamentos Hoje</h3>
-            <div className={styles.goalValue}>{appointmentsToday}</div>
+        <div className={styles.profStatsGrid}>
+          <div className={styles.profStatCard}>
+            <div className={styles.profCardHeader}>
+              <div className={`${styles.profCardIcon} ${styles.appointmentsToday}`}>
+                <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{appointmentsToday}</span>
+              </div>
+              <span className={styles.profCardTitle}>Meus Agendamentos Hoje</span>
+            </div>
+            <div className={styles.profCardValue}>{appointmentsToday}</div>
           </div>
 
-          <div className={`${styles.goalCard} ${styles.prof}`}>
-            <h3>Meu Faturamento (Mês)</h3>
-            <div className={styles.goalValue}>
+          <div className={styles.profStatCard}>
+            <div className={styles.profCardHeader}>
+              <div className={`${styles.profCardIcon} ${styles.revenueMonth}`}>
+                <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>R$</span>
+              </div>
+              <span className={styles.profCardTitle}>Meu Faturamento (Mês)</span>
+            </div>
+            <div className={styles.profCardValue}>
               R${" "}
               {revenueThisMonth.toLocaleString("pt-BR", {
                 minimumFractionDigits: 2,
@@ -403,32 +457,40 @@ todaysAppointments.map((item) => (
             </div>
           </div>
 
-          <div className={`${styles.goalCard} ${styles.prof}`}>
-            <h3>Atendimentos Concluídos (Mês)</h3>
-            <div className={styles.goalValue}>{doneThisMonth}</div>
+          <div className={styles.profStatCard}>
+            <div className={styles.profCardHeader}>
+              <div className={`${styles.profCardIcon} ${styles.completedMonth}`}>
+                <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{doneThisMonth}</span>
+              </div>
+              <span className={styles.profCardTitle}>Atendimentos Concluídos (Mês)</span>
+            </div>
+            <div className={styles.profCardValue}>{doneThisMonth}</div>
           </div>
 
-          <div className={`${styles.goalCard} ${styles.prof}`}>
-            <h3>Minha Posição no Ranking</h3>
-            <div className={styles.goalValue}>
+          <div className={styles.profStatCard}>
+            <div className={styles.profCardHeader}>
+              <div className={`${styles.profCardIcon} ${styles.rankingPosition}`}>
+                <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>#</span>
+              </div>
+              <span className={styles.profCardTitle}>Minha Posição no Ranking</span>
+            </div>
+            <div className={styles.profCardValue}>
               {rankingPosition ? `#${rankingPosition}` : "–"}
             </div>
           </div>
-        </section>
+        </div>
 
-        <section className={`${styles.section} ${styles.prof}`}>
-          <div className={styles.sectionHeader}>
-            <h3>Meus Próximos Atendimentos</h3>
-          </div>
+        <section className={styles.appointmentsSection}>
+          <h3 className={styles.sectionTitle}>Meus Próximos Atendimentos</h3>
           {todaysAppointments.length === 0 ? (
-            <div className={styles.emptyState}>Você não tem agendamentos para hoje.</div>
+            <p className={styles.emptyState}>Você não tem agendamentos para hoje.</p>
           ) : (
             todaysAppointments.map((item) => (
               <div key={item.id} className={styles.appointmentCard}>
-                <img className={styles.avatar} src={PLACEHOLDER_AVATAR} alt="" />
-                <div>
+                <img className={styles.appointmentAvatar} src={PLACEHOLDER_AVATAR} alt="" />
+                <div className={styles.appointmentInfo}>
                   <div className={styles.appointmentTitle}>{item.serviceName}</div>
-                  <div className={styles.appointmentSubtitle}>
+                  <div className={styles.appointmentTime}>
                     {formatHour(item.startsAt)} - {formatHour(item.endsAt)}
                   </div>
                 </div>

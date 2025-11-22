@@ -12,6 +12,7 @@ export type Profile = {
   full_name: string;
   avatar_url: string | null;
   tenant_id: string | null;
+  professional_id: string | null; // 🔥 NOVO: ID do profissional na tabela 'professionals'
 };
 
 export type Tenant = {
@@ -91,11 +92,28 @@ export function useUserAndTenant() {
         full_name: pData.full_name,
         avatar_url: pData.avatar_url,
         tenant_id: pData.tenant_id,
+        professional_id: null, // Inicializa como null
       };
+
+      // 🔥 NOVO: Se for um profissional, busca o professional_id correspondente
+      if (finalProfile.role === "professional" && finalProfile.tenant_id) {
+        const { data: professionalEntry, error: profEntryError } = await supabase
+          .from("professionals")
+          .select("id")
+          .eq("user_id", currentUser.id) // Busca pelo user_id na tabela professionals
+          .eq("tenant_id", finalProfile.tenant_id)
+          .maybeSingle();
+
+        if (profEntryError) {
+          console.error("Erro ao buscar entrada de profissional:", profEntryError);
+        } else if (professionalEntry) {
+          finalProfile.professional_id = professionalEntry.id;
+        }
+      }
 
       setProfile(finalProfile);
 
-      // SEM TENANT → somente owners/managers podem ir para setup
+      // SEM TENANT_ID NO PERFIL → somente owners/managers podem ir para setup
       if (!finalProfile.tenant_id) {
         setTenant(null);
         setSubscription(null);
@@ -105,7 +123,7 @@ export function useUserAndTenant() {
         return;
       }
 
-      // TENANT
+      // TENANT (se houver tenant_id no perfil)
       const { data: tData, error: tErr } = await supabase
         .from("tenants")
         .select("*")
@@ -113,6 +131,19 @@ export function useUserAndTenant() {
         .maybeSingle();
 
       if (tErr) throw tErr;
+
+      // IMPORTANT: If tData is null here, it means the tenant_id in the profile
+      // points to a non-existent or inaccessible tenant.
+      // In this case, we should treat it as if there's no tenant.
+      if (!tData) {
+        console.warn(`Tenant with ID ${finalProfile.tenant_id} not found or inaccessible for user ${currentUser.id}. Clearing tenant data.`);
+        setTenant(null);
+        setSubscription(null);
+        setPlan(null);
+        setFeatures([]);
+        setPermissions([]);
+        return; // Exit early as there's no valid tenant
+      }
 
       setTenant(tData);
 
@@ -184,7 +215,7 @@ export function useUserAndTenant() {
     !loading &&
     authUser && // Use authUser here
     profile &&
-    !tenant &&
+    !tenant && // Check if tenant is null
     (profile.role === "owner" || profile.role === "manager") &&
     window.location.pathname !== "/force-reset";
 

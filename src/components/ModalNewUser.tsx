@@ -10,19 +10,44 @@ interface ModalNewUserProps {
   onClose: () => void;
 }
 
+interface ProfessionalOption {
+  id: string;
+  name: string;
+  user_id: string | null; // Para saber se já está vinculado
+}
+
 export default function ModalNewUser({ tenantId, show, onClose }: ModalNewUserProps) {
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [role, setRole] = useState<"manager" | "professional">("professional");
   const [loading, setLoading] = useState(false);
+  const [professionals, setProfessionals] = useState<ProfessionalOption[]>([]);
+  const [selectedProfessionalId, setSelectedProfessionalId] = useState<string | null>(null);
 
   useEffect(() => {
     if (show) {
       setEmail("");
       setFullName("");
       setRole("professional");
+      setSelectedProfessionalId(null);
+      if (tenantId) fetchProfessionals(tenantId);
     }
-  }, [show]);
+  }, [show, tenantId]);
+
+  async function fetchProfessionals(currentTenantId: string) {
+    const { data, error } = await supabase
+      .from("professionals")
+      .select("id, name, user_id")
+      .eq("tenant_id", currentTenantId)
+      .order("name");
+
+    if (error) {
+      console.error("Erro ao carregar profissionais:", error);
+      toast.error("Erro ao carregar lista de profissionais.");
+      return;
+    }
+    setProfessionals(data || []);
+  }
 
   if (!show) return null;
 
@@ -77,9 +102,10 @@ export default function ModalNewUser({ tenantId, show, onClose }: ModalNewUserPr
         tenantId,
         tempPassword,
         redirectUrl,
+        selectedProfessionalId,
       });
 
-const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password: tempPassword,
         options: {
@@ -96,7 +122,6 @@ const { data, error } = await supabase.auth.signUp({
 
       if (error) {
         console.error("❌ SIGNUP ERROR:", error);
-
         if (error.message.includes("Database error saving new user")) {
           toast.error(
             "Erro no banco ao criar usuário. Verifique a trigger ou policies."
@@ -106,7 +131,6 @@ const { data, error } = await supabase.auth.signUp({
         } else {
           toast.error(error.message);
         }
-
         return;
       }
 
@@ -116,6 +140,44 @@ const { data, error } = await supabase.auth.signUp({
           "Erro ao criar usuário. Pode ser redirect inválido ou trigger."
         );
         return;
+      }
+
+      // 🔥 NOVO: Se o usuário é um profissional, vincula ou cria a entrada na tabela 'professionals'
+      if (role === "professional") {
+        if (selectedProfessionalId) {
+          // Vincular a um profissional existente
+          const { error: updateProfError } = await supabase
+            .from("professionals")
+            .update({ user_id: data.user.id })
+            .eq("id", selectedProfessionalId)
+            .eq("tenant_id", tenantId);
+
+          if (updateProfError) {
+            console.error("❌ ERRO ao vincular profissional existente:", updateProfError);
+            toast.error("Erro ao vincular profissional existente.");
+            return;
+          }
+        } else {
+          // Criar um novo profissional e vincular
+          const { error: createProfError } = await supabase
+            .from("professionals")
+            .insert([
+              {
+                tenant_id: tenantId,
+                name: fullName.trim(),
+                email: email.trim(),
+                phone: null, // Pode ser adicionado depois
+                is_active: true,
+                user_id: data.user.id, // Vincula o user_id ao novo profissional
+              },
+            ]);
+
+          if (createProfError) {
+            console.error("❌ ERRO ao criar novo profissional:", createProfError);
+            toast.error("Erro ao criar novo profissional.");
+            return;
+          }
+        }
       }
 
       toast.success("Convite enviado! O usuário deve verificar o e-mail.");
@@ -166,6 +228,22 @@ const { data, error } = await supabase.auth.signUp({
           <option value="manager">Gerente</option>
           <option value="professional">Profissional</option>
         </select>
+
+        {role === "professional" && (
+          <select
+            className={styles.input}
+            value={selectedProfessionalId || ""}
+            onChange={(e) => setSelectedProfessionalId(e.target.value || null)}
+            disabled={loading}
+          >
+            <option value="">-- Vincular a profissional existente (opcional) --</option>
+            {professionals.map((prof) => (
+              <option key={prof.id} value={prof.id} disabled={!!prof.user_id}>
+                {prof.name} {prof.user_id ? "(Já vinculado)" : ""}
+              </option>
+            ))}
+          </select>
+        )}
 
         <button
           className={styles.saveBtn}
