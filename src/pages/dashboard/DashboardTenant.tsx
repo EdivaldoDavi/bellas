@@ -39,7 +39,8 @@ export default function DashboardTenant() {
   const { tenant, profile, loading: userTenantLoading } = useUserAndTenant();
 
   const [loading, setLoading] = useState(true);
-  const [greetingName, setGreetingName] = useState("");
+  const [greetingName, setGreetingName] = useState<string>("");
+
   const [role, setRole] = useState<string>("manager");
 
   const [appointmentsToday, setAppointmentsToday] = useState(0);
