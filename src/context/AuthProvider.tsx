@@ -30,7 +30,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   /* ============================================================
-     Função segura para atualizar sessão e usuário
+     Função segura para atualizar sessão/usuário
      ============================================================ */
   const applySession = (newSession: Session | null) => {
     setSession(newSession);
@@ -47,7 +47,6 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase.auth.getSession();
 
       if (!active) return;
-
       if (error) console.error("Erro getSession:", error);
 
       applySession(data.session ?? null);
@@ -55,7 +54,6 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     load();
-
     return () => {
       active = false;
     };
@@ -63,32 +61,50 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
   /* ============================================================
      Listener de mudanças de autenticação
+     (com correção do bug de reload ao trocar de aba)
      ============================================================ */
+
+  // Evita múltiplos eventos simultâneos
+  let lastAuthEvent = 0;
+
   useEffect(() => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-  console.log("Auth event:", event);
+      console.log("Auth event:", event);
 
-  if (event === "SIGNED_OUT") {
-    applySession(null);
-    return;
-  }
+      // 1) Ignora triggers quando o usuário apenas voltou da aba
+      if (document.visibilityState === "hidden") {
+        return;
+      }
 
-  if (event === "INITIAL_SESSION" && !session) {
-    // evitar recriação de sessão após logout
-    applySession(null);
-    return;
-  }
+      // 2) Debounce: evita múltiplos SIGNED_IN seguidos
+      const now = Date.now();
+      if (now - lastAuthEvent < 1200) {
+        return;
+      }
+      lastAuthEvent = now;
 
-  applySession(session);
-});
+      /* ===== EVENTOS ===== */
 
+      // Logout real
+      if (event === "SIGNED_OUT") {
+        applySession(null);
+        return;
+      }
 
-    /* Listener manual do logout forçado */
-    const handler = () => {
-      applySession(null);
-    };
+      // Sessão inicial após logout → não forçar re-login
+      if (event === "INITIAL_SESSION" && !session) {
+        applySession(null);
+        return;
+      }
+
+      // Login, force-reset, email-redirect etc.
+      applySession(session);
+    });
+
+    /* Listener manual de logout forçado */
+    const handler = () => applySession(null);
     window.addEventListener("supabase-signout", handler);
 
     return () => {
@@ -98,7 +114,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   /* ============================================================
-     MÉTODOS DE LOGIN / CADASTRO / LOGOUT
+     MÉTODOS DE AUTENTICAÇÃO
      ============================================================ */
 
   const signIn = async (email: string, password: string) => {
@@ -110,10 +126,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     setLoading(false);
-
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
   };
 
   const signUp = async (
@@ -133,10 +146,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     setLoading(false);
-
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
   };
 
   const signOut = async () => {
@@ -145,12 +155,9 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signOut({ scope: "local" });
 
     setLoading(false);
+    if (error) throw error;
 
-    if (error) {
-      throw error;
-    }
-
-    // Notifica listeners (ex: logout vindo do botão)
+    // Notifica listeners
     window.dispatchEvent(new Event("supabase-signout"));
   };
 
