@@ -181,7 +181,7 @@ export function useUserAndTenant() {
   useEffect(() => {
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, _session) => {
+    } = supabase.auth.onAuthStateChange(( _session) => {
       // Não recarregar quando a aba está oculta
       if (document.visibilityState === "hidden") return;
 
