@@ -53,6 +53,7 @@ function PrivateRoute({ children }: { children: ReactNode }) {
   if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/login" replace state={{ from: location }} />;
 
+  // CORREÇÃO: Retorna os children diretamente, sem se envolver em PrivateRoute novamente.
   return <>{children}</>;
 }
 
@@ -65,11 +66,11 @@ function DashboardGuard({ children }: { children: ReactNode }) {
 
   if (!profile) return null;
 
-  // Profissionais NÃO podem ver dashboard de gerente
-  if (profile.role === "professional" || profile.role === "staff") {
-    return <Navigate to="/agenda" replace />;
-  }
-
+  // Profissionais e Staff AGORA podem ver o dashboard.
+  // A lógica de qual dashboard mostrar (global, tenant, profissional)
+  // será tratada DENTRO do componente Dashboard.tsx.
+  // Este guard apenas garante que o usuário está logado e tem um perfil.
+  
   return <>{children}</>;
 }
 
@@ -97,6 +98,7 @@ function SetupRedirectGuard({ children }: { children: ReactNode }) {
 
   return <>{children}</>;
 }
+
 
 
 // =============================
