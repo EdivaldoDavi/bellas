@@ -63,14 +63,14 @@ export default function Setup() {
     setSaving(true);
 
     try {
-      let tenantId = tenant?.id ?? null;
+      let currentTenantId: string | null = tenant?.id ?? null; // Renomeado para evitar conflito e clareza
       const currentUserId = profile.user_id;
       const currentUserRole = profile.role;
 
       /* ============================================================
          1️⃣ Criar tenant caso ainda não exista
       ============================================================ */
-      if (!tenantId) {
+      if (!currentTenantId) {
         const generatedId = crypto.randomUUID();
 
         const { data: newTenant, error: tenantErr } = await supabase
@@ -89,12 +89,12 @@ export default function Setup() {
 
         if (tenantErr) throw tenantErr;
 
-        tenantId = newTenant.id;
+        currentTenantId = newTenant.id; // Agora currentTenantId é definitivamente uma string
 
         // Atualizar perfil: set tenant_id.
         // Apenas atualiza o papel para 'manager' se não for 'owner' ou 'manager'
         // (para não rebaixar um owner, por exemplo).
-        const updateProfilePayload: { tenant_id: string; role?: 'manager' } = { tenant_id: tenantId };
+        const updateProfilePayload: { tenant_id: string; role?: 'manager' } = { tenant_id: currentTenantId! }; // <-- CORREÇÃO AQUI
         if (currentUserRole !== 'owner' && currentUserRole !== 'manager') {
           updateProfilePayload.role = 'manager';
         }
@@ -112,7 +112,7 @@ export default function Setup() {
           .from("professionals")
           .select("id")
           .eq("user_id", currentUserId)
-          .eq("tenant_id", tenantId)
+          .eq("tenant_id", currentTenantId)
           .maybeSingle();
 
         if (checkProfError) throw checkProfError;
@@ -122,9 +122,9 @@ export default function Setup() {
           const { error: createProfError } = await supabase
             .from("professionals")
             .insert({
-              tenant_id: tenantId,
+              tenant_id: currentTenantId,
               name: profile.full_name,
-              email: profile.email || null, // Garante que seja string ou null
+              email: profile.email || null,
               user_id: currentUserId,
               is_active: true,
             });
@@ -147,7 +147,7 @@ export default function Setup() {
               theme_variant: variant,
               setup_complete: true,
             })
-            .eq("id", tenantId);
+            .eq("id", currentTenantId);
 
           if (updateErr) throw updateErr;
         } else {

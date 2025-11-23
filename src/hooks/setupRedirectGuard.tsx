@@ -16,7 +16,7 @@ export function SetupRedirectGuard({ children }: { children: React.ReactNode }) 
   }
 
   // 🔥 Não interfere durante login de convite
-  if (profile?.invited) {
+  if (profile?.invited) { // Usando a propriedade 'invited'
     return <>{children}</>;
   }
 

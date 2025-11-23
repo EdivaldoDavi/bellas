@@ -1,6 +1,6 @@
-import { useEffect, useState, useCallback, useMemo } from "react"; // Importar useMemo
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "../lib/supabaseCleint";
-import { useAuth } from "../context/AuthProvider"; // Import useAuth
+import { useAuth } from "../context/AuthProvider";
 
 /* ============================================================
    📌 Tipos
@@ -13,6 +13,7 @@ export type Profile = {
   avatar_url: string | null;
   tenant_id: string | null;
   professional_id: string | null; // Adicionado para refletir o objeto retornado pelo hook
+  invited?: boolean; // Adicionado para o guard
 };
 
 export type Tenant = {
@@ -30,20 +31,22 @@ export type Tenant = {
    📌 Hook principal
 ============================================================ */
 export function useUserAndTenant() {
-  const { user: authUser, loading: authLoading } = useAuth(); // Get user from AuthProvider
+  const { user: authUser, loading: authLoading } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [profile, setProfile] = useState<Omit<Profile, 'professional_id'> | null>(null); // Tipo base do perfil sem professional_id
+  // Omitimos 'professional_id' e 'invited' do tipo base do estado 'profile'
+  // porque eles são derivados ou opcionais e adicionados no 'memoizedProfile' final.
+  const [profile, setProfile] = useState<Omit<Profile, 'professional_id' | 'invited'> | null>(null);
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [subscription, setSubscription] = useState<any>(null);
   const [plan, setPlan] = useState<any>(null);
   const [features, setFeatures] = useState<string[]>([]);
   const [permissions, setPermissions] = useState<string[]>([]);
 
-  // Estado separado para professional_id
   const [internalProfessionalId, setInternalProfessionalId] = useState<string | null>(null);
+  const [isInvited, setIsInvited] = useState<boolean>(false);
 
 
   /* ============================================================
@@ -57,7 +60,8 @@ export function useUserAndTenant() {
     setPlan(null);
     setFeatures([]);
     setPermissions([]);
-    setInternalProfessionalId(null); // Limpa também o professionalId
+    setInternalProfessionalId(null);
+    setIsInvited(false);
   }, []);
 
   /* ============================================================
@@ -67,7 +71,8 @@ export function useUserAndTenant() {
     console.log("useUserAndTenant: [refreshProfile] Função chamada.");
     setLoading(true);
     setError(null);
-    setInternalProfessionalId(null); // Limpa antes de tentar carregar
+    setInternalProfessionalId(null);
+    setIsInvited(false);
 
     try {
       const currentUser = authUser;
@@ -82,7 +87,7 @@ export function useUserAndTenant() {
       // PROFILE
       const { data: pData, error: pErr } = await supabase
         .from("profiles")
-        .select("user_id, tenant_id, role, full_name, avatar_url")
+        .select("user_id, tenant_id, role, full_name, avatar_url, invited") // Incluindo 'invited'
         .eq("user_id", currentUser.id)
         .maybeSingle();
 
@@ -94,7 +99,7 @@ export function useUserAndTenant() {
         return;
       }
 
-      const baseProfile: Omit<Profile, 'professional_id'> = {
+      const baseProfile: Omit<Profile, 'professional_id' | 'invited'> = {
         user_id: currentUser.id,
         email: currentUser.email,
         role: pData.role,
@@ -113,6 +118,8 @@ export function useUserAndTenant() {
         console.log("useUserAndTenant: [setProfile] Atualizando perfil para:", baseProfile);
         return baseProfile;
       });
+
+      setIsInvited(pData.invited ?? false); // Define o estado de 'invited'
 
       // PROFESSIONAL ID (buscado da tabela 'professionals')
       if (baseProfile.role === "professional" && baseProfile.tenant_id) {
@@ -297,14 +304,14 @@ export function useUserAndTenant() {
   // Memoizar o objeto profile retornado para garantir estabilidade de referência
   const memoizedProfile = useMemo(() => {
     if (!profile) return null;
-    return { ...profile, professional_id: internalProfessionalId };
-  }, [profile, internalProfessionalId]);
+    return { ...profile, professional_id: internalProfessionalId, invited: isInvited };
+  }, [profile, internalProfessionalId, isInvited]);
 
   return {
     loading,
     error,
     user: authUser,
-    profile: memoizedProfile, // Usar o objeto memoizado aqui
+    profile: memoizedProfile,
     tenant,
     subscription,
     plan,
