@@ -39,7 +39,7 @@ export default function DashboardTenant() {
   const { tenant, profile, loading: userTenantLoading } = useUserAndTenant();
 
   const [loading, setLoading] = useState(true);
-  const [, setGreetingName] = useState<string>("");
+  const [greetingName, setGreetingName] = useState<string>("");
 
   const [role, setRole] = useState<string>("manager");
 
@@ -256,7 +256,7 @@ export default function DashboardTenant() {
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [profile, userTenantLoading, loadDashboard]); // Dependências do useEffect
+  }, [profile, userTenantLoading, tenant]); // Removido loadDashboard das dependências
 
   useEffect(() => {
     if (!tenant?.id) {
@@ -291,6 +291,7 @@ export default function DashboardTenant() {
         Carregando informações…
       </div>
     );
+  );
   }
 
   if (!tenant) {
