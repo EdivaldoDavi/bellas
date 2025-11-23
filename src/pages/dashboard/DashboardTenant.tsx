@@ -291,7 +291,7 @@ export default function DashboardTenant() {
         Carregando informações…
       </div>
     );
-  );
+
   }
 
   if (!tenant) {
