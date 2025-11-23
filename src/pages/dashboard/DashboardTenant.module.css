@@ -1,3 +1,4 @@
+
 /* ===========================
    DASHBOARD TENANT
    Compatível com tema dinâmico (igual ao Sidebar)
@@ -7,6 +8,7 @@
   background: var(--bg);
   min-height: 100vh;
   padding: 2rem;
+  padding-top: var(--header-total-height, 2rem); /* Ajusta o padding-top */
   color: var(--text);
   transition: background 0.3s ease, color 0.3s ease;
 }
@@ -376,6 +378,7 @@ width: 100%;
 @media (max-width: 576px) {
   .container {
     padding: 1rem;
+    padding-top: var(--header-total-height, 1rem); /* Ajusta o padding-top */
   }
   .goalCard {
     padding: 1rem;

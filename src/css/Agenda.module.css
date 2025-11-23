@@ -24,6 +24,8 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+  flex-wrap: wrap; /* Allow items to wrap */
+  gap: 10px; /* Add a gap for wrapping items */
 }
 
 .newButton {
@@ -59,6 +61,13 @@
 /* ===========================================================
    NOVO: BOTÕES DE AÇÃO EM LOTE
 =========================================================== */
+/* This div wraps the two buttons when not in selection mode */
+.header > div { /* Target the direct div child of header */
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap; /* Allow buttons to wrap within this div */
+}
+
 .completeButton {
   display: inline-flex;
   align-items: center;
@@ -91,6 +100,7 @@
 .selectionModeActions {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap; /* Ensure these also wrap */
 }
 
 .exitSelectionButton {
@@ -468,6 +478,12 @@ select:focus {
     align-items: stretch;
     gap: 12px;
     margin-bottom: 1.4rem;
+  }
+
+  /* Ensure the button group also stacks vertically */
+  .header > div {
+    flex-direction: column;
+    width: 100%;
   }
 
   /* Botão ocupa largura total no mobile */

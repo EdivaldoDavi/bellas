@@ -93,7 +93,7 @@
   /* Sidebar sobrepõe o conteúdo */
   .sidebar {
     position: fixed;
-  padding-top: var(--header-height);
+  padding-top: var(--header-total-height, 70px); /* Usa a variável CSS */
     left: -260px; /* escondida por padrão */
     width: 240px;
     height: 100vh;

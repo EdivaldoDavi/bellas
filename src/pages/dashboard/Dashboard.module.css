@@ -1,8 +1,9 @@
+
 /* src/components/dashboard.module.css */
 
 .dashboardContainer {
   background-color: var(--bg);
- padding-top: 110px !important; /* aumenta conforme sua navbar */
+ padding-top: var(--header-total-height, 110px) !important; /* Usa a variável CSS */
   min-height: 100vh;
   color: var(--text);
   transition: background 0.3s ease, color 0.3s ease;
@@ -85,7 +86,7 @@
   }
  .dashboardContainer {
     /* antes estava só padding: 1rem; */
-    padding-top: 110px !important; /* aumenta conforme sua navbar */
+    padding-top: var(--header-total-height, 110px) !important; /* Usa a variável CSS */
   }
   .headerTitle {
     font-size: 1.5rem;
@@ -110,6 +111,3 @@
 .cardIcon.users { background: #e6d4ff; }      /* Usuários */
 .cardIcon.appointments { background: #cfe3ff; } /* Agendamentos */
 .cardIcon.revenue { background: #d1f7d6; }    /* Faturamento */
-
-
-
