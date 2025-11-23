@@ -1,6 +1,7 @@
+
 /** AGENDA — CLEAN VERSION FINAL **/
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { toast } from "react-toastify";
 
 import DatePickerAgenda from "../components/DatePickerAgenda";
@@ -18,14 +19,11 @@ import ModalNewProfessional from "../components/ModalNewProfessional";
 import { useTheme } from "../hooks/useTheme";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
-import {
-  toLocalISOString,
-  isHoliday,
-} from "../utils/date";
+import { toLocalISOString, isHoliday } from "../utils/date";
 
 import { getAvailableTimeSlots } from "../utils/schedule"; // Importa a nova função
 
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, CheckSquare, Square } from "lucide-react"; // Importar CheckSquare e Square
 import styles from "../css/Agenda.module.css";
 
 import { supabase } from "../lib/supabaseCleint";
@@ -76,10 +74,22 @@ export default function Agenda() {
   // 🔥 NOVO: Inicializa professionalId com o ID do profissional logado, se houver
   const [professionalId, setProfessionalId] = useState(loggedInProfessionalId || "");
   const [serviceId, setServiceId] = useState("");
-  const [ ,setSelectedDate] = useState("");
+  const [, setSelectedDate] = useState("");
 
-  const [serviceDuration ] = useState<number | null>(null);
+  const [serviceDuration] = useState<number | null>(null);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+
+  /* =============================
+   * NOVO: MODO DE SELEÇÃO PARA CONCLUIR AGENDAMENTOS
+   * ============================= */
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedAppointments, setSelectedAppointments] = useState<Set<string>>(new Set());
+
+  const selectableAppointments = useMemo(() => {
+    return appointments.filter(a => a.status === "scheduled");
+  }, [appointments]);
+
+  const allSelectableSelected = selectableAppointments.length > 0 && selectedAppointments.size === selectableAppointments.length;
 
   /* =============================
    * TEMA
@@ -170,9 +180,15 @@ export default function Agenda() {
     setSelectedDate(d);
     setShowCalendar(false);
 
-    setTimeout(async () => { // Adicionado async aqui
+    setTimeout(async () => {
+      // Adicionado async aqui
       if (tenantId && professionalId && serviceDuration) {
-        const times = await getAvailableTimeSlots(tenantId, professionalId, serviceDuration, d);
+        const times = await getAvailableTimeSlots(
+          tenantId,
+          professionalId,
+          serviceDuration,
+          d
+        );
         setAvailableTimes(times);
         setShowTimes(true);
       }
@@ -180,7 +196,7 @@ export default function Agenda() {
   }
 
   /* =============================
-   * CANCELAR
+   * CANCELAR AGENDAMENTO INDIVIDUAL
    * ============================= */
   async function handleCancelAppointment(id: string) {
     if (!confirm("Deseja cancelar este agendamento?")) return;
@@ -197,6 +213,66 @@ export default function Agenda() {
   }
 
   /* =============================
+   * NOVO: LÓGICA DE SELEÇÃO
+   * ============================= */
+  function toggleSelectionMode() {
+    setIsSelectionMode((prev) => !prev);
+    setSelectedAppointments(new Set()); // Limpa a seleção ao entrar/sair do modo
+  }
+
+  function toggleAppointmentSelection(id: string) {
+    setSelectedAppointments((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  }
+
+  function toggleSelectAll() {
+    if (allSelectableSelected) {
+      setSelectedAppointments(new Set());
+    } else {
+      const newSet = new Set<string>();
+      selectableAppointments.forEach(a => newSet.add(a.id));
+      setSelectedAppointments(newSet);
+    }
+  }
+
+  async function handleCompleteSelected() {
+    if (selectedAppointments.size === 0) {
+      toast.warn("Selecione ao menos um agendamento para concluir.");
+      return;
+    }
+
+    if (!confirm(`Deseja realmente concluir ${selectedAppointments.size} agendamento(s)?`)) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("appointments")
+        .update({ status: "done" })
+        .in("id", Array.from(selectedAppointments));
+
+      if (error) throw error;
+
+      toast.success(`${selectedAppointments.size} agendamento(s) concluído(s)!`);
+      toggleSelectionMode(); // Sai do modo de seleção
+      fetchAppointments(); // Recarrega os agendamentos
+    } catch (error: any) {
+      console.error("Erro ao concluir agendamentos:", error);
+      toast.error("Erro ao concluir agendamentos: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /* =============================
    * RENDER
    * ============================= */
 
@@ -206,15 +282,37 @@ export default function Agenda() {
     month: "long",
   });
 
+  const canManageAppointments = role === "manager" || role === "owner";
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h2 className={styles.title}>Agenda</h2>
 
-        {(role === "manager" || role === "owner") && (
-          <button className={styles.newButton} onClick={() => setShowWizard(true)}>
-            <Plus size={18} /> Novo Agendamento
-          </button>
+        {canManageAppointments && !isSelectionMode && (
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button className={styles.newButton} onClick={() => setShowWizard(true)}>
+              <Plus size={18} /> Novo Agendamento
+            </button>
+            <button className={styles.completeButton} onClick={toggleSelectionMode}>
+              <CheckSquare size={18} /> Concluir Agendamentos
+            </button>
+          </div>
+        )}
+
+        {canManageAppointments && isSelectionMode && (
+          <div className={styles.selectionModeActions}>
+            <button className={styles.exitSelectionButton} onClick={toggleSelectionMode}>
+              Sair do Modo de Seleção
+            </button>
+            <button
+              className={styles.confirmCompletionButton}
+              onClick={handleCompleteSelected}
+              disabled={selectedAppointments.size === 0 || loading}
+            >
+              {loading ? "Concluindo..." : `Concluir (${selectedAppointments.size})`}
+            </button>
+          </div>
         )}
       </div>
 
@@ -246,6 +344,20 @@ export default function Agenda() {
         </button>
       </div>
 
+      {canManageAppointments && isSelectionMode && (
+        <div className={styles.selectAllContainer}>
+          <label className={styles.selectAllLabel}>
+            <input
+              type="checkbox"
+              checked={allSelectableSelected}
+              onChange={toggleSelectAll}
+              className={styles.selectAllCheckbox}
+            />
+            Selecionar Todos ({selectableAppointments.length} agendamentos agendados)
+          </label>
+        </div>
+      )}
+
       <div className={styles.list}>
         {loading ? (
           <p>Carregando...</p>
@@ -254,6 +366,17 @@ export default function Agenda() {
         ) : (
           appointments.map((a) => (
             <div key={a.id} className={styles.card}>
+              {canManageAppointments && isSelectionMode && a.status === "scheduled" && (
+                <div className={styles.checkboxWrapper}>
+                  <input
+                    type="checkbox"
+                    checked={selectedAppointments.has(a.id)}
+                    onChange={() => toggleAppointmentSelection(a.id)}
+                    className={styles.appointmentCheckbox}
+                  />
+                </div>
+              )}
+
               <img className={styles.avatar} src={a.avatar_url} />
 
               <div className={styles.details}>
@@ -278,11 +401,16 @@ export default function Agenda() {
                     Cancelado
                   </span>
                 )}
+                {a.status === "done" && (
+                  <span style={{ color: "green", fontWeight: "bold" }}>
+                    Concluído
+                  </span>
+                )}
 
                 <p>Cliente: {a.customer_name}</p>
               </div>
 
-              {(role === "manager" || role === "owner") && (
+              {canManageAppointments && !isSelectionMode && a.status !== "done" && (
                 <div className={styles.cardActions}>
                   {a.status === "canceled" ? (
                     <button disabled className={styles.iconButtonCancel}>
