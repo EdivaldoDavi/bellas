@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 
 import "react-loading-skeleton/dist/skeleton.css";
 import { supabase } from "../../lib/supabaseCleint";
@@ -39,7 +39,7 @@ export default function DashboardTenant() {
   const { tenant, profile, loading: userTenantLoading } = useUserAndTenant();
 
   const [loading, setLoading] = useState(true);
-  const [, setGreetingName] = useState<string>("");
+  const [greetingName, setGreetingName] = useState<string>("");
 
   const [role, setRole] = useState<string>("manager");
 
@@ -258,6 +258,12 @@ export default function DashboardTenant() {
     };
   }, [profile, userTenantLoading, tenant]); // Removido loadDashboard das dependências
 
+  // Ref para a função loadDashboard
+  const loadDashboardRef = useRef(loadDashboard);
+  useEffect(() => {
+    loadDashboardRef.current = loadDashboard;
+  }, [loadDashboard]);
+
   useEffect(() => {
     if (!tenant?.id) {
       console.log("DashboardTenant: [useEffect Supabase Channel] Sem tenant ID, não configurando canal.");
@@ -273,7 +279,7 @@ export default function DashboardTenant() {
         { event: "UPDATE", schema: "public", table: "appointments" },
         (payload) => {
           console.log("DashboardTenant: [Supabase Channel] Atualização recebida:", payload);
-          loadDashboard();
+          loadDashboardRef.current(); // Chama a função via ref
         }
       )
       .subscribe();
@@ -282,7 +288,7 @@ export default function DashboardTenant() {
       console.log("DashboardTenant: [Supabase Channel] Desinscrevendo do canal.");
       supabase.removeChannel(channel);
     };
-  }, [tenant?.id, loadDashboard]);
+  }, [tenant?.id]); // loadDashboard removido das dependências
 
   if (loading) {
     console.log("DashboardTenant: Renderizando tela de carregamento.");
@@ -291,7 +297,6 @@ export default function DashboardTenant() {
         Carregando informações…
       </div>
     );
-
   }
 
   if (!tenant) {
