@@ -23,7 +23,7 @@ import { toLocalISOString, isHoliday } from "../utils/date";
 
 import { getAvailableTimeSlots } from "../utils/schedule"; // Importa a nova função
 
-import { ChevronLeft, ChevronRight, Plus, CheckSquare, Square } from "lucide-react"; // Importar CheckSquare e Square
+import { ChevronLeft, ChevronRight, Plus, CheckSquare } from "lucide-react"; // Importar CheckSquare e Square
 import styles from "../css/Agenda.module.css";
 
 import { supabase } from "../lib/supabaseCleint";
