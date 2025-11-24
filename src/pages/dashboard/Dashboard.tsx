@@ -1,7 +1,7 @@
 import { useUserAndTenant } from "../../hooks/useUserAndTenant";
 import DashboardGlobal from "./DashboardGlobal";
 import DashboardTenant from "./DashboardTenant";
-import { Link, Navigate } from "react-router-dom";
+import {  Navigate } from "react-router-dom";
 // REMOVIDO: import styles from "./Dashboard.module.css"; // Importar o CSS do Dashboard
 
 export default function Dashboard() {
