@@ -5,7 +5,7 @@ import { Link, Navigate } from "react-router-dom";
 // REMOVIDO: import styles from "./Dashboard.module.css"; // Importar o CSS do Dashboard
 
 export default function Dashboard() {
-  const { loading, profile, tenant } = useUserAndTenant(); // Incluído tenant aqui
+  const { loading, profile } = useUserAndTenant(); // Incluído tenant aqui
 
   const role = profile?.role;
   const hasTenant = !!profile?.tenant_id;
