@@ -26,26 +26,29 @@
   align-items: center;
   justify-content: space-between;
   padding: 1rem;
+  gap: 10px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  max-width: 120px; /* impede sobrepor o botão */
+  overflow: hidden;
 }
 
 .logoImg {
-  height: 60px;   /* ajuste aqui */
-  width: auto;    /* mantém a proporção */
+  height: 45px;
+  width: auto;
   object-fit: contain;
 }
-.logo {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: var(--color-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  transition: opacity 0.3s;
-}
-.sidebar.collapsed .logo { opacity: 0; }
 
 .toggleBtn {
-  background: transparent; border: 0; cursor: pointer;
-  color: var(--text); padding: 6px; border-radius: 6px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  margin-left: auto; /* garante espaço */
 }
 .toggleBtn:hover { background: rgba(0,0,0,.06); }
 
