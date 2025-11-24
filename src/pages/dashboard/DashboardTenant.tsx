@@ -4,7 +4,6 @@ import "react-loading-skeleton/dist/skeleton.css";
 import { supabase } from "../../lib/supabaseCleint";
 import { useUserAndTenant } from "../../hooks/useUserAndTenant";
 import styles from "./DashboardTenant.module.css";
-import LoadingSpinner from "../../components/LoadingSpinner"; // Importar o LoadingSpinner
 
 type UUID = string;
 
@@ -222,7 +221,7 @@ export default function DashboardTenant() {
     }
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        loadDashboardRef.current();
+        loadDashboard();
       }
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -262,7 +261,9 @@ export default function DashboardTenant() {
 
   if (loading) {
     return (
-      <LoadingSpinner message="Carregando dados do salão..." />
+      <div style={{ padding: 20, textAlign: "center" }}>
+        Carregando informações…
+      </div>
     );
   }
 
