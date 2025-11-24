@@ -1,0 +1,130 @@
+
+.toastContent {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: var(--card-bg); /* Usa a cor de fundo do card do tema */
+  border: 1px solid var(--separator);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  color: var(--text);
+  position: relative;
+  width: 100%;
+  max-width: 380px; /* Limita a largura para não ficar muito grande em desktop */
+}
+
+.iconWrapper {
+  flex-shrink: 0;
+  padding-top: 4px; /* Alinha o ícone com o texto */
+}
+
+.alertIcon {
+  color: #ffcd45; /* Cor de alerta */
+}
+
+.messageContent {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.messageTitle {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text);
+  margin: 0;
+}
+
+.messageText {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap; /* Permite que os botões quebrem a linha em telas pequenas */
+}
+
+.connectButton,
+.dismissButton {
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  flex: 1; /* Permite que os botões se expandam */
+  min-width: 100px; /* Garante um tamanho mínimo */
+}
+
+.connectButton {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+}
+
+.connectButton:hover {
+  filter: brightness(1.1);
+}
+
+.dismissButton {
+  background: var(--bg); /* Usa a cor de fundo do tema */
+  color: var(--text-muted);
+  border: 1px solid var(--separator);
+}
+
+.dismissButton:hover {
+  background: var(--separator);
+  color: var(--text);
+}
+
+.closeButton {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.closeButton:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="dark"] .closeButton:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Responsividade para telas muito pequenas */
+@media (max-width: 480px) {
+  .toastContent {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 10px;
+  }
+
+  .iconWrapper {
+    padding-top: 0;
+    margin-bottom: 8px;
+  }
+
+  .actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .connectButton,
+  .dismissButton {
+    width: 100%;
+  }
+}

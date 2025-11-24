@@ -8,7 +8,7 @@
   padding: 1rem 2rem; /* Default for desktop */
   background-color: var(--header-bg, #ffffff);
   border-bottom: 1px solid var(--separator, #e5e5e5);
-  /* height: 70px; */ /* Removed fixed height, let content define */
+  min-height: 64px; /* Ensure a minimum height */
   transition: background 0.3s ease, color 0.3s ease;
   position: fixed; /* Ensure it's fixed on top */
   top: 0;
@@ -137,22 +137,6 @@
     margin-bottom: 0.3rem;
   }
 
-  /* 🔸 Alerta ocupa 100% da largura do HEADER, não da viewport */
-  .whatsappAlert {
-    width: 100%; /* Fit within parent */
-    margin-left: 0; /* Remove negative margins */
-    margin-right: 0;
-    border-radius: 6px; /* Keep rounded corners */
-    border-left: 1px solid rgba(255, 193, 7, 0.3); /* Restore borders */
-    border-right: 1px solid rgba(255, 193, 7, 0.3);
-    padding: 0.45rem 0.75rem; /* Keep alert's own padding */
-    font-size: 0.85rem;
-    text-align: left;
-    background: rgba(255, 193, 7, 0.08);
-    border-top: 1px solid rgba(255, 193, 7, 0.3);
-    border-bottom: 1px solid rgba(255, 193, 7, 0.3);
-  }
-
   .rightSection {
     width: 100%;
     justify-content: space-between;
@@ -173,35 +157,4 @@
 .greeting {
   font-size: 1.1rem;
   font-weight: 500;
-}
-
-/* 🔸 Alerta de desconexão */
-.whatsappAlert {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  background: rgba(255, 193, 7, 0.08);
-  border: 1px solid rgba(255, 193, 7, 0.35);
-  color: #ffcd45;
-  font-size: 0.85rem;
-  line-height: 1.2;
-  padding: 0.45rem 0.75rem;
-  border-radius: 6px;
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-.alertIcon {
-  flex-shrink: 0;
-  color: #ffcd45;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }

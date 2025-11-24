@@ -1,3 +1,4 @@
+
 import { useEffect, useMemo } from "react";
 import { useEvolutionConnection } from "../hooks/useEvolutionConnection";
 import type { EvoStatus } from "../hooks/useEvolutionConnection";
@@ -30,17 +31,6 @@ export default function QRCodeDisplay({
     autostart: false,
     initialInstanceId: safeInstanceId,
   });
-
-  /* ============================================================
-     🔄 Atualizar visual global quando conectado
-  ============================================================ */
-  useEffect(() => {
-    if (status === "CONNECTED") {
-      document.body.classList.add("wa-connected");
-    } else {
-      document.body.classList.remove("wa-connected");
-    }
-  }, [status]);
 
   /* ============================================================
      🔄 Atualiza estado na montagem

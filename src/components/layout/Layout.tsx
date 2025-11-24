@@ -1,29 +1,83 @@
-import { useRef, useState } from "react";
-import { Outlet } from "react-router-dom";
+
+import { useRef, useState, useEffect } from "react";
+import { Outlet, useLocation } from "react-router-dom";
+import { toast } from "react-toastify";
 
 import Sidebar from "../sidebar/Sidebar";
 import Header from "../Header";
 import { useIsMobile } from "../../hooks/useIsMobile";
+import { useEvolutionConnection } from "../../hooks/useEvolutionConnection";
+import { useUserAndTenant } from "../../hooks/useUserAndTenant";
+import WhatsAppDisconnectedToast from "../WhatsAppDisconnectedToast"; // Importar o novo componente de toast
 
 import styles from "./Layout.module.css";
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const isMobile = useIsMobile(1024);
+  const location = useLocation();
 
   const toggleSidebar = () => setSidebarOpen((p) => !p);
   const closeSidebar = () => setSidebarOpen(false);
 
-  /**
-   * REFERÊNCIA para medir o header
-   * O Header.tsx agora é o responsável por definir --header-total-height.
-   * Este ref ainda é útil para o Header.tsx medir sua própria altura.
-   */
   const headerRef = useRef<HTMLDivElement | null>(null);
 
-  // Removida a lógica de `whatsappAlertFlag` e o `useEffect` correspondente.
-  // O `pageContent` agora depende diretamente de `--header-total-height`
-  // que é atualizado pelo componente `Header`.
+  const { tenant } = useUserAndTenant();
+  const instanceId = tenant?.id || "";
+  const evoBase = import.meta.env.VITE_EVO_PROXY_URL ?? "http://localhost:3001/api";
+
+  const { status } = useEvolutionConnection({
+    baseUrl: evoBase,
+    autostart: false,
+    initialInstanceId: instanceId,
+  });
+
+  const isWhatsDisconnected =
+    !status ||
+    status === "DISCONNECTED" ||
+    status === "LOGGED_OUT" ||
+    status === "ERROR" ||
+    status === "UNKNOWN" ||
+    status === "IDLE";
+
+  // ============================================================
+  // Lógica para exibir/ocultar o toast de WhatsApp desconectado
+  // ============================================================
+useEffect(() => {
+  let toastId: string | number | null = null;
+  const dismissedKey = `whatsapp_alert_dismissed_instance_${instanceId}`;
+
+  if (isWhatsDisconnected && instanceId && !localStorage.getItem(dismissedKey)) {
+    toastId = toast((t) => (
+      <WhatsAppDisconnectedToast
+        instanceId={instanceId}
+        closeToast={() => {
+          // Usa a função própria do react-toastify
+          t.closeToast();
+          localStorage.setItem(dismissedKey, "true"); // Marca como descartado
+        }}
+      />
+    ), {
+      position: "bottom-center",
+      autoClose: false,
+      closeButton: false,
+      hideProgressBar: true,
+      draggable: false,
+      closeOnClick: false,
+    });
+  } else if (!isWhatsDisconnected && instanceId) {
+    // Conectou: fecha qualquer toast e limpa flag
+    toast.dismiss();
+    localStorage.removeItem(dismissedKey);
+  }
+
+  // Cleanup ao desmontar ou mudar dependências
+  return () => {
+    if (toastId !== null) {
+      toast.dismiss(toastId);
+    }
+  };
+}, [isWhatsDisconnected, instanceId, location.pathname]);
 
   /** classes raiz */
   const rootClass = `

@@ -1,11 +1,10 @@
 
-import { Menu, Sun, Moon, AlertTriangle, LogOut } from "lucide-react";
+import { Menu, Sun, Moon, LogOut } from "lucide-react";
 import styles from "../css/header.module.css";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 import { useTheme } from "../hooks/useTheme";
 import BrandColorMenu from "./BrandColorMenu";
 import { useState, useEffect, useRef } from "react";
-import { useEvolutionConnection } from "../hooks/useEvolutionConnection";
 import { logout } from "../lib/supabaseCleint";
 import "../index.css";
 
@@ -14,12 +13,6 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
   const { theme, toggleTheme } = useTheme();
 
   const ref = useRef<HTMLDivElement>(null);
-
-  const { status } = useEvolutionConnection({
-    baseUrl: import.meta.env.VITE_EVO_PROXY_URL ?? "https://bellas-agenda-evo-proxy.hu6h7e.easypanel.host/api",
-    autostart: false,
-    initialInstanceId: tenant?.id || "",
-  });
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [greeting, setGreeting] = useState("");
@@ -39,14 +32,6 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
     ? profile.avatar_url || "https://i.pravatar.cc/40"
     : "";
 
-  const isWhatsDisconnected =
-    !status ||
-    status === "DISCONNECTED" ||
-    status === "LOGGED_OUT" ||
-    status === "ERROR" ||
-    status === "UNKNOWN" ||
-    status === "IDLE";
-
   // Atualiza var CSS da altura do header
   useEffect(() => {
     const measureAndSetHeight = () => {
@@ -56,7 +41,7 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
       }
     };
 
-    // Mede inicialmente e sempre que isWhatsDisconnected muda
+    // Mede inicialmente
     requestAnimationFrame(measureAndSetHeight);
 
     // Também mede ao redimensionar a janela
@@ -67,16 +52,7 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, [isWhatsDisconnected]); // Dependência crucial para reagir ao alerta
-
-  // Flag no localStorage para o layout
-  useEffect(() => {
-    if (isWhatsDisconnected) {
-      localStorage.setItem("whatsapp-alert-visible", "1");
-    } else {
-      localStorage.removeItem("whatsapp-alert-visible");
-    }
-  }, [isWhatsDisconnected]);
+  }, []); // Não depende mais de isWhatsDisconnected
 
   // Saudação + mobile resize
   useEffect(() => {
@@ -103,16 +79,6 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
           </div>
         ) : (
           <div className={styles.greetingSkeleton}></div>
-        )}
-
-        {isWhatsDisconnected && (
-          <div className={styles.whatsappAlert}>
-            <AlertTriangle size={18} className={styles.alertIcon} />
-            <span>
-              Seu WhatsApp não está conectado. Para utilizar o agendamento com IA,
-              conecte o WhatsApp no menu.
-            </span>
-          </div>
         )}
       </div>
 
