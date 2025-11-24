@@ -220,16 +220,8 @@ export default function DashboardTenant() {
       loadDashboard();
     } else if (!userTenantLoading && !profile) {
     }
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        loadDashboard();
-      }
-    };
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
+  
+    
   }, [profile, userTenantLoading, tenant]); // Removido loadDashboard das dependências
 
   // Ref para a função loadDashboard
@@ -511,3 +503,4 @@ export default function DashboardTenant() {
 
   return null;
 }
+
