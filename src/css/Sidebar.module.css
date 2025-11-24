@@ -27,6 +27,12 @@
   justify-content: space-between;
   padding: 1rem;
 }
+
+.logoImg {
+  height: 32px;   /* ajuste aqui */
+  width: auto;    /* mantém a proporção */
+  object-fit: contain;
+}
 .logo {
   font-size: 1.2rem;
   font-weight: bold;
