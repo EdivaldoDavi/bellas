@@ -22,7 +22,7 @@ import SaloesPage from "./pages/SaloesPage";
 import PerfilPage from "./pages/PerfilPage";
 import ConfigPage from "./pages/ConfigPage";
 import ConnectWhatsAppPage from "./pages/ConnectWhatsAppPage";
-import GerenciarAcessosPage from "./config/GerenciarAcessosPage";
+import GerenciarAcessosPage from "./config/GerenciarAcessosPage"; // Importar GerenciarAcessosPage
 import EmDesenvolvimento from "./components/EmDesenvolvimento";
 
 import ClientesPage from "./pages/ClientesPage";
@@ -135,16 +135,6 @@ export default function App() {
             }
           />
 
-          {/* Rotas privadas SEM layout */}
-          <Route
-            path="/gerenciar-acessos"
-            element={
-              <PrivateRoute>
-                <GerenciarAcessosPage />
-              </PrivateRoute>
-            }
-          />
-
           {/* Opcional público */}
           <Route path="/config" element={<ConfigPage />} />
           <Route path="/em-desenvolvimento" element={<EmDesenvolvimento />} />
@@ -172,6 +162,7 @@ export default function App() {
             <Route path="/assinaturas" element={<AssinaturasPage />} />
             <Route path="/perfil" element={<PerfilPage />} />
             <Route path="/integracoes/whatsapp" element={<ConnectWhatsAppPage />} />
+            <Route path="/gerenciar-acessos" element={<GerenciarAcessosPage />} /> {/* MOVIDO AQUI */}
 
             {/* CRUDs */}
             <Route path="/clientes" element={<ClientesPage />} />
