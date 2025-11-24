@@ -1,3 +1,4 @@
+
 /* ===========================
    TEMA BASE (modo claro)
 =========================== */
@@ -63,6 +64,11 @@
 
 .Toastify__toast {
   z-index: 20001 !important;
+  background: transparent !important; /* Torna o fundo do toast transparente */
+  box-shadow: none !important;        /* Remove a sombra padrão do toast */
+  border: none !important;            /* Remove a borda padrão do toast */
+  padding: 0 !important;              /* Remove o padding padrão do toast */
+  overflow: visible !important;       /* Garante que a sombra do seu componente não seja cortada */
 }
 
 /* ===========================
