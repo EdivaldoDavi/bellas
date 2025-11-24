@@ -33,12 +33,19 @@ import ProfessionalsPage from "./pages/ProfessionalsPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+import spinnerStyles from "./css/LoadingSpinner.module.css"; // Importar o CSS do spinner
+
 
 // =============================
 // 🔹 TELA DE LOADING GLOBAL
 // =============================
 function LoadingScreen() {
-  return <div className="p-5 text-center">⏳ Carregando...</div>;
+  return (
+    <div className={spinnerStyles.spinnerContainer}>
+      <div className={spinnerStyles.spinner}></div>
+      <p className={spinnerStyles.loadingText}>Carregando...</p>
+    </div>
+  );
 }
 
 
