@@ -1,4 +1,3 @@
-
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 
 import "react-loading-skeleton/dist/skeleton.css";
@@ -29,12 +28,7 @@ const REVENUE_GOAL_CENTS = 1_500_000; // 15.000
 const APPTS_GOAL = 200;
 const PLACEHOLDER_AVATAR = "https://i.pravatar.cc/100?img=12";
 
-const THEME_PRIMARY: Record<string, string> = {
-  pink: "#FF4081",
-  purple: "#9C27B0",
-  blue: "#007BFF",
-  green: "#2ECC71",
-};
+// Removido THEME_PRIMARY fixo, agora usaremos a variável CSS --color-primary
 
 export default function DashboardTenant() {
   const { tenant, profile, loading: userTenantLoading } = useUserAndTenant();
@@ -51,8 +45,8 @@ export default function DashboardTenant() {
   const [rankingPosition, setRankingPosition] = useState<number | null>(null);
   const [doneThisMonth, setDoneThisMonth] = useState(0);
 
-  const variant = tenant?.theme_variant ?? "pink";
-  const primary = THEME_PRIMARY[variant] ?? THEME_PRIMARY.pink;
+  // Usar a cor primária do tenant diretamente
+  const primaryColor = tenant?.primary_color ?? "#ff1493";
 
   const revenueProgress = useMemo(() => {
     const pct = (revenueThisMonth * 100) / (REVENUE_GOAL_CENTS / 100);
@@ -254,8 +248,8 @@ export default function DashboardTenant() {
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "appointments" },
-        () => {
-          loadDashboardRef.current();
+        (payload) => {
+          loadDashboardRef.current(); // Chama a função via ref
         }
       )
       .subscribe();
@@ -290,7 +284,7 @@ export default function DashboardTenant() {
         className={styles.container}
         style={
           {
-            ["--color-primary" as any]: primary,
+            ["--color-primary" as any]: primaryColor, // Usar primaryColor
           } as React.CSSProperties
         }
       >
@@ -442,7 +436,7 @@ export default function DashboardTenant() {
         className={styles.container}
         style={
           {
-            ["--color-primary" as any]: primary,
+            ["--color-primary" as any]: primaryColor, // Usar primaryColor
           } as React.CSSProperties
         }
       >

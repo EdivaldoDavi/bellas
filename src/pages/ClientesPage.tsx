@@ -28,6 +28,7 @@ export default function ClientesPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [showAllCustomers, setShowAllCustomers] = useState(false); // Novo estado para controlar a exibição de todos os clientes
 
   const [openModal, setOpenModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
@@ -42,14 +43,14 @@ export default function ClientesPage() {
   /* LOAD customers */
   useEffect(() => {
     if (tenantId) load();
-  }, [tenantId]);
+  }, [tenantId, showAllCustomers]); // Adicionado showAllCustomers como dependência
 
 async function load() {
   if (!tenantId) return;
 
   setLoading(true);
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("customers")
     .select(`
       id,
@@ -59,6 +60,13 @@ async function load() {
     `)
     .eq("tenant_id", tenantId)
     .order("full_name", { ascending: true });
+
+  // Limita a 3 registros se não estiver no modo 'Ver todos' e não houver pesquisa
+  if (!showAllCustomers && !search.trim()) {
+    query = query.limit(3);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error("LOAD ERROR:", error);
@@ -229,6 +237,15 @@ async function load() {
                 ))}
 
                 </div>
+                {!showAllCustomers && customers.length > 3 && !search.trim() && (
+                  <button
+                    className={styles.viewAllButton}
+                    style={{ backgroundColor: brandColor }}
+                    onClick={() => setShowAllCustomers(true)}
+                  >
+                    Ver todos os clientes
+                  </button>
+                )}
 
         </div>
       </div>

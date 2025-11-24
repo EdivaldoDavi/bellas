@@ -48,7 +48,7 @@
 .goalsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1rem;
+  gap: 1.5rem; /* Aumentado o espaçamento entre os cards */
 }
 
 .goalCard {
@@ -240,7 +240,7 @@ width: 100%;
 .profStatsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Responsive grid */
-  gap: 1rem;
+  gap: 1.5rem; /* Aumentado o espaçamento entre os cards */
   margin-bottom: 2rem;
 }
 
