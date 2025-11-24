@@ -1,7 +1,7 @@
 
 .container {
   padding: 1.5rem;
-  padding-top: var(--header-total-height, 1.5rem); /* Ajusta o padding-top */
+  /* padding-top: var(--header-total-height, 1.5rem); /* Ajusta o padding-top */ /* REMOVIDO */
 }
 
 .grid {

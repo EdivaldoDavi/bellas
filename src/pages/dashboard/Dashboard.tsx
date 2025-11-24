@@ -1,15 +1,11 @@
+
 import { useUserAndTenant } from "../../hooks/useUserAndTenant";
 import DashboardGlobal from "./DashboardGlobal";
 import DashboardTenant from "./DashboardTenant";
 import { Link, Navigate } from "react-router-dom";
 
 export default function Dashboard() {
-  const { loading, profile, tenant } = useUserAndTenant(); // Incluído tenant aqui
-
-  // 🚨 DEBUG: Log do perfil e tenant no Dashboard
-  console.log("Dashboard: profile", profile);
-  console.log("Dashboard: tenant", tenant);
-  console.log("Dashboard: loading", loading);
+  const { loading, profile } = useUserAndTenant(); // Incluído tenant aqui
 
   const role = profile?.role;
   const hasTenant = !!profile?.tenant_id;

@@ -1,3 +1,4 @@
+
 import { NavLink } from "react-router-dom";
 import { type ReactNode, type CSSProperties } from "react";
 
@@ -34,11 +35,6 @@ export default function Sidebar({
   closeSidebar: () => void;
 }) {
   const { profile, tenant, loading } = useUserAndTenant();
-
-  // 🚨 DEBUG: Log do perfil e tenant na Sidebar
-  console.log("Sidebar: profile", profile);
-  console.log("Sidebar: tenant", tenant);
-  console.log("Sidebar: loading", loading);
 
   // Enquanto carrega → evita renderização incompleta
   if (loading || !profile) {

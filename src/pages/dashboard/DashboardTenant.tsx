@@ -50,9 +50,6 @@ export default function DashboardTenant() {
   const [rankingPosition, setRankingPosition] = useState<number | null>(null);
   const [doneThisMonth, setDoneThisMonth] = useState(0);
 
-  // evita reload inicial infinito
-  const hasInitialLoadedRef = useRef(false);
-
   const variant = tenant?.theme_variant ?? "pink";
   const primary = THEME_PRIMARY[variant] ?? THEME_PRIMARY.pink;
 
@@ -67,46 +64,29 @@ export default function DashboardTenant() {
   }, [appointmentsToday]);
 
   // ==============================
-  // Função global reutilizável, agora ESTÁVEL
+  // Função global reutilizável, agora memoizada com useCallback
   // ==============================
   const loadDashboard = useCallback(async () => {
-    console.log("DashboardTenant: [loadDashboard] Função chamada.");
-
-    if (!profile || !tenant) {
-      console.log(
-        "DashboardTenant: [loadDashboard] Saindo: profile ou tenant ausentes.",
-        "profile:",
-        !!profile,
-        "tenant:",
-        !!tenant
-      );
-      return;
-    }
-
     try {
       setLoading(true);
-
-      console.log(
-        "DashboardTenant: [loadDashboard] Profile:",
-        profile.user_id,
-        "Tenant:",
-        tenant.id
-      );
+      // Usar o profile do contexto, não buscar novamente
+      if (userTenantLoading || !profile || !tenant) {
+        setLoading(false); // Ensure loading is false if tenant is null
+        return;
+      }
 
       setRole(profile.role ?? "manager");
-      console.log("DashboardTenant: [loadDashboard] Role definido como:", profile.role);
 
-      const safeName =
-        typeof profile.full_name === "string" && profile.full_name.trim() !== ""
-          ? profile.full_name.split(" ")[0] // Only first name for greeting
-          : "Usuário";
+      const safeName = typeof profile.full_name === "string" && profile.full_name.trim() !== ""
+        ? profile.full_name.split(" ")[0] // Only first name for greeting
+        : "Usuário";
 
       setGreetingName(safeName);
       const tenantId: UUID = tenant.id; // Use tenant.id directly
 
       // 🔥 Usar profile.professional_id aqui
       const professionalId: UUID | null = profile.professional_id || null;
-      console.log("DashboardTenant: [loadDashboard] Professional ID:", professionalId);
+
 
       const now = new Date();
       const todayISO = now.toISOString().slice(0, 10);
@@ -124,18 +104,13 @@ export default function DashboardTenant() {
 
       if (profile.role === "professional" && professionalId) {
         apptsTodayQuery = apptsTodayQuery.eq("professional_id", professionalId);
-        console.log(
-          "DashboardTenant: [loadDashboard] Filtrando agendamentos por professional_id:",
-          professionalId
-        );
       }
 
       const { data: apptsTodayData } = await apptsTodayQuery;
-      console.log("DashboardTenant: [loadDashboard] Agendamentos de hoje (raw):", apptsTodayData);
 
       const apptsToday = (apptsTodayData || []) as Appointment[];
       setAppointmentsToday(apptsToday.length);
-      console.log("DashboardTenant: [loadDashboard] Total de agendamentos hoje:", apptsToday.length);
+
 
       const serviceIds = apptsToday.map((a) => a.service_id).filter(Boolean) as UUID[];
       const profIds = apptsToday.map((a) => a.professional_id).filter(Boolean) as UUID[];
@@ -153,21 +128,18 @@ export default function DashboardTenant() {
       const svcMap = new Map((svcData || []).map((s) => [s.id, s]));
       const profMap = new Map((profData || []).map((p) => [p.id, p]));
 
-      const formattedAppointments = apptsToday.map((a) => ({
-        id: a.id,
-        serviceName: svcMap.get(a.service_id)?.name || "Serviço",
-        professionalName: profMap.get(a.professional_id)?.name || "Profissional",
-        customerName: a.customer_name || "Cliente",
-        startsAt: a.starts_at,
-        endsAt: a.ends_at,
-        status: a.status,
-      }));
-
-      setTodaysAppointments(formattedAppointments);
-      console.log(
-        "DashboardTenant: [loadDashboard] Agendamentos de hoje (formatados):",
-        formattedAppointments
+      setTodaysAppointments(
+        apptsToday.map((a) => ({
+          id: a.id,
+          serviceName: svcMap.get(a.service_id)?.name || "Serviço",
+          professionalName: profMap.get(a.professional_id)?.name || "Profissional",
+          customerName: a.customer_name || "Cliente",
+          startsAt: a.starts_at,
+          endsAt: a.ends_at,
+          status: a.status,
+        }))
       );
+
 
       // ====== FATURAMENTO DO MÊS ======
       let monthDoneQuery = supabase
@@ -180,21 +152,14 @@ export default function DashboardTenant() {
 
       if (profile.role === "professional" && professionalId) {
         monthDoneQuery = monthDoneQuery.eq("professional_id", professionalId);
-        console.log(
-          "DashboardTenant: [loadDashboard] Filtrando faturamento por professional_id:",
-          professionalId
-        );
       }
 
       const { data: monthDone } = await monthDoneQuery;
-      console.log("DashboardTenant: [loadDashboard] Faturamento do mês (raw):", monthDone);
+
 
       const done = (monthDone || []) as { professional_id: UUID; service_id: UUID }[];
       setDoneThisMonth(done.length);
-      console.log(
-        "DashboardTenant: [loadDashboard] Atendimentos concluídos no mês:",
-        done.length
-      );
+
 
       const monthServiceIds = [...new Set(done.map((d) => d.service_id))];
       const { data: svcMonth } = await supabase
@@ -208,14 +173,10 @@ export default function DashboardTenant() {
         0
       );
       setRevenueThisMonth(totalCents / 100);
-      console.log(
-        "DashboardTenant: [loadDashboard] Faturamento total do mês:",
-        totalCents / 100
-      );
+
 
       // ranking (only for manager, or if professional wants to see their rank)
       if (profile.role === "manager" || (profile.role === "professional" && professionalId)) {
-        console.log("DashboardTenant: [loadDashboard] Calculando ranking.");
         const allDoneAppointments = await supabase
           .from("appointments")
           .select("professional_id, service_id")
@@ -224,19 +185,16 @@ export default function DashboardTenant() {
           .gte("starts_at", monthStart)
           .lt("starts_at", nextMonth);
 
-        const allServicePrices = await supabase.from("services").select("id, price_cents");
+        const allServicePrices = await supabase
+          .from("services")
+          .select("id, price_cents");
 
-        const allSvcPriceMap = new Map(
-          (allServicePrices.data || []).map((s) => [s.id, s.price_cents])
-        );
+        const allSvcPriceMap = new Map((allServicePrices.data || []).map((s) => [s.id, s.price_cents]));
 
         const allByProf = new Map<string, number>();
         (allDoneAppointments.data || []).forEach((d) => {
           const prev = allByProf.get(d.professional_id) || 0;
-          allByProf.set(
-            d.professional_id,
-            prev + (allSvcPriceMap.get(d.service_id) || 0)
-          );
+          allByProf.set(d.professional_id, prev + (allSvcPriceMap.get(d.service_id) || 0));
         });
 
         const allTop = Array.from(allByProf.entries())
@@ -248,88 +206,47 @@ export default function DashboardTenant() {
           .sort((a, b) => b.total - a.total);
 
         setTop3(allTop.slice(0, 3));
-        console.log(
-          "DashboardTenant: [loadDashboard] Top 3 Profissionais:",
-          allTop.slice(0, 3)
-        );
+
 
         if (professionalId) {
           const pos = allTop.findIndex((t) => t.id === professionalId);
           setRankingPosition(pos >= 0 ? pos + 1 : null);
-          console.log(
-            "DashboardTenant: [loadDashboard] Posição no ranking do profissional:",
-            pos >= 0 ? pos + 1 : null
-          );
         }
       }
+
     } finally {
-      console.log("DashboardTenant: [loadDashboard] Finalizado. Definindo loading para false.");
       setLoading(false);
     }
-  }, [
-    profile?.user_id,
-    profile?.role,
-    profile?.professional_id,
-    profile?.full_name,
-    tenant?.id,
-  ]); // Dependencies para manter estável por tenant/profile
+  }, [userTenantLoading, profile, tenant]); // Dependencies for useCallback
 
-  // ==============================
-  // Efeito principal: primeira carga controlada
-  // ==============================
   useEffect(() => {
-    console.log(
-      "DashboardTenant: [useEffect principal] Disparado. userTenantLoading:",
-      userTenantLoading,
-      "profile:",
-      !!profile
-    );
-
-    if (userTenantLoading) return;
-    if (!profile || !tenant) return;
-
-    if (!hasInitialLoadedRef.current) {
-      console.log(
-        "DashboardTenant: [useEffect principal] Primeira carga, chamando loadDashboard."
-      );
-      hasInitialLoadedRef.current = true;
+    if (!userTenantLoading && profile) {
       loadDashboard();
+    } else if (!userTenantLoading && !profile) {
     }
-  }, [userTenantLoading, profile?.user_id, tenant?.id, loadDashboard]);
-
-  // ==============================
-  // Recarregar ao voltar aba para visível
-  // ==============================
-  useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible" && profile && tenant) {
-        console.log(
-          "DashboardTenant: [visibilitychange] Aba visível, chamando loadDashboard."
-        );
+      if (document.visibilityState === "visible") {
         loadDashboard();
       }
     };
-
     document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [profile?.user_id, tenant?.id, loadDashboard]);
+  }, [profile, userTenantLoading, tenant]); // Removido loadDashboard das dependências
 
-  // ==============================
-  // Canal do Supabase para updates
-  // ==============================
+  // Ref para a função loadDashboard
+  const loadDashboardRef = useRef(loadDashboard);
+  useEffect(() => {
+    loadDashboardRef.current = loadDashboard;
+  }, [loadDashboard]);
+
   useEffect(() => {
     if (!tenant?.id) {
-      console.log(
-        "DashboardTenant: [useEffect Supabase Channel] Sem tenant ID, não configurando canal."
-      );
       return;
     }
-    console.log(
-      "DashboardTenant: [useEffect Supabase Channel] Configurando canal para tenant ID:",
-      tenant.id
-    );
+
 
     const channel = supabase
       .channel(`appointments-changes-${tenant.id}`)
@@ -337,23 +254,17 @@ export default function DashboardTenant() {
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "appointments" },
         (payload) => {
-          console.log("DashboardTenant: [Supabase Channel] Atualização recebida:", payload);
-          loadDashboard();
+          loadDashboardRef.current(); // Chama a função via ref
         }
       )
       .subscribe();
 
     return () => {
-      console.log("DashboardTenant: [Supabase Channel] Desinscrevendo do canal.");
       supabase.removeChannel(channel);
     };
-  }, [tenant?.id, loadDashboard]);
+  }, [tenant?.id]); // loadDashboard removido das dependências
 
-  // ==============================
-  // Render
-  // ==============================
   if (loading) {
-    console.log("DashboardTenant: Renderizando tela de carregamento.");
     return (
       <div style={{ padding: 20, textAlign: "center" }}>
         Carregando informações…
@@ -362,12 +273,10 @@ export default function DashboardTenant() {
   }
 
   if (!tenant) {
-    console.log("DashboardTenant: Renderizando mensagem de tenant não encontrado.");
     return (
       <div className={styles.container}>
         <p style={{ textAlign: "center", padding: 20 }}>
-          Seu perfil está associado a um salão, mas não foi possível carregar as informações
-          do salão.
+          Seu perfil está associado a um salão, mas não foi possível carregar as informações do salão.
           Por favor, entre em contato com o administrador do sistema.
         </p>
       </div>
@@ -375,7 +284,6 @@ export default function DashboardTenant() {
   }
 
   if (role === "manager") {
-    console.log("DashboardTenant: Renderizando dashboard para MANAGER.");
     return (
       <div
         className={styles.container}
@@ -517,15 +425,12 @@ export default function DashboardTenant() {
   }
 
   if (role === "professional") {
-    console.log("DashboardTenant: Renderizando dashboard para PROFESSIONAL.");
     if (!profile?.professional_id) {
-      console.log("DashboardTenant: Professional sem professional_id vinculado.");
       return (
         <div className={styles.container}>
           <p style={{ textAlign: "center", padding: 20 }}>
             Seu perfil de usuário não está vinculado a um profissional cadastrado no salão.
-            Por favor, entre em contato com o administrador do sistema para vincular seu usuário
-            a um profissional.
+            Por favor, entre em contato com o administrador do sistema para vincular seu usuário a um profissional.
           </p>
         </div>
       );
@@ -544,9 +449,7 @@ export default function DashboardTenant() {
           <div className={styles.profStatCard}>
             <div className={styles.profCardHeader}>
               <div className={`${styles.profCardIcon} ${styles.appointmentsToday}`}>
-                <span style={{ fontSize: "1.2rem", fontWeight: "bold" }}>
-                  {appointmentsToday}
-                </span>
+                <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{appointmentsToday}</span>
               </div>
               <span className={styles.profCardTitle}>Meus Agendamentos Hoje</span>
             </div>
@@ -556,7 +459,7 @@ export default function DashboardTenant() {
           <div className={styles.profStatCard}>
             <div className={styles.profCardHeader}>
               <div className={`${styles.profCardIcon} ${styles.revenueMonth}`}>
-                <span style={{ fontSize: "1.2rem", fontWeight: "bold" }}>R$</span>
+                <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>R$</span>
               </div>
               <span className={styles.profCardTitle}>Meu Faturamento (Mês)</span>
             </div>
@@ -571,9 +474,7 @@ export default function DashboardTenant() {
           <div className={styles.profStatCard}>
             <div className={styles.profCardHeader}>
               <div className={`${styles.profCardIcon} ${styles.completedMonth}`}>
-                <span style={{ fontSize: "1.2rem", fontWeight: "bold" }}>
-                  {doneThisMonth}
-                </span>
+                <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{doneThisMonth}</span>
               </div>
               <span className={styles.profCardTitle}>Atendimentos Concluídos (Mês)</span>
             </div>
@@ -583,7 +484,7 @@ export default function DashboardTenant() {
           <div className={styles.profStatCard}>
             <div className={styles.profCardHeader}>
               <div className={`${styles.profCardIcon} ${styles.rankingPosition}`}>
-                <span style={{ fontSize: "1.2rem", fontWeight: "bold" }}>#</span>
+                <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>#</span>
               </div>
               <span className={styles.profCardTitle}>Minha Posição no Ranking</span>
             </div>
@@ -600,11 +501,7 @@ export default function DashboardTenant() {
           ) : (
             todaysAppointments.map((item) => (
               <div key={item.id} className={styles.appointmentCard}>
-                <img
-                  className={styles.appointmentAvatar}
-                  src={PLACEHOLDER_AVATAR}
-                  alt=""
-                />
+                <img className={styles.appointmentAvatar} src={PLACEHOLDER_AVATAR} alt="" />
                 <div className={styles.appointmentInfo}>
                   <div className={styles.appointmentTitle}>{item.serviceName}</div>
                   <div className={styles.appointmentTime}>
@@ -619,6 +516,5 @@ export default function DashboardTenant() {
     );
   }
 
-  console.log("DashboardTenant: Renderizando null (papel não tratado).");
   return null;
 }
