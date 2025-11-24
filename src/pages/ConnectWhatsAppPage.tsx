@@ -3,7 +3,7 @@ import { useUserAndTenant } from "../hooks/useUserAndTenant";
 import { useEvolutionConnection } from "../hooks/useEvolutionConnection";
 import QRCodeDisplay from "./QRCodeDisplay";
 import N8nPauseButton from "../components/N8nPauseButton";
-import styles from "../css/ConnectWhatsAppPage.module.css"; // Importar o novo CSS
+import styles from "../css/ConnectWhatsApp.module.css"; // Importar o novo CSS
 
 export default function ConnectWhatsAppPage() {
   const { tenant, subscription, loading } = useUserAndTenant();
