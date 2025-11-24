@@ -1,8 +1,9 @@
+
 /* ================================
    LAYOUT PRINCIPAL (tema)
 ================================ */
 .container {
-  padding: 1.5rem;
+  padding: 0 1.5rem 1.5rem; /* Ajustado para remover padding-top */
   background: var(--bg);
   min-height: 100vh;
   color: var(--text);

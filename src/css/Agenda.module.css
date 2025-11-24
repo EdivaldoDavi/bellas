@@ -3,7 +3,7 @@
    LAYOUT PRINCIPAL
 =========================================================== */
 .container {
-  padding: 1.5rem;
+  padding: 0 1.5rem 1.5rem; /* Ajustado para remover padding-top */
   background: var(--bg);
   color: var(--text);
   transition: background 0.3s ease, color 0.3s ease;
@@ -468,8 +468,7 @@ select:focus {
 
   /* Empurra o conteúdo abaixo do header fixo */
   .container {
-    /* padding-top: 110px !important; */ /* REMOVIDO */
-    padding-top: 1.5rem; /* Volta ao padding padrão */
+    padding: 0 1rem 1rem; /* Ajustado para remover padding-top e menor padding lateral */
   }
 
   /* Linha do título + botão */

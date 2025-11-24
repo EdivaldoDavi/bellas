@@ -1,7 +1,9 @@
+
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 import { useEvolutionConnection } from "../hooks/useEvolutionConnection";
 import QRCodeDisplay from "./QRCodeDisplay";
 import N8nPauseButton from "../components/N8nPauseButton";
+import styles from "../css/ConnectWhatsAppPage.module.css"; // Importar o novo CSS
 
 export default function ConnectWhatsAppPage() {
   const { tenant, subscription, loading } = useUserAndTenant();
@@ -36,22 +38,15 @@ export default function ConnectWhatsAppPage() {
   const shouldShowPauseButton = !!subscription && !isWhatsDisconnected;
 
   return (
-    <div style={{ padding: "1.5rem", maxWidth: 600 }}>
-      <h2>Integração WhatsApp</h2>
+    <div className={styles.container}> {/* Usar a classe do novo CSS */}
+      <h2 className={styles.title}>Integração WhatsApp</h2>
 
-      <p>
+      <p className={styles.description}>
         Conecte o WhatsApp para habilitar automações, confirmações e mensagens
         inteligentes via IA.
       </p>
 
-      <div
-        style={{
-          background: "var(--card-bg, #fff)",
-          padding: "1.5rem",
-          borderRadius: "16px",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-        }}
-      >
+      <div className={styles.card}> {/* Usar a classe do novo CSS */}
         {/* 🔵 QRCode SEMPRE aparece */}
         <QRCodeDisplay
           instanceId={instanceId}
@@ -68,25 +63,11 @@ export default function ConnectWhatsAppPage() {
             initialState={subscription!.n8n_pause}
           />
         ) : subscription ? (
-          <div
-            style={{
-              marginTop: "0.75rem",
-              opacity: 0.7,
-              fontSize: "0.9rem",
-              textAlign: "center",
-            }}
-          >
+          <div className={styles.hint}> {/* Usar a classe do novo CSS */}
             Conecte o WhatsApp para habilitar o controle de atendimento.
           </div>
         ) : (
-          <div
-            style={{
-              marginTop: "0.75rem",
-              opacity: 0.7,
-              fontSize: "0.9rem",
-              textAlign: "center",
-            }}
-          >
+          <div className={styles.hint}> {/* Usar a classe do novo CSS */}
             Associe um plano de assinatura para ativar o controle de atendimento.
           </div>
         )}

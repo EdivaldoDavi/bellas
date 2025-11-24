@@ -3,7 +3,7 @@
 
 .dashboardContainer {
   background-color: var(--bg);
- padding-top: var(--header-total-height, 110px) !important; /* Usa a variável CSS */
+  padding: 0 1.5rem 1.5rem; /* Ajustado para remover padding-top */
   min-height: 100vh;
   color: var(--text);
   transition: background 0.3s ease, color 0.3s ease;
@@ -85,8 +85,7 @@
     grid-template-columns: 1fr;
   }
  .dashboardContainer {
-    /* antes estava só padding: 1rem; */
-    padding-top: var(--header-total-height, 110px) !important; /* Usa a variável CSS */
+    padding: 0 1rem 1rem; /* Ajustado para remover padding-top e menor padding lateral */
   }
   .headerTitle {
     font-size: 1.5rem;

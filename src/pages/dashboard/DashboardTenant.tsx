@@ -1,3 +1,4 @@
+
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 
 import "react-loading-skeleton/dist/skeleton.css";
@@ -253,8 +254,8 @@ export default function DashboardTenant() {
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "appointments" },
-        () => {
-          loadDashboardRef.current();
+        (payload) => {
+          loadDashboardRef.current(); // Chama a função via ref
         }
       )
       .subscribe();

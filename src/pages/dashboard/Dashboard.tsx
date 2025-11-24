@@ -3,6 +3,7 @@ import { useUserAndTenant } from "../../hooks/useUserAndTenant";
 import DashboardGlobal from "./DashboardGlobal";
 import DashboardTenant from "./DashboardTenant";
 import { Link, Navigate } from "react-router-dom";
+ // Importar o CSS do Dashboard
 
 export default function Dashboard() {
   const { loading, profile } = useUserAndTenant(); // Incluído tenant aqui

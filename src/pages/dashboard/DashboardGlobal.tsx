@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import styles from "./DashboardGlobal.module.css";
 import { supabase } from "../../lib/supabaseCleint";
