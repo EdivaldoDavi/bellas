@@ -29,7 +29,7 @@
 }
 
 .logoImg {
-  height: 32px;   /* ajuste aqui */
+  height: 60px;   /* ajuste aqui */
   width: auto;    /* mantém a proporção */
   object-fit: contain;
 }
