@@ -2,8 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { AlertTriangle, X } from 'lucide-react';
-import styles from '../css/WhatsAppDisconnectedToast.module.css';
-
+import styles from "../css/WhatsAppDisconnectedToast.module.css";
 interface WhatsAppDisconnectedToastProps {
   closeToast?: () => void;
   instanceId: string;
