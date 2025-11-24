@@ -126,7 +126,10 @@ export default function Sidebar({
         style={{ "--sidebar-primary": sidebarPrimary } as CSSProperties}
       >
         <div className={styles.topSection}>
-          <span className={styles.logo}>NailUp!</span>
+    <span className={styles.logo}>
+  <img src="/src/assets/bellaslogo.jpg" alt="Bellas!" className={styles.logoImg} />
+</span>
+
           <button className={styles.toggleBtn} onClick={toggleSidebar}>
             ☰
           </button>
