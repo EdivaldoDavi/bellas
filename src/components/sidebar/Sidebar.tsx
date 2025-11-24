@@ -127,7 +127,7 @@ export default function Sidebar({
       >
         <div className={styles.topSection}>
     <span className={styles.logo}>
-  <img src="/image/bellaslogo.jpeg" alt="Bellas!" className={styles.logoImg} />
+  <img src="/image/bellaslogo.png" alt="Bellas!" className={styles.logoImg} />
 
 </span>
 
