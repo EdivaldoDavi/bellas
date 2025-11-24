@@ -1,0 +1,30 @@
+
+.container {
+  padding: 0 1.5rem 1.5rem; /* Ajustado para remover padding-top */
+  background: var(--bg);
+  min-height: 100vh;
+  color: var(--text);
+}
+
+.title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--text);
+}
+
+.description {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 1rem 1rem; /* Menor padding lateral no mobile */
+  }
+  .title {
+    font-size: 1.4rem;
+  }
+}
