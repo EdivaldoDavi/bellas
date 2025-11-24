@@ -1,4 +1,3 @@
-
 import { useEffect, useState  } from "react";
 import { supabase } from "../lib/supabaseCleint";
 import { toast } from "react-toastify";
@@ -62,13 +61,7 @@ export default function ManageRoles({ tenantId, loggedInUserId }: Props) {
     setLoading(false);
   }
 
-  async function updateRole(userId: string, newRole: "manager" | "professional") {
-    // Impedir alteração da própria role
-    if (userId === loggedInUserId) {
-      toast.error("Você não pode alterar sua própria permissão.");
-      return;
-    }
-
+  async function performRoleUpdate(userId: string, newRole: "manager" | "professional") {
     const { error } = await supabase
       .from("profiles")
       .update({ role: newRole })
@@ -82,6 +75,71 @@ export default function ManageRoles({ tenantId, loggedInUserId }: Props) {
 
     toast.success("Permissão atualizada!");
     loadUsers();
+  }
+
+  function confirmRoleUpdate(user: ProfileUser, newRole: "manager" | "professional") {
+    // Impedir alteração da própria role
+    if (user.user_id === loggedInUserId) {
+      toast.error("Você não pode alterar sua própria permissão.");
+      return;
+    }
+
+    // Impedir alteração de superuser
+    if (user.role === "superuser") {
+      toast.error("Não é possível alterar a permissão de um superuser.");
+      return;
+    }
+
+    toast(
+      ({ closeToast }) => (
+        <div style={{ textAlign: "center", padding: '10px' }}>
+          <p style={{ marginBottom: 12, fontSize: '0.95rem' }}>
+            Deseja realmente alterar a permissão de <b>{user.full_name}</b> para <b>{newRole === 'manager' ? 'Gerente' : 'Profissional'}</b>?
+          </p>
+
+          <button
+            onClick={() => {
+              closeToast?.();
+              performRoleUpdate(user.user_id, newRole);
+            }}
+            style={{
+              marginRight: 10,
+              padding: "8px 16px",
+              borderRadius: 8,
+              background: "var(--color-primary)",
+              color: "#fff",
+              border: "none",
+              cursor: "pointer",
+              fontWeight: 600
+            }}
+          >
+            Confirmar
+          </button>
+
+          <button
+            onClick={closeToast}
+            style={{
+              padding: "8px 16px",
+              borderRadius: 8,
+              background: "var(--separator)",
+              color: "var(--text)",
+              border: "1px solid var(--separator)",
+              cursor: "pointer",
+              fontWeight: 600
+            }}
+          >
+            Cancelar
+          </button>
+        </div>
+      ),
+      {
+        autoClose: false,
+        draggable: false,
+        icon: false,
+        closeOnClick: false,
+        style: { background: "var(--card-bg)", color: "var(--text)", borderRadius: '12px' }
+      }
+    );
   }
 
   return (
@@ -126,8 +184,8 @@ export default function ManageRoles({ tenantId, loggedInUserId }: Props) {
                     className={styles.select}
                     value={u.role}
                     onChange={(e) =>
-                      updateRole(
-                        u.user_id,
+                      confirmRoleUpdate(
+                        u, // Passa o objeto de usuário completo
                         e.target.value as "manager" | "professional"
                       )
                     }
