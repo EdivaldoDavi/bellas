@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
@@ -119,7 +120,7 @@ export default function ProfessionalsPage() {
       query = query.order("name"); // Ordena por nome ao buscar
     } else {
       // Se não houver termo de busca, carrega os 5 mais recentes
-      query = query.order("created_at", { ascending: false }).limit(5);
+      query = query.order("created_at", { ascending: false }).limit(3);
     }
 
     const { data, error } = await query;
