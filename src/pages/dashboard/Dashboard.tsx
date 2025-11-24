@@ -1,9 +1,8 @@
-
 import { useUserAndTenant } from "../../hooks/useUserAndTenant";
 import DashboardGlobal from "./DashboardGlobal";
 import DashboardTenant from "./DashboardTenant";
-import { Link, Navigate } from "react-router-dom";
- // Importar o CSS do Dashboard
+import {  Navigate } from "react-router-dom";
+
 
 export default function Dashboard() {
   const { loading, profile } = useUserAndTenant(); // Incluído tenant aqui
@@ -44,21 +43,7 @@ export default function Dashboard() {
     return (
       <>
         <DashboardTenant />
-        <div style={{ marginTop: 20, textAlign: "center" }}>
-          <Link
-            to="/gerenciar-acessos"
-            style={{
-              padding: "10px 16px",
-              background: "var(--color-primary)",
-              color: "#fff",
-              borderRadius: "8px",
-              textDecoration: "none",
-              fontWeight: 600,
-            }}
-          >
-            Gerenciar Permissões
-          </Link>
-        </div>
+        {/* O botão 'Gerenciar Permissões' foi removido daqui */}
       </>
     );
   }
