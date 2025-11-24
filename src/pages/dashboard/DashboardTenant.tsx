@@ -248,7 +248,7 @@ export default function DashboardTenant() {
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "appointments" },
-        (payload) => {
+        () => {
           loadDashboardRef.current(); // Chama a função via ref
         }
       )
