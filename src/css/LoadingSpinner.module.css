@@ -29,3 +29,28 @@
   font-weight: 500;
   color: var(--text);
 }
+
+/* Estilos para o spinner menor, usado dentro de componentes */
+.spinnerContainerSmall {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px; /* Adiciona um padding para não ficar colado */
+  width: 100%; /* Ocupa a largura total do container pai */
+  box-sizing: border-box;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  gap: 0.5rem;
+}
+
+.spinnerContainerSmall .spinner {
+  width: 30px; /* Tamanho menor para o spinner */
+  height: 30px;
+  border-width: 3px; /* Borda mais fina */
+}
+
+.spinnerContainerSmall .loadingTextSmall {
+  font-weight: 500;
+  color: var(--text-muted);
+}
