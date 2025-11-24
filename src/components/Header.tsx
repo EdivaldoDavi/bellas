@@ -9,7 +9,7 @@ import { logout } from "../lib/supabaseCleint";
 import "../index.css";
 
 export default function Header({ toggleSidebar }: { toggleSidebar: () => void }) {
-  const { profile, tenant, loading: profileLoading } = useUserAndTenant();
+  const { profile,  loading: profileLoading } = useUserAndTenant();
   const { theme, toggleTheme } = useTheme();
 
   const ref = useRef<HTMLDivElement>(null);
