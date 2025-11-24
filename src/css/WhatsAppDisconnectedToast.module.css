@@ -5,9 +5,9 @@
   gap: 12px;
   padding: 12px;
   background: var(--card-bg); /* Usa a cor de fundo do card do tema */
-  border: 1px solid var(--separator);
+  /* REMOVIDO: border: 1px solid var(--separator); */
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25); /* Ajustado para dar mais definição sem a borda */
   color: var(--text);
   position: relative;
   width: 100%;
