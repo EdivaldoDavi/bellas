@@ -10,11 +10,11 @@
   border-bottom: 1px solid var(--separator, #e5e5e5);
   min-height: 64px; /* Ensure a minimum height */
   transition: background 0.3s ease, color 0.3s ease;
-  position: fixed; /* Ensure it's fixed on top */
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 999; /* Keep it above content */
+  /* REMOVIDO: position: fixed; */
+  /* REMOVIDO: top: 0; */
+  /* REMOVIDO: left: 0; */
+  /* REMOVIDO: right: 0; */
+  /* REMOVIDO: z-index: 999; */
   box-sizing: border-box; /* Include padding in width/height */
   flex-wrap: wrap; /* Allow items to wrap if space is tight */
 }
@@ -101,7 +101,6 @@
     align-items: center;
     height: auto; /* Allow height to adjust */
     padding: 0.75rem 1rem; /* Consistent padding */
-    /* position: fixed; top: 0; left: 0; right: 0; z-index: 999; */ /* Already in base .header */
     background-color: var(--header-bg, #ffffff);
     border-bottom: 1px solid var(--separator, #e5e5e5);
     flex-wrap: wrap; /* Allow wrapping */
@@ -128,7 +127,6 @@
 
   .leftSection {
     width: 100%;
-    /* padding: 1rem; */ /* Removed, header padding handles it */
     box-sizing: border-box;
   }
 
@@ -140,7 +138,6 @@
   .rightSection {
     width: 100%;
     justify-content: space-between;
-    /* padding: 0 1rem 1rem; */ /* Removed, header padding handles it */
     box-sizing: border-box;
   }
 }
