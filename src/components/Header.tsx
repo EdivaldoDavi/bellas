@@ -1,3 +1,4 @@
+
 import { Menu, Sun, Moon, AlertTriangle, LogOut } from "lucide-react";
 import styles from "../css/header.module.css";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
@@ -48,15 +49,25 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
 
   // Atualiza var CSS da altura do header
   useEffect(() => {
-    const update = () => {
-      if (!ref.current) return;
-      const h = ref.current.offsetHeight;
-      document.documentElement.style.setProperty("--header-total-height", `${h}px`);
+    const measureAndSetHeight = () => {
+      if (ref.current) {
+        const h = ref.current.offsetHeight;
+        document.documentElement.style.setProperty("--header-total-height", `${h}px`);
+      }
     };
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, [isWhatsDisconnected]);
+
+    // Mede inicialmente e sempre que isWhatsDisconnected muda
+    requestAnimationFrame(measureAndSetHeight);
+
+    // Também mede ao redimensionar a janela
+    const handleResize = () => requestAnimationFrame(measureAndSetHeight);
+    window.addEventListener("resize", handleResize);
+
+    // Limpa o listener ao desmontar
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [isWhatsDisconnected]); // Dependência crucial para reagir ao alerta
 
   // Flag no localStorage para o layout
   useEffect(() => {

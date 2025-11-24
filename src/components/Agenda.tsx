@@ -1,4 +1,3 @@
-
 /** AGENDA — CLEAN VERSION FINAL **/
 
 import { useEffect, useState, useMemo } from "react";
@@ -23,7 +22,7 @@ import { toLocalISOString, isHoliday } from "../utils/date";
 
 import { getAvailableTimeSlots } from "../utils/schedule"; // Importa a nova função
 
-import { ChevronLeft, ChevronRight, Plus, CheckSquare } from "lucide-react"; // Importar CheckSquare e Square
+import { ChevronLeft, ChevronRight, Plus, CheckSquare, Square } from "lucide-react"; // Importar CheckSquare e Square
 import styles from "../css/Agenda.module.css";
 
 import { supabase } from "../lib/supabaseCleint";
@@ -290,7 +289,7 @@ export default function Agenda() {
         <h2 className={styles.title}>Agenda</h2>
 
         {canManageAppointments && !isSelectionMode && (
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div className={styles.agendaHeaderButtons}> {/* NEW CLASS */}
             <button className={styles.newButton} onClick={() => setShowWizard(true)}>
               <Plus size={18} /> Novo Agendamento
             </button>

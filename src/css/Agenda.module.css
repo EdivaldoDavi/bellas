@@ -1,4 +1,3 @@
-
 /* ===========================================================
    LAYOUT PRINCIPAL
 =========================================================== */
@@ -62,7 +61,7 @@
    NOVO: BOTÕES DE AÇÃO EM LOTE
 =========================================================== */
 /* This div wraps the two buttons when not in selection mode */
-.header > div { /* Target the direct div child of header */
+.agendaHeaderButtons { /* Target the new class */
   display: flex;
   gap: 10px;
   flex-wrap: wrap; /* Allow buttons to wrap within this div */
@@ -481,7 +480,7 @@ select:focus {
   }
 
   /* Ensure the button group also stacks vertically */
-  .header > div {
+  .agendaHeaderButtons { /* Target the new class */
     flex-direction: column;
     width: 100%;
   }
@@ -572,7 +571,7 @@ select:focus {
   .date {
     font-size: 1rem;
     font-weight: 600;
-    text-align: center;
-    color: var(--text);
+    text-transform: capitalize;
+    letter-spacing: 0.3px;
   }
 }
