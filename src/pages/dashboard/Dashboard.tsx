@@ -1,132 +1,95 @@
-import { useEffect, useState } from "react";
-import styles from "./DashboardGlobal.module.css";
-import { supabase } from "../../lib/supabaseCleint";
-import LoadingSpinner from "../../components/LoadingSpinner"; // Importar o LoadingSpinner
+import { useUserAndTenant } from "../../hooks/useUserAndTenant";
+import DashboardGlobal from "./DashboardGlobal";
+import DashboardTenant from "./DashboardTenant";
+import { Link, Navigate } from "react-router-dom";
+// REMOVIDO: import styles from "./Dashboard.module.css"; // Importar o CSS do Dashboard
 
-interface Stats {
-  totalTenants: number;
-  totalUsers: number;
-  appointmentsToday: number;
-  totalRevenue: number;
-}
+export default function Dashboard() {
+  const { loading, profile, tenant } = useUserAndTenant(); // Incluído tenant aqui
 
-export default function DashboardGlobal() {
-  const [stats, setStats] = useState<Stats>({
-    totalTenants: 0,
-    totalUsers: 0,
-    appointmentsToday: 0,
-    totalRevenue: 0,
-  });
-  const [loading, setLoading] = useState(true);
+  const role = profile?.role;
+  const hasTenant = !!profile?.tenant_id;
 
-  useEffect(() => {
-    async function fetchStats() {
-      try {
-        // 🔹 Total de salões
-        const { count: tenantsCount, error: tenantsError } = await supabase
-          .from("tenants")
-          .select("*", { count: "exact" });
-        if (tenantsError) throw tenantsError;
+  // Adicionado para depuração
+  console.log("Dashboard.tsx - Loading:", loading);
+  console.log("Dashboard.tsx - Profile:", profile);
+  console.log("Dashboard.tsx - Role:", role);
+  console.log("Dashboard.tsx - Has Tenant:", hasTenant);
 
-        // 🔹 Total de usuários
-        const { count: usersCount, error: usersError } = await supabase
-          .from("profiles")
-          .select("*", { count: "exact" });
-        if (usersError) throw usersError;
 
-        // 🔹 Agendamentos de hoje
-        const hoje = new Date();
-        const inicio = new Date(hoje.setHours(0, 0, 0, 0)).toISOString();
-        const fim = new Date(hoje.setHours(23, 59, 59, 999)).toISOString();
+  // 🔄 Loading SEM desmontar
+  if (loading) {
+    return (
+      <div style={{ padding: 20, textAlign: "center" }}>
+        Carregando informações…
+      </div>
+    );
+  }
 
-        const { count: apptsToday, error: apptsError } = await supabase
-          .from("appointments")
-          .select("*", { count: "exact" })
-          .gte("starts_at", inicio)
-          .lte("starts_at", fim);
-        if (apptsError) throw apptsError;
+  // ❌ Profile ausente
+  if (!profile) {
+    return (
+      <p style={{ textAlign: "center", padding: 20, color: "red" }}>
+        Acesso negado: Perfil não encontrado.
+      </p>
+    );
+  }
 
-        // 🔹 Faturamento total (baseado em services.price_cents dos appointments concluídos)
-        const { data: appointments, error: appointmentsError } = await supabase
-          .from("appointments")
-          .select("service_id")
-          .eq("status", "done"); // apenas concluídos contam como faturamento
-        if (appointmentsError) throw appointmentsError;
+  // OWNER
+  if (role === "owner") {
+    return <DashboardGlobal />;
+  }
 
-        const serviceIds = appointments?.map((a) => a.service_id).filter(Boolean);
-        let totalRevenue = 0;
-
-        if (serviceIds && serviceIds.length > 0) {
-          const { data: services, error: servicesError } = await supabase
-            .from("services")
-            .select("id, price_cents");
-          if (servicesError) throw servicesError;
-
-          // soma os preços dos serviços agendados
-          totalRevenue = appointments.reduce((acc, appt) => {
-            const s = services?.find((srv) => srv.id === appt.service_id);
-            return acc + (s?.price_cents ?? 0);
-          }, 0);
-
-          // converte de centavos para reais
-          totalRevenue = totalRevenue / 100;
-        }
-
-        setStats({
-          totalTenants: tenantsCount ?? 0,
-          totalUsers: usersCount ?? 0,
-          appointmentsToday: apptsToday ?? 0,
-          totalRevenue,
-        });
-      } catch (error) {
-        console.error("Erro ao carregar dados:", error);
-      } finally {
-        setLoading(false);
-      }
+  // MANAGER
+  if (role === "manager") {
+    if (!hasTenant) {
+      // só redireciono quando loading já é false
+      return <Navigate to="/setup" replace />;
     }
 
-    fetchStats();
-  }, []);
+    return (
+      <>
+        <DashboardTenant />
+        {/* O botão 'Gerenciar Permissões' foi removido daqui */}
+      </>
+    );
+  }
 
-  if (loading) return <LoadingSpinner message="Carregando dados globais..." />;
+  // PROFESSIONAL
+  if (role === "professional") {
+    if (!hasTenant) {
+      // Professional without a tenant: show a message
+      return (
+        <p style={{ textAlign: "center", padding: 20 }}>
+          Você é um profissional e precisa ser associado a um salão para ver seu dashboard.
+          Por favor, entre em contato com o administrador do sistema.
+        </p>
+      );
+    }
+    return <DashboardTenant />;
+  }
+
+  // STAFF
+  if (role === "staff") {
+    return (
+      <p style={{ textAlign: "center", padding: 20 }}>
+        Você não possui acesso ao painel administrativo.
+      </p>
+    );
+  }
+
+  // CLIENT
+  if (role === "client") {
+    return (
+      <p style={{ textAlign: "center", padding: 20 }}>
+        Clientes não possuem acesso ao painel administrativo.
+      </p>
+    );
+  }
 
   return (
-    <div className={styles.container}>
-      <div className={styles.grid}>
-        <div className={styles.card}>
-          <span className={`${styles.dot} ${styles.pink}`}></span>
-          <div>
-            <p className={styles.label}>Total de Salões</p>
-            <p className={styles.value}>{stats.totalTenants}</p>
-          </div>
-        </div>
-
-        <div className={styles.card}>
-          <span className={`${styles.dot} ${styles.purple}`}></span>
-          <div>
-            <p className={styles.label}>Total de Usuários</p>
-            <p className={styles.value}>{stats.totalUsers}</p>
-          </div>
-        </div>
-
-        <div className={styles.card}>
-          <span className={`${styles.dot} ${styles.blue}`}></span>
-          <div>
-            <p className={styles.label}>Agendamentos Hoje</p>
-            <p className={styles.value}>{stats.appointmentsToday}</p>
-          </div>
-        </div>
-
-        <div className={styles.card}>
-          <span className={`${styles.dot} ${styles.green}`}>R$</span>
-          <div>
-            <p className={styles.label}>Faturamento Geral</p>
-            <p className={styles.value}>
-              R$ {stats.totalRevenue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <p style={{ textAlign: "center", padding: 20, color: "red" }}>
+      Papel inválido.
+    </p>
   );
 }
