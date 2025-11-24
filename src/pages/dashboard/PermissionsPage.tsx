@@ -33,5 +33,5 @@ export default function PermissionsPage() {
     );
   }
 
-  return <ManageRoles tenantId={profile.tenant_id} />;
+  return <ManageRoles tenantId={profile.tenant_id} loggedInUserId={profile.user_id} />;
 }

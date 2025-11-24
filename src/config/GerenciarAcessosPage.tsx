@@ -1,13 +1,14 @@
 
 import ManageRoles from "../components/ManageRoles";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
+import styles from "../css/GerenciarAcessosPage.module.css"; // Importar o novo CSS
 
 export default function GerenciarAcessosPage() {
   const { profile } = useUserAndTenant();
 
   // Carregando ou sem sessão
   if (!profile) {
-    return <p style={{ padding: 20, textAlign: "center" }}>Carregando...</p>;
+    return <p className={styles.description} style={{ padding: 20, textAlign: "center" }}>Carregando...</p>;
   }
 
   // 🔥 Apenas OWNER e MANAGER podem acessar esta página
@@ -16,7 +17,7 @@ export default function GerenciarAcessosPage() {
 
   if (!canAccess) {
     return (
-      <p style={{ padding: 20, textAlign: "center", color: "red" }}>
+      <p className={styles.description} style={{ padding: 20, textAlign: "center", color: "red" }}>
         Acesso negado.
       </p>
     );
@@ -25,11 +26,17 @@ export default function GerenciarAcessosPage() {
   // 🔥 Segurança adicional — profile.tenant_id pode ser null no TS
   if (!profile.tenant_id) {
     return (
-      <p style={{ padding: 20, textAlign: "center", color: "red" }}>
+      <p className={styles.description} style={{ padding: 20, textAlign: "center", color: "red" }}>
         Nenhuma tenant associada ao usuário.
       </p>
     );
   }
 
-  return <ManageRoles tenantId={profile.tenant_id} />;
+  return (
+    <div className={styles.container}>
+      <h2 className={styles.title}>Gerenciar Acessos</h2>
+      <p className={styles.description}>Defina os papéis e permissões dos usuários do seu salão.</p>
+      <ManageRoles tenantId={profile.tenant_id} loggedInUserId={profile.user_id} />
+    </div>
+  );
 }

@@ -1,36 +1,55 @@
-import { useEffect, useState } from "react";
+
+import { useEffect, useState  } from "react";
 import { supabase } from "../lib/supabaseCleint";
 import { toast } from "react-toastify";
 import styles from "../css/ManageRoles.module.css";
-import { useUserAndTenant } from "../hooks/useUserAndTenant";
+import { Plus } from "lucide-react"; // Importar ícone Plus
 
 interface Props {
   tenantId?: string;
+  loggedInUserId: string; // Adicionando o ID do usuário logado
 }
 
 interface ProfileUser {
   user_id: string;
   full_name: string | null;
   role: "manager" | "professional" | "superuser";
+  created_at: string; // Adicionado para ordenação
 }
 
-export default function ManageRoles({ tenantId }: Props) {
-  const { profile } = useUserAndTenant(); // ✅ Agora temos o usuário logado
+export default function ManageRoles({ tenantId, loggedInUserId }: Props) {
   const [users, setUsers] = useState<ProfileUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [showAllUsers, setShowAllUsers] = useState(false);
 
   useEffect(() => {
     if (tenantId) loadUsers();
-  }, [tenantId]);
+  }, [tenantId, search, showAllUsers]); // Adicionado search e showAllUsers como dependências
 
   async function loadUsers() {
     setLoading(true);
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("profiles")
-      .select("user_id, full_name, role")
-      .eq("tenant_id", tenantId)
-      .order("full_name", { ascending: true });
+      .select("user_id, full_name, role, created_at")
+      .eq("tenant_id", tenantId);
+
+    const searchTerm = search.trim();
+
+    if (searchTerm) {
+      // Se houver termo de busca, pesquisa em nome
+      query = query.ilike("full_name", `%${searchTerm}%`);
+      query = query.order("full_name", { ascending: true }); // Ordena por nome ao buscar
+    } else if (!showAllUsers) {
+      // Se não houver termo de busca e não estiver no modo 'Ver todos', carrega os 3 mais recentes
+      query = query.order("created_at", { ascending: false }).limit(3);
+    } else {
+      // Se não houver termo de busca e estiver no modo 'Ver todos', ordena por nome
+      query = query.order("full_name", { ascending: true });
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error(error);
@@ -44,6 +63,12 @@ export default function ManageRoles({ tenantId }: Props) {
   }
 
   async function updateRole(userId: string, newRole: "manager" | "professional") {
+    // Impedir alteração da própria role
+    if (userId === loggedInUserId) {
+      toast.error("Você não pode alterar sua própria permissão.");
+      return;
+    }
+
     const { error } = await supabase
       .from("profiles")
       .update({ role: newRole })
@@ -63,16 +88,25 @@ export default function ManageRoles({ tenantId }: Props) {
     <div className={styles.container}>
       <h2 className={styles.title}>Gerenciar Permissões</h2>
 
-      {loading && <p>Carregando usuários...</p>}
+      <input
+        type="text"
+        placeholder="Buscar usuário por nome..."
+        className={styles.searchInput}
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+
+      {loading && <p className={styles.loading}>Carregando usuários...</p>}
 
       {!loading && users.length === 0 && (
-        <p>Nenhum usuário encontrado para este salão.</p>
+        <p className={styles.empty}>Nenhum usuário encontrado para este salão.</p>
       )}
 
       {!loading && users.length > 0 && (
         <div className={styles.list}>
           {users.map((u) => {
-            const isSelf = u.user_id === profile?.user_id;
+            const isSelf = u.user_id === loggedInUserId;
+            const isSuperuser = u.role === "superuser";
 
             return (
               <div key={u.user_id} className={styles.item}>
@@ -83,8 +117,7 @@ export default function ManageRoles({ tenantId }: Props) {
                   </span>
                 </div>
 
-                {/* Superuser não pode ser alterado */}
-                {u.role === "superuser" ? (
+                {isSuperuser ? (
                   <span className={styles.superuser}>Superuser (bloqueado)</span>
                 ) : isSelf ? (
                   <span className={styles.self}>Você não pode alterar seu próprio papel</span>
@@ -107,6 +140,15 @@ export default function ManageRoles({ tenantId }: Props) {
             );
           })}
         </div>
+      )}
+
+      {!showAllUsers && users.length === 3 && !search.trim() && (
+        <button
+          className={styles.viewAllButton}
+          onClick={() => setShowAllUsers(true)}
+        >
+          <Plus size={18} /> Ver todos os usuários
+        </button>
       )}
     </div>
   );

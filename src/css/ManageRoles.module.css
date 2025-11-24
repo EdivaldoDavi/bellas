@@ -1,3 +1,4 @@
+
 .container {
   padding: 1.4rem;
   background: var(--card-bg);
@@ -12,10 +13,45 @@
   margin-bottom: 1rem;
 }
 
+.searchInput {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--separator);
+  background: var(--bg);
+  color: var(--text);
+  margin-bottom: 15px;
+  font-size: 14px;
+  transition: border-color .2s, box-shadow .2s, background .2s;
+}
+
+.searchInput::placeholder {
+  color: var(--text-muted);
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent);
+  background: var(--card-bg);
+}
+
 .list {
   display: flex;
   flex-direction: column;
   gap: .9rem;
+  max-height: 400px; /* Altura máxima para a lista */
+  overflow-y: auto; /* Adiciona rolagem se a lista for muito longa */
+  padding-right: 5px; /* Espaço para a barra de rolagem */
+}
+
+.list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.list::-webkit-scrollbar-thumb {
+  background: var(--separator);
+  border-radius: 6px;
 }
 
 .item {
@@ -45,4 +81,39 @@
   background: var(--bg);
   color: var(--text);
   cursor: pointer;
+}
+
+.superuser, .self {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.loading, .empty {
+  text-align: center;
+  padding: 1rem 0;
+  color: var(--text-muted);
+}
+
+.viewAllButton {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px dashed var(--color-primary);
+  background: transparent;
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.viewAllButton:hover {
+  background: var(--color-primary);
+  color: #fff;
 }
