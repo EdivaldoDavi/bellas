@@ -1,111 +1,94 @@
 
-// src/pages/ClientesPage.tsx
 import { useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate }
+ from "react-router-dom";
 import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
 import { X, Plus, Pencil } from "lucide-react";
 import { toast } from "react-toastify";
 
-import ModalNewCustomer from "../components/ModalNewCustomer";
-import styles from "../css/ClientesPage.module.css";
+import ModalNewService from "../components/ModalNewService";
+import styles from "../css/ServicosPage.module.css";
 
-type Customer = {
+type Service = {
   id: string;
-  full_name: string;
-  customer_phone: string;
+  name: string;
+  duration_min: number | null;
   is_active: boolean;
+  price_cents?: number | null;
 };
 
-export default function ClientesPage() {
+export default function ServicosPage() {
   const navigate = useNavigate();
   const { tenant } = useUserAndTenant();
   const tenantId = tenant?.id;
 
   const brandColor = tenant?.primary_color || "#22c55e";
 
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [showAllCustomers, setShowAllCustomers] = useState(false); // Novo estado para controlar a exibição de todos os clientes
+  const [showAllServices, setShowAllServices] = useState(false); // Novo estado para controlar a exibição de todos os serviços
 
   const [openModal, setOpenModal] = useState(false);
-  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [editingService, setEditingService] = useState<Service | null>(null);
 
-  /* aplica Brand Color */
-  useEffect(() => {
-    if (tenant?.primary_color) {
-      document.documentElement.style.setProperty("--primary", tenant.primary_color);
-    }
-  }, [tenant]);
-
-  /* LOAD customers */
+  /* LOAD */
   useEffect(() => {
     if (tenantId) load();
-  }, [tenantId, showAllCustomers]); // Adicionado showAllCustomers como dependência
+  }, [tenantId, showAllServices]); // Adicionado showAllServices como dependência
 
-async function load() {
-  if (!tenantId) return;
+  async function load() {
+    setLoading(true);
 
-  setLoading(true);
+    let query = supabase
+      .from("services")
+      .select("id,name,duration_min,is_active,price_cents")
+      .eq("tenant_id", tenantId)
+      .order("name");
 
-  let query = supabase
-    .from("customers")
-    .select(`
-      id,
-      full_name,
-      customer_phone,
-      is_active
-    `)
-    .eq("tenant_id", tenantId)
-    .order("full_name", { ascending: true });
+    // Limita a 3 registros se não estiver no modo 'Ver todos' e não houver pesquisa
+    if (!showAllServices && !search.trim()) {
+      query = query.limit(3);
+    }
 
-  // Limita a 3 registros se não estiver no modo 'Ver todos' e não houver pesquisa
-  if (!showAllCustomers && !search.trim()) {
-    query = query.limit(3);
+    const { data, error } = await query;
+
+    if (!error) setServices(data as Service[]);
+    setLoading(false);
   }
 
-  const { data, error } = await query;
-
-  if (error) {
-    console.error("LOAD ERROR:", error);
-  }
-
-  setCustomers(data || []);
-  setLoading(false);
-}
-
-  /* FILTRAGEM */
+  /* FILTRO */
   const filtered = useMemo(() => {
     const t = search.trim().toLowerCase();
-    return t
-      ? customers.filter(c => c.full_name.toLowerCase().includes(t))
-      : customers;
-  }, [customers, search]);
+    return t ? services.filter(s => s.name.toLowerCase().includes(t)) : services;
+  }, [search, services]);
 
-  function openEdit(c: Customer) {
-    setEditingCustomer(c);
+  /* EDITAR */
+  function openEdit(s: Service) {
+    setEditingService(s);
     setOpenModal(true);
   }
 
-  /* CONFIRMAR toggle */
-  function confirmToggle(customer: Customer) {
-    const action = customer.is_active ? "inativar" : "ativar";
+  /* CONFIRMAR */
+  function confirmToggle(service: Service) {
+    const action = service.is_active ? "inativar" : "ativar";
 
     toast(
       ({ closeToast }) => (
         <div style={{ textAlign: "center" }}>
           <p style={{ marginBottom: 12 }}>
-            Deseja realmente <b>{action}</b> o cliente:
-            <br />"{customer.full_name}"?
+            Deseja realmente <b>{action}</b> o serviço:
+            <br />"{service.name}"?
           </p>
 
           <button
             onClick={() => {
               closeToast?.();
-              toggleActive(customer);
+              toggleActive(service);
             }}
+            className={styles.confirmBtn}
             style={{
               marginRight: 10,
               padding: "6px 12px",
@@ -119,8 +102,7 @@ async function load() {
             Confirmar
           </button>
 
-          <button
-            onClick={closeToast}
+          <button onClick={closeToast} className={styles.cancelBtn}
             style={{
               padding: "6px 12px",
               borderRadius: 8,
@@ -136,25 +118,25 @@ async function load() {
       ),
       {
         autoClose: false,
+        closeOnClick: false,
         draggable: false,
         icon: false,
-        closeOnClick: false,
         style: { background: "#1d1b23", color: "#fff" }
       }
     );
   }
 
-  async function toggleActive(customer: Customer) {
+  async function toggleActive(service: Service) {
     const { error } = await supabase
-      .from("customers")
-      .update({ is_active: !customer.is_active })
-      .eq("id", customer.id)
+      .from("services")
+      .update({ is_active: !service.is_active })
+      .eq("id", service.id)
       .eq("tenant_id", tenantId);
 
     if (!error) {
-      setCustomers(old =>
-        old.map(c =>
-          c.id === customer.id ? { ...c, is_active: !c.is_active } : c
+      setServices(old =>
+        old.map(s =>
+          s.id === service.id ? { ...s, is_active: !s.is_active } : s
         )
       );
     }
@@ -167,10 +149,9 @@ async function load() {
   return (
     <>
       <div className={styles.overlay} onClick={close}>
-        <div className={styles.modal} onClick={e => e.stopPropagation()}>
-          
+        <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
           <div className={styles.header}>
-            <h2>Clientes</h2>
+            <h2>Serviços</h2>
             <button className={styles.closeBtn} onClick={close}>
               <X size={20} />
             </button>
@@ -180,87 +161,83 @@ async function load() {
             className={styles.newBtn}
             style={{ backgroundColor: brandColor }}
             onClick={() => {
-              setEditingCustomer(null);
+              setEditingService(null);
               setOpenModal(true);
             }}
           >
             <Plus size={20} />
-            <span>Novo cliente</span>
+            <span>Novo serviço</span>
           </button>
 
           <input
             className={styles.search}
-            placeholder="Buscar cliente..."
+            placeholder="Buscar serviço..."
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
 
-                <div className={styles.list}>
+          <div className={styles.list}>
+            {loading && <div className={styles.empty}>Carregando...</div>}
 
-                {loading && (
-                    <div className={styles.empty}>Carregando...</div>
-                )}
+            {!loading && filtered.length === 0 && (
+              <div className={styles.empty}>Nenhum serviço encontrado.</div>
+            )}
 
-                {!loading && customers.length === 0 && (
-                    <div className={styles.empty}>Nenhum cliente cadastrado ainda.</div>
-                )}
-
-                {!loading && customers.length > 0 && filtered.length === 0 && (
-                    <div className={styles.empty}>Nenhum cliente encontrado.</div>
-                )}
-
-                {!loading && filtered.length > 0 && filtered.map(c => (
-                    <div key={c.id} className={styles.card}>
-                    <div>
-                        <div className={styles.title}>{c.full_name}</div>
-                        <div className={styles.meta}>
-                        {c.customer_phone} ·{" "}
-                        <span style={{ color: c.is_active ? '#007bff' : '#dc3545', fontWeight: 'bold' }}>
-                          {c.is_active ? "Ativo" : "Inativo"}
-                        </span>
-                        </div>
+            {!loading &&
+              filtered.map(svc => (
+                <div key={svc.id} className={styles.card}>
+                  <div>
+                    <div className={styles.title}>{svc.name}</div>
+                    <div className={styles.meta}>
+                      {svc.duration_min ?? 60} min ·{" "}
+                      <span style={{ color: svc.is_active ? '#007bff' : '#dc3545', fontWeight: 'bold' }}>
+                        {svc.is_active ? "Ativo" : "Inativo"}
+                      </span>
                     </div>
+                  </div>
 
-                    <div className={styles.actions}>
-                        <button className={styles.iconBtn} onClick={() => openEdit(c)}>
-                        <Pencil size={18} />
-                        </button>
-                        <button
-                        className={styles.statusToggleButton}
-                        style={{ backgroundColor: c.is_active ? '#dc3545' : '#007bff', color: '#fff' }}
-                        onClick={() => confirmToggle(c)}
-                        >
-                        {c.is_active ? 'Inativar' : 'Ativar'}
-                        </button>
-                    </div>
-                    </div>
-                ))}
+                  <div className={styles.actions}>
+                    <button
+                      className={styles.iconBtn}
+                      onClick={() => openEdit(svc)}
+                    >
+                      <Pencil size={18} />
+                    </button>
 
+                    <button
+                      className={styles.statusToggleButton}
+                      style={{ backgroundColor: svc.is_active ? '#dc3545' : '#007bff', color: '#fff' }}
+                      onClick={() => confirmToggle(svc)}
+                    >
+                      {svc.is_active ? 'Inativar' : 'Ativar'}
+                    </button>
+                  </div>
                 </div>
-                {!showAllCustomers && customers.length > 3 && !search.trim() && (
-                  <button
-                    className={styles.viewAllButton}
-                    style={{ backgroundColor: brandColor }}
-                    onClick={() => setShowAllCustomers(true)}
-                  >
-                    Ver todos os clientes
-                  </button>
-                )}
-
+              ))}
+          </div>
+          {!showAllServices && services.length > 3 && !search.trim() && (
+            <button
+              className={styles.viewAllButton}
+              style={{ backgroundColor: brandColor }}
+              onClick={() => setShowAllServices(true)}
+            >
+              Ver todos os serviços
+            </button>
+          )}
         </div>
       </div>
 
-        <ModalNewCustomer
+      <ModalNewService
         tenantId={tenantId}
         show={openModal}
-        mode={editingCustomer ? "edit" : "cadastro"}
-        customer={editingCustomer}
+        mode={editingService ? "edit" : "cadastro"}
+        service={editingService ?? undefined}
         onClose={() => {
-            setOpenModal(false);
-            load();           // 👈 SEMPRE recarrega ao fechar (solução imediata)
+          setOpenModal(false);
+          setEditingService(null);
+          load();
         }}
-        onSuccess={() => load()}   // para o modo cadastro
-        />
+      />
     </>
   );
 }
