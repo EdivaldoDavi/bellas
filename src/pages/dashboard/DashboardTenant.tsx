@@ -4,6 +4,7 @@ import "react-loading-skeleton/dist/skeleton.css";
 import { supabase } from "../../lib/supabaseCleint";
 import { useUserAndTenant } from "../../hooks/useUserAndTenant";
 import styles from "./DashboardTenant.module.css";
+import LoadingSpinner from "../../components/LoadingSpinner"; // Importar o LoadingSpinner
 
 type UUID = string;
 
@@ -259,14 +260,6 @@ export default function DashboardTenant() {
     };
   }, [tenant?.id]); // loadDashboard removido das dependências
 
-  if (loading) {
-    return (
-      <div style={{ padding: 20, textAlign: "center" }}>
-        Carregando informações…
-      </div>
-    );
-  }
-
   if (!tenant) {
     return (
       <div className={styles.container}>
@@ -276,6 +269,11 @@ export default function DashboardTenant() {
         </p>
       </div>
     );
+  }
+
+  // Renderiza o LoadingSpinner se estiver carregando
+  if (loading) {
+    return <LoadingSpinner message="Carregando dados do salão..." />;
   }
 
   if (role === "manager") {
