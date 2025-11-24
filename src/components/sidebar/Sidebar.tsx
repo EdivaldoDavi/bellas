@@ -127,7 +127,7 @@ export default function Sidebar({
       >
         <div className={styles.topSection}>
     <span className={styles.logo}>
-  <img src="/public/image/bellaslogo.jpg" alt="Bellas!" className={styles.logoImg} />
+  <img src="../../public/image/bellaslogo.jpg" alt="Bellas!" className={styles.logoImg} />
 </span>
 
           <button className={styles.toggleBtn} onClick={toggleSidebar}>
