@@ -12,7 +12,7 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
   const { profile,  loading: profileLoading } = useUserAndTenant();
   const { theme, toggleTheme } = useTheme();
 
-  const ref = useRef<HTMLDivElement>(null);
+  const headerElementRef = useRef<HTMLDivElement>(null); // Renomeado para clareza
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [greeting, setGreeting] = useState("");
@@ -35,14 +35,14 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
   // Atualiza var CSS da altura do header
   useEffect(() => {
     const measureAndSetHeight = () => {
-      if (ref.current) {
-        const h = ref.current.offsetHeight;
+      if (headerElementRef.current) {
+        const h = headerElementRef.current.offsetHeight;
         document.documentElement.style.setProperty("--header-total-height", `${h}px`);
       }
     };
 
-    // Mede inicialmente
-    requestAnimationFrame(measureAndSetHeight);
+    // Mede inicialmente e em cada render relevante
+    measureAndSetHeight();
 
     // Também mede ao redimensionar a janela
     const handleResize = () => requestAnimationFrame(measureAndSetHeight);
@@ -52,7 +52,7 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, []); // Não depende mais de isWhatsDisconnected
+  }, [isMobile, profileLoading, profile?.full_name]); // Dependências adicionadas: re-medir se o estado mobile ou dados do perfil mudarem
 
   // Saudação + mobile resize
   useEffect(() => {
@@ -69,7 +69,7 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
   };
 
   return (
-    <header ref={ref} className={styles.header}>
+    <header ref={headerElementRef} className={styles.header}> {/* Usar o ref renomeado */}
 
       {/* BLOCO ESQUERDO */}
       <div className={styles.leftSection}>

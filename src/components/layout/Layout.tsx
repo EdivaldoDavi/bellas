@@ -1,5 +1,4 @@
-
-import { useRef, useState, useEffect } from "react";
+import {  useState, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -20,7 +19,7 @@ export default function Layout() {
   const toggleSidebar = () => setSidebarOpen((p) => !p);
   const closeSidebar = () => setSidebarOpen(false);
 
-  const headerRef = useRef<HTMLDivElement | null>(null);
+  // const headerRef = useRef<HTMLDivElement | null>(null); // REMOVIDO: Este ref não é usado para cálculo de altura
 
   const { tenant } = useUserAndTenant();
   const instanceId = tenant?.id || "";
@@ -109,7 +108,7 @@ useEffect(() => {
       {/* ÁREA DE CONTEÚDO */}
       <div className={styles.contentWrapper}>
         {/* HEADER FIXO MEDIDO PELO REF */}
-        <div ref={headerRef} className={styles.headerWrapper}>
+        <div className={styles.headerWrapper}> {/* Removido ref={headerRef} */}
           <Header toggleSidebar={toggleSidebar} />
         </div>
 
