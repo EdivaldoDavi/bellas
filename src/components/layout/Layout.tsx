@@ -21,7 +21,7 @@ export default function Layout() {
 
   // const headerRef = useRef<HTMLDivElement | null>(null); // REMOVIDO: Este ref não é usado para cálculo de altura
 
-  const { tenant } = useUserAndTenant();
+  const { tenant, profile } = useUserAndTenant(); // Adicionado 'profile' aqui
   const instanceId = tenant?.id || "";
   const evoBase = import.meta.env.VITE_EVO_PROXY_URL ?? "http://localhost:3001/api";
 
@@ -42,19 +42,21 @@ export default function Layout() {
   // ============================================================
   // Lógica para exibir/ocultar o toast de WhatsApp desconectado
   // ============================================================
-useEffect(() => {
-  let toastId: string | number | null = null;
+  useEffect(() => {
+  let toastId: string | number | null = null; // ← corrigido
   const dismissedKey = `whatsapp_alert_dismissed_instance_${instanceId}`;
 
-  if (isWhatsDisconnected && instanceId && !localStorage.getItem(dismissedKey)) {
+  const canShowForRole = profile?.role === "manager" || profile?.role === "owner";
+
+  if (isWhatsDisconnected && instanceId && !localStorage.getItem(dismissedKey) && canShowForRole) {
     toastId = toast((t) => (
       <WhatsAppDisconnectedToast
         instanceId={instanceId}
-        closeToast={() => {
-          // Usa a função própria do react-toastify
-          t.closeToast();
-          localStorage.setItem(dismissedKey, "true"); // Marca como descartado
-        }}
+            closeToast={() => {
+        if (toastId !== null) toast.dismiss(toastId);
+        localStorage.setItem(dismissedKey, 'true');
+      }}
+
       />
     ), {
       position: "bottom-center",
@@ -65,18 +67,15 @@ useEffect(() => {
       closeOnClick: false,
     });
   } else if (!isWhatsDisconnected && instanceId) {
-    // Conectou: fecha qualquer toast e limpa flag
     toast.dismiss();
     localStorage.removeItem(dismissedKey);
   }
 
-  // Cleanup ao desmontar ou mudar dependências
   return () => {
-    if (toastId !== null) {
-      toast.dismiss(toastId);
-    }
+    if (toastId) toast.dismiss(toastId);
   };
-}, [isWhatsDisconnected, instanceId, location.pathname]);
+}, [isWhatsDisconnected, instanceId, location.pathname, profile?.role]);
+
 
   /** classes raiz */
   const rootClass = `
