@@ -100,7 +100,7 @@ export default function ForcePasswordReset() {
 
   // ============================================================
   // 3️⃣ Atualizar senha
-  // ============================================================
+  // ============================================================ */
   async function updatePassword() {
     if (!newPass || !confirmPass) {
       toast.warn("Preencha a nova senha e a confirmação.");
@@ -139,15 +139,8 @@ export default function ForcePasswordReset() {
 
     toast.success("Senha atualizada com sucesso! 🎉");
 
-    // 🔥 Para evitar conflito com outra aba logada, fazemos logout global
-    try {
-      await supabase.auth.signOut({ scope: "global" });
-    } catch (e) {
-      console.warn("Erro ao deslogar após reset de senha:", e);
-    }
-
-    // E mandamos o usuário fazer login de novo com a senha nova
-    navigate("/login?reset=1", { replace: true });
+    // Redireciona diretamente para o dashboard, pois a sessão já está ativa.
+    navigate("/dashboard", { replace: true });
   }
 
   if (loading) {
