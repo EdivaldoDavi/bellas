@@ -162,3 +162,22 @@ button:hover {
 :root[data-theme="dark"] .eyeButton:hover {
   background-color: rgba(255, 255, 255, 0.1); /* Fundo leve no hover no tema escuro */
 }
+
+.welcomeBox {
+  background: rgba(0,0,0,0.03);
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  font-size: 0.92rem;
+  color: #4b5563;
+  line-height: 1.45;
+}
+
+.dark .welcomeBox {
+  background: rgba(255,255,255,0.08);
+  color: #e5e7eb;
+}
+
+.welcomeText strong {
+  color: var(--color-primary);
+}
