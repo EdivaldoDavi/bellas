@@ -139,8 +139,8 @@ export default function ForcePasswordReset() {
 
     toast.success("Senha atualizada com sucesso! 🎉");
 
-    // Redireciona diretamente para o dashboard, pois a sessão já está ativa.
-    navigate("/dashboard", { replace: true });
+    // Redireciona para a raiz, e o SetupRedirectGuard cuidará do resto.
+    navigate("/", { replace: true });
   }
 
   if (loading) {
