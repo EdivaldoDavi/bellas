@@ -3,18 +3,13 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseCleint";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-
 import { useTheme } from "../hooks/useTheme";
 import { useBrandColor } from "../hooks/useBrandColor";
-
 import { Eye, EyeOff, Check } from "lucide-react";
 import styles from "../css/ForcePasswordReset.module.css";
 
 type PasswordStrength = "empty" | "weak" | "medium" | "strong" | "very-strong";
 
-/* ============================================================
-   FUNÇÃO DE FORÇA DE SENHA
-============================================================ */
 function getPasswordStrength(pwd: string): PasswordStrength {
   if (!pwd) return "empty";
 
@@ -45,9 +40,7 @@ export default function ForcePasswordReset() {
   const { theme } = useTheme();
   const { brandColor } = useBrandColor();
 
-  /* ============================================================
-     Aplicar tema + brandcolor
-  ============================================================ */
+  // Tema
   useEffect(() => {
     document.documentElement.setAttribute("data-theme-variant", theme);
   }, [theme]);
@@ -58,9 +51,7 @@ export default function ForcePasswordReset() {
     }
   }, [brandColor]);
 
-  /* ============================================================
-     1️⃣ Validar hash do e-mail e criar sessão
-  ============================================================ */
+  // 1️⃣ Validar hash + setSession
   useEffect(() => {
     async function run() {
       const hash = window.location.hash;
@@ -92,6 +83,7 @@ export default function ForcePasswordReset() {
         return;
       }
 
+      // Limpa hash feio da URL
       window.history.replaceState({}, "", "/force-reset");
       setLoading(false);
     }
@@ -99,16 +91,11 @@ export default function ForcePasswordReset() {
     run();
   }, [navigate]);
 
-  /* ============================================================
-     Regras de senha
-  ============================================================ */
   const hasMinLength = newPass.length >= 8;
   const hasUppercase = /[A-Z]/.test(newPass);
   const hasNumber = /[0-9]/.test(newPass);
 
-  /* ============================================================
-     3️⃣ Atualizar senha e decidir destino (/setup ou /dashboard)
-  ============================================================ */
+  // 3️⃣ Atualizar senha
   async function updatePassword(e?: React.FormEvent) {
     if (e) e.preventDefault();
 
@@ -130,14 +117,13 @@ export default function ForcePasswordReset() {
     }
 
     setSaving(true);
-
     const { error } = await supabase.auth.updateUser({ password: newPass });
-
     setSaving(false);
 
     if (error) {
-      const lower = error.message.toLowerCase();
-      if (lower.includes("different") || lower.includes("same")) {
+      const msg = error.message.toLowerCase();
+
+      if (msg.includes("different") || msg.includes("same")) {
         toast.error("A nova senha deve ser diferente da anterior.");
         return;
       }
@@ -148,34 +134,14 @@ export default function ForcePasswordReset() {
 
     toast.success("Senha atualizada com sucesso! 🎉");
 
-    /* ============================================================
-       Buscar profile para saber o destino
-    ============================================================ */
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData?.user) {
-      navigate("/login?reset=1", { replace: true });
-      return;
-    }
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("tenant_id, role")
-      .eq("user_id", userData.user.id)
-      .maybeSingle();
-
-    // 🔥 Se ainda não tem tenant → nova conta → ir ao setup
-    if (!profile?.tenant_id && ["owner", "manager", "professional"].includes(profile?.role)) {
-      navigate("/setup", { replace: true });
-      return;
-    }
-
-    // 🔥 Já tem tenant → ir direto ao dashboard
-    navigate("/dashboard", { replace: true });
+    // 👉 NÃO faz signOut.
+    // 👉 Deixa o usuário logado.
+    // 👉 Sempre manda pra /setup e deixa o SetupRedirectGuard decidir:
+    //    - se needsSetup = true → fica no /setup
+    //    - se needsSetup = false → redireciona pra /dashboard
+    navigate("/setup", { replace: true });
   }
 
-  /* ============================================================
-     Loading inicial
-  ============================================================ */
   if (loading) {
     return (
       <div className={`${styles.wrap} ${theme === "dark" ? styles.dark : ""}`}>
@@ -186,9 +152,6 @@ export default function ForcePasswordReset() {
     );
   }
 
-  /* ============================================================
-     Rótulo de força de senha
-  ============================================================ */
   const strengthLabel =
     strength === "weak"
       ? "Força: fraca"
@@ -200,9 +163,6 @@ export default function ForcePasswordReset() {
       ? "Força: muito forte"
       : "";
 
-  /* ============================================================
-     JSX
-  ============================================================ */
   return (
     <div className={`${styles.wrap} ${theme === "dark" ? styles.dark : ""}`}>
       <div className={styles.card}>
@@ -210,19 +170,17 @@ export default function ForcePasswordReset() {
         <p className={styles.subtitle}>Escolha uma senha segura.</p>
 
         <form onSubmit={updatePassword}>
-          {/* NOVA SENHA */}
+          {/* Nova senha */}
           <div className={styles.fieldGroup}>
             <label className={styles.label}>Nova senha</label>
-
             <div className={styles.passwordWrapper}>
               <input
                 type={showPassword ? "text" : "password"}
                 className={styles.input}
-                value={newPass}
                 placeholder="Digite a nova senha"
+                value={newPass}
                 onChange={(e) => setNewPass(e.target.value)}
               />
-
               <button
                 type="button"
                 className={styles.eyeButton}
@@ -252,20 +210,19 @@ export default function ForcePasswordReset() {
             )}
           </div>
 
-          {/* CONFIRMAR SENHA */}
+          {/* Confirmar senha */}
           <div className={styles.fieldGroup}>
             <label className={styles.label}>Confirmar senha</label>
-
             <input
               type={showPassword ? "text" : "password"}
               className={styles.input}
-              value={confirmPass}
               placeholder="Confirme a senha"
+              value={confirmPass}
               onChange={(e) => setConfirmPass(e.target.value)}
             />
           </div>
 
-          {/* REQUISITOS */}
+          {/* Requisitos */}
           <div className={styles.requirements}>
             <p className={styles.requirementsTitle}>A senha deve conter:</p>
             <ul>
@@ -284,11 +241,11 @@ export default function ForcePasswordReset() {
             </ul>
           </div>
 
-          {/* BOTÃO */}
+          {/* Botões */}
           <button
             type="submit"
-            disabled={saving}
             className={styles.submitButton}
+            disabled={saving}
           >
             {saving ? "Salvando..." : "Salvar nova senha"}
           </button>
