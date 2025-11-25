@@ -7,7 +7,7 @@ import { useTheme } from "../hooks/useTheme";
 import { useBrandColor } from "../hooks/useBrandColor";
 import { Eye, EyeOff, Check } from "lucide-react";
 import styles from "../css/ForcePasswordReset.module.css";
-
+import { useUserTenant } from "../context/UserTenantProvider";
 type PasswordStrength = "empty" | "weak" | "medium" | "strong" | "very-strong";
 
 function getPasswordStrength(pwd: string): PasswordStrength {
@@ -36,7 +36,7 @@ export default function ForcePasswordReset() {
   const [saving, setSaving] = useState(false);
 
   const strength = getPasswordStrength(newPass);
-
+  const { reloadAll } = useUserTenant();
   const { theme } = useTheme();
   const { brandColor } = useBrandColor();
 
@@ -139,7 +139,11 @@ export default function ForcePasswordReset() {
     // 👉 Sempre manda pra /setup e deixa o SetupRedirectGuard decidir:
     //    - se needsSetup = true → fica no /setup
     //    - se needsSetup = false → redireciona pra /dashboard
-    navigate("/setup", { replace: true });
+  // 🔥 Recarrega tudo antes de redirecionar
+await reloadAll();
+
+// Agora o Guard já tem os valores corretos (needsSetup lá dentro será true ou false corretamente)
+navigate("/setup", { replace: true });
   }
 
   if (loading) {
