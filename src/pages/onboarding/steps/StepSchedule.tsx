@@ -5,7 +5,7 @@ import styles from "../Onboarding.module.css";
 import ModalNewProfessional from "../../../components/ModalNewProfessional"; // ajuste caminho
 
 export default function StepSchedule() {
-  const { tenant, profile, updateOnboardingStep } = useUserTenant();
+  const { tenant, updateOnboardingStep } = useUserTenant();
   const [showModal, setShowModal] = useState(true);
 
   const handleClose = () => {

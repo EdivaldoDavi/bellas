@@ -8,11 +8,8 @@ export default function StepFirstAppointment() {
   const { tenant, updateOnboardingStep } = useUserTenant();
   const [showModal, setShowModal] = useState(false);
 
-  const handleClose = () => setShowModal(false);
-
-  const handleSuccess = () => {
-    updateOnboardingStep(99);
-  };
+  
+  
 
   return (
     <div>
