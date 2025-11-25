@@ -98,13 +98,19 @@ export default function Setup() {
         if (currentUserRole !== 'owner' && currentUserRole !== 'manager') {
           updateProfilePayload.role = 'manager';
         }
+          const { error: profileErr } = await supabase
+            .from("profiles")
+            .update(updateProfilePayload)
+            .eq("user_id", currentUserId);
 
-        const { error: profileErr } = await supabase
-          .from("profiles")
-          .update(updateProfilePayload)
-          .eq("user_id", currentUserId);
+          if (profileErr) throw profileErr;
 
-        if (profileErr) throw profileErr;
+          /* 🔥 FORÇA REVALIDAÇÃO DO JWT PARA CARREGAR tenant_id */
+          await supabase.auth.refreshSession();
+
+          /* 🔥 GARANTE QUE O HOOK USEUSERANDTENANT RECARREGOU O NOVO tenant_id */
+          await reloadAll();
+
 
         // 🔥 NOVO: Criar entrada na tabela 'professionals' para o gerente
         // Primeiro, verificar se já existe um profissional vinculado a este user_id e tenant_id
