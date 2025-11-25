@@ -8,44 +8,31 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
 
   if (loading) return null;
 
-  // Não tem tenant ainda (carregamento inicial ou login de convite)
   if (!tenant) return <>{children}</>;
 
   const step = tenant.onboarding_step ?? 0;
   const isOnboardingPage = location.pathname.startsWith("/onboarding");
   const isSetupPage = location.pathname === "/setup";
 
-  /**
-   * 🔒 REGRA 1 — Se precisa de setup mas ainda está no passo 0 do onboarding,
-   * assumimos que é primeira instalação → PRIORIDADE é o ONBOARDING.
-   */
-  if (needsSetup && step === 0 && !isOnboardingPage) {
+  // ⭐ REGRA 1 — NOVO USUÁRIO: onboarding primeiro
+  if (step === 0 && !isOnboardingPage) {
     return <Navigate to="/onboarding" replace />;
   }
 
-  /**
-   * 🔒 REGRA 2 — Se precisa de setup e já passou do passo 0 do onboarding,
-   * então permite ir ao setup normalmente.
-   */
-  if (needsSetup && step > 0 && !isSetupPage) {
+  // ⭐ REGRA 2 — ONBOARDING EM ANDAMENTO (1 a 98)
+  if (step > 0 && step < 99 && !isOnboardingPage) {
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  // ⭐ REGRA 3 — ONBOARDING FINALIZADO (99)
+  // Agora sim o setup pode rodar se precisar
+  if (step >= 99 && needsSetup && !isSetupPage) {
     return <Navigate to="/setup" replace />;
   }
 
-  /**
-   * 🔒 REGRA 3 — Se onboarding já terminou
-   * e o usuário tenta acessar /onboarding, envia para dashboard.
-   */
+  // ⭐ REGRA 4 — Tentou acessar onboarding finalizado
   if (step >= 99 && isOnboardingPage) {
     return <Navigate to="/dashboard" replace />;
-  }
-
-  /**
-   * 🔒 REGRA 4 — Onboarding NÃO finalizado
-   * e usuário tenta acessar outra rota que não /setup,
-   * redirecionar para onboarding.
-   */
-  if (step < 99 && !isOnboardingPage && !isSetupPage) {
-    return <Navigate to="/onboarding" replace />;
   }
 
   return <>{children}</>;
