@@ -1,4 +1,3 @@
-
 /* ===========================================================
    LAYOUT PRINCIPAL
 =========================================================== */
@@ -474,7 +473,7 @@ select:focus {
   /* Linha do título + botão */
   .header {
     flex-direction: column;
-    align-items: stretch;
+    align-items: center; /* Centraliza os itens no cabeçalho */
     gap: 12px;
     margin-bottom: 1.4rem;
   }
@@ -483,6 +482,7 @@ select:focus {
   .agendaHeaderButtons { /* Target the new class */
     flex-direction: column;
     width: 100%;
+    align-items: center; /* Centraliza os botões dentro do grupo */
   }
 
   /* Botão ocupa largura total no mobile */
@@ -497,6 +497,7 @@ select:focus {
   .selectionModeActions {
     flex-direction: column;
     width: 100%;
+    align-items: center; /* Centraliza os botões de ação no modo de seleção */
   }
 
   .exitSelectionButton, .confirmCompletionButton {
