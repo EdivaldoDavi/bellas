@@ -20,10 +20,10 @@ import Agenda from "./components/Agenda";
 import AssinaturasPage from "./pages/AssinaturasPage";
 import SaloesPage from "./pages/SaloesPage";
 import PerfilPage from "./pages/PerfilPage";
-import ConfigPage from "./pages/ConfigPage";
+
 import ConnectWhatsAppPage from "./pages/ConnectWhatsAppPage";
 import GerenciarAcessosPage from "./config/GerenciarAcessosPage"; // Importar GerenciarAcessosPage
-import EmDesenvolvimento from "./components/EmDesenvolvimento";
+
 
 import ClientesPage from "./pages/ClientesPage";
 import UsuariosPage from "./pages/UsuariosPage";
