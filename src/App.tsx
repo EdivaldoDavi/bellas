@@ -122,76 +122,84 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <SetupRedirectGuard>
-        <Routes>
+      <Routes>
 
-          {/* ROOT */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        {/* ROOT */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-          {/* PUBLIC ROUTES */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/force-reset" element={<ForcePasswordReset />} />
+        {/* PUBLIC ROUTES */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/force-reset" element={<ForcePasswordReset />} />
 
-          {/* SETUP (private sem layout) */}
+
+        {/* ============ ONBOARDING (PRIORIDADE ABSOLUTA) ============ */}
+        <Route
+          path="/onboarding/*"
+          element={
+            <PrivateRoute>
+              <OnboardingGuard>
+                <Onboarding />
+              </OnboardingGuard>
+            </PrivateRoute>
+          }
+        />
+
+
+        {/* ============ SETUP ============ */}
+        <Route
+          path="/setup"
+          element={
+            <PrivateRoute>
+              <OnboardingGuard>     {/* garante que não entra no setup antes do onboarding */}
+                <SetupRedirectGuard>
+                  <Setup />
+                </SetupRedirectGuard>
+              </OnboardingGuard>
+            </PrivateRoute>
+          }
+        />
+
+
+        {/* ============ PRIVATE ROUTES COM LAYOUT ============ */}
+        <Route
+          element={
+            <PrivateRoute>
+              <OnboardingGuard>      {/* onboarding entra antes */}
+                <SetupRedirectGuard> {/* setup entra só depois */}
+                  <Layout />
+                </SetupRedirectGuard>
+              </OnboardingGuard>
+            </PrivateRoute>
+          }
+        >
+
+          {/* DASHBOARD */}
           <Route
-            path="/setup"
+            path="/dashboard"
             element={
-              <PrivateRoute>
-                <Setup />
-              </PrivateRoute>
+              <DashboardGuard>
+                <Dashboard />
+              </DashboardGuard>
             }
           />
 
-          {/* Opcional público */}
-          <Route path="/config" element={<ConfigPage />} />
-          <Route path="/em-desenvolvimento" element={<EmDesenvolvimento />} />
+          {/* ===================== OUTRAS ROTAS PRIVADAS ===================== */}
+          <Route path="/agenda" element={<Agenda />} />
+          <Route path="/saloes" element={<SaloesPage />} />
+          <Route path="/assinaturas" element={<AssinaturasPage />} />
+          <Route path="/perfil" element={<PerfilPage />} />
+          <Route path="/integracoes/whatsapp" element={<ConnectWhatsAppPage />} />
+          <Route path="/gerenciar-acessos" element={<GerenciarAcessosPage />} />
+          <Route path="/clientes" element={<ClientesPage />} />
+          <Route path="/servicos" element={<ServicosPage />} />
+          <Route path="/profissionais" element={<ProfessionalsPage />} />
+          <Route path="/usuarios" element={<UsuariosPage />} />
 
-          {/* PRIVATE + LAYOUT */}
-          <Route
-            element={
-              <PrivateRoute>
-                <Layout />
-              </PrivateRoute>
-            }
-          >
-            {/* DASHBOARD COM GUARD */}
-            <Route
-              path="/dashboard"
-              element={
-                <DashboardGuard>
-                  <Dashboard />
-                </DashboardGuard>
-              }
-            />
-          <Route
-            path="/onboarding/*"
-            element={
-              <PrivateRoute>
-                <OnboardingGuard>
-                  <Onboarding />
-                </OnboardingGuard>
-              </PrivateRoute>
-            }
-          />
+        </Route>
 
-            <Route path="/agenda" element={<Agenda />} />
-            <Route path="/saloes" element={<SaloesPage />} />
-            <Route path="/assinaturas" element={<AssinaturasPage />} />
-            <Route path="/perfil" element={<PerfilPage />} />
-            <Route path="/integracoes/whatsapp" element={<ConnectWhatsAppPage />} />
-            <Route path="/gerenciar-acessos" element={<GerenciarAcessosPage />} /> {/* MOVIDO AQUI */}
-
-            {/* CRUDs */}
-            <Route path="/clientes" element={<ClientesPage />} />
-            <Route path="/servicos" element={<ServicosPage />} />
-            <Route path="/profissionais" element={<ProfessionalsPage />} />
-            <Route path="/usuarios" element={<UsuariosPage />} />
-          </Route>
-
-        </Routes>
-      </SetupRedirectGuard>
+      </Routes>
 
       <ToastContainer position="top-right" autoClose={3000} />
     </BrowserRouter>
