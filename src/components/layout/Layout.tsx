@@ -1,13 +1,15 @@
-import {  useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import Sidebar from "../sidebar/Sidebar";
 import Header from "../Header";
+
 import { useIsMobile } from "../../hooks/useIsMobile";
 import { useEvolutionConnection } from "../../hooks/useEvolutionConnection";
 import { useUserAndTenant } from "../../hooks/useUserAndTenant";
-import WhatsAppDisconnectedToast from "../WhatsAppDisconnectedToast"; // Importar o novo componente de toast
+
+import WhatsAppDisconnectedToast from "../WhatsAppDisconnectedToast";
 
 import styles from "./Layout.module.css";
 
@@ -19,11 +21,11 @@ export default function Layout() {
   const toggleSidebar = () => setSidebarOpen((p) => !p);
   const closeSidebar = () => setSidebarOpen(false);
 
-  // const headerRef = useRef<HTMLDivElement | null>(null); // REMOVIDO: Este ref não é usado para cálculo de altura
+  const { tenant, profile } = useUserAndTenant();
 
-  const { tenant, profile } = useUserAndTenant(); // Adicionado 'profile' aqui
-  const instanceId = tenant?.id || "";
-  const evoBase = import.meta.env.VITE_EVO_PROXY_URL ?? "http://localhost:3001/api";
+  const instanceId = tenant?.id ?? "";
+  const evoBase =
+    import.meta.env.VITE_EVO_PROXY_URL ?? "http://localhost:3001/api";
 
   const { status } = useEvolutionConnection({
     baseUrl: evoBase,
@@ -33,61 +35,72 @@ export default function Layout() {
 
   const isWhatsDisconnected =
     !status ||
-    status === "DISCONNECTED" ||
-    status === "LOGGED_OUT" ||
-    status === "ERROR" ||
-    status === "UNKNOWN" ||
-    status === "IDLE";
+    ["DISCONNECTED", "LOGGED_OUT", "ERROR", "UNKNOWN", "IDLE"].includes(status);
 
-  // ============================================================
-  // Lógica para exibir/ocultar o toast de WhatsApp desconectado
-  // ============================================================
+  /* =====================================================================
+     🔔 LÓGICA DO TOAST – MUITO MAIS LIMPA E SEGURA
+  ===================================================================== */
   useEffect(() => {
-  let toastId: string | number | null = null; // ← corrigido
-  const dismissedKey = `whatsapp_alert_dismissed_instance_${instanceId}`;
+    let toastId: number | string | null = null;
 
-  const canShowForRole = profile?.role === "manager" || profile?.role === "owner";
+    // Apenas owner ou manager devem ver o aviso
+    const canShow =
+      instanceId &&
+      isWhatsDisconnected &&
+      (profile?.role === "manager" || profile?.role === "owner");
 
-  if (isWhatsDisconnected && instanceId && !localStorage.getItem(dismissedKey) && canShowForRole) {
-    toastId = toast((t) => (
-      <WhatsAppDisconnectedToast
-        instanceId={instanceId}
+    const dismissedKey = `whatsapp_alert_dismissed_instance_${instanceId}`;
+
+    // Mostrar toast
+    if (canShow && !localStorage.getItem(dismissedKey)) {
+      toastId = toast(
+        () => (
+          <WhatsAppDisconnectedToast
+            instanceId={instanceId}
             closeToast={() => {
-        if (toastId !== null) toast.dismiss(toastId);
-        localStorage.setItem(dismissedKey, 'true');
-      }}
+              if (toastId !== null) toast.dismiss(toastId);
+              localStorage.setItem(dismissedKey, "true");
+            }}
+          />
+        ),
+        {
+          position: "bottom-center",
+          autoClose: false,
+          closeButton: false,
+          hideProgressBar: true,
+          draggable: false,
+          closeOnClick: false,
+        }
+      );
+    }
 
-      />
-    ), {
-      position: "bottom-center",
-      autoClose: false,
-      closeButton: false,
-      hideProgressBar: true,
-      draggable: false,
-      closeOnClick: false,
-    });
-  } else if (!isWhatsDisconnected && instanceId) {
-    toast.dismiss();
-    localStorage.removeItem(dismissedKey);
-  }
+    // Se reconectar → remover toast e resetar estado
+    if (!isWhatsDisconnected && instanceId) {
+      toast.dismiss();
+      localStorage.removeItem(dismissedKey);
+    }
 
-  return () => {
-    if (toastId) toast.dismiss(toastId);
-  };
-}, [isWhatsDisconnected, instanceId, location.pathname, profile?.role]);
+    return () => {
+      if (toastId !== null) toast.dismiss(toastId);
+    };
+  }, [isWhatsDisconnected, instanceId, location.pathname, profile?.role]);
 
-
-  /** classes raiz */
+  /* =====================================================================
+     📌 CLASSES DE ESTADO DO LAYOUT
+  ===================================================================== */
   const rootClass = `
     ${styles.layoutWrapper}
     ${!isMobile && !sidebarOpen ? styles.isCollapsed : ""}
     ${isMobile && sidebarOpen ? styles.isMobileSidebarOpen : ""}
   `;
 
+  /* =====================================================================
+     📌 RENDER
+  ===================================================================== */
   return (
     <div className={rootClass}>
       {/* SIDEBAR */}
-      <div
+      <aside
         className={`${styles.sidebar} ${
           !isMobile && !sidebarOpen ? styles.collapsed : ""
         }`}
@@ -97,25 +110,23 @@ export default function Layout() {
           toggleSidebar={toggleSidebar}
           closeSidebar={closeSidebar}
         />
-      </div>
+      </aside>
 
-      {/* OVERLAY MOBILE */}
+      {/* BACKDROP EM MOBILE */}
       {isMobile && sidebarOpen && (
         <div className={styles.mobileOverlay} onClick={closeSidebar} />
       )}
 
-      {/* ÁREA DE CONTEÚDO */}
-      <div className={styles.contentWrapper}>
-        {/* HEADER FIXO MEDIDO PELO REF */}
-        <div className={styles.headerWrapper}> {/* Removido ref={headerRef} */}
+      {/* ÁREA PRINCIPAL */}
+      <main className={styles.contentWrapper}>
+        <header className={styles.headerWrapper}>
           <Header toggleSidebar={toggleSidebar} />
-        </div>
+        </header>
 
-        {/* CONTEÚDO SCROLLÁVEL */}
-        <div className={styles.pageContent}>
+        <section className={styles.pageContent}>
           <Outlet />
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   );
 }
