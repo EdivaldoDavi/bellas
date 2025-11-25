@@ -35,6 +35,8 @@ import "react-toastify/dist/ReactToastify.css";
 
 import spinnerStyles from "./css/LoadingSpinner.module.css"; // Importar o CSS do spinner
 
+import Onboarding from "./pages/onboarding/Onboarding";
+import { OnboardingGuard } from "./guards/OnBoardingGuard";
 
 // =============================
 // 🔹 TELA DE LOADING GLOBAL
@@ -163,6 +165,16 @@ export default function App() {
                 </DashboardGuard>
               }
             />
+          <Route
+            path="/onboarding/*"
+            element={
+              <PrivateRoute>
+                <OnboardingGuard>
+                  <Onboarding />
+                </OnboardingGuard>
+              </PrivateRoute>
+            }
+          />
 
             <Route path="/agenda" element={<Agenda />} />
             <Route path="/saloes" element={<SaloesPage />} />

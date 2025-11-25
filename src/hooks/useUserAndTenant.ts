@@ -24,6 +24,7 @@ export type Tenant = {
   setup_complete: boolean;
   plan_id: string | null;
   whatsapp_number: string | null;
+   onboarding_step: number; 
 };
 
 /* ============================================================

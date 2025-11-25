@@ -6,6 +6,7 @@ import {
 } from "react";
 import { useUserAndTenant, type Profile, type Tenant } from "../hooks/useUserAndTenant"; // Importar Profile e Tenant
 
+import { supabase } from "../lib/supabaseCleint";
 /* ============================================================
    📌 Tipagem do Contexto Global
 ============================================================ */
@@ -19,7 +20,7 @@ export interface UserTenantContextType {
   permissions: string[];
   loading: boolean;
   needsSetup: boolean | null;         // CORRIGIDO ✔
-
+    updateOnboardingStep: (step: number) => Promise<void>;
   refreshProfile: () => Promise<void>;
   refreshTenant: () => Promise<void>;
   reloadAll: () => Promise<void>;
@@ -45,6 +46,7 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
     loading,
     needsSetup,
     refreshProfile,
+    
   } = useUserAndTenant();
 
   /* ============================================================
@@ -52,6 +54,21 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
   ============================================================ */
   const refreshTenant = async () => {
     await refreshProfile();
+  };
+// 🔹 Função para atualizar o passo do onboarding
+  const updateOnboardingStep = async (step: number) => {
+    if (!tenant?.id) return;
+
+    const { error } = await supabase
+      .from("tenants")
+      .update({ onboarding_step: step })
+      .eq("id", tenant.id);
+
+    if (!error) {
+      await refreshTenant();
+    } else {
+      console.error("Erro ao atualizar onboarding_step:", error);
+    }
   };
 
   /* ============================================================
@@ -81,6 +98,7 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
       refreshProfile,
       refreshTenant,
       reloadAll,
+      updateOnboardingStep,
     }),
     [
       user,
@@ -93,6 +111,7 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
       loading,
       needsSetup,
       refreshProfile,
+      updateOnboardingStep,
     ]
   );
 
