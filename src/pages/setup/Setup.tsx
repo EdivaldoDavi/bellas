@@ -124,7 +124,27 @@ export default function Setup() {
         if (checkProfError) throw checkProfError;
 
         if (!existingProfessional) {
-          // Se não existe, cria um novo
+            console.log("=== DEBUG INSERT PROFESSIONALS ===");
+
+          const session = await supabase.auth.getSession();
+          console.log("Session user:", session.data.session?.user?.id || null);
+
+          console.log("JWT payload:", session.data.session?.user?.user_metadata || null);
+
+          console.log("Profile in React:", profile);
+          console.log("Tenant in React:", tenant);
+
+          console.log("Valores que serão enviados no INSERT:");
+          console.log({
+            tenant_id: currentTenantId,
+            name: profile.full_name,
+            email: profile.email || null,
+            user_id: currentUserId,
+            is_active: true,
+          });
+
+console.log("Verificando SELECT do RLS manualmente:");          // Se não existe, cria um novo
+
           const { error: createProfError } = await supabase
             .from("professionals")
             .insert({
