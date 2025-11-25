@@ -17,7 +17,7 @@ function getPasswordStrength(pwd: string): PasswordStrength {
   if (pwd.length >= 8) score++;
   if (/[A-Z]/.test(pwd)) score++;
   if (/[0-9]/.test(pwd)) score++;
-  if (/[^A-Za-z0-9]/.test(pwd)) score++; // caractere especial
+  if (/[^A-Za-z0-9]/.test(pwd)) score++;
 
   if (score <= 1) return "weak";
   if (score === 2) return "medium";
@@ -31,16 +31,15 @@ export default function ForcePasswordReset() {
   const [newPass, setNewPass] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const strength = getPasswordStrength(newPass);
 
-  // 🎨 Tema & brandcolor
   const { theme } = useTheme();
   const { brandColor } = useBrandColor();
 
+  // aplica tema
   useEffect(() => {
     document.documentElement.setAttribute("data-theme-variant", theme);
   }, [theme]);
@@ -85,7 +84,7 @@ export default function ForcePasswordReset() {
         return;
       }
 
-      // Remove o hash da URL
+      // Remove o hash da URL para não ficar feio
       window.history.replaceState({}, "", "/force-reset");
       setLoading(false);
     }
@@ -93,7 +92,7 @@ export default function ForcePasswordReset() {
     run();
   }, [navigate]);
 
-  // Requisitos básicos
+  // requisitos básicos
   const hasMinLength = newPass.length >= 8;
   const hasUppercase = /[A-Z]/.test(newPass);
   const hasNumber = /[0-9]/.test(newPass);
@@ -139,15 +138,10 @@ export default function ForcePasswordReset() {
 
     toast.success("Senha atualizada com sucesso! 🎉");
 
-    // 🔥 Para evitar conflito com outra aba logada, fazemos logout global
-    try {
-      await supabase.auth.signOut({ scope: "global" });
-    } catch (e) {
-      console.warn("Erro ao deslogar após reset de senha:", e);
-    }
-
-    // E mandamos o usuário fazer login de novo com a senha nova
-    navigate("/login?reset=1", { replace: true });
+    // 👉 Mantém o usuário autenticado e manda para as rotas protegidas.
+    // Se for uma nova tenant, o SetupRedirectGuard vai redirecionar para /setup.
+    // Se já tiver tenant, ele cai no /dashboard normalmente.
+    navigate("/dashboard", { replace: true });
   }
 
   if (loading) {
@@ -177,7 +171,7 @@ export default function ForcePasswordReset() {
         <h2 className={styles.title}>Definir nova senha</h2>
         <p className={styles.subtitle}>Escolha uma senha segura.</p>
 
-        {/* Campo Nova Senha */}
+        {/* Nova senha */}
         <div className={styles.fieldGroup}>
           <label className={styles.label}>Nova senha</label>
           <div className={styles.passwordWrapper}>
