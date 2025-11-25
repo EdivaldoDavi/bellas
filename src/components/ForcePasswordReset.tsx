@@ -3,13 +3,18 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseCleint";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+
 import { useTheme } from "../hooks/useTheme";
 import { useBrandColor } from "../hooks/useBrandColor";
+
 import { Eye, EyeOff, Check } from "lucide-react";
 import styles from "../css/ForcePasswordReset.module.css";
 
 type PasswordStrength = "empty" | "weak" | "medium" | "strong" | "very-strong";
 
+/* ============================================================
+   FUNÇÃO DE FORÇA DE SENHA
+============================================================ */
 function getPasswordStrength(pwd: string): PasswordStrength {
   if (!pwd) return "empty";
 
@@ -31,6 +36,7 @@ export default function ForcePasswordReset() {
   const [newPass, setNewPass] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -39,7 +45,9 @@ export default function ForcePasswordReset() {
   const { theme } = useTheme();
   const { brandColor } = useBrandColor();
 
-  // aplica tema
+  /* ============================================================
+     Aplicar tema + brandcolor
+  ============================================================ */
   useEffect(() => {
     document.documentElement.setAttribute("data-theme-variant", theme);
   }, [theme]);
@@ -50,9 +58,9 @@ export default function ForcePasswordReset() {
     }
   }, [brandColor]);
 
-  // ============================================================
-  // 1️⃣ Validar hash, criar sessão com Supabase (setSession)
-  // ============================================================
+  /* ============================================================
+     1️⃣ Validar hash do e-mail e criar sessão
+  ============================================================ */
   useEffect(() => {
     async function run() {
       const hash = window.location.hash;
@@ -84,7 +92,6 @@ export default function ForcePasswordReset() {
         return;
       }
 
-      // Remove o hash da URL para não ficar feio
       window.history.replaceState({}, "", "/force-reset");
       setLoading(false);
     }
@@ -92,15 +99,19 @@ export default function ForcePasswordReset() {
     run();
   }, [navigate]);
 
-  // requisitos básicos
+  /* ============================================================
+     Regras de senha
+  ============================================================ */
   const hasMinLength = newPass.length >= 8;
   const hasUppercase = /[A-Z]/.test(newPass);
   const hasNumber = /[0-9]/.test(newPass);
 
-  // ============================================================
-  // 3️⃣ Atualizar senha
-  // ============================================================
-  async function updatePassword() {
+  /* ============================================================
+     3️⃣ Atualizar senha e decidir destino (/setup ou /dashboard)
+  ============================================================ */
+  async function updatePassword(e?: React.FormEvent) {
+    if (e) e.preventDefault();
+
     if (!newPass || !confirmPass) {
       toast.warn("Preencha a nova senha e a confirmação.");
       return;
@@ -125,9 +136,8 @@ export default function ForcePasswordReset() {
     setSaving(false);
 
     if (error) {
-      const msg = error.message.toLowerCase();
-
-      if (msg.includes("different") || msg.includes("same")) {
+      const lower = error.message.toLowerCase();
+      if (lower.includes("different") || lower.includes("same")) {
         toast.error("A nova senha deve ser diferente da anterior.");
         return;
       }
@@ -138,12 +148,34 @@ export default function ForcePasswordReset() {
 
     toast.success("Senha atualizada com sucesso! 🎉");
 
-    // 👉 Mantém o usuário autenticado e manda para as rotas protegidas.
-    // Se for uma nova tenant, o SetupRedirectGuard vai redirecionar para /setup.
-    // Se já tiver tenant, ele cai no /dashboard normalmente.
+    /* ============================================================
+       Buscar profile para saber o destino
+    ============================================================ */
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData?.user) {
+      navigate("/login?reset=1", { replace: true });
+      return;
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("tenant_id, role")
+      .eq("user_id", userData.user.id)
+      .maybeSingle();
+
+    // 🔥 Se ainda não tem tenant → nova conta → ir ao setup
+    if (!profile?.tenant_id && ["owner", "manager", "professional"].includes(profile?.role)) {
+      navigate("/setup", { replace: true });
+      return;
+    }
+
+    // 🔥 Já tem tenant → ir direto ao dashboard
     navigate("/dashboard", { replace: true });
   }
 
+  /* ============================================================
+     Loading inicial
+  ============================================================ */
   if (loading) {
     return (
       <div className={`${styles.wrap} ${theme === "dark" ? styles.dark : ""}`}>
@@ -154,111 +186,121 @@ export default function ForcePasswordReset() {
     );
   }
 
+  /* ============================================================
+     Rótulo de força de senha
+  ============================================================ */
   const strengthLabel =
-    strength === "empty"
-      ? ""
-      : strength === "weak"
+    strength === "weak"
       ? "Força: fraca"
       : strength === "medium"
       ? "Força: média"
       : strength === "strong"
       ? "Força: forte"
-      : "Força: muito forte";
+      : strength === "very-strong"
+      ? "Força: muito forte"
+      : "";
 
+  /* ============================================================
+     JSX
+  ============================================================ */
   return (
     <div className={`${styles.wrap} ${theme === "dark" ? styles.dark : ""}`}>
       <div className={styles.card}>
         <h2 className={styles.title}>Definir nova senha</h2>
         <p className={styles.subtitle}>Escolha uma senha segura.</p>
 
-        {/* Nova senha */}
-        <div className={styles.fieldGroup}>
-          <label className={styles.label}>Nova senha</label>
-          <div className={styles.passwordWrapper}>
+        <form onSubmit={updatePassword}>
+          {/* NOVA SENHA */}
+          <div className={styles.fieldGroup}>
+            <label className={styles.label}>Nova senha</label>
+
+            <div className={styles.passwordWrapper}>
+              <input
+                type={showPassword ? "text" : "password"}
+                className={styles.input}
+                value={newPass}
+                placeholder="Digite a nova senha"
+                onChange={(e) => setNewPass(e.target.value)}
+              />
+
+              <button
+                type="button"
+                className={styles.eyeButton}
+                onClick={() => setShowPassword((v) => !v)}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+
+            {newPass && (
+              <div className={styles.strengthWrapper}>
+                <div
+                  className={`${styles.strengthBar} ${
+                    strength === "weak"
+                      ? styles.weak
+                      : strength === "medium"
+                      ? styles.medium
+                      : strength === "strong"
+                      ? styles.strong
+                      : strength === "very-strong"
+                      ? styles.veryStrong
+                      : ""
+                  }`}
+                />
+                <span className={styles.strengthLabel}>{strengthLabel}</span>
+              </div>
+            )}
+          </div>
+
+          {/* CONFIRMAR SENHA */}
+          <div className={styles.fieldGroup}>
+            <label className={styles.label}>Confirmar senha</label>
+
             <input
               type={showPassword ? "text" : "password"}
               className={styles.input}
-              placeholder="Digite a nova senha"
-              value={newPass}
-              onChange={(e) => setNewPass(e.target.value)}
+              value={confirmPass}
+              placeholder="Confirme a senha"
+              onChange={(e) => setConfirmPass(e.target.value)}
             />
-            <button
-              type="button"
-              className={styles.eyeButton}
-              onClick={() => setShowPassword((v) => !v)}
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
           </div>
 
-          {newPass && (
-            <div className={styles.strengthWrapper}>
-              <div
-                className={`${styles.strengthBar} ${
-                  strength === "weak"
-                    ? styles.weak
-                    : strength === "medium"
-                    ? styles.medium
-                    : strength === "strong"
-                    ? styles.strong
-                    : strength === "very-strong"
-                    ? styles.veryStrong
-                    : ""
-                }`}
-              />
-              <span className={styles.strengthLabel}>{strengthLabel}</span>
-            </div>
-          )}
-        </div>
+          {/* REQUISITOS */}
+          <div className={styles.requirements}>
+            <p className={styles.requirementsTitle}>A senha deve conter:</p>
+            <ul>
+              <li className={hasMinLength ? styles.reqOk : ""}>
+                {hasMinLength && <Check size={14} />} Pelo menos 8 caracteres
+              </li>
+              <li className={hasUppercase ? styles.reqOk : ""}>
+                {hasUppercase && <Check size={14} />} Uma letra maiúscula
+              </li>
+              <li className={hasNumber ? styles.reqOk : ""}>
+                {hasNumber && <Check size={14} />} Um número
+              </li>
+              <li className={styles.reqOptional}>
+                Opcional: caractere especial (ex.: @ # $ %)
+              </li>
+            </ul>
+          </div>
 
-        {/* Confirmar senha */}
-        <div className={styles.fieldGroup}>
-          <label className={styles.label}>Confirmar senha</label>
-          <input
-            type={showPassword ? "text" : "password"}
-            className={styles.input}
-            placeholder="Confirme a senha"
-            value={confirmPass}
-            onChange={(e) => setConfirmPass(e.target.value)}
-          />
-        </div>
+          {/* BOTÃO */}
+          <button
+            type="submit"
+            disabled={saving}
+            className={styles.submitButton}
+          >
+            {saving ? "Salvando..." : "Salvar nova senha"}
+          </button>
 
-        {/* Requisitos */}
-        <div className={styles.requirements}>
-          <p className={styles.requirementsTitle}>A senha deve conter:</p>
-          <ul>
-            <li className={hasMinLength ? styles.reqOk : ""}>
-              {hasMinLength && <Check size={14} />} Pelo menos 8 caracteres
-            </li>
-            <li className={hasUppercase ? styles.reqOk : ""}>
-              {hasUppercase && <Check size={14} />} Uma letra maiúscula
-            </li>
-            <li className={hasNumber ? styles.reqOk : ""}>
-              {hasNumber && <Check size={14} />} Um número
-            </li>
-            <li className={styles.reqOptional}>
-              Opcional: caractere especial (ex.: @ # $ %)
-            </li>
-          </ul>
-        </div>
-
-        {/* Botões */}
-        <button
-          type="button"
-          className={styles.submitButton}
-          onClick={updatePassword}
-          disabled={saving}
-        >
-          {saving ? "Salvando..." : "Salvar nova senha"}
-        </button>
-
-        <button
-          type="button"
-          className={styles.secondaryButton}
-          onClick={() => setShowPassword((v) => !v)}
-        >
-          {showPassword ? "Ocultar senha" : "Ver senha digitada"}
-        </button>
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            onClick={() => setShowPassword((v) => !v)}
+          >
+            {showPassword ? "Ocultar senha" : "Ver senha digitada"}
+          </button>
+        </form>
       </div>
     </div>
   );
