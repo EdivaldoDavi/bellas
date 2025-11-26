@@ -3,7 +3,7 @@ import { supabase } from "../../lib/supabaseCleint";
 import { Link } from "react-router-dom";
 
 import { useTheme } from "../../hooks/useTheme";
-import { useBrandColor } from "../../hooks/useBrandColor";
+// import { useBrandColor } from "../../hooks/useBrandColor"; // REMOVED
 import styles from "../../css/ForgotPassword.module.css";
 
 export default function ForgotPassword() {
@@ -13,18 +13,21 @@ export default function ForgotPassword() {
   const [message, setMessage] = useState("");
 
   const { theme } = useTheme();
-  const { brandColor } = useBrandColor();
+  // const { brandColor } = useBrandColor(); // REMOVED
 
-  // Aplicar tema e brand color no HTML
+  // Aplicar tema no HTML
   useEffect(() => {
     document.documentElement.setAttribute("data-theme-variant", theme);
   }, [theme]);
 
+  // REMOVED: useEffect for brandColor, now handled by applyTenantTheme or default CSS
+  /*
   useEffect(() => {
     if (brandColor) {
       document.documentElement.style.setProperty("--color-primary", brandColor);
     }
   }, [brandColor]);
+  */
 
   async function handleReset() {
     setMessage("");

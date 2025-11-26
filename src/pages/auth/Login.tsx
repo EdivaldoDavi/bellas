@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthProvider";
 import { useTheme } from "../../hooks/useTheme";
-import { useBrandColor } from "../../hooks/useBrandColor";
+// import { useBrandColor } from "../../hooks/useBrandColor"; // REMOVED
 
 import styles from "./Auth.module.css";
 import { toast } from "react-toastify";
@@ -20,20 +20,23 @@ export default function Login() {
   const { signIn, user, loading } = useAuth();
 
   const { theme, toggleTheme } = useTheme();
-  const { brandColor } = useBrandColor();
+  // const { brandColor } = useBrandColor(); // REMOVED
 
   /* ============================================================
-     🎨 Tema
+     🎨 Tema (rely on useTheme for data-theme attribute)
   ============================================================ */
   useEffect(() => {
     document.documentElement.setAttribute("data-theme-variant", theme);
   }, [theme]);
 
+  // REMOVED: useEffect for brandColor, now handled by applyTenantTheme or default CSS
+  /*
   useEffect(() => {
     if (brandColor) {
       document.documentElement.style.setProperty("--color-primary", brandColor);
     }
   }, [brandColor]);
+  */
 
   /* ============================================================
      URL Messages

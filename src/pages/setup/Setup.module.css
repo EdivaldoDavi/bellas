@@ -29,12 +29,13 @@
   font-size: 1.9rem;
   font-weight: 700;
   margin-bottom: 12px;
+  color: var(--text-color); /* Use global variable */
 }
 
 .subtitle {
   font-size: 1rem;
   line-height: 1.5;
-  color: var(--text-secondary);
+  color: var(--text-secondary); /* Use global variable */
   margin-bottom: 28px;
 }
 
@@ -44,11 +45,11 @@
 .input {
   width: 100%;
   padding: 14px 16px;
-  background: var(--input-bg);
-  border: 2px solid var(--input-border);
+  background: var(--input-bg); /* Use global variable */
+  border: 2px solid var(--input-border); /* Use global variable */
   border-radius: 12px;
   font-size: 1rem;
-  color: var(--text-color);
+  color: var(--text-color); /* Use global variable */
   margin-bottom: 20px;
   transition: border-color 0.25s;
 }
@@ -70,11 +71,12 @@
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 6px;
+  color: var(--text-color); /* Use global variable */
 }
 
 .sectionDescription {
   font-size: 0.95rem;
-  color: var(--text-muted);
+  color: var(--text-muted); /* Use global variable */
   line-height: 1.4;
   margin-bottom: 20px;
 }
@@ -106,19 +108,20 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  color: var(--label-color); /* Use global variable */
 }
 
 .colorHint {
   font-size: 0.8rem;
   margin-top: 4px;
-  color: var(--text-secondary);
+  color: var(--text-secondary); /* Use global variable */
 }
 
 .colorExample {
   margin-top: 6px;
   font-size: 0.8rem;
   font-style: italic;
-  color: var(--text-muted);
+  color: var(--text-muted); /* Use global variable */
 }
 
 /* input de cor blindado */
@@ -127,7 +130,7 @@
   height: 48px;
   border-radius: 12px;
 
-  border: 2px solid var(--input-border);
+  border: 2px solid var(--input-border); /* Use global variable */
   background: #ffffff;
 
   cursor: pointer;
@@ -167,9 +170,9 @@
   padding: 14px;
   border-radius: 14px;
 
-  background: var(--input-bg);
-  border: 2px solid var(--input-border);
-  color: var(--text-color);
+  background: var(--input-bg); /* Use global variable */
+  border: 2px solid var(--input-border); /* Use global variable */
+  color: var(--text-color); /* Use global variable */
 
   font-weight: 600;
   cursor: pointer;
@@ -200,14 +203,14 @@
   font-size: 1.15rem;
   font-weight: 700;
 
-  background: #0d9e4d;
+  background: var(--color-primary); /* Use global variable */
   color: #ffffff;
 
   transition: 0.25s;
 }
 
 .saveButton:hover:not(:disabled) {
-  background: #0c8a43;
+  filter: brightness(0.9); /* Use filter for hover effect */
 }
 
 .saveButton:disabled {
@@ -229,100 +232,12 @@
   margin-top: 20px;
 }
 
-/* ============================================================
-   🎨 AJUSTES PARA TEMA DARK
-   (usa o mesmo atributo que você já usa: data-theme-variant)
-============================================================ */
-:root[data-theme="dark"] {
-
-  /* === TEXTOS === */
-  --text-color: #f5f5f5;
-  --text-secondary: #d0d0d0;
-  --text-muted: #b5b5b5;
-
-  /* === INPUTS === */
-  --input-bg: #171717;
-  --input-border: #3a3a3a;
-
-  /* === CARD / FUNDO === */
-  --modal-bg: #0f0f0f;
-
-  /* === COR DO LABEL (caso algum componente não use text-color) === */
-  --label-color: #eeeeee;
-
-  /* === Ajusta cores internas de componentes === */
-  --color-primary-text-on-dark: #ffffff;
-}
-:root[data-theme="dark"] .setupCard,
-html[data-theme="dark"] .setupCard {
-  background: #0f0f0f !important;
-}
-
-:root[data-theme="dark"] .title,
-html[data-theme="dark"] .title {
-  color: #f5f5f5 !important;
-}
-
-:root[data-theme="dark"] .subtitle,
-html[data-theme="dark"] .subtitle {
-  color: #cccccc !important;
-}
-
-:root[data-theme="dark"] .sectionTitle,
-html[data-theme="dark"] .sectionTitle {
-  color: #f2f2f2 !important;
-}
-
-:root[data-theme="dark"] .sectionDescription,
-html[data-theme="dark"] .sectionDescription {
-  color: #bbbbbb !important;
-}
-
-:root[data-theme="dark"] .colorLabel,
-html[data-theme="dark"] .colorLabel {
-  color: #eaeaea !important;
-}
-
-:root[data-theme="dark"] .colorHint,
-html[data-theme="dark"] .colorHint {
-  color: #c8c8c8 !important;
-}
-
-:root[data-theme="dark"] .colorExample,
-html[data-theme="dark"] .colorExample {
-  color: #b2b2b2 !important;
-}
-
-:root[data-theme="dark"] .input,
-html[data-theme="dark"] .input {
-  background: #1a1a1a !important;
-  border-color: #333 !important;
-  color: #fafafa !important;
-}
-
-:root[data-theme="dark"] .themeBtn,
-html[data-theme="dark"] .themeBtn {
-  background: #1a1a1a !important;
-  border-color: #333 !important;
-  color: #e8e8e8 !important;
-}
-
-/* Força textos no tema escuro */
-html[data-theme="dark"] .title,
-html[data-theme="dark"] .subtitle,
-html[data-theme="dark"] .sectionTitle,
-html[data-theme="dark"] .sectionDescription,
-html[data-theme="dark"] .colorLabel,
-html[data-theme="dark"] .colorHint,
-html[data-theme="dark"] .colorExample {
-  color: var(--text-color) !important;
-}
 .stepsIndicator {
   display: flex;
   gap: 16px;
   margin-bottom: 24px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--text-muted); /* Use global variable */
 }
 
 .activeStep {
@@ -330,8 +245,8 @@ html[data-theme="dark"] .colorExample {
 }
 
 .infoCard {
-  background: var(--input-bg);
-  border: 1px solid var(--input-border);
+  background: var(--input-bg); /* Use global variable */
+  border: 1px solid var(--input-border); /* Use global variable */
   padding: 16px;
   border-radius: 12px;
   margin-bottom: 28px;

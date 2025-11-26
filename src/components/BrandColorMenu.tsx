@@ -1,10 +1,9 @@
-// src/components/BrandColorMenu.tsx
 import { useState } from "react";
 import { Palette } from "lucide-react";
-import { useBrandColor } from "../hooks/useBrandColor";
-import { useUserTenant } from "../context/UserTenantProvider";  // <-- CORRETO
+import { useUserTenant } from "../context/UserTenantProvider";
 import { supabase } from "../lib/supabaseCleint";
 import styles from "../css/brandColorMenu.module.css";
+// No need to import applyTenantTheme here, useApplyTenantTheme hook handles it
 
 const COLORS = [
   { hex: "#ff1493", name: "Rosa" },
@@ -16,18 +15,16 @@ const COLORS = [
 ];
 
 export default function BrandColorMenu() {
-  const { tenant, refreshTenant } = useUserTenant(); // <-- Agora podemos forçar reload global
-  const { brandColor, setBrandColor } = useBrandColor(tenant?.primary_color);
+  const { tenant, refreshTenant } = useUserTenant();
   const [open, setOpen] = useState(false);
+
+  // Use tenant.primary_color directly for display and comparison
+  const currentBrandColor = tenant?.primary_color ?? "#ff1493";
 
   const handleColorSelect = async (color: string) => {
     if (!tenant?.id) return;
 
-    // 1️⃣ Atualiza localmente
-    setBrandColor(color);
-    document.documentElement.style.setProperty("--color-primary", color);
-
-    // 2️⃣ Salva no Supabase
+    // 1️⃣ Salva no Supabase
     const { error } = await supabase
       .from("tenants")
       .update({ primary_color: color })
@@ -38,10 +35,10 @@ export default function BrandColorMenu() {
       return;
     }
 
-    // 3️⃣ Atualiza contexto global (para não resetar ao navegar)
+    // 2️⃣ Atualiza contexto global, que por sua vez acionará useApplyTenantTheme
     await refreshTenant();
 
-    // 4️⃣ Fecha o menu
+    // 3️⃣ Fecha o menu
     setOpen(false);
   };
 
@@ -65,7 +62,7 @@ export default function BrandColorMenu() {
               onClick={() => handleColorSelect(c.hex)}
               title={c.name}
             >
-              {brandColor === c.hex && <span className={styles.check}>✓</span>}
+              {currentBrandColor === c.hex && <span className={styles.check}>✓</span>}
             </button>
           ))}
         </div>
