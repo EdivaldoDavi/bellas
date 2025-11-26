@@ -6,20 +6,19 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: var(--page-bg); /* Use global variable */
+  background: var(--page-bg, #f7f6fb);
 }
 
 .card {
   width: 100%;
   max-width: 760px;
-  background: var(--modal-bg); /* Use global variable */
+  background: var(--modal-bg, #fff);
   border-radius: 24px;
   padding: 24px 24px 28px;
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
   display: flex;
   flex-direction: column;
   gap: 20px;
-  color: var(--text); /* Ensure text color is set */
 }
 
 .header {
@@ -32,13 +31,12 @@
   font-size: 1.6rem;
   font-weight: 700;
   margin: 0;
-  color: var(--text); /* Use global variable */
 }
 
 .subtitle {
   margin: 0;
   font-size: 0.95rem;
-  color: var(--text-secondary); /* Use global variable */
+  color: #6b7280;
 }
 
 .progressWrapper {
@@ -56,7 +54,7 @@
 .progressFill {
   height: 100%;
   border-radius: inherit;
-  background: var(--color-primary); /* Use global variable */
+  background: linear-gradient(90deg, #ff6ac2, #ff4aa2);
   transition: width 0.25s ease-out;
 }
 
@@ -64,7 +62,7 @@
   display: block;
   margin-top: 4px;
   font-size: 0.8rem;
-  color: var(--text-muted); /* Use global variable */
+  color: #6b7280;
 }
 
 .body {
@@ -78,37 +76,39 @@
   flex-wrap: wrap;
   gap: 12px;
   margin-top: 22px;
+  justify-content: center; /* Centraliza os botões quando não preenchem a largura total */
 }
 
-.primaryBtn {
-  flex: 1 1 160px;
-  border: none;
-  border-radius: 999px;
-  padding: 10px 18px;
+.primaryBtn,
+.secondaryBtn {
+  flex: 1; /* Permite que cresçam e encolham */
+  max-width: 280px; /* Limita a largura máxima em telas maiores */
+  padding: 8px 18px; /* Preenchimento vertical reduzido */
   font-weight: 600;
   font-size: 0.95rem;
   cursor: pointer;
-  background: var(--color-primary); /* Use global variable */
+  border-radius: 999px;
+  transition: all 0.2s ease;
+  text-align: center; /* Garante que o texto esteja centralizado */
+}
+
+.primaryBtn {
+  border: none;
+  background: linear-gradient(90deg, #ff6ac2, #ff4aa2);
   color: #fff;
 }
 
 .secondaryBtn {
-  flex: 1 1 160px;
-  border-radius: 999px;
-  padding: 10px 18px;
-  font-weight: 500;
-  font-size: 0.95rem;
-  cursor: pointer;
-  border: 1px solid var(--separator); /* Use global variable */
+  border: 1px solid rgba(148, 163, 184, 0.6);
   background: transparent;
-  color: var(--text); /* Use global variable */
+  color: #374151;
 }
 
 .skipBtn {
   margin-top: 8px;
   background: none;
   border: none;
-  color: var(--text-muted); /* Use global variable */
+  color: #9ca3af;
   font-size: 0.85rem;
   cursor: pointer;
   text-decoration: underline;
@@ -120,12 +120,11 @@
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 6px;
-  color: var(--text); /* Use global variable */
 }
 
 .stepText {
   font-size: 0.95rem;
-  color: var(--text-muted); /* Use global variable */
+  color: #6b7280;
 }
 
 /* Responsivo */
@@ -145,6 +144,15 @@
   }
 
   .actions {
-    flex-direction: column;
+    flex-direction: column; /* Empilha os botões verticalmente em telas pequenas */
+    align-items: center; /* Centraliza os botões empilhados */
+  }
+
+  .primaryBtn,
+  .secondaryBtn {
+    width: 100%; /* Ocupa a largura total quando empilhado */
+    max-width: none; /* Remove a restrição de largura máxima quando empilhado */
+    padding: 10px 18px; /* Um pouco mais de preenchimento para melhor toque em dispositivos móveis */
+    font-size: 1rem; /* Fonte ligeiramente maior para legibilidade em dispositivos móveis */
   }
 }
