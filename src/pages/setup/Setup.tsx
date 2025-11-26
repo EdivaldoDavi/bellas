@@ -3,13 +3,16 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseCleint";
 import { toast } from "react-toastify";
-import { useUserTenant } from "../../context/UserTenantProvider";
 
-import styles from "./Setup.module.css"; // 🔥 usando CSS Module
+import { useUserTenant } from "../../context/UserTenantProvider";
+import { useTheme } from "../../hooks/useTheme"; // 👈 IMPORTANTE
+
+import styles from "./Setup.module.css";
 
 export default function Setup() {
   const { loading, profile, tenant, reloadAll } = useUserTenant();
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme(); // 👈 THEME GLOBAL
 
   const [name, setName] = useState("");
   const [primary, setPrimary] = useState("#ff1493");
@@ -30,11 +33,13 @@ export default function Setup() {
   }, [tenant]);
 
   /* ============================================================
-     Loading
+     Loading / erros
   ============================================================ */
   if (loading) return <div className={styles.loading}>Carregando...</div>;
-  if (!profile)
+
+  if (!profile) {
     return <p className={styles.error}>Erro: perfil não encontrado.</p>;
+  }
 
   /* ============================================================
      Permissões
@@ -64,7 +69,7 @@ export default function Setup() {
       const currentUserId = profile.user_id;
       const currentUserRole = profile.role;
 
-      /* Criar tenant */
+      // 1️⃣ Criar tenant
       if (!currentTenantId) {
         const generatedId = crypto.randomUUID();
 
@@ -101,7 +106,6 @@ export default function Setup() {
         await supabase.auth.refreshSession();
         await reloadAll();
 
-        /* Criar registro em professionals */
         const { data: existingProfessional } = await supabase
           .from("professionals")
           .select("id")
@@ -120,7 +124,7 @@ export default function Setup() {
         }
       }
 
-      /* Atualizar tenant existente */
+      // 2️⃣ Atualizar tenant existente
       else if (currentUserRole === "owner" || currentUserRole === "manager") {
         const { error: updateErr } = await supabase
           .from("tenants")
@@ -140,7 +144,7 @@ export default function Setup() {
         return;
       }
 
-      /* Reload */
+      // 3️⃣ Reload
       await reloadAll();
       toast.success("Configuração salva com sucesso! 🎉");
       navigate("/dashboard", { replace: true });
@@ -153,16 +157,37 @@ export default function Setup() {
   };
 
   /* ============================================================
-     JSX – Interface visual moderna
+     Handlers de tema (claro/escuro)
+  ============================================================ */
+  function handleSelectLight() {
+    setVariant("light");
+
+    // Se o tema global não for light, alterna
+    if (theme !== "light") {
+      toggleTheme();
+    }
+  }
+
+  function handleSelectDark() {
+    setVariant("dark");
+
+    // Se o tema global não for dark, alterna
+    if (theme !== "dark") {
+      toggleTheme();
+    }
+  }
+
+  /* ============================================================
+     JSX
   ============================================================ */
   return (
     <div className={styles.container}>
       <div className={styles.card}>
         <h2 className={styles.title}>Vamos começar criando sua empresa ✨</h2>
         <p className={styles.subtitle}>
-          Antes de usar o sistema, precisamos configurar seu espaço de
-          trabalho. Pode ser um salão, estúdio, clínica, barbearia, MEI ou até
-          mesmo você como profissional autônomo.
+          Antes de usar o sistema, precisamos configurar seu espaço de trabalho.
+          Pode ser um salão, estúdio, clínica, MEI ou até mesmo você
+          como profissional autônomo.
         </p>
 
         <div className={styles.form}>
@@ -173,7 +198,7 @@ export default function Setup() {
           <input
             className={styles.input}
             value={name}
-            placeholder="Ex.: Studio da Ana / Barber House / Carla MEI"
+            placeholder="Ex.: Studio da Ana /  Carla MEI"
             onChange={(e) => setName(e.target.value)}
           />
 
@@ -203,24 +228,27 @@ export default function Setup() {
           {/* Tema */}
           <div className={styles.theme}>
             <button
+              type="button"
               className={`${styles.themeBtn} ${
                 variant === "light" ? styles.selected : ""
               }`}
-              onClick={() => setVariant("light")}
+              onClick={handleSelectLight}
             >
               🌞 Claro
             </button>
+
             <button
+              type="button"
               className={`${styles.themeBtn} ${
                 variant === "dark" ? styles.selected : ""
               }`}
-              onClick={() => setVariant("dark")}
+              onClick={handleSelectDark}
             >
               🌙 Escuro
             </button>
           </div>
 
-          {/* Botão */}
+          {/* Botão salvar */}
           <button
             className={styles.saveBtn}
             onClick={save}
