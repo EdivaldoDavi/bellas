@@ -1,25 +1,28 @@
 // src/pages/setup/Setup.tsx
+
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../../lib/supabaseCleint";
 import { toast } from "react-toastify";
 
 import { useUserTenant } from "../../context/UserTenantProvider";
-import { useTheme } from "../../hooks/useTheme";
-
 import styles from "./Setup.module.css";
 import LoadingSpinner from "../../components/LoadingSpinner";
-import ConnectWhatsAppPage from "../ConnectWhatsAppPage"; // Step 2 embutido
+import ConnectWhatsAppPage from "../ConnectWhatsAppPage";
 
 export default function Setup() {
-  const { loading: userTenantLoading, profile, tenant, reloadAll } =
-    useUserTenant();
+  const {
+    loading: userTenantLoading,
+    profile,
+    tenant,
+    reloadAll,
+  } = useUserTenant();
+
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
   const [searchParams, setSearchParams] = useSearchParams();
 
   /* ============================================================
-     STEPS INTERNOS DO SETUP (via URL ?step=1|2)
+     STEPS INTERNOS (?step=1|2)
   ============================================================ */
   const currentStep = Number(searchParams.get("step")) || 1;
 
@@ -31,7 +34,7 @@ export default function Setup() {
   );
 
   /* ============================================================
-     FORM STATE (inicializa com tenant se existir)
+     FORM STATE (inicial com tenant, se existir)
   ============================================================ */
   const [name, setName] = useState(() => tenant?.name || "");
   const [primary, setPrimary] = useState(
@@ -41,23 +44,26 @@ export default function Setup() {
     () => tenant?.secondary_color || "#ffffff"
   );
   const [variant, setVariant] = useState<"light" | "dark">(
-    () => tenant?.theme_variant || "light"
+    () => (tenant?.theme_variant as "light" | "dark") || "light"
   );
 
   const [saving, setSaving] = useState(false);
 
   /* ============================================================
-     SINCRONIZA CAMPOS QUANDO O TENANT CARREGAR/ATUALIZAR
-     (removeu o !saving que travava o reload após salvar)
+     SINCRONIZA QUANDO O TENANT MUDA
   ============================================================ */
   useEffect(() => {
-    if (!tenant) return;
-
-    setName(tenant.name || "");
-    setPrimary(tenant.primary_color || "#ff1493");
-    setSecondary(tenant.secondary_color || "#ffffff");
-    setVariant((tenant.theme_variant as "light" | "dark") || "light");
-  }, [tenant]);
+    // Se o tenant carregou/atualizou e não estamos salvando agora,
+    // usamos os dados dele para preencher o form
+    if (tenant && !saving) {
+      setName(tenant.name || "");
+      setPrimary(tenant.primary_color || "#ff1493");
+      setSecondary(tenant.secondary_color || "#ffffff");
+      setVariant(
+        (tenant.theme_variant as "light" | "dark") || "light"
+      );
+    }
+  }, [tenant, saving]);
 
   /* ============================================================
      PERMISSÕES / LOADING
@@ -67,7 +73,9 @@ export default function Setup() {
   }
 
   if (!profile) {
-    return <p className={styles.error}>Erro: perfil não encontrado.</p>;
+    return (
+      <p className={styles.error}>Erro: perfil não encontrado.</p>
+    );
   }
 
   const canAccessSetup =
@@ -81,19 +89,6 @@ export default function Setup() {
         Você não tem permissão para acessar o setup.
       </p>
     );
-  }
-
-  /* ============================================================
-     HANDLERS DE TEMA
-  ============================================================ */
-  function selectLight() {
-    setVariant("light");
-    if (theme !== "light") toggleTheme();
-  }
-
-  function selectDark() {
-    setVariant("dark");
-    if (theme !== "dark") toggleTheme();
   }
 
   /* ============================================================
@@ -115,21 +110,23 @@ export default function Setup() {
       if (!tenantId) {
         tenantId = crypto.randomUUID();
 
-        const { error: errInsert } = await supabase.from("tenants").insert({
-          id: tenantId,
-          name,
-          primary_color: primary,
-          secondary_color: secondary,
-          theme_variant: variant,
-          setup_complete: false, // só termina no final do step 2
-          created_by: userId,
-        });
+        const { error: errInsert } = await supabase
+          .from("tenants")
+          .insert({
+            id: tenantId,
+            name,
+            primary_color: primary,
+            secondary_color: secondary,
+            theme_variant: variant,
+            setup_complete: false, // só termina no final
+            created_by: userId,
+          });
 
         if (errInsert) throw errInsert;
 
         const updateProfile: any = { tenant_id: tenantId };
 
-        // promove a manager caso não seja owner/manager
+        // promove pra manager se não for owner/manager
         if (profile?.role !== "owner" && profile?.role !== "manager") {
           updateProfile.role = "manager";
         }
@@ -157,14 +154,17 @@ export default function Setup() {
         if (errUpdate) throw errUpdate;
       }
 
+      // 🔄 recarrega contexto (inclui tenant atualizado)
       await reloadAll();
       setSaving(false);
 
-      // 👉 Avança para o passo 2 (WhatsApp dentro do setup)
+      // 👉 Avança para passo 2 (WhatsApp)
       setStep(2);
     } catch (err: any) {
       console.error(err);
-      toast.error("Erro ao salvar configurações.");
+      toast.error(
+        err.message || "Erro ao salvar configurações do salão."
+      );
       setSaving(false);
     }
   }
@@ -174,7 +174,6 @@ export default function Setup() {
   ============================================================ */
   async function finishAfterWhatsApp() {
     try {
-      // usa o tenant mais recente do contexto
       if (tenant?.id) {
         await supabase
           .from("tenants")
@@ -184,10 +183,23 @@ export default function Setup() {
 
       await reloadAll();
       navigate("/dashboard", { replace: true });
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error("Erro ao finalizar configuração.");
+      toast.error(
+        err.message || "Erro ao finalizar configuração."
+      );
     }
+  }
+
+  /* ============================================================
+     HANDLERS SIMPLES DE VARIANT (SEM mexer no tema global)
+  ============================================================ */
+  function handleSelectLight() {
+    setVariant("light");
+  }
+
+  function handleSelectDark() {
+    setVariant("dark");
   }
 
   /* ============================================================
@@ -196,14 +208,18 @@ export default function Setup() {
   function renderStep1() {
     return (
       <>
-        <h2 className={styles.title}>Vamos começar criando sua empresa ✨</h2>
+        <h2 className={styles.title}>
+          Vamos começar criando sua empresa ✨
+        </h2>
 
         <p className={styles.subtitle}>
-          Antes de usar o sistema, vamos configurar sua marca e identidade
-          visual.
+          Antes de usar o sistema, vamos configurar sua marca e
+          identidade visual.
         </p>
 
-        <label className={styles.colorLabel}>Nome da sua marca ou salão</label>
+        <label className={styles.colorLabel}>
+          Nome da sua marca ou salão
+        </label>
         <input
           className={styles.input}
           value={name}
@@ -218,7 +234,8 @@ export default function Setup() {
           </h4>
 
           <p className={styles.sectionDescription}>
-            Essas cores serão usadas no tema, botões e destaques do sistema.
+            Essas cores serão usadas no tema, botões e destaques do
+            sistema.
           </p>
 
           <div className={styles.colorsRow}>
@@ -238,7 +255,9 @@ export default function Setup() {
                 onChange={(e) => setPrimary(e.target.value)}
               />
 
-              <p className={styles.colorExample}>Ex.: rosa, azul, roxo…</p>
+              <p className={styles.colorExample}>
+                Ex.: rosa, azul, roxo…
+              </p>
             </div>
 
             {/* SECUNDÁRIA */}
@@ -270,7 +289,7 @@ export default function Setup() {
             className={`${styles.themeBtn} ${
               variant === "light" ? styles.themeSelected : ""
             }`}
-            onClick={selectLight}
+            onClick={handleSelectLight}
           >
             🌞 Claro
           </button>
@@ -279,7 +298,7 @@ export default function Setup() {
             className={`${styles.themeBtn} ${
               variant === "dark" ? styles.themeSelected : ""
             }`}
-            onClick={selectDark}
+            onClick={handleSelectDark}
           >
             🌙 Escuro
           </button>
@@ -305,12 +324,12 @@ export default function Setup() {
         <h2 className={styles.title}>Conectar WhatsApp 📲</h2>
 
         <p className={styles.subtitle}>
-          Conecte o WhatsApp do seu salão para habilitar lembretes automáticos,
-          confirmações e atendimento inteligente.
+          Conecte o WhatsApp do seu salão para habilitar lembretes
+          automáticos, confirmações e atendimento inteligente.
         </p>
 
         <div style={{ marginTop: "24px" }}>
-          <ConnectWhatsAppPage />
+          <ConnectWhatsAppPage insideSetup />
         </div>
 
         <button
@@ -331,10 +350,14 @@ export default function Setup() {
     <div className={styles.setupContainer}>
       <div className={styles.setupCard}>
         <div className={styles.stepsIndicator}>
-          <span className={currentStep === 1 ? styles.activeStep : ""}>
+          <span
+            className={currentStep === 1 ? styles.activeStep : ""}
+          >
             1. Empresa
           </span>
-          <span className={currentStep === 2 ? styles.activeStep : ""}>
+          <span
+            className={currentStep === 2 ? styles.activeStep : ""}
+          >
             2. WhatsApp
           </span>
         </div>

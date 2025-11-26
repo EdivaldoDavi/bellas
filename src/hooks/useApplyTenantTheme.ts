@@ -1,3 +1,4 @@
+// src/hooks/useApplyTenantTheme.ts
 import { useEffect } from "react";
 import { useUserTenant } from "../context/UserTenantProvider";
 import { applyTenantTheme } from "../utils/theme";
