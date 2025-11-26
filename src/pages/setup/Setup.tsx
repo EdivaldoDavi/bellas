@@ -203,27 +203,62 @@ export default function Setup() {
           />
 
           {/* Cores */}
-          <div className={styles.colors}>
-            <div>
-              <label className={styles.label}>Cor primária</label>
-              <input
-                type="color"
-                className={styles.color}
-                value={primary}
-                onChange={(e) => setPrimary(e.target.value)}
-              />
-            </div>
+{/* 🎨 Seção de Cores */}
+<div className={styles.colorsSection}>
 
-            <div>
-              <label className={styles.label}>Cor secundária</label>
-              <input
-                type="color"
-                className={styles.color}
-                value={secondary}
-                onChange={(e) => setSecondary(e.target.value)}
-              />
-            </div>
-          </div>
+  <h4 className={styles.sectionTitle}>Personalize o visual da sua marca 🎨</h4>
+
+  <p className={styles.sectionDescription}>
+    Escolha as cores que serão usadas nos botões, menus, destaques e no tema geral da sua aplicação.
+    É como escolher as cores da sua identidade visual — e você poderá mudar isso quando quiser.
+  </p>
+
+  <div className={styles.colorsRow}>
+
+    {/* Cor primária */}
+    <div className={styles.colorItem}>
+      <label className={styles.colorLabel}>
+        Cor primária
+        <span className={styles.colorHint}>
+          Usada em botões, destaques e elementos principais.
+        </span>
+      </label>
+
+      <input
+        type="color"
+        className={styles.colorInput}
+        value={primary}
+        onChange={(e) => setPrimary(e.target.value)}
+      />
+
+      <p className={styles.colorExample}>
+        Ex.: rosa, azul, roxo… escolha a cor principal da sua marca.
+      </p>
+    </div>
+
+    {/* Cor secundária */}
+    <div className={styles.colorItem}>
+      <label className={styles.colorLabel}>
+        Cor secundária
+        <span className={styles.colorHint}>
+          Usada como contraste, fundo ou detalhes adicionais.
+        </span>
+      </label>
+
+      <input
+        type="color"
+        className={styles.colorInput}
+        value={secondary}
+        onChange={(e) => setSecondary(e.target.value)}
+      />
+
+      <p className={styles.colorExample}>
+        Normalmente uma cor mais clara para combinar com a primária.
+      </p>
+    </div>
+
+  </div>
+</div>
 
           {/* Tema */}
           <div className={styles.theme}>
