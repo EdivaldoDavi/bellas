@@ -4,41 +4,47 @@ import { useUserTenant } from "../context/UserTenantProvider";
 import { useAuth } from "../context/AuthProvider";
 
 export function SetupRedirectGuard({ children }: { children: React.ReactNode }) {
-  const { needsSetup, loading, profile } = useUserTenant();
+  const { needsSetup, loading, profile, tenant } = useUserTenant();
   const { loading: authLoading } = useAuth();
   const location = useLocation();
 
   const isSetupPage = location.pathname === "/setup";
+  const onboardingStep = tenant?.onboarding_step ?? 0;
 
-  // 🔥 Nunca interceptar force-reset
+  // 🔒 1. Force-reset nunca pode ser bloqueado
   if (location.pathname === "/force-reset") {
     return <>{children}</>;
   }
 
-  // 🔥 Não interfere durante login de convite
-if ((profile as any)?.invited) {
-  return <>{children}</>;
-}
+  // 🔒 2. Convite não deve cair no setup
+  if ((profile as any)?.invited) {
+    return <>{children}</>;
+  }
 
-
-  // 🚫 IMPORTANTE:
-  // Enquanto estiver carregando, NÃO desmonta a tela atual.
-  // Isso evita o "refresh" visual ao voltar para a aba.
+  // ⏳ 3. Enquanto carregar dados, não tenta redirecionar
   if (loading || authLoading) {
     return <>{children}</>;
   }
 
-  // Agora, só faz redirect quando temos estado estável (sem loading)
+  // 🚫 4. Se o onboarding NÃO terminou, setup NÃO pode interceptar
+  // onb < 99 → onboard primeiro
+  if (onboardingStep < 99) {
+    return <>{children}</>;
+  }
 
-  // Precisa fazer setup e não está na página de setup -> manda pro /setup
+  // ✔️ 5. Agora SIM: onboarding terminou
+  // Aplicamos regras normais do setup
+
+  // Caso precisa fazer setup e não está no /setup → redireciona
   if (needsSetup && !isSetupPage) {
     return <Navigate to="/setup" replace />;
   }
 
-  // Não precisa mais de setup e está em /setup -> manda pro /dashboard
+  // Caso NÃO precisa setup e está no /setup → manda pro dashboard
   if (!needsSetup && isSetupPage) {
     return <Navigate to="/dashboard" replace />;
   }
 
+  // Caso contrário → apenas renderiza o conteúdo
   return <>{children}</>;
 }
