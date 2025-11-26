@@ -1,5 +1,4 @@
-"use client";
-
+// src/pages/setup/Setup.tsx
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../../lib/supabaseCleint";
@@ -10,7 +9,7 @@ import { useTheme } from "../../hooks/useTheme";
 
 import styles from "./Setup.module.css";
 import LoadingSpinner from "../../components/LoadingSpinner";
-import ConnectWhatsAppPage from "../ConnectWhatsAppPage"; // 👈 embutido no passo 2
+import ConnectWhatsAppPage from "../ConnectWhatsAppPage"; // Step 2 embutido
 
 export default function Setup() {
   const { loading: userTenantLoading, profile, tenant, reloadAll } =
@@ -49,24 +48,27 @@ export default function Setup() {
 
   /* ============================================================
      SINCRONIZA CAMPOS QUANDO O TENANT CARREGAR/ATUALIZAR
+     (removeu o !saving que travava o reload após salvar)
   ============================================================ */
   useEffect(() => {
-    if (tenant && !saving) {
-      setName(tenant.name || "");
-      setPrimary(tenant.primary_color || "#ff1493");
-      setSecondary(tenant.secondary_color || "#ffffff");
-      setVariant(tenant.theme_variant || "light");
-    }
-  }, [tenant, saving]);
+    if (!tenant) return;
+
+    setName(tenant.name || "");
+    setPrimary(tenant.primary_color || "#ff1493");
+    setSecondary(tenant.secondary_color || "#ffffff");
+    setVariant((tenant.theme_variant as "light" | "dark") || "light");
+  }, [tenant]);
 
   /* ============================================================
      PERMISSÕES / LOADING
   ============================================================ */
-  if (userTenantLoading)
+  if (userTenantLoading) {
     return <LoadingSpinner message="Carregando configurações..." />;
+  }
 
-  if (!profile)
+  if (!profile) {
     return <p className={styles.error}>Erro: perfil não encontrado.</p>;
+  }
 
   const canAccessSetup =
     profile.role === "owner" ||
@@ -169,10 +171,10 @@ export default function Setup() {
 
   /* ============================================================
      STEP 2 — FINALIZAR APÓS CONECTAR WHATSAPP
-     (sem redirecionar durante a conexão)
   ============================================================ */
   async function finishAfterWhatsApp() {
     try {
+      // usa o tenant mais recente do contexto
       if (tenant?.id) {
         await supabase
           .from("tenants")
@@ -181,8 +183,6 @@ export default function Setup() {
       }
 
       await reloadAll();
-
-      // Depois do setup, segue fluxo normal
       navigate("/dashboard", { replace: true });
     } catch (err) {
       console.error(err);
@@ -309,7 +309,6 @@ export default function Setup() {
           confirmações e atendimento inteligente.
         </p>
 
-        {/* Você pode ajustar o CSS depois, aqui só envolvi para dar respiro */}
         <div style={{ marginTop: "24px" }}>
           <ConnectWhatsAppPage />
         </div>
