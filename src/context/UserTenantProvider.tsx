@@ -4,27 +4,36 @@ import {
   type ReactNode,
   useMemo,
   useState,
+  useEffect,
 } from "react";
-import { useUserAndTenant, type Profile, type Tenant } from "../hooks/useUserAndTenant"; // Importar Profile e Tenant
+
+import {
+  useUserAndTenant,
+  type Profile,
+  type Tenant,
+} from "../hooks/useUserAndTenant";
 
 import { supabase } from "../lib/supabaseCleint";
+
 /* ============================================================
    📌 Tipagem do Contexto Global
 ============================================================ */
 export interface UserTenantContextType {
-  user: any;                          // tipado pelo Supabase (via useUserAndTenant)
-  profile: Profile | null;            // Usar o tipo Profile atualizado
-  tenant: Tenant | null;              // Usar o tipo Tenant
+  user: any;
+  profile: Profile | null;
+  tenant: Tenant | null;   // ← Agora vem do tenantState
   subscription: any;
   plan: any;
   features: string[];
   permissions: string[];
   loading: boolean;
-  needsSetup: boolean | null;         // CORRIGIDO ✔
-    updateOnboardingStep: (step: number) => Promise<void>;
+  needsSetup: boolean | null;
+
   refreshProfile: () => Promise<void>;
   refreshTenant: () => Promise<void>;
   reloadAll: () => Promise<void>;
+
+  updateOnboardingStep: (step: number) => Promise<void>;
 }
 
 /* ============================================================
@@ -47,41 +56,51 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
     loading,
     needsSetup,
     refreshProfile,
-    
   } = useUserAndTenant();
 
   /* ============================================================
-      Recarrega apenas o tenant
+     🔥 Estado REAL do Tenant (corrige o loop)
   ============================================================ */
-  const [, setTenantState] = useState<Tenant | null>(tenant);
+  const [tenantState, setTenantState] = useState<Tenant | null>(tenant);
 
-const refreshTenant = async () => {
-  if (!profile?.tenant_id) {
-    setTenantState(null);
-    return;
-  }
+  // Mantém tenantState sincronizado com o hook inicial
+  useEffect(() => {
+    setTenantState(tenant);
+  }, [tenant]);
 
-  const { data, error } = await supabase
-    .from("tenants")
-    .select("*")
-    .eq("id", profile.tenant_id)
-    .maybeSingle();
+  /* ============================================================
+     🔄 Recarregar apenas o tenant
+  ============================================================ */
+  const refreshTenant = async () => {
+    if (!profile?.tenant_id) {
+      setTenantState(null);
+      return;
+    }
 
-  if (!error) {
+    const { data, error } = await supabase
+      .from("tenants")
+      .select("*")
+      .eq("id", profile.tenant_id)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Erro ao recarregar tenant:", error);
+      return;
+    }
+
     setTenantState(data);
-  } else {
-    console.error("Erro ao recarregar tenant", error);
-  }
-};
+  };
 
-// 🔹 Função para atualizar o passo do onboarding
+  /* ============================================================
+     🧭 Atualizar onboarding_step
+  ============================================================ */
   const updateOnboardingStep = async (step: number) => {
-    if (!tenant?.id) return;
+    if (!tenantState?.id) return;
 
     const { error } = await supabase
       .from("tenants")
       .update({ onboarding_step: step })
-      .eq("id", tenant.id);
+      .eq("id", tenantState.id);
 
     if (!error) {
       await refreshTenant();
@@ -91,29 +110,27 @@ const refreshTenant = async () => {
   };
 
   /* ============================================================
-      Recarrega tudo
+     🔄 Recarrega tudo
   ============================================================ */
-const reloadAll = async () => {
-  await refreshProfile();
-  await refreshTenant();
-};
-
+  const reloadAll = async () => {
+    await refreshProfile();
+    await refreshTenant();
+  };
 
   /* ============================================================
-      Memo — evita recriação desnecessária
+     📦 Memoização
   ============================================================ */
   const value = useMemo<UserTenantContextType>(
     () => ({
       user,
       profile,
-      tenant,
+      tenant: tenantState, // ← Agora usa o estado REAL
       subscription,
       plan,
       features,
       permissions,
       loading,
 
-      // needsSetup pode vir como boolean | null → mantemos assim
       needsSetup,
 
       refreshProfile,
@@ -124,15 +141,13 @@ const reloadAll = async () => {
     [
       user,
       profile,
-      tenant,
+      tenantState,
       subscription,
       plan,
       features,
       permissions,
       loading,
       needsSetup,
-      refreshProfile,
-      updateOnboardingStep,
     ]
   );
 
