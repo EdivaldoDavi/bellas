@@ -21,7 +21,7 @@ export default function Setup() {
   const [saving, setSaving] = useState(false);
 
   /* ============================================================
-     Preenche formulário se tenant existir
+     Preenche formulário quando o tenant existe
   ============================================================ */
   useEffect(() => {
     if (!tenant) return;
@@ -33,7 +33,7 @@ export default function Setup() {
   }, [tenant]);
 
   /* ============================================================
-     Loading / erros
+     Loading e erros
   ============================================================ */
   if (loading) return <div className={styles.loading}>Carregando...</div>;
 
@@ -42,7 +42,7 @@ export default function Setup() {
   }
 
   /* ============================================================
-     Permissões
+     Controle de permissão
   ============================================================ */
   const canAccessSetup =
     profile.role === "owner" ||
@@ -50,20 +50,21 @@ export default function Setup() {
     (profile.role === "professional" && !profile.tenant_id);
 
   if (!canAccessSetup) {
-    return <p className={styles.error}>Você não tem permissão para acessar o setup.</p>;
+    return <p className={styles.error}>Você não tem permissão para acessar esta página.</p>;
   }
 
   /* ============================================================
-     Salvar
+     SALVAR
   ============================================================ */
   const save = async () => {
     if (!profile) return;
+
     setSaving(true);
 
     try {
-      let currentTenantId: string | null = tenant?.id ?? null;
+      let currentTenantId = tenant?.id ?? null;
       const currentUserId = profile.user_id;
-      const currentUserRole = profile.role;
+      const currentRole = profile.role;
 
       // 1️⃣ Criar tenant
       if (!currentTenantId) {
@@ -84,11 +85,11 @@ export default function Setup() {
           .single();
 
         if (tenantErr) throw tenantErr;
-
         currentTenantId = newTenant.id;
 
+        // Atualiza o perfil
         const updatePayload: any = { tenant_id: currentTenantId };
-        if (currentUserRole !== "owner" && currentUserRole !== "manager") {
+        if (currentRole !== "owner" && currentRole !== "manager") {
           updatePayload.role = "manager";
         }
 
@@ -102,6 +103,7 @@ export default function Setup() {
         await supabase.auth.refreshSession();
         await reloadAll();
 
+        // cria o professional se ainda não existir
         const { data: existingProfessional } = await supabase
           .from("professionals")
           .select("id")
@@ -119,9 +121,10 @@ export default function Setup() {
           });
         }
       }
-      // 2️⃣ Atualizar tenant existente
-      else if (currentUserRole === "owner" || currentUserRole === "manager") {
-        const { error: updateErr } = await supabase
+
+      // 2️⃣ Atualiza tenant existente
+      else if (currentRole === "owner" || currentRole === "manager") {
+        const { error: updErr } = await supabase
           .from("tenants")
           .update({
             name,
@@ -132,9 +135,9 @@ export default function Setup() {
           })
           .eq("id", currentTenantId);
 
-        if (updateErr) throw updateErr;
+        if (updErr) throw updErr;
       } else {
-        toast.error("Você não pode atualizar este salão.");
+        toast.error("Você não pode alterar estes dados.");
         setSaving(false);
         return;
       }
@@ -151,17 +154,17 @@ export default function Setup() {
   };
 
   /* ============================================================
-     Theme Handlers
+     THEME HANDLERS
   ============================================================ */
-  function handleSelectLight() {
+  const handleSelectLight = () => {
     setVariant("light");
     if (theme !== "light") toggleTheme();
-  }
+  };
 
-  function handleSelectDark() {
+  const handleSelectDark = () => {
     setVariant("dark");
     if (theme !== "dark") toggleTheme();
-  }
+  };
 
   /* ============================================================
      JSX
@@ -172,12 +175,13 @@ export default function Setup() {
         <h2 className={styles.title}>Vamos começar criando sua empresa ✨</h2>
 
         <p className={styles.subtitle}>
-          Antes de usar o sistema, precisamos configurar seu espaço de trabalho.
+          Antes de usar o sistema, vamos configurar seu espaço de trabalho.
           Pode ser um salão, estúdio, clínica, MEI ou até mesmo você como profissional autônomo.
         </p>
 
-        {/* Input Nome */}
+        {/* Nome */}
         <label className={styles.colorLabel}>Nome da sua marca ou salão</label>
+
         <input
           className={styles.input}
           value={name}
@@ -187,14 +191,16 @@ export default function Setup() {
 
         {/* 🎨 CORES */}
         <div className={styles.colorsSection}>
-          <h4 className={styles.sectionTitle}>Personalize o visual da sua marca 🎨</h4>
+          <h4 className={styles.sectionTitle}>
+            Personalize o visual da sua marca 🎨
+          </h4>
 
           <p className={styles.sectionDescription}>
-            Essas cores serão usadas em botões, menus e destaques do sistema.
+            Essas cores serão usadas no tema, botões, menus e destaques do sistema.
           </p>
 
           <div className={styles.colorsRow}>
-            {/* Primária */}
+            {/* Cor Primária */}
             <div className={styles.colorItem}>
               <label className={styles.colorLabel}>
                 Cor primária
@@ -215,7 +221,7 @@ export default function Setup() {
               </p>
             </div>
 
-            {/* Secundária */}
+            {/* Cor Secundária */}
             <div className={styles.colorItem}>
               <label className={styles.colorLabel}>
                 Cor secundária
@@ -238,7 +244,7 @@ export default function Setup() {
           </div>
         </div>
 
-        {/* 🌙 / 🌞 TEMA */}
+        {/* 🌞 / 🌙 Tema */}
         <div className={styles.themeRow}>
           <button
             className={`${styles.themeBtn} ${
@@ -259,7 +265,7 @@ export default function Setup() {
           </button>
         </div>
 
-        {/* Botão salvar */}
+        {/* Salvar */}
         <button
           className={styles.saveButton}
           disabled={saving}
