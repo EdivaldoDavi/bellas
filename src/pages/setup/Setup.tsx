@@ -9,34 +9,46 @@ import { useUserTenant } from "../../context/UserTenantProvider";
 import { useTheme } from "../../hooks/useTheme";
 
 import styles from "./Setup.module.css";
-import LoadingSpinner from "../../components/LoadingSpinner"; // Importar o LoadingSpinner
+import LoadingSpinner from "../../components/LoadingSpinner";
+import ConnectWhatsAppPage from "../ConnectWhatsAppPage"; // 👈 embutido no passo 2
 
 export default function Setup() {
-  const { loading: userTenantLoading, profile, tenant, reloadAll } = useUserTenant();
+  const { loading: userTenantLoading, profile, tenant, reloadAll } =
+    useUserTenant();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const [searchParams, setSearchParams] = useSearchParams();
 
   /* ============================================================
-     STEPS INTERNOS DO SETUP (Gerenciado via URL)
+     STEPS INTERNOS DO SETUP (via URL ?step=1|2)
   ============================================================ */
   const currentStep = Number(searchParams.get("step")) || 1;
-  const setStep = useCallback((stepNumber: 1 | 2) => {
-    setSearchParams({ step: String(stepNumber) });
-  }, [setSearchParams]);
+
+  const setStep = useCallback(
+    (stepNumber: 1 | 2) => {
+      setSearchParams({ step: String(stepNumber) });
+    },
+    [setSearchParams]
+  );
 
   /* ============================================================
-     FORM STATE - Initialize directly from tenant if available
+     FORM STATE (inicializa com tenant se existir)
   ============================================================ */
   const [name, setName] = useState(() => tenant?.name || "");
-  const [primary, setPrimary] = useState(() => tenant?.primary_color || "#ff1493");
-  const [secondary, setSecondary] = useState(() => tenant?.secondary_color || "#ffffff");
-  const [variant, setVariant] = useState<"light" | "dark">(() => tenant?.theme_variant || "light");
+  const [primary, setPrimary] = useState(
+    () => tenant?.primary_color || "#ff1493"
+  );
+  const [secondary, setSecondary] = useState(
+    () => tenant?.secondary_color || "#ffffff"
+  );
+  const [variant, setVariant] = useState<"light" | "dark">(
+    () => tenant?.theme_variant || "light"
+  );
 
   const [saving, setSaving] = useState(false);
 
   /* ============================================================
-     CARREGAR TENANT (SE EXISTIR) - Atualiza campos se o tenant mudar após a montagem inicial
+     SINCRONIZA CAMPOS QUANDO O TENANT CARREGAR/ATUALIZAR
   ============================================================ */
   useEffect(() => {
     if (tenant && !saving) {
@@ -48,10 +60,13 @@ export default function Setup() {
   }, [tenant, saving]);
 
   /* ============================================================
-     PERMISSÕES E ESTADO DE CARREGAMENTO
+     PERMISSÕES / LOADING
   ============================================================ */
-  if (userTenantLoading) return <LoadingSpinner message="Carregando configurações..." />;
-  if (!profile) return <p className={styles.error}>Erro: perfil não encontrado.</p>;
+  if (userTenantLoading)
+    return <LoadingSpinner message="Carregando configurações..." />;
+
+  if (!profile)
+    return <p className={styles.error}>Erro: perfil não encontrado.</p>;
 
   const canAccessSetup =
     profile.role === "owner" ||
@@ -59,7 +74,11 @@ export default function Setup() {
     (!profile.tenant_id && profile.role === "professional");
 
   if (!canAccessSetup) {
-    return <p className={styles.error}>Você não tem permissão para acessar o setup.</p>;
+    return (
+      <p className={styles.error}>
+        Você não tem permissão para acessar o setup.
+      </p>
+    );
   }
 
   /* ============================================================
@@ -76,7 +95,7 @@ export default function Setup() {
   }
 
   /* ============================================================
-     STEP 1 — CRIAÇÃO / ATUALIZAÇÃO DO TENANT
+     STEP 1 — CRIAR / ATUALIZAR TENANT
   ============================================================ */
   async function saveStep1() {
     if (!name.trim()) {
@@ -90,21 +109,19 @@ export default function Setup() {
       const userId = profile?.user_id;
       let tenantId = tenant?.id ?? null;
 
-      /* Criar tenant */
+      // 1) Criar tenant
       if (!tenantId) {
         tenantId = crypto.randomUUID();
 
-        const { error: errInsert } = await supabase
-          .from("tenants")
-          .insert({
-            id: tenantId,
-            name,
-            primary_color: primary,
-            secondary_color: secondary,
-            theme_variant: variant,
-            setup_complete: false,
-            created_by: userId,
-          });
+        const { error: errInsert } = await supabase.from("tenants").insert({
+          id: tenantId,
+          name,
+          primary_color: primary,
+          secondary_color: secondary,
+          theme_variant: variant,
+          setup_complete: false, // só termina no final do step 2
+          created_by: userId,
+        });
 
         if (errInsert) throw errInsert;
 
@@ -122,8 +139,7 @@ export default function Setup() {
 
         if (errProfile) throw errProfile;
       }
-
-      /* Atualizar tenant existente */
+      // 2) Atualizar tenant existente
       else {
         const { error: errUpdate } = await supabase
           .from("tenants")
@@ -139,11 +155,11 @@ export default function Setup() {
         if (errUpdate) throw errUpdate;
       }
 
-      await reloadAll(); // This reloads profile and tenant data from the DB
+      await reloadAll();
       setSaving(false);
 
-      /* Avança para o Step 2 */
-      setStep(2); // Atualiza o parâmetro 'step' na URL para '2'
+      // 👉 Avança para o passo 2 (WhatsApp dentro do setup)
+      setStep(2);
     } catch (err: any) {
       console.error(err);
       toast.error("Erro ao salvar configurações.");
@@ -152,11 +168,11 @@ export default function Setup() {
   }
 
   /* ============================================================
-     STEP 2 — REDIRECIONAR PARA CONEXÃO WHATSAPP
+     STEP 2 — FINALIZAR APÓS CONECTAR WHATSAPP
+     (sem redirecionar durante a conexão)
   ============================================================ */
-  async function goToWhatsAppPage() {
+  async function finishAfterWhatsApp() {
     try {
-      // marca setup completo
       if (tenant?.id) {
         await supabase
           .from("tenants")
@@ -166,11 +182,11 @@ export default function Setup() {
 
       await reloadAll();
 
-      // vai para a tela de conexão real
-      navigate("/integracoes/whatsapp", { replace: true });
+      // Depois do setup, segue fluxo normal
+      navigate("/dashboard", { replace: true });
     } catch (err) {
       console.error(err);
-      toast.error("Erro ao avançar.");
+      toast.error("Erro ao finalizar configuração.");
     }
   }
 
@@ -183,7 +199,8 @@ export default function Setup() {
         <h2 className={styles.title}>Vamos começar criando sua empresa ✨</h2>
 
         <p className={styles.subtitle}>
-          Antes de usar o sistema, vamos configurar sua marca e identidade visual.
+          Antes de usar o sistema, vamos configurar sua marca e identidade
+          visual.
         </p>
 
         <label className={styles.colorLabel}>Nome da sua marca ou salão</label>
@@ -196,7 +213,9 @@ export default function Setup() {
 
         {/* CORES */}
         <div className={styles.colorsSection}>
-          <h4 className={styles.sectionTitle}>Personalize o visual da sua marca 🎨</h4>
+          <h4 className={styles.sectionTitle}>
+            Personalize o visual da sua marca 🎨
+          </h4>
 
           <p className={styles.sectionDescription}>
             Essas cores serão usadas no tema, botões e destaques do sistema.
@@ -207,7 +226,9 @@ export default function Setup() {
             <div className={styles.colorItem}>
               <label className={styles.colorLabel}>
                 Cor primária
-                <span className={styles.colorHint}>Usada em botões e destaques principais.</span>
+                <span className={styles.colorHint}>
+                  Usada em botões e destaques principais.
+                </span>
               </label>
 
               <input
@@ -224,7 +245,9 @@ export default function Setup() {
             <div className={styles.colorItem}>
               <label className={styles.colorLabel}>
                 Cor secundária
-                <span className={styles.colorHint}>Usada em fundos e detalhes.</span>
+                <span className={styles.colorHint}>
+                  Usada em fundos e detalhes.
+                </span>
               </label>
 
               <input
@@ -234,7 +257,9 @@ export default function Setup() {
                 onChange={(e) => setSecondary(e.target.value)}
               />
 
-              <p className={styles.colorExample}>Geralmente uma cor mais clara.</p>
+              <p className={styles.colorExample}>
+                Geralmente uma cor mais clara.
+              </p>
             </div>
           </div>
         </div>
@@ -242,21 +267,29 @@ export default function Setup() {
         {/* TEMA */}
         <div className={styles.themeRow}>
           <button
-            className={`${styles.themeBtn} ${variant === "light" ? styles.themeSelected : ""}`}
+            className={`${styles.themeBtn} ${
+              variant === "light" ? styles.themeSelected : ""
+            }`}
             onClick={selectLight}
           >
             🌞 Claro
           </button>
 
           <button
-            className={`${styles.themeBtn} ${variant === "dark" ? styles.themeSelected : ""}`}
+            className={`${styles.themeBtn} ${
+              variant === "dark" ? styles.themeSelected : ""
+            }`}
             onClick={selectDark}
           >
             🌙 Escuro
           </button>
         </div>
 
-        <button className={styles.saveButton} disabled={saving} onClick={saveStep1}>
+        <button
+          className={styles.saveButton}
+          disabled={saving}
+          onClick={saveStep1}
+        >
           {saving ? "Salvando..." : "Salvar e continuar"}
         </button>
       </>
@@ -264,7 +297,7 @@ export default function Setup() {
   }
 
   /* ============================================================
-     RENDER STEP 2
+     RENDER STEP 2 (WhatsApp embutido)
   ============================================================ */
   function renderStep2() {
     return (
@@ -272,18 +305,21 @@ export default function Setup() {
         <h2 className={styles.title}>Conectar WhatsApp 📲</h2>
 
         <p className={styles.subtitle}>
-          Agora conecte o WhatsApp para habilitar lembretes automáticos e atendimento inteligente.
+          Conecte o WhatsApp do seu salão para habilitar lembretes automáticos,
+          confirmações e atendimento inteligente.
         </p>
 
-        <div className={styles.infoCard}>
-          <p>
-            Você será redirecionado para a tela de integração do WhatsApp onde poderá escanear o QR
-            Code.
-          </p>
+        {/* Você pode ajustar o CSS depois, aqui só envolvi para dar respiro */}
+        <div style={{ marginTop: "24px" }}>
+          <ConnectWhatsAppPage />
         </div>
 
-        <button className={styles.saveButton} onClick={goToWhatsAppPage}>
-          Conectar WhatsApp
+        <button
+          className={styles.saveButton}
+          style={{ marginTop: "24px" }}
+          onClick={finishAfterWhatsApp}
+        >
+          Finalizar configuração
         </button>
       </>
     );
@@ -296,8 +332,12 @@ export default function Setup() {
     <div className={styles.setupContainer}>
       <div className={styles.setupCard}>
         <div className={styles.stepsIndicator}>
-          <span className={currentStep === 1 ? styles.activeStep : ""}>1. Empresa</span>
-          <span className={currentStep === 2 ? styles.activeStep : ""}>2. WhatsApp</span>
+          <span className={currentStep === 1 ? styles.activeStep : ""}>
+            1. Empresa
+          </span>
+          <span className={currentStep === 2 ? styles.activeStep : ""}>
+            2. WhatsApp
+          </span>
         </div>
 
         {currentStep === 1 ? renderStep1() : renderStep2()}
