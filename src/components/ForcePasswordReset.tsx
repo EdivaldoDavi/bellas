@@ -4,7 +4,7 @@ import { supabase } from "../lib/supabaseCleint";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useTheme } from "../hooks/useTheme";
-import { useBrandColor } from "../hooks/useBrandColor";
+// import { useBrandColor } from "../hooks/useBrandColor"; // REMOVED
 import { Eye, EyeOff, Check } from "lucide-react";
 import styles from "../css/ForcePasswordReset.module.css";
 import { useUserTenant } from "../context/UserTenantProvider";
@@ -38,18 +38,21 @@ export default function ForcePasswordReset() {
   const strength = getPasswordStrength(newPass);
   const { reloadAll } = useUserTenant();
   const { theme } = useTheme();
-  const { brandColor } = useBrandColor();
+  // const { brandColor } = useBrandColor(); // REMOVED
 
   // Tema
   useEffect(() => {
     document.documentElement.setAttribute("data-theme-variant", theme);
   }, [theme]);
 
+  // REMOVED: useEffect for brandColor, now handled by applyTenantTheme or default CSS
+  /*
   useEffect(() => {
     if (brandColor) {
       document.documentElement.style.setProperty("--color-primary", brandColor);
     }
   }, [brandColor]);
+  */
 
   // 1️⃣ Validar hash + setSession
   useEffect(() => {

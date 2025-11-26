@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseCleint";
 import { Link } from "react-router-dom";
 import { useTheme } from "../../hooks/useTheme";
-import { useBrandColor } from "../../hooks/useBrandColor";
+// import { useBrandColor } from "../../hooks/useBrandColor"; // REMOVED
 import styles from "../../css/Register.module.css"
 import { toast } from "react-toastify"; // Importar toast para mensagens
 
@@ -31,8 +31,7 @@ export default function Register() {
   // 🎨 Tema global
   const { theme, toggleTheme } = useTheme();
 
-  // 🎨 BrandColor global
-  const { brandColor } = useBrandColor();
+  // const { brandColor } = useBrandColor(); // REMOVED
 
   /* ============================================================
      Aplicar tema no HTML
@@ -41,14 +40,14 @@ export default function Register() {
     document.documentElement.setAttribute("data-theme-variant", theme);
   }, [theme]);
 
-  /* ============================================================
-     Aplicar cor primária
-  ============================================================ */
+  // REMOVED: useEffect for brandColor, now handled by applyTenantTheme or default CSS
+  /*
   useEffect(() => {
     if (brandColor) {
       document.documentElement.style.setProperty("--color-primary", brandColor);
     }
   }, [brandColor]);
+  */
 
   /* ============================================================
      Registrar
