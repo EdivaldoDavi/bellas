@@ -34,6 +34,11 @@ export function SetupRedirectGuard({ children }: { children: React.ReactNode }) 
   if (!needsSetup && isSetupPage) {
     return <Navigate to="/dashboard" replace />;
   }
+console.log("SETUP GUARD rodou", {
+  needsSetup,
+  onboardingStep: tenant?.onboarding_step,
+  path: location.pathname
+});
 
   return <>{children}</>;
 }
