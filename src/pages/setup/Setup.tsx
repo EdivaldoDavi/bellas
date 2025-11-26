@@ -1,6 +1,7 @@
-// src/pages/setup/Setup.tsx
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../../lib/supabaseCleint";
 import { toast } from "react-toastify";
 
@@ -8,22 +9,25 @@ import { useUserTenant } from "../../context/UserTenantProvider";
 import { useTheme } from "../../hooks/useTheme";
 
 import styles from "./Setup.module.css";
+import LoadingSpinner from "../../components/LoadingSpinner"; // Importar o LoadingSpinner
 
 export default function Setup() {
-  const { loading, profile, tenant, reloadAll } = useUserTenant();
+  const { loading: userTenantLoading, profile, tenant, reloadAll } = useUserTenant();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   /* ============================================================
-     STEPS INTERNOS DO SETUP
+     STEPS INTERNOS DO SETUP (Gerenciado via URL)
   ============================================================ */
-  const [step, setStep] = useState<1 | 2>(1);
+  const currentStep = Number(searchParams.get("step")) || 1;
+  const setStep = useCallback((stepNumber: 1 | 2) => {
+    setSearchParams({ step: String(stepNumber) });
+  }, [setSearchParams]);
 
   /* ============================================================
      FORM STATE - Initialize directly from tenant if available
   ============================================================ */
-  // Use functional updates for useState to ensure initial values are computed
-  // only once and correctly reflect the initial `tenant` value.
   const [name, setName] = useState(() => tenant?.name || "");
   const [primary, setPrimary] = useState(() => tenant?.primary_color || "#ff1493");
   const [secondary, setSecondary] = useState(() => tenant?.secondary_color || "#ffffff");
@@ -35,22 +39,18 @@ export default function Setup() {
      CARREGAR TENANT (SE EXISTIR) - Atualiza campos se o tenant mudar após a montagem inicial
   ============================================================ */
   useEffect(() => {
-    // Este efeito garante que, se o objeto `tenant` no contexto mudar (por exemplo,
-    // após a criação de um novo tenant via `saveStep1` e `reloadAll`),
-    // os campos do formulário sejam atualizados para refletir os novos dados.
-    // A condição `!saving` evita que o formulário seja resetado enquanto o salvamento está em andamento.
     if (tenant && !saving) {
       setName(tenant.name || "");
       setPrimary(tenant.primary_color || "#ff1493");
       setSecondary(tenant.secondary_color || "#ffffff");
       setVariant(tenant.theme_variant || "light");
     }
-  }, [tenant, saving]); // Depende de `tenant` e `saving`
+  }, [tenant, saving]);
 
   /* ============================================================
-     PERMISSÕES
+     PERMISSÕES E ESTADO DE CARREGAMENTO
   ============================================================ */
-  if (loading) return <div className={styles.loading}>Carregando...</div>;
+  if (userTenantLoading) return <LoadingSpinner message="Carregando configurações..." />;
   if (!profile) return <p className={styles.error}>Erro: perfil não encontrado.</p>;
 
   const canAccessSetup =
@@ -143,7 +143,7 @@ export default function Setup() {
       setSaving(false);
 
       /* Avança para o Step 2 */
-      setStep(2);
+      setStep(2); // Atualiza o parâmetro 'step' na URL para '2'
     } catch (err: any) {
       console.error(err);
       toast.error("Erro ao salvar configurações.");
@@ -296,11 +296,11 @@ export default function Setup() {
     <div className={styles.setupContainer}>
       <div className={styles.setupCard}>
         <div className={styles.stepsIndicator}>
-          <span className={step === 1 ? styles.activeStep : ""}>1. Empresa</span>
-          <span className={step === 2 ? styles.activeStep : ""}>2. WhatsApp</span>
+          <span className={currentStep === 1 ? styles.activeStep : ""}>1. Empresa</span>
+          <span className={currentStep === 2 ? styles.activeStep : ""}>2. WhatsApp</span>
         </div>
 
-        {step === 1 ? renderStep1() : renderStep2()}
+        {currentStep === 1 ? renderStep1() : renderStep2()}
       </div>
     </div>
   );
