@@ -253,16 +253,71 @@
   /* === Ajusta cores internas de componentes === */
   --color-primary-text-on-dark: #ffffff;
 }
+:root[data-theme="dark"] .setupCard,
+html[data-theme="dark"] .setupCard {
+  background: #0f0f0f !important;
+}
+
+:root[data-theme="dark"] .title,
+html[data-theme="dark"] .title {
+  color: #f5f5f5 !important;
+}
+
+:root[data-theme="dark"] .subtitle,
+html[data-theme="dark"] .subtitle {
+  color: #cccccc !important;
+}
+
+:root[data-theme="dark"] .sectionTitle,
+html[data-theme="dark"] .sectionTitle {
+  color: #f2f2f2 !important;
+}
+
+:root[data-theme="dark"] .sectionDescription,
+html[data-theme="dark"] .sectionDescription {
+  color: #bbbbbb !important;
+}
+
+:root[data-theme="dark"] .colorLabel,
+html[data-theme="dark"] .colorLabel {
+  color: #eaeaea !important;
+}
+
+:root[data-theme="dark"] .colorHint,
+html[data-theme="dark"] .colorHint {
+  color: #c8c8c8 !important;
+}
+
+:root[data-theme="dark"] .colorExample,
+html[data-theme="dark"] .colorExample {
+  color: #b2b2b2 !important;
+}
+
+:root[data-theme="dark"] .input,
+html[data-theme="dark"] .input {
+  background: #1a1a1a !important;
+  border-color: #333 !important;
+  color: #fafafa !important;
+}
+
+:root[data-theme="dark"] .themeBtn,
+html[data-theme="dark"] .themeBtn {
+  background: #1a1a1a !important;
+  border-color: #333 !important;
+  color: #e8e8e8 !important;
+}
+
 /* Força textos no tema escuro */
-:root[data-theme-variant="dark"] .title,
-:root[data-theme-variant="dark"] .subtitle,
-:root[data-theme-variant="dark"] .sectionTitle,
-:root[data-theme-variant="dark"] .sectionDescription,
-:root[data-theme-variant="dark"] .colorLabel,
-:root[data-theme-variant="dark"] .colorHint,
-:root[data-theme-variant="dark"] .colorExample {
+html[data-theme="dark"] .title,
+html[data-theme="dark"] .subtitle,
+html[data-theme="dark"] .sectionTitle,
+html[data-theme="dark"] .sectionDescription,
+html[data-theme="dark"] .colorLabel,
+html[data-theme="dark"] .colorHint,
+html[data-theme="dark"] .colorExample {
   color: var(--text-color) !important;
 }
+
 
 /* ============================================================
    📱 RESPONSIVO
