@@ -24,12 +24,10 @@ import PerfilPage from "./pages/PerfilPage";
 import ConnectWhatsAppPage from "./pages/ConnectWhatsAppPage";
 import GerenciarAcessosPage from "./config/GerenciarAcessosPage"; // Importar GerenciarAcessosPage
 
-
-import ClientesPage from "./pages/ClientesPage";
 import UsuariosPage from "./pages/UsuariosPage";
 import ServicosPage from "./pages/ServicosPage";
 import ProfessionalsPage from "./pages/ProfessionalsPage";
-
+import ClientesPage from "./pages/ClientesPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -37,6 +35,7 @@ import spinnerStyles from "./css/LoadingSpinner.module.css"; // Importar o CSS d
 
 import Onboarding from "./pages/onboarding/Onboarding";
 import { OnboardingGuard } from "./guards/OnBoardingGuard";
+import { SetupRedirectGuard } from "./hooks/setupRedirectGuard";
 
 // =============================
 // 🔹 TELA DE LOADING GLOBAL
@@ -87,6 +86,7 @@ function DashboardGuard({ children }: { children: ReactNode }) {
 // =============================
 // 🧭 GUARD DO SETUP
 // =============================
+/*
 function SetupRedirectGuard({ children }: { children: ReactNode }) {
   const { needsSetup, loading } = useUserTenant();
   const location = useLocation();
@@ -108,7 +108,7 @@ function SetupRedirectGuard({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-
+*/
 
 // =============================
 // 🔹 APP PRINCIPAL

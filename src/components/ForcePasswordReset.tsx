@@ -143,7 +143,7 @@ export default function ForcePasswordReset() {
 await reloadAll();
 
 // Agora o Guard já tem os valores corretos (needsSetup lá dentro será true ou false corretamente)
-navigate("/setup", { replace: true });
+navigate("/dashboard", { replace: true });
   }
 
   if (loading) {
