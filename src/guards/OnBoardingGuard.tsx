@@ -1,39 +1,32 @@
-// src/guards/OnboardingGuard.tsx
+// src/guards/OnBoardingGuard.tsx
 import { Navigate, useLocation } from "react-router-dom";
 import { useUserTenant } from "../context/UserTenantProvider";
 
 export function OnboardingGuard({ children }: { children: React.ReactNode }) {
-  const { tenant, loading, needsSetup } = useUserTenant();
+  const { tenant, loading } = useUserTenant();
   const location = useLocation();
 
+  // Ainda carregando dados
   if (loading) return null;
 
+  // Sem tenant (ex: login de convite, usuário sem tenant ainda)
   if (!tenant) return <>{children}</>;
 
   const step = tenant.onboarding_step ?? 0;
   const isOnboardingPage = location.pathname.startsWith("/onboarding");
-  const isSetupPage = location.pathname === "/setup";
 
-  // ⭐ REGRA 1 — NOVO USUÁRIO: onboarding primeiro
-  if (step === 0 && !isOnboardingPage) {
+  // 🔹 Se onboarding NÃO terminou (0 a 98) e não estamos na página de onboarding,
+  // sempre redireciona para /onboarding
+  if (step < 99 && !isOnboardingPage) {
     return <Navigate to="/onboarding" replace />;
   }
 
-  // ⭐ REGRA 2 — ONBOARDING EM ANDAMENTO (1 a 98)
-  if (step > 0 && step < 99 && !isOnboardingPage) {
-    return <Navigate to="/onboarding" replace />;
-  }
-
-  // ⭐ REGRA 3 — ONBOARDING FINALIZADO (99)
-  // Agora sim o setup pode rodar se precisar
-  if (step >= 99 && needsSetup && !isSetupPage) {
-    return <Navigate to="/setup" replace />;
-  }
-
-  // ⭐ REGRA 4 — Tentou acessar onboarding finalizado
+  // 🔹 Se onboarding JÁ terminou (99+) e tentar acessar /onboarding,
+  // manda para o dashboard
   if (step >= 99 && isOnboardingPage) {
     return <Navigate to="/dashboard" replace />;
   }
 
+  // Caso normal: apenas renderiza
   return <>{children}</>;
 }

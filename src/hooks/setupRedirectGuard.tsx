@@ -11,40 +11,29 @@ export function SetupRedirectGuard({ children }: { children: React.ReactNode }) 
   const isSetupPage = location.pathname === "/setup";
   const onboardingStep = tenant?.onboarding_step ?? 0;
 
-  // 🔒 1. Force-reset nunca pode ser bloqueado
-  if (location.pathname === "/force-reset") {
-    return <>{children}</>;
-  }
+  // 🔒 Não bloquear force-reset
+  if (location.pathname === "/force-reset") return <>{children}</>;
 
-  // 🔒 2. Convite não deve cair no setup
-  if ((profile as any)?.invited) {
-    return <>{children}</>;
-  }
+  // 🔒 Não bloquear convites
+  if ((profile as any)?.invited) return <>{children}</>;
 
-  // ⏳ 3. Enquanto carregar dados, não tenta redirecionar
-  if (loading || authLoading) {
-    return <>{children}</>;
-  }
+  // ⏳ Ainda carregando → não decide nada ainda
+  if (loading || authLoading) return <>{children}</>;
 
-  // 🚫 4. Se o onboarding NÃO terminou, setup NÃO pode interceptar
-  // onb < 99 → onboard primeiro
+  // 🚫 Se onboarding NÃO terminou (<99), o setup NÃO PODE INTERFERIR
   if (onboardingStep < 99) {
     return <>{children}</>;
   }
 
-  // ✔️ 5. Agora SIM: onboarding terminou
-  // Aplicamos regras normais do setup
+  // ✔️ Onboarding terminou → agora sim as regras normais de setup
 
-  // Caso precisa fazer setup e não está no /setup → redireciona
   if (needsSetup && !isSetupPage) {
     return <Navigate to="/setup" replace />;
   }
 
-  // Caso NÃO precisa setup e está no /setup → manda pro dashboard
   if (!needsSetup && isSetupPage) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // Caso contrário → apenas renderiza o conteúdo
   return <>{children}</>;
 }
