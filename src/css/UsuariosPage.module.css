@@ -2,9 +2,9 @@
 
 .container {
   padding: 1.5rem;
-  background: var(--bg);
+  background: var(--bg); /* Use global variable */
   min-height: 100vh;
-  color: var(--text);
+  color: var(--text); /* Use global variable */
 }
 
 .title {
@@ -15,7 +15,7 @@
 
 .description {
   font-size: 1rem;
-  color: var(--text-muted);
+  color: var(--text-muted); /* Use global variable */
   margin-bottom: 1.5rem;
 }
 

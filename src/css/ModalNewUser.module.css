@@ -19,8 +19,8 @@
   max-width: 420px;
   max-height: 90vh;
   overflow-y: auto;
-  background: var(--card-bg, #fff);
-  color: var(--text, #000);
+  background: var(--card-bg); /* Use global variable */
+  color: var(--text); /* Use global variable */
   border-radius: 14px;
   padding: 1.4rem;
   position: relative;
@@ -33,14 +33,14 @@
   top: 10px;
   right: 10px;
   background: transparent;
-  border: 1px solid var(--separator, #ddd);
+  border: 1px solid var(--separator); /* Use global variable */
   width: 34px;
   height: 34px;
   border-radius: 50%;
   display: grid;
   place-items: center;
   cursor: pointer;
-  color: var(--text);
+  color: var(--text); /* Use global variable */
 }
 
 /* Título */
@@ -57,23 +57,23 @@
   width: 100%;
   padding: 10px 12px;
   border-radius: 8px;
-  border: 1px solid var(--separator);
-  background: var(--bg);
-  color: var(--text);
+  border: 1px solid var(--separator); /* Use global variable */
+  background: var(--bg); /* Use global variable */
+  color: var(--text); /* Use global variable */
   margin-bottom: 10px;
   font-size: 14px;
   transition: border-color .2s, box-shadow .2s, background .2s;
 }
 
 .input::placeholder {
-  color: var(--text-muted);
+  color: var(--text-muted); /* Use global variable */
 }
 
 .input:focus {
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent);
-  background: var(--card-bg);
+  background: var(--card-bg); /* Use global variable */
 }
 
 /* =============================
@@ -82,9 +82,9 @@
 .resultsContainer {
   max-height: 220px;
   overflow-y: auto;
-  border: 1px solid var(--separator);
+  border: 1px solid var(--separator); /* Use global variable */
   border-radius: 10px;
-  background: var(--bg);
+  background: var(--bg); /* Use global variable */
   margin-bottom: 1rem;
 }
 
@@ -92,9 +92,9 @@
 .item {
   padding: .75rem 1rem;
   cursor: pointer;
-  border-bottom: 1px solid var(--separator);
+  border-bottom: 1px solid var(--separator); /* Use global variable */
   transition: background .2s;
-  color: var(--text);
+  color: var(--text); /* Use global variable */
 }
 
 .item:last-child {
@@ -114,7 +114,7 @@
    BOTÃO SALVAR
 ============================= */
 .saveBtn {
-  background: var(--color-primary);
+  background: var(--color-primary); /* Use global variable */
   color: #fff;
   padding: .95rem;
   border-radius: 12px;

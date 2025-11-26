@@ -1,4 +1,4 @@
-.wrapper {
+.wrap {
   margin-bottom: 12px;
 }
 
@@ -82,7 +82,7 @@
 
 .addButton {
   width: 100%;
-  background: var(--color-primary);
+  background: var(--color-primary); /* Use CSS variable */
   color: white;
   border-radius: 8px;
   padding: 10px;

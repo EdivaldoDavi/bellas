@@ -82,7 +82,7 @@
 
 .addButton {
   width: 100%;
-  background: var(--color-primary);
+  background: var(--color-primary); /* Use CSS variable */
   color: white;
   border-radius: 8px;
   padding: 10px;
@@ -106,11 +106,11 @@
 
 @keyframes flash {
   0% {
-    background: #ff2fa3;
+    background: var(--color-primary); /* Use CSS variable */
     transform: scale(1.02);
   }
   50% {
-    background: #ff73c7;
+    background: color-mix(in srgb, var(--color-primary) 50%, white); /* Use CSS variable */
   }
   100% {
     background: var(--bg);

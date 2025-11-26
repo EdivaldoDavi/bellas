@@ -22,8 +22,8 @@
   padding: 26px 22px 22px;
   border-radius: 18px;
 
-  background: var(--modal-bg, #ffffff);
-  color: var(--text, #111);
+  background: var(--modal-bg);
+  color: var(--text);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
 
   animation: fadeUp 0.22s ease-out;
@@ -59,7 +59,7 @@
   border: none;
   border-radius: 999px;
   cursor: pointer;
-  color: var(--text, #111);
+  color: var(--text);
   transition: background 0.15s ease;
 }
 
@@ -81,7 +81,7 @@
   margin: 0 32px 18px 0; /* espaço pro X à direita */
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--text, #111);
+  color: var(--text);
 }
 
 /* =========================
@@ -91,9 +91,9 @@
   width: 100%;
   padding: 10px 12px;
   border-radius: 10px;
-  border: 1px solid var(--separator, #ddd);
-  background: var(--input-bg, #f5f5f7);
-  color: var(--text, #111);
+  border: 1px solid var(--separator);
+  background: var(--input-bg);
+  color: var(--text);
   margin-bottom: 10px;
   font-size: 0.95rem;
   transition: border-color 0.18s ease, box-shadow 0.18s ease,
@@ -101,16 +101,16 @@
 }
 
 .input::placeholder {
-  color: var(--text-muted, #888);
+  color: var(--text-muted);
 }
 
 /* focus bonito pra dark/light */
 .input:focus {
   outline: none;
-  border-color: var(--color-primary, #7c5cff);
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 2px
-    color-mix(in srgb, var(--color-primary, #7c5cff) 35%, transparent);
-  background: var(--card-bg, #ffffff);
+    color-mix(in srgb, var(--color-primary) 35%, transparent);
+  background: var(--card-bg);
 }
 
 /* =========================
@@ -126,7 +126,7 @@
   border: none;
   border-radius: 10px;
 
-  background: var(--color-primary, #7c5cff);
+  background: var(--color-primary); /* Use CSS variable */
   color: #ffffff;
   font-weight: 600;
   font-size: 0.96rem;

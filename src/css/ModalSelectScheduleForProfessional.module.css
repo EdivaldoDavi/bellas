@@ -14,7 +14,7 @@
   max-width: 620px;
   max-height: 82vh;
   overflow-y: auto;
-  background: var(--modal-bg);
+  background: var(--modal-bg); /* Use global variable */
   padding: 24px;
   border-radius: 16px;
   display: flex;
@@ -22,6 +22,7 @@
   gap: 18px;
   box-shadow: 0 20px 45px rgba(0,0,0,.55);
   animation: fadeIn .2s ease-out;
+  color: var(--text); /* Ensure text color is set */
 }
 
 .header {
@@ -34,9 +35,10 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  border: 1px solid var(--border);
-  background: var(--card-bg);
+  border: 1px solid var(--border); /* Use global variable */
+  background: var(--card-bg); /* Use global variable */
   cursor: pointer;
+  color: var(--text); /* Ensure text color is set */
 }
 .item {
   display: grid;
@@ -46,8 +48,8 @@
   padding: 14px 16px;
   border-radius: 12px;
 
-  background: var(--input-bg);
-  border: 1px solid var(--border);
+  background: var(--input-bg); /* Use global variable */
+  border: 1px solid var(--border); /* Use global variable */
 
   cursor: pointer;
   transition: 0.18s ease;
@@ -68,7 +70,7 @@
 
 /* Nome do serviço */
 .name {
-  color: var(--text);
+  color: var(--text); /* Ensure text color is set */
   font-size: 0.95rem;
   line-height: 1;
   margin-left: 8px;
@@ -82,9 +84,9 @@
 }
 
 .block {
-  border: 1px solid var(--border);
+  border: 1px solid var(--border); /* Use global variable */
   padding: 12px;
-  background: var(--input-bg);
+  background: var(--input-bg); /* Use global variable */
   border-radius: 12px;
 }
 
@@ -107,9 +109,10 @@
 .cancelBtn {
   flex: 1;
   padding: 12px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border); /* Use global variable */
   background: transparent;
   border-radius: 999px;
+  color: var(--text); /* Ensure text color is set */
 }
 
 .saveBtn {
@@ -117,6 +120,6 @@
   padding: 12px;
   border: none;
   border-radius: 999px;
-  background: var(--color-primary);
+  background: var(--color-primary); /* Use global variable */
   color: #fff;
 }

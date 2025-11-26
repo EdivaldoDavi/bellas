@@ -1,7 +1,7 @@
-
 import { useEffect, useState } from "react";
 import styles from "./DashboardGlobal.module.css";
 import { supabase } from "../../lib/supabaseCleint";
+import { useUserAndTenant } from "../../hooks/useUserAndTenant"; // Import useUserAndTenant
 
 interface Stats {
   totalTenants: number;
@@ -18,6 +18,7 @@ export default function DashboardGlobal() {
     totalRevenue: 0,
   });
   const [loading, setLoading] = useState(true);
+  const { tenant } = useUserAndTenant(); // Get tenant to access primary_color
 
   useEffect(() => {
     async function fetchStats() {
@@ -87,6 +88,13 @@ export default function DashboardGlobal() {
 
     fetchStats();
   }, []);
+
+  // Apply brand color if available
+  useEffect(() => {
+    if (tenant?.primary_color) {
+      document.documentElement.style.setProperty("--color-primary", tenant.primary_color);
+    }
+  }, [tenant?.primary_color]);
 
   if (loading) return <p className={styles.loading}>Carregando...</p>;
 

@@ -6,16 +6,16 @@
   justify-content: center;
   align-items: center;
   gap: 1.3rem;
-  color: #444;
+  color: var(--text); /* Use global variable */
   text-align: center;
 }
 
 .icon {
-  color: var(--sidebar-primary, #ff4081);
+  color: var(--color-primary); /* Use global variable */
 }
 
 .button {
-  background: var(--sidebar-primary, #ff4081);
+  background: var(--color-primary); /* Use global variable */
   color: white;
   padding: 12px 22px;
   border-radius: 10px;

@@ -5,10 +5,10 @@
   --sidebar-width: 220px;
   width: var(--sidebar-width);
   min-height: 100vh;
-  background: var(--sidebar-bg, var(--bg));
-  border-right: 1px solid var(--separator);
+  background: var(--sidebar-bg); /* Use global variable */
+  border-right: 1px solid var(--separator); /* Use global variable */
   box-shadow: 2px 0 18px rgba(0, 0, 0, 0.08); /* ✅ sombra lateral elegante */
-  color: var(--text);
+  color: var(--text); /* Use global variable */
   display: flex;
   flex-direction: column;
   position: relative;
@@ -64,14 +64,15 @@
 .menuItem {
   display: flex; align-items: center; gap: .75rem;
   padding: .6rem; border-radius: 6px;
-  color: var(--text-muted); text-decoration: none; position: relative;
+  color: var(--text-muted); /* Use global variable */
+  text-decoration: none; position: relative;
   transition: background .2s ease, color .2s ease;
   font-weight: 600;
   font-size: 1rem;
 }
 .menuItem:hover { 
    background: color-mix(in srgb, var(--color-primary) 12%, transparent); /* leve brilho com cor primária */
-   color: var(--text);
+   color: var(--text); /* Use global variable */
  }
  .menuItem:hover .icon svg { stroke: var(--color-primary) } /* Ícone colore no hover */
 
@@ -126,13 +127,13 @@
 
 /* Caixa do submenu */
 .submenuBox {
-  background: var(--bg); /* respeita tema */
-  color: var(--text);
+  background: var(--bg); /* Use global variable */
+  color: var(--text); /* Use global variable */
   padding: 1.25rem;
   border-radius: 14px;
   width: 220px;
 
-  border: 1px solid var(--separator);
+  border: 1px solid var(--separator); /* Use global variable */
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18); 
   display: flex;
   flex-direction: column;
@@ -187,7 +188,7 @@
     transform: translateX(-100%);
     transition: transform .3s ease;
     z-index: 1001;              /* acima do layout/header */
-    border-right: 1px solid var(--separator);
+    border-right: 1px solid var(--separator); /* Use global variable */
   }
   .sidebar.open { transform: translateX(0); }
   /* No mobile não existe o conceito de "colapsado fino" nem tooltip */

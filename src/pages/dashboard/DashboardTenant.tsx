@@ -43,11 +43,11 @@ export default function DashboardTenant() {
   const [revenueThisMonth, setRevenueThisMonth] = useState(0);
   const [todaysAppointments, setTodaysAppointments] = useState<any[]>([]);
   const [top3, setTop3] = useState<any[]>([]);
-  const [rankingPosition, setRankingPosition] = useState<number | null>(null);
+  const [, setRankingPosition] = useState<number | null>(null);
   const [doneThisMonth, setDoneThisMonth] = useState(0);
 
   // Usar a cor primária do tenant diretamente
-  const primaryColor = tenant?.primary_color ?? "#ff1493";
+  // const primaryColor = tenant?.primary_color ?? "#ff1493"; // REMOVED, now using CSS variable
 
   const revenueProgress = useMemo(() => {
     const pct = (revenueThisMonth * 100) / (REVENUE_GOAL_CENTS / 100);
@@ -272,11 +272,11 @@ export default function DashboardTenant() {
     return (
       <div
         className={styles.container}
-        style={
-          {
-            ["--color-primary" as any]: primaryColor, // Usar primaryColor
-          } as React.CSSProperties
-        }
+        // style={ // REMOVED: Direct style setting, now handled by applyTenantTheme
+        //   {
+        //     ["--color-primary" as any]: primaryColor,
+        //   } as React.CSSProperties
+        // }
       >
         <div className={styles.dashboardGrid}>
           <div className={styles.leftColumn}>
@@ -424,58 +424,39 @@ export default function DashboardTenant() {
     return (
       <div
         className={styles.container}
-        style={
-          {
-            ["--color-primary" as any]: primaryColor, // Usar primaryColor
-          } as React.CSSProperties
-        }
+        // style={ // REMOVED: Direct style setting, now handled by applyTenantTheme
+        //   {
+        //     ["--color-primary" as any]: primaryColor,
+        //   } as React.CSSProperties
+        // }
       >
         <div className={styles.profStatsGrid}>
           <div className={styles.profStatCard}>
-            <div className={styles.profCardHeader}>
-              <div className={`${styles.profCardIcon} ${styles.appointmentsToday}`}>
-                <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{appointmentsToday}</span>
-              </div>
-              <span className={styles.profCardTitle}>Meus Agendamentos Hoje</span>
+            <div className={`${styles.profCardIcon} ${styles.appointmentsToday}`}>
+              <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{appointmentsToday}</span>
             </div>
-            <div className={styles.profCardValue}>{appointmentsToday}</div>
+            <span className={styles.profCardTitle}>Meus Agendamentos Hoje</span>
           </div>
 
           <div className={styles.profStatCard}>
-            <div className={styles.profCardHeader}>
-              <div className={`${styles.profCardIcon} ${styles.revenueMonth}`}>
-                <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>R$</span>
-              </div>
-              <span className={styles.profCardTitle}>Meu Faturamento (Mês)</span>
+            <div className={`${styles.profCardIcon} ${styles.revenueMonth}`}>
+              <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>R$</span>
             </div>
-            <div className={styles.profCardValue}>
-              R${" "}
-              {revenueThisMonth.toLocaleString("pt-BR", {
-                minimumFractionDigits: 2,
-              })}
-            </div>
+            <span className={styles.profCardTitle}>Meu Faturamento (Mês)</span>
           </div>
 
           <div className={styles.profStatCard}>
-            <div className={styles.profCardHeader}>
-              <div className={`${styles.profCardIcon} ${styles.completedMonth}`}>
-                <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{doneThisMonth}</span>
-              </div>
-              <span className={styles.profCardTitle}>Atendimentos Concluídos (Mês)</span>
+            <div className={`${styles.profCardIcon} ${styles.completedMonth}`}>
+              <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{doneThisMonth}</span>
             </div>
-            <div className={styles.profCardValue}>{doneThisMonth}</div>
+            <span className={styles.profCardTitle}>Atendimentos Concluídos (Mês)</span>
           </div>
 
           <div className={styles.profStatCard}>
-            <div className={styles.profCardHeader}>
-              <div className={`${styles.profCardIcon} ${styles.rankingPosition}`}>
-                <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>#</span>
-              </div>
-              <span className={styles.profCardTitle}>Minha Posição no Ranking</span>
+            <div className={`${styles.profCardIcon} ${styles.rankingPosition}`}>
+              <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>#</span>
             </div>
-            <div className={styles.profCardValue}>
-              {rankingPosition ? `#${rankingPosition}` : "–"}
-            </div>
+            <span className={styles.profCardTitle}>Minha Posição no Ranking</span>
           </div>
         </div>
 
@@ -503,4 +484,3 @@ export default function DashboardTenant() {
 
   return null;
 }
-

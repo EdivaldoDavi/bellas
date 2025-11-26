@@ -1,0 +1,50 @@
+.wrap {
+  margin-bottom: 12px;
+}
+
+.search {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--separator);
+  background: var(--bg);
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.search::placeholder {
+  color: var(--text-muted);
+}
+
+.select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--separator);
+  background: var(--bg);
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.select:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.addBtn {
+  background: var(--color-primary); /* Use CSS variable */
+  color: white;
+  border-radius: 8px;
+  padding: 8px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  transition: .2s;
+}
+
+.addBtn:hover {
+  opacity: .9;
+}

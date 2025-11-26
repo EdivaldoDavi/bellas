@@ -1,4 +1,3 @@
-
 // src/pages/ClientesPage.tsx
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
@@ -23,7 +22,7 @@ export default function ClientesPage() {
   const { tenant } = useUserAndTenant();
   const tenantId = tenant?.id;
 
-  const brandColor = tenant?.primary_color || "#22c55e";
+  // const brandColor = tenant?.primary_color || "#22c55e"; // REMOVED, now using CSS variable
 
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [search, setSearch] = useState("");
@@ -34,11 +33,14 @@ export default function ClientesPage() {
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
 
   /* aplica Brand Color */
+  // REMOVED: Direct style setting, now handled by applyTenantTheme
+  /*
   useEffect(() => {
     if (tenant?.primary_color) {
       document.documentElement.style.setProperty("--primary", tenant.primary_color);
     }
   }, [tenant]);
+  */
 
   /* LOAD customers */
   useEffect(() => {
@@ -110,7 +112,7 @@ async function load() {
               marginRight: 10,
               padding: "6px 12px",
               borderRadius: 8,
-              background: brandColor,
+              background: "var(--color-primary)", // Use CSS variable
               color: "#fff",
               border: "none",
               cursor: "pointer"
@@ -178,7 +180,7 @@ async function load() {
 
           <button
             className={styles.newBtn}
-            style={{ backgroundColor: brandColor }}
+            style={{ backgroundColor: "var(--color-primary)" }} // Use CSS variable
             onClick={() => {
               setEditingCustomer(null);
               setOpenModal(true);
@@ -240,7 +242,7 @@ async function load() {
                 {!showAllCustomers && customers.length > 3 && !search.trim() && (
                   <button
                     className={styles.viewAllButton}
-                    style={{ backgroundColor: brandColor }}
+                    style={{ backgroundColor: "var(--color-primary)" }} // Use CSS variable
                     onClick={() => setShowAllCustomers(true)}
                   >
                     Ver todos os clientes

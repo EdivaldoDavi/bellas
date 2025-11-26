@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseCleint"; // ajuste conforme seu projeto
 import styles from "../css/SaloesPage.module.css";
+import { useUserAndTenant } from "../hooks/useUserAndTenant"; // Import useUserAndTenant
 
 type Salao = {
   id: string;
@@ -15,6 +16,7 @@ export default function SaloesPage() {
   const navigate = useNavigate();
   const [saloes, setSaloes] = useState<Salao[]>([]);
   const [loading, setLoading] = useState(true);
+  const { tenant } = useUserAndTenant(); // Get tenant to access primary_color
 
   useEffect(() => {
     async function fetchSaloes() {
@@ -44,6 +46,14 @@ export default function SaloesPage() {
 
     fetchSaloes();
   }, []);
+
+  // Apply brand color if available
+  useEffect(() => {
+    if (tenant?.primary_color) {
+      document.documentElement.style.setProperty("--color-primary", tenant.primary_color);
+    }
+  }, [tenant?.primary_color]);
+
 
   return (
     <div className={styles.container}>

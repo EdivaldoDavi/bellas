@@ -22,7 +22,7 @@
   max-width: 620px;
   max-height: 80vh;
 
-  background: var(--modal-bg);
+  background: var(--modal-bg); /* Use global variable */
   padding: 22px 24px;
   border-radius: 18px;
 
@@ -34,6 +34,7 @@
 
   box-shadow: 0 20px 45px rgba(0, 0, 0, 0.55);
   animation: fadeIn 0.2s ease-out;
+  color: var(--text); /* Ensure text color is set */
 }
 
 /* ================================
@@ -48,7 +49,7 @@
 .title {
   font-size: 1.35rem;
   font-weight: 700;
-  color: var(--text);
+  color: var(--text); /* Use global variable */
 }
 
 /* Close button */
@@ -56,11 +57,11 @@
   width: 34px;
   height: 34px;
 
-  border: 1px solid var(--border);
+  border: 1px solid var(--border); /* Use global variable */
   border-radius: 50%;
 
-  background: var(--card-bg);
-  color: var(--text-muted);
+  background: var(--card-bg); /* Use global variable */
+  color: var(--text-muted); /* Use global variable */
 
   display: flex;
   align-items: center;
@@ -93,8 +94,8 @@
   padding: 14px 16px;
   border-radius: 12px;
 
-  background: var(--input-bg);
-  border: 1px solid var(--border);
+  background: var(--input-bg); /* Use global variable */
+  border: 1px solid var(--border); /* Use global variable */
 
   cursor: pointer;
   transition: 0.18s ease;
@@ -115,7 +116,7 @@
 
 /* Nome do serviço */
 .name {
-  color: var(--text);
+  color: var(--text); /* Use global variable */
   font-size: 0.95rem;
   line-height: 1;
   margin-left: 8px;
@@ -124,7 +125,7 @@
 /* Duração */
 .duration {
   font-size: 0.85rem;
-  color: var(--text-muted);
+  color: var(--text-muted); /* Use global variable */
   white-space: nowrap;
 }
 
@@ -141,9 +142,9 @@
   flex: 1;
   padding: 12px;
   border-radius: 999px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border); /* Use global variable */
   background: transparent;
-  color: var(--text);
+  color: var(--text); /* Use global variable */
   cursor: pointer;
 }
 
@@ -156,7 +157,7 @@
   padding: 12px;
   border-radius: 999px;
   border: none;
-  background: var(--color-primary);
+  background: var(--color-primary); /* Use global variable */
   color: #fff;
   font-weight: 600;
   cursor: pointer;

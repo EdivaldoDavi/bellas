@@ -14,7 +14,7 @@ export default function StepReviewProfile() {
         Profissionais.
       </p>
 
-      <ul style={{ marginTop: 12, marginBottom: 4, paddingLeft: 18 }}>
+      <ul style={{ marginTop: 12, marginBottom: 4, paddingLeft: 18, color: "var(--text)" }}> {/* Added color */}
         <li>
           <strong>Nome:</strong> {profile?.full_name || "—"}
         </li>

@@ -11,16 +11,16 @@
   width: 100%;
   padding: 10px 36px 10px 14px;
   font-size: 1rem;
-  border: 1px solid var(--separator);
+  border: 1px solid var(--separator); /* Use global variable */
   border-radius: 8px;
-  background: var(--card-bg);
-  color: var(--text);
+  background: var(--card-bg); /* Use global variable */
+  color: var(--text); /* Use global variable */
   transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .input:hover {
-  border-color: var(--text-muted);
-  background: var(--bg);
+  border-color: var(--text-muted); /* Use global variable */
+  background: var(--bg); /* Use global variable */
 }
 
 .icon {
@@ -47,24 +47,24 @@
 }
 
 .modal {
-  background: var(--card-bg);
+  background: var(--card-bg); /* Use global variable */
   padding: 20px;
   border-radius: 16px;
   width: 92vw;
   max-width: 380px;
   box-sizing: border-box;
   animation: slideUp 0.3s ease;
-  border: 1px solid var(--separator);
+  border: 1px solid var(--separator); /* Use global variable */
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
-  color: var(--text);
+  color: var(--text); /* Use global variable */
   overflow: hidden;
 }
 /* Versão inline (sem overlay, usada na Agenda) */
 .modalInline {
-  background: var(--card-bg);
+  background: var(--card-bg); /* Use global variable */
   padding: 20px;
   border-radius: 14px;
-  border: 1px solid var(--separator);
+  border: 1px solid var(--separator); /* Use global variable */
   width: 100%;
   max-width: 420px;
   margin: 0 auto;
@@ -73,10 +73,10 @@
 }
 
 .modalInline {
-  background: var(--card-bg);
+  background: var(--card-bg); /* Use global variable */
   padding: 20px;
   border-radius: 14px;
-  border: 1px solid var(--separator);
+  border: 1px solid var(--separator); /* Use global variable */
   width: 100%;
   max-width: 420px;
   margin: 0 auto;
@@ -136,17 +136,17 @@
   text-transform: capitalize;
   font-weight: 600;
   font-size: 1rem;
-  color: var(--text);
+  color: var(--text); /* Use global variable */
 }
 
 .navBtn {
-  background: var(--bg);
-  border: 1px solid var(--separator);
+  background: var(--bg); /* Use global variable */
+  border: 1px solid var(--separator); /* Use global variable */
   border-radius: 8px;
   padding: 6px;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.1s ease;
-  color: var(--text);
+  color: var(--text); /* Use global variable */
 }
 
 .navBtn:hover {
@@ -164,7 +164,7 @@
   align-items: center;
   justify-content: flex-start;
   margin-bottom: 8px;
-  color: var(--text-muted);
+  color: var(--text-muted); /* Use global variable */
   font-size: 0.9rem;
   user-select: none;
 }
@@ -184,8 +184,8 @@
 }
 
 .badgeNo {
-  background: var(--bg);
-  border: 1px dashed var(--separator);
+  background: var(--bg); /* Use global variable */
+  border: 1px dashed var(--separator); /* Use global variable */
 }
 
 /* =========================================
@@ -228,16 +228,16 @@
 
 .headerCell {
   background: transparent;
-  color: var(--text-muted);
+  color: var(--text-muted); /* Use global variable */
   height: auto;
   cursor: default;
   font-weight: 500;
 }
 
 .cellOk {
-  background: var(--bg);
+  background: var(--bg); /* Use global variable */
   border: 1px solid var(--color-primary);
-  color: var(--text);
+  color: var(--text); /* Use global variable */
   cursor: pointer;
 }
 
@@ -248,9 +248,9 @@
 }
 
 .cellNo {
-  background: var(--bg);
-  border: 1px dashed var(--separator);
-  color: var(--text-muted);
+  background: var(--bg); /* Use global variable */
+  border: 1px dashed var(--separator); /* Use global variable */
+  color: var(--text-muted); /* Use global variable */
   cursor: not-allowed;
   opacity: 0.4;
   pointer-events: none;
@@ -266,14 +266,14 @@
 ========================================= */
 .loading {
   margin-top: 12px;
-  color: var(--text-muted);
+  color: var(--text-muted); /* Use global variable */
   font-size: 0.9rem;
   text-align: center;
 }
 
 .footerHint {
   margin-top: 14px;
-  color: var(--text-muted);
+  color: var(--text-muted); /* Use global variable */
   font-size: 0.9rem;
   text-align: center;
 }
@@ -285,10 +285,10 @@
   width: 100%;
   padding: 12px;
   margin-top: 15px;
-  background: var(--bg);
-  border: 1px solid var(--separator);
+  background: var(--bg); /* Use global variable */
+  border: 1px solid var(--separator); /* Use global variable */
   border-radius: 8px;
-  color: var(--text);
+  color: var(--text); /* Use global variable */
   font-size: 1rem;
 }
 
@@ -312,14 +312,14 @@
 }
 
 .cancel {
-  background: var(--bg);
-  border: 1px solid var(--separator);
-  color: var(--text-muted);
+  background: var(--bg); /* Use global variable */
+  border: 1px solid var(--separator); /* Use global variable */
+  color: var(--text-muted); /* Use global variable */
 }
 
 .cancel:hover {
-  background: var(--separator);
-  color: var(--text);
+  background: var(--separator); /* Use global variable */
+  color: var(--text); /* Use global variable */
   transform: scale(1.03);
 }
 

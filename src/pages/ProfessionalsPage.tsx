@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
@@ -68,7 +67,7 @@ export default function ProfessionalsPage() {
               marginRight: 10,
               padding: "6px 12px",
               borderRadius: 8,
-              background: "#6d28d9",
+              background: "var(--color-primary)", // Use CSS variable
               color: "#fff",
               border: "none",
               cursor: "pointer"
@@ -161,6 +160,7 @@ export default function ProfessionalsPage() {
 
           <button
             className={styles.newBtn}
+            style={{ backgroundColor: "var(--color-primary)" }} // Use CSS variable
             onClick={() => {
               setEditId(null);
               setOpenModal(true);

@@ -59,18 +59,10 @@
   display: flex;
   align-items: center;
 }
-[data-theme="light"] {
+/* Use CSS variables for theme-dependent colors */
+:root {
   --btn-pause-bg: #ff4d61;
   --btn-pause-hover: #e63e52;
-
-  --btn-resume-bg: #1abc72;
-  --btn-resume-hover: #14995b;
-}
-
-[data-theme="dark"] {
-  --btn-pause-bg: #ff4d61;
-  --btn-pause-hover: #d93648;
-
   --btn-resume-bg: #1abc72;
   --btn-resume-hover: #14995b;
 }

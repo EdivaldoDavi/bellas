@@ -216,7 +216,7 @@
   padding: 0.95rem;
   margin-top: 14px;
 
-  background: var(--color-primary);
+  background: var(--color-primary); /* Use CSS variable */
   color: #fff;
   font-weight: 700;
   border-radius: 12px;

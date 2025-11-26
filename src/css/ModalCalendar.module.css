@@ -18,14 +18,15 @@
    BOTTOM SHEET
 =========================== */
 .modal {
-  background: var(--card-bg);
+  background: var(--card-bg); /* Use global variable */
   width: 100%;
   max-width: 420px;
   border-radius: 22px 22px 0 0;
   padding: 16px 18px 25px;
   animation: slideUp .25s ease-out;
   box-shadow: 0 -4px 16px rgba(0,0,0,.28);
-  border-top: 1px solid var(--separator);
+  border-top: 1px solid var(--separator); /* Use global variable */
+  color: var(--text); /* Ensure text color is set */
 }
 
 @keyframes slideUp {
@@ -37,7 +38,7 @@
 .handle {
   width: 42px;
   height: 5px;
-  background: var(--text-muted);
+  background: var(--text-muted); /* Use global variable */
   border-radius: 4px;
   margin: 0 auto 12px;
 }
@@ -51,7 +52,7 @@
   align-items: center;
   margin-bottom: 8px;
   font-weight: 600;
-  color: var(--text);
+  color: var(--text); /* Use global variable */
 }
 
 .header button {
@@ -59,7 +60,7 @@
   border: none;
   font-size: 20px;
   cursor: pointer;
-  color: var(--text);
+  color: var(--text); /* Use global variable */
   padding: 6px;
   transition: .15s;
 }
@@ -78,7 +79,7 @@
   margin-bottom: 6px;
   text-align: center;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--text-muted); /* Use global variable */
 }
 
 /* Calendar grid */
@@ -99,13 +100,13 @@
 .dayBtn {
   padding: 10px 0;
   border-radius: 12px;
-  border: 1px solid var(--separator);
-  background: var(--card-alt-bg);
+  border: 1px solid var(--separator); /* Use global variable */
+  background: var(--card-alt-bg); /* Use global variable */
   cursor: pointer;
   font-size: 14px;
   transition: .18s;
   font-weight: 500;
-  color: var(--text);
+  color: var(--text); /* Use global variable */
 }
 
 .dayBtn:not(:disabled):hover {
@@ -150,12 +151,12 @@
   padding: 12px;
   border: none;
   border-radius: 12px;
-  background: var(--card-alt-bg);
-  color: var(--text);
+  background: var(--card-alt-bg); /* Use global variable */
+  color: var(--text); /* Use global variable */
   font-size: 15px;
   cursor: pointer;
   font-weight: 600;
-  border: 1px solid var(--separator);
+  border: 1px solid var(--separator); /* Use global variable */
   transition: .2s;
 }
 

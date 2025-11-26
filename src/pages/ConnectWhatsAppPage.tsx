@@ -76,7 +76,7 @@ export default function ConnectWhatsAppPage({
       </div>
 
       {insideSetup && (
-        <button onClick={onFinish} className={styles.nextButton}>
+        <button onClick={onFinish} className={styles.nextButton} style={{ backgroundColor: "var(--color-primary)" }}> {/* Use CSS variable */}
           Continuar
         </button>
       )}

@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react";
 import { useEvolutionConnection } from "../hooks/useEvolutionConnection";
 import type { EvoStatus } from "../hooks/useEvolutionConnection";
 import styles from "../css/QRCodeDisplay.module.css";
+import { useUserAndTenant } from "../hooks/useUserAndTenant"; // Import useUserAndTenant
 
 export interface QRCodeDisplayProps {
   instanceId: string;
@@ -30,6 +31,8 @@ export default function QRCodeDisplay({
     autostart: false,
     initialInstanceId: safeInstanceId,
   });
+
+  const { tenant } = useUserAndTenant(); // Get tenant to access primary_color
 
   /* ============================================================
      🔄 Atualiza estado na montagem
@@ -169,6 +172,7 @@ export default function QRCodeDisplay({
                 onClick={() => start()}
                 disabled={loading}
                 className={styles.btnPrimary}
+                style={{ backgroundColor: tenant?.primary_color || "var(--color-primary)" }} // Use tenant's primary color or CSS variable
               >
                 {loading ? "Gerando QR..." : "Gerar novo QR Code"}
               </button>

@@ -1,16 +1,16 @@
 .container {
   padding: 1.5rem;
   padding: 1.5rem 0; /* Só padding vertical */
-  background: var(--bg);
+  background: var(--bg); /* Use global variable */
   min-height: 100vh;
-  color: var(--text);
+  color: var(--text); /* Use global variable */
 }
 
 .pageTitle {
   font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 1.5rem;
-  color: var(--text);
+  color: var(--text); /* Use global variable */
 }
 
 .grid {
@@ -20,8 +20,8 @@
 }
 
 .card {
-  background: var(--card-bg);
-  border: 1px solid var(--separator);
+  background: var(--card-bg); /* Use global variable */
+  border: 1px solid var(--separator); /* Use global variable */
   border-radius: 12px;
   padding: 1.25rem;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
@@ -52,12 +52,12 @@
 .cardTitle {
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--text);
+  color: var(--text); /* Use global variable */
 }
 
 .manager {
   font-size: 0.9rem;
-  color: var(--text-muted, #666);
+  color: var(--text-muted); /* Use global variable */
 }
 
 .cardInfo {
@@ -69,18 +69,18 @@
 .value {
   font-weight: 700;
   font-size: 1.1rem;
-  color: var(--color-primary, #ff1493);
+  color: var(--color-primary); /* Use global variable */
 }
 
 .label {
   font-size: 0.85rem;
-  color: var(--text-muted, #666);
+  color: var(--text-muted); /* Use global variable */
 }
 
 .button {
   width: 100%;
   padding: 0.75rem;
-  background: var(--color-primary, #ff1493);
+  background: var(--color-primary); /* Use global variable */
   border: none;
   border-radius: 8px;
   color: #fff;
@@ -90,7 +90,7 @@
 }
 
 .button:hover {
-  background: #e04892;
+  filter: brightness(0.9); /* Use filter for hover effect */
 }
 
 /* Responsivo */

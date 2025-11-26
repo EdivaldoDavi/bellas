@@ -46,8 +46,8 @@
 }
 
 .statusDot[data-status="OPENING"]  { background: #ffce00; }
-.statusDot[data-status="QRCODE"]   { background: var(--color-primary, #00a2ff); }
-.statusDot[data-status="CONNECTED"]{ background: var(--color-primary, #00d26a); }
+.statusDot[data-status="QRCODE"]   { background: var(--color-primary); } /* Use CSS variable */
+.statusDot[data-status="CONNECTED"]{ background: var(--color-primary); } /* Use CSS variable */
 .statusDot[data-status="ERROR"]    { background: #ff4d4d; }
 .statusDot[data-status="IDLE"]     { background: #888; }
 
@@ -66,7 +66,7 @@
   height: 260px;
   border-radius: 16px;
   padding: 12px;
-  background: var(--bg-card, #fff);
+  background: var(--card-bg, #fff); /* Use CSS variable */
   box-shadow: 0 0 18px rgba(0,0,0,.15);
 }
 
@@ -92,7 +92,7 @@
   width: 38px;
   height: 38px;
   border: 4px solid rgba(255,255,255,.15);
-  border-top-color: var(--color-primary, #00a2ff);
+  border-top-color: var(--color-primary); /* Use CSS variable */
   border-radius: 50%;
   margin: 0 auto 10px;
   animation: spin 1s linear infinite;
@@ -127,7 +127,7 @@
   height: 90px;
   border-radius: 50%;
   padding: 14px;
-  background: var(--color-primary, #1fae55);
+  background: var(--color-primary); /* Use CSS variable */
   mix-blend-mode: screen;
   animation: pop .35s ease-out;
 }
@@ -148,7 +148,7 @@
 }
 
 .btnPrimary {
-  background: var(--color-primary, #ff2f8a);
+  background: var(--color-primary); /* Use CSS variable */
   color: white;
   padding: .9rem;
   border: none;
