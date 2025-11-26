@@ -39,7 +39,7 @@ import { SetupRedirectGuard } from "./guards/SetupRedirectGuard";
  
 // =============================
 // 🔹 TELA DE LOADING GLOBAL
-// =============================
+// ============================= 
 function LoadingScreen() {
   return (
     <div className={spinnerStyles.spinnerContainer}>
