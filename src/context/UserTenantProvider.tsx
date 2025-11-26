@@ -3,6 +3,7 @@ import {
   useContext,
   type ReactNode,
   useMemo,
+  useState,
 } from "react";
 import { useUserAndTenant, type Profile, type Tenant } from "../hooks/useUserAndTenant"; // Importar Profile e Tenant
 
@@ -52,9 +53,27 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
   /* ============================================================
       Recarrega apenas o tenant
   ============================================================ */
-  const refreshTenant = async () => {
-    await refreshProfile();
-  };
+  const [, setTenantState] = useState<Tenant | null>(tenant);
+
+const refreshTenant = async () => {
+  if (!profile?.tenant_id) {
+    setTenantState(null);
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("tenants")
+    .select("*")
+    .eq("id", profile.tenant_id)
+    .maybeSingle();
+
+  if (!error) {
+    setTenantState(data);
+  } else {
+    console.error("Erro ao recarregar tenant", error);
+  }
+};
+
 // 🔹 Função para atualizar o passo do onboarding
   const updateOnboardingStep = async (step: number) => {
     if (!tenant?.id) return;
@@ -74,9 +93,11 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
   /* ============================================================
       Recarrega tudo
   ============================================================ */
-  const reloadAll = async () => {
-    await refreshProfile();
-  };
+const reloadAll = async () => {
+  await refreshProfile();
+  await refreshTenant();
+};
+
 
   /* ============================================================
       Memo — evita recriação desnecessária
