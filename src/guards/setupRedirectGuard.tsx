@@ -1,44 +1,56 @@
 // src/guards/SetupRedirectGuard.tsx
-import { useLocation, Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useUserTenant } from "../context/UserTenantProvider";
 import { useAuth } from "../context/AuthProvider";
 
-export function SetupRedirectGuard({ children }: { children: React.ReactNode }) {
-  const { needsSetup, loading, profile, tenant } = useUserTenant();
+interface Props {
+  children: React.ReactNode;
+}
+
+/**
+ * Guard responsável APENAS por:
+ *  - Levar o usuário para /setup quando ele PRECISA configurar um salão
+ *  - Não interferir em:
+ *    - /force-reset
+ *    - /setup (wizard em andamento)
+ *    - fluxo de convite (profile.invited)
+ */
+export function SetupRedirectGuard({ children }: Props) {
+  const { needsSetup, loading, profile } = useUserTenant();
   const { loading: authLoading } = useAuth();
   const location = useLocation();
 
-  const isSetupPage = location.pathname === "/setup";
-  const onboardingStep = tenant?.onboarding_step ?? 0;
+  const path = location.pathname;
+  const isSetupRoute = path.startsWith("/setup");
+  const isForceReset = path === "/force-reset";
 
-  // 🔒 Não bloquear force-reset
-  if (location.pathname === "/force-reset") return <>{children}</>;
-
-  // 🔒 Não bloquear convites
-  if ((profile as any)?.invited) return <>{children}</>;
-
-  // ⏳ Ainda carregando → não decide nada ainda
-  if (loading || authLoading) return <>{children}</>;
-
-  // 🚫 Se onboarding NÃO terminou (<99), o setup NÃO PODE INTERFERIR
-  if (onboardingStep < 99) {
+  // 1) Nunca bloquear tela de force-reset
+  if (isForceReset) {
     return <>{children}</>;
   }
 
-  // ✔️ Onboarding terminou → agora sim as regras normais de setup
+  // 2) Convite não entra em fluxo de setup obrigatório
+  if ((profile as any)?.invited) {
+    return <>{children}</>;
+  }
 
-  if (needsSetup && !isSetupPage) {
+  // 3) Enquanto auth / contexto estiver carregando, não decide nada
+  if (loading || authLoading) {
+    return <>{children}</>;
+  }
+
+  // 4) Se já está em /setup, NUNCA redireciona
+  //    (deixa o wizard controlar os steps internos, ex.: Empresa / WhatsApp)
+  if (isSetupRoute) {
+    return <>{children}</>;
+  }
+
+  // 5) Fora do /setup:
+  //    Se precisa de setup, manda para /setup
+  if (needsSetup) {
     return <Navigate to="/setup" replace />;
   }
 
-  if (!needsSetup && isSetupPage) {
-    return <Navigate to="/dashboard" replace />;
-  }
-console.log("SETUP GUARD rodou", {
-  needsSetup,
-  onboardingStep: tenant?.onboarding_step,
-  path: location.pathname
-});
-
+  // 6) Caso normal → só renderiza
   return <>{children}</>;
 }
