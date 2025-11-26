@@ -35,7 +35,7 @@ import spinnerStyles from "./css/LoadingSpinner.module.css"; // Importar o CSS d
 
 import Onboarding from "./pages/onboarding/Onboarding";
 import { OnboardingGuard } from "./guards/OnBoardingGuard";
-import { SetupRedirectGuard } from "./guards/SetupRedirectGuard";
+import { SetupRedirectGuard } from "./guards/setupRedirectGuard";
 
 // =============================
 // 🔹 TELA DE LOADING GLOBAL
