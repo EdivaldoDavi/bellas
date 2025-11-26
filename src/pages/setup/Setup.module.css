@@ -233,7 +233,8 @@
    🎨 AJUSTES PARA TEMA DARK
    (usa o mesmo atributo que você já usa: data-theme-variant)
 ============================================================ */
-:root[data-theme-variant="dark"] {
+:root[data-theme="dark"] {
+
   /* === TEXTOS === */
   --text-color: #f5f5f5;
   --text-secondary: #d0d0d0;
