@@ -24,7 +24,7 @@ function getPasswordStrength(pwd: string) {
 }
 
 export default function PerfilPage() {
-const { profile, refreshProfile, tenant } = useUserAndTenant(); // Added tenant
+const { profile, refreshProfile } = useUserAndTenant(); // Added tenant
 
 
   const [nome, setNome] = useState("");
