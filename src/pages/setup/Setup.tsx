@@ -20,26 +20,32 @@ export default function Setup() {
   const [step, setStep] = useState<1 | 2>(1);
 
   /* ============================================================
-     FORM STATE
+     FORM STATE - Initialize directly from tenant if available
   ============================================================ */
-  const [name, setName] = useState("");
-  const [primary, setPrimary] = useState("#ff1493");
-  const [secondary, setSecondary] = useState("#ffffff");
-  const [variant, setVariant] = useState<"light" | "dark">("light");
+  // Use functional updates for useState to ensure initial values are computed
+  // only once and correctly reflect the initial `tenant` value.
+  const [name, setName] = useState(() => tenant?.name || "");
+  const [primary, setPrimary] = useState(() => tenant?.primary_color || "#ff1493");
+  const [secondary, setSecondary] = useState(() => tenant?.secondary_color || "#ffffff");
+  const [variant, setVariant] = useState<"light" | "dark">(() => tenant?.theme_variant || "light");
 
   const [saving, setSaving] = useState(false);
 
   /* ============================================================
-     CARREGAR TENANT (SE EXISTIR)
+     CARREGAR TENANT (SE EXISTIR) - Atualiza campos se o tenant mudar após a montagem inicial
   ============================================================ */
   useEffect(() => {
-    if (!tenant) return;
-
-    setName(tenant.name || "");
-    setPrimary(tenant.primary_color || "#ff1493");
-    setSecondary(tenant.secondary_color || "#ffffff");
-    setVariant(tenant.theme_variant || "light");
-  }, [tenant]);
+    // Este efeito garante que, se o objeto `tenant` no contexto mudar (por exemplo,
+    // após a criação de um novo tenant via `saveStep1` e `reloadAll`),
+    // os campos do formulário sejam atualizados para refletir os novos dados.
+    // A condição `!saving` evita que o formulário seja resetado enquanto o salvamento está em andamento.
+    if (tenant && !saving) {
+      setName(tenant.name || "");
+      setPrimary(tenant.primary_color || "#ff1493");
+      setSecondary(tenant.secondary_color || "#ffffff");
+      setVariant(tenant.theme_variant || "light");
+    }
+  }, [tenant, saving]); // Depende de `tenant` e `saving`
 
   /* ============================================================
      PERMISSÕES
@@ -133,7 +139,7 @@ export default function Setup() {
         if (errUpdate) throw errUpdate;
       }
 
-      await reloadAll();
+      await reloadAll(); // This reloads profile and tenant data from the DB
       setSaving(false);
 
       /* Avança para o Step 2 */
