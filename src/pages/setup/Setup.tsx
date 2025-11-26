@@ -5,14 +5,14 @@ import { supabase } from "../../lib/supabaseCleint";
 import { toast } from "react-toastify";
 
 import { useUserTenant } from "../../context/UserTenantProvider";
-import { useTheme } from "../../hooks/useTheme"; // 👈 IMPORTANTE
+import { useTheme } from "../../hooks/useTheme";
 
 import styles from "./Setup.module.css";
 
 export default function Setup() {
   const { loading, profile, tenant, reloadAll } = useUserTenant();
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme(); // 👈 THEME GLOBAL
+  const { theme, toggleTheme } = useTheme();
 
   const [name, setName] = useState("");
   const [primary, setPrimary] = useState("#ff1493");
@@ -21,7 +21,7 @@ export default function Setup() {
   const [saving, setSaving] = useState(false);
 
   /* ============================================================
-     Preenche o formulário se já existir tenant
+     Preenche formulário se tenant existir
   ============================================================ */
   useEffect(() => {
     if (!tenant) return;
@@ -50,11 +50,7 @@ export default function Setup() {
     (profile.role === "professional" && !profile.tenant_id);
 
   if (!canAccessSetup) {
-    return (
-      <p className={styles.error}>
-        Você não tem permissão para configurar este salão.
-      </p>
-    );
+    return <p className={styles.error}>Você não tem permissão para acessar o setup.</p>;
   }
 
   /* ============================================================
@@ -123,7 +119,6 @@ export default function Setup() {
           });
         }
       }
-
       // 2️⃣ Atualizar tenant existente
       else if (currentUserRole === "owner" || currentUserRole === "manager") {
         const { error: updateErr } = await supabase
@@ -144,7 +139,6 @@ export default function Setup() {
         return;
       }
 
-      // 3️⃣ Reload
       await reloadAll();
       toast.success("Configuração salva com sucesso! 🎉");
       navigate("/dashboard", { replace: true });
@@ -157,141 +151,122 @@ export default function Setup() {
   };
 
   /* ============================================================
-     Handlers de tema (claro/escuro)
+     Theme Handlers
   ============================================================ */
   function handleSelectLight() {
     setVariant("light");
-
-    // Se o tema global não for light, alterna
-    if (theme !== "light") {
-      toggleTheme();
-    }
+    if (theme !== "light") toggleTheme();
   }
 
   function handleSelectDark() {
     setVariant("dark");
-
-    // Se o tema global não for dark, alterna
-    if (theme !== "dark") {
-      toggleTheme();
-    }
+    if (theme !== "dark") toggleTheme();
   }
 
   /* ============================================================
      JSX
   ============================================================ */
   return (
-    <div className={styles.container}>
-      <div className={styles.card}>
+    <div className={styles.setupContainer}>
+      <div className={styles.setupCard}>
         <h2 className={styles.title}>Vamos começar criando sua empresa ✨</h2>
+
         <p className={styles.subtitle}>
           Antes de usar o sistema, precisamos configurar seu espaço de trabalho.
-          Pode ser um salão, estúdio, clínica, MEI ou até mesmo você
-          como profissional autônomo.
+          Pode ser um salão, estúdio, clínica, MEI ou até mesmo você como profissional autônomo.
         </p>
 
-        <div className={styles.form}>
-          {/* Nome */}
-          <label className={styles.label}>
-            Nome da sua marca ou do seu salão
-          </label>
-          <input
-            className={styles.input}
-            value={name}
-            placeholder="Ex.: Studio da Ana /  Carla MEI"
-            onChange={(e) => setName(e.target.value)}
-          />
+        {/* Input Nome */}
+        <label className={styles.colorLabel}>Nome da sua marca ou salão</label>
+        <input
+          className={styles.input}
+          value={name}
+          placeholder="Ex.: Studio da Ana / Carla MEI"
+          onChange={(e) => setName(e.target.value)}
+        />
 
-          {/* Cores */}
-{/* 🎨 Seção de Cores */}
-<div className={styles.colorsSection}>
+        {/* 🎨 CORES */}
+        <div className={styles.colorsSection}>
+          <h4 className={styles.sectionTitle}>Personalize o visual da sua marca 🎨</h4>
 
-  <h4 className={styles.sectionTitle}>Personalize o visual da sua marca 🎨</h4>
+          <p className={styles.sectionDescription}>
+            Essas cores serão usadas em botões, menus e destaques do sistema.
+          </p>
 
-  <p className={styles.sectionDescription}>
-    Escolha as cores que serão usadas nos botões, menus, destaques e no tema geral da sua aplicação.
-    É como escolher as cores da sua identidade visual — e você poderá mudar isso quando quiser.
-  </p>
+          <div className={styles.colorsRow}>
+            {/* Primária */}
+            <div className={styles.colorItem}>
+              <label className={styles.colorLabel}>
+                Cor primária
+                <span className={styles.colorHint}>
+                  Usada em botões e destaques principais.
+                </span>
+              </label>
 
-  <div className={styles.colorsRow}>
+              <input
+                type="color"
+                className={styles.colorInput}
+                value={primary}
+                onChange={(e) => setPrimary(e.target.value)}
+              />
 
-    {/* Cor primária */}
-    <div className={styles.colorItem}>
-      <label className={styles.colorLabel}>
-        Cor primária
-        <span className={styles.colorHint}>
-          Usada em botões, destaques e elementos principais.
-        </span>
-      </label>
+              <p className={styles.colorExample}>
+                Ex.: rosa, azul, roxo…
+              </p>
+            </div>
 
-      <input
-        type="color"
-        className={styles.colorInput}
-        value={primary}
-        onChange={(e) => setPrimary(e.target.value)}
-      />
+            {/* Secundária */}
+            <div className={styles.colorItem}>
+              <label className={styles.colorLabel}>
+                Cor secundária
+                <span className={styles.colorHint}>
+                  Usada em fundos e detalhes.
+                </span>
+              </label>
 
-      <p className={styles.colorExample}>
-        Ex.: rosa, azul, roxo… escolha a cor principal da sua marca.
-      </p>
-    </div>
+              <input
+                type="color"
+                className={styles.colorInput}
+                value={secondary}
+                onChange={(e) => setSecondary(e.target.value)}
+              />
 
-    {/* Cor secundária */}
-    <div className={styles.colorItem}>
-      <label className={styles.colorLabel}>
-        Cor secundária
-        <span className={styles.colorHint}>
-          Usada como contraste, fundo ou detalhes adicionais.
-        </span>
-      </label>
-
-      <input
-        type="color"
-        className={styles.colorInput}
-        value={secondary}
-        onChange={(e) => setSecondary(e.target.value)}
-      />
-
-      <p className={styles.colorExample}>
-        Normalmente uma cor mais clara para combinar com a primária.
-      </p>
-    </div>
-
-  </div>
-</div>
-
-          {/* Tema */}
-          <div className={styles.theme}>
-            <button
-              type="button"
-              className={`${styles.themeBtn} ${
-                variant === "light" ? styles.selected : ""
-              }`}
-              onClick={handleSelectLight}
-            >
-              🌞 Claro
-            </button>
-
-            <button
-              type="button"
-              className={`${styles.themeBtn} ${
-                variant === "dark" ? styles.selected : ""
-              }`}
-              onClick={handleSelectDark}
-            >
-              🌙 Escuro
-            </button>
+              <p className={styles.colorExample}>
+                Geralmente uma cor mais clara.
+              </p>
+            </div>
           </div>
+        </div>
 
-          {/* Botão salvar */}
+        {/* 🌙 / 🌞 TEMA */}
+        <div className={styles.themeRow}>
           <button
-            className={styles.saveBtn}
-            onClick={save}
-            disabled={saving}
+            className={`${styles.themeBtn} ${
+              variant === "light" ? styles.themeSelected : ""
+            }`}
+            onClick={handleSelectLight}
           >
-            {saving ? "Salvando..." : "Salvar e continuar"}
+            🌞 Claro
+          </button>
+
+          <button
+            className={`${styles.themeBtn} ${
+              variant === "dark" ? styles.themeSelected : ""
+            }`}
+            onClick={handleSelectDark}
+          >
+            🌙 Escuro
           </button>
         </div>
+
+        {/* Botão salvar */}
+        <button
+          className={styles.saveButton}
+          disabled={saving}
+          onClick={save}
+        >
+          {saving ? "Salvando..." : "Salvar e continuar"}
+        </button>
       </div>
     </div>
   );
