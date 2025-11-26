@@ -317,6 +317,25 @@ html[data-theme="dark"] .colorHint,
 html[data-theme="dark"] .colorExample {
   color: var(--text-color) !important;
 }
+.stepsIndicator {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.activeStep {
+  color: var(--color-primary);
+}
+
+.infoCard {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 28px;
+}
 
 
 /* ============================================================
