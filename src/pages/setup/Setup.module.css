@@ -234,14 +234,33 @@
    (usa o mesmo atributo que você já usa: data-theme-variant)
 ============================================================ */
 :root[data-theme-variant="dark"] {
-  --text-color: #f7f7f7;
-  --text-secondary: #cfcfcf;
-  --text-muted: #bbbbbb;
+  /* === TEXTOS === */
+  --text-color: #f5f5f5;
+  --text-secondary: #d0d0d0;
+  --text-muted: #b5b5b5;
 
-  --input-bg: #191919;
-  --input-border: #333333;
+  /* === INPUTS === */
+  --input-bg: #171717;
+  --input-border: #3a3a3a;
 
-  --modal-bg: #0f0f10;
+  /* === CARD / FUNDO === */
+  --modal-bg: #0f0f0f;
+
+  /* === COR DO LABEL (caso algum componente não use text-color) === */
+  --label-color: #eeeeee;
+
+  /* === Ajusta cores internas de componentes === */
+  --color-primary-text-on-dark: #ffffff;
+}
+/* Força textos no tema escuro */
+:root[data-theme-variant="dark"] .title,
+:root[data-theme-variant="dark"] .subtitle,
+:root[data-theme-variant="dark"] .sectionTitle,
+:root[data-theme-variant="dark"] .sectionDescription,
+:root[data-theme-variant="dark"] .colorLabel,
+:root[data-theme-variant="dark"] .colorHint,
+:root[data-theme-variant="dark"] .colorExample {
+  color: var(--text-color) !important;
 }
 
 /* ============================================================
