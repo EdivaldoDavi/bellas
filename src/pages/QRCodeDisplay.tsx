@@ -11,7 +11,7 @@ export interface QRCodeDisplayProps {
 
 export default function QRCodeDisplay({
   instanceId,
-  autoStart = true,          // 🔥 agora por padrão já tenta conectar
+  autoStart = true,
   baseUrl = "/api",
 }: QRCodeDisplayProps) {
   const safeInstanceId = useMemo(() => instanceId.trim(), [instanceId]);
@@ -39,13 +39,28 @@ export default function QRCodeDisplay({
   }, [refresh]);
 
   /* ============================================================
-     🚀 AutoStart: se estiver desconectado, já tenta abrir sessão
+     🚀 AutoStart + auto-refresh periódico
   ============================================================ */
   useEffect(() => {
+    // primeira tentativa
     if (autoStart && safeInstanceId) {
       start();
     }
-  }, [autoStart, safeInstanceId, start]);
+
+    // ⏱ auto refresh enquanto NÃO estiver conectado
+    if (!autoStart) return;
+
+    const interval = setInterval(() => {
+      const isConnected = status === "CONNECTED";
+
+      if (!isConnected) {
+        // tenta reabrir / atualizar QR
+        start();
+      }
+    }, 60_000); // a cada 60s
+
+    return () => clearInterval(interval);
+  }, [autoStart, safeInstanceId, start, status]);
 
   /* ============================================================
      🔍 UI STATES
@@ -61,7 +76,7 @@ export default function QRCodeDisplay({
   const showQR = !!qrBase64 && !isConnected && !isConnecting;
 
   /* ============================================================
-     🛑 Esconde alguns erros “ruins”, tipo Not Found
+     🛑 Esconde alguns erros “ruins”
   ============================================================ */
   const hideError =
     error === "Not Found" ||
@@ -127,30 +142,43 @@ export default function QRCodeDisplay({
 
         {/* INSTRUÇÕES / BOTÕES */}
         <div className={styles.buttons}>
-          {/* 🔴 DESCONEXÃO → só instruções, sem botão "Conectar" */}
           {isDisconnected && (
-            <div className={styles.instructionsBox}>
-              <p className={styles.instructionsTitle}>
-                📱 Como conectar seu WhatsApp:
-              </p>
+            <>
+              <div className={styles.instructionsBox}>
+                <p className={styles.instructionsTitle}>
+                  📱 Como conectar seu WhatsApp:
+                </p>
 
-              <ol className={styles.instructionsList}>
-                <li>
-                  Abra o aplicativo <strong>WhatsApp</strong> no seu celular.
-                </li>
-                <li>
-                  Vá em{" "}
-                  <strong>… três pontinhos → Dispositivos conectados</strong>.
-                </li>
-                <li>
-                  Toque em <strong>“Conectar um dispositivo”</strong>.
-                </li>
-                <li>Escaneie o QR Code exibido nesta tela.</li>
-              </ol>
-            </div>
+                <ol className={styles.instructionsList}>
+                  <li>
+                    Abra o aplicativo <strong>WhatsApp</strong> no seu celular.
+                  </li>
+                  <li>
+                    Vá em{" "}
+                    <strong>… três pontinhos → Dispositivos conectados</strong>.
+                  </li>
+                  <li>
+                    Toque em <strong>“Conectar um dispositivo”</strong>.
+                  </li>
+                  <li>Escaneie o QR Code exibido nesta tela.</li>
+                </ol>
+              </div>
+
+              {/* 🔁 Botão manual de novo QR */}
+              <button
+                onClick={() => start()}
+                disabled={loading}
+                className={styles.btnPrimary}
+              >
+                {loading ? "Gerando QR..." : "Gerar novo QR Code"}
+              </button>
+
+              <button className={styles.btnSecondary} onClick={refresh}>
+                Recarregar status
+              </button>
+            </>
           )}
 
-          {/* ✅ CONECTADO → ainda mostra botão de desconectar */}
           {isConnected && (
             <button className={styles.btnDanger} onClick={logout}>
               Desconectar
