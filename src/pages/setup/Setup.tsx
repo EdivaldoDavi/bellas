@@ -14,169 +14,172 @@ export default function Setup() {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
 
+  /* ============================================================
+     STEPS INTERNOS DO SETUP
+  ============================================================ */
+  const [step, setStep] = useState<1 | 2>(1);
+
+  /* ============================================================
+     FORM STATE
+  ============================================================ */
   const [name, setName] = useState("");
   const [primary, setPrimary] = useState("#ff1493");
   const [secondary, setSecondary] = useState("#ffffff");
   const [variant, setVariant] = useState<"light" | "dark">("light");
+
   const [saving, setSaving] = useState(false);
 
   /* ============================================================
-     Preenche formulário se tenant existir
+     CARREGAR TENANT (SE EXISTIR)
   ============================================================ */
   useEffect(() => {
     if (!tenant) return;
 
-    setName(tenant.name ?? "");
-    setPrimary(tenant.primary_color ?? "#ff1493");
-    setSecondary(tenant.secondary_color ?? "#ffffff");
-    setVariant(tenant.theme_variant ?? "light");
+    setName(tenant.name || "");
+    setPrimary(tenant.primary_color || "#ff1493");
+    setSecondary(tenant.secondary_color || "#ffffff");
+    setVariant(tenant.theme_variant || "light");
   }, [tenant]);
 
   /* ============================================================
-     Loading / erros
+     PERMISSÕES
   ============================================================ */
   if (loading) return <div className={styles.loading}>Carregando...</div>;
+  if (!profile) return <p className={styles.error}>Erro: perfil não encontrado.</p>;
 
-  if (!profile) {
-    return <p className={styles.error}>Erro: perfil não encontrado.</p>;
-  }
-
-  /* ============================================================
-     Permissões
-  ============================================================ */
   const canAccessSetup =
     profile.role === "owner" ||
     profile.role === "manager" ||
-    (profile.role === "professional" && !profile.tenant_id);
+    (!profile.tenant_id && profile.role === "professional");
 
   if (!canAccessSetup) {
     return <p className={styles.error}>Você não tem permissão para acessar o setup.</p>;
   }
 
   /* ============================================================
-     Salvar
+     HANDLERS DE TEMA
   ============================================================ */
-  const save = async () => {
-    if (!profile) return;
+  function selectLight() {
+    setVariant("light");
+    if (theme !== "light") toggleTheme();
+  }
+
+  function selectDark() {
+    setVariant("dark");
+    if (theme !== "dark") toggleTheme();
+  }
+
+  /* ============================================================
+     STEP 1 — CRIAÇÃO / ATUALIZAÇÃO DO TENANT
+  ============================================================ */
+  async function saveStep1() {
+    if (!name.trim()) {
+      toast.error("Digite um nome válido.");
+      return;
+    }
+
     setSaving(true);
 
     try {
-      let currentTenantId: string | null = tenant?.id ?? null;
-      const currentUserId = profile.user_id;
-      const currentUserRole = profile.role;
+      const userId = profile?.user_id;
+      let tenantId = tenant?.id ?? null;
 
-      // 1️⃣ Criar tenant
-      if (!currentTenantId) {
-        const generatedId = crypto.randomUUID();
+      /* Criar tenant */
+      if (!tenantId) {
+        tenantId = crypto.randomUUID();
 
-        const { data: newTenant, error: tenantErr } = await supabase
+        const { error: errInsert } = await supabase
           .from("tenants")
           .insert({
-            id: generatedId,
+            id: tenantId,
             name,
             primary_color: primary,
             secondary_color: secondary,
             theme_variant: variant,
-            setup_complete: true,
-            created_by: currentUserId,
-          })
-          .select("*")
-          .single();
-
-        if (tenantErr) throw tenantErr;
-
-        currentTenantId = newTenant.id;
-
-        const updatePayload: any = { tenant_id: currentTenantId };
-        if (currentUserRole !== "owner" && currentUserRole !== "manager") {
-          updatePayload.role = "manager";
-        }
-
-        const { error: profileErr } = await supabase
-          .from("profiles")
-          .update(updatePayload)
-          .eq("user_id", currentUserId);
-
-        if (profileErr) throw profileErr;
-
-        await supabase.auth.refreshSession();
-        await reloadAll();
-
-        const { data: existingProfessional } = await supabase
-          .from("professionals")
-          .select("id")
-          .eq("tenant_id", currentTenantId)
-          .eq("user_id", currentUserId)
-          .maybeSingle();
-
-        if (!existingProfessional) {
-          await supabase.from("professionals").insert({
-            tenant_id: currentTenantId,
-            name: profile.full_name,
-            email: profile.email || null,
-            user_id: currentUserId,
-            is_active: true,
+            setup_complete: false,
+            created_by: userId,
           });
+
+        if (errInsert) throw errInsert;
+
+        const updateProfile: any = { tenant_id: tenantId };
+
+        // promove a manager caso não seja owner/manager
+        if (profile?.role !== "owner" && profile?.role !== "manager") {
+          updateProfile.role = "manager";
         }
+
+        const { error: errProfile } = await supabase
+          .from("profiles")
+          .update(updateProfile)
+          .eq("user_id", userId);
+
+        if (errProfile) throw errProfile;
       }
-      // 2️⃣ Atualizar tenant existente
-      else if (currentUserRole === "owner" || currentUserRole === "manager") {
-        const { error: updateErr } = await supabase
+
+      /* Atualizar tenant existente */
+      else {
+        const { error: errUpdate } = await supabase
           .from("tenants")
           .update({
             name,
             primary_color: primary,
             secondary_color: secondary,
             theme_variant: variant,
-            setup_complete: true,
+            setup_complete: false,
           })
-          .eq("id", currentTenantId);
+          .eq("id", tenantId);
 
-        if (updateErr) throw updateErr;
-      } else {
-        toast.error("Você não pode atualizar este salão.");
-        setSaving(false);
-        return;
+        if (errUpdate) throw errUpdate;
       }
 
       await reloadAll();
-      toast.success("Configuração salva com sucesso! 🎉");
-      navigate("/dashboard", { replace: true });
+      setSaving(false);
+
+      /* Avança para o Step 2 */
+      setStep(2);
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || "Erro ao configurar o salão.");
+      toast.error("Erro ao salvar configurações.");
+      setSaving(false);
     }
-
-    setSaving(false);
-  };
-
-  /* ============================================================
-     Theme Handlers
-  ============================================================ */
-  function handleSelectLight() {
-    setVariant("light");
-    if (theme !== "light") toggleTheme();
-  }
-
-  function handleSelectDark() {
-    setVariant("dark");
-    if (theme !== "dark") toggleTheme();
   }
 
   /* ============================================================
-     JSX
+     STEP 2 — REDIRECIONAR PARA CONEXÃO WHATSAPP
   ============================================================ */
-  return (
-    <div className={styles.setupContainer}>
-      <div className={styles.setupCard}>
+  async function goToWhatsAppPage() {
+    try {
+      // marca setup completo
+      if (tenant?.id) {
+        await supabase
+          .from("tenants")
+          .update({ setup_complete: true })
+          .eq("id", tenant.id);
+      }
+
+      await reloadAll();
+
+      // vai para a tela de conexão real
+      navigate("/integracoes/whatsapp", { replace: true });
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao avançar.");
+    }
+  }
+
+  /* ============================================================
+     RENDER STEP 1
+  ============================================================ */
+  function renderStep1() {
+    return (
+      <>
         <h2 className={styles.title}>Vamos começar criando sua empresa ✨</h2>
 
         <p className={styles.subtitle}>
-          Antes de usar o sistema, precisamos configurar seu espaço de trabalho.
-          Pode ser um salão, estúdio, clínica, MEI ou até mesmo você como profissional autônomo.
+          Antes de usar o sistema, vamos configurar sua marca e identidade visual.
         </p>
 
-        {/* Input Nome */}
         <label className={styles.colorLabel}>Nome da sua marca ou salão</label>
         <input
           className={styles.input}
@@ -185,22 +188,20 @@ export default function Setup() {
           onChange={(e) => setName(e.target.value)}
         />
 
-        {/* 🎨 CORES */}
+        {/* CORES */}
         <div className={styles.colorsSection}>
           <h4 className={styles.sectionTitle}>Personalize o visual da sua marca 🎨</h4>
 
           <p className={styles.sectionDescription}>
-            Essas cores serão usadas em botões, menus e destaques do sistema.
+            Essas cores serão usadas no tema, botões e destaques do sistema.
           </p>
 
           <div className={styles.colorsRow}>
-            {/* Primária */}
+            {/* PRIMÁRIA */}
             <div className={styles.colorItem}>
               <label className={styles.colorLabel}>
                 Cor primária
-                <span className={styles.colorHint}>
-                  Usada em botões e destaques principais.
-                </span>
+                <span className={styles.colorHint}>Usada em botões e destaques principais.</span>
               </label>
 
               <input
@@ -210,18 +211,14 @@ export default function Setup() {
                 onChange={(e) => setPrimary(e.target.value)}
               />
 
-              <p className={styles.colorExample}>
-                Ex.: rosa, azul, roxo…
-              </p>
+              <p className={styles.colorExample}>Ex.: rosa, azul, roxo…</p>
             </div>
 
-            {/* Secundária */}
+            {/* SECUNDÁRIA */}
             <div className={styles.colorItem}>
               <label className={styles.colorLabel}>
                 Cor secundária
-                <span className={styles.colorHint}>
-                  Usada em fundos e detalhes.
-                </span>
+                <span className={styles.colorHint}>Usada em fundos e detalhes.</span>
               </label>
 
               <input
@@ -231,42 +228,73 @@ export default function Setup() {
                 onChange={(e) => setSecondary(e.target.value)}
               />
 
-              <p className={styles.colorExample}>
-                Geralmente uma cor mais clara.
-              </p>
+              <p className={styles.colorExample}>Geralmente uma cor mais clara.</p>
             </div>
           </div>
         </div>
 
-        {/* 🌙 / 🌞 TEMA */}
+        {/* TEMA */}
         <div className={styles.themeRow}>
           <button
-            className={`${styles.themeBtn} ${
-              variant === "light" ? styles.themeSelected : ""
-            }`}
-            onClick={handleSelectLight}
+            className={`${styles.themeBtn} ${variant === "light" ? styles.themeSelected : ""}`}
+            onClick={selectLight}
           >
             🌞 Claro
           </button>
 
           <button
-            className={`${styles.themeBtn} ${
-              variant === "dark" ? styles.themeSelected : ""
-            }`}
-            onClick={handleSelectDark}
+            className={`${styles.themeBtn} ${variant === "dark" ? styles.themeSelected : ""}`}
+            onClick={selectDark}
           >
             🌙 Escuro
           </button>
         </div>
 
-        {/* Botão salvar */}
-        <button
-          className={styles.saveButton}
-          disabled={saving}
-          onClick={save}
-        >
+        <button className={styles.saveButton} disabled={saving} onClick={saveStep1}>
           {saving ? "Salvando..." : "Salvar e continuar"}
         </button>
+      </>
+    );
+  }
+
+  /* ============================================================
+     RENDER STEP 2
+  ============================================================ */
+  function renderStep2() {
+    return (
+      <>
+        <h2 className={styles.title}>Conectar WhatsApp 📲</h2>
+
+        <p className={styles.subtitle}>
+          Agora conecte o WhatsApp para habilitar lembretes automáticos e atendimento inteligente.
+        </p>
+
+        <div className={styles.infoCard}>
+          <p>
+            Você será redirecionado para a tela de integração do WhatsApp onde poderá escanear o QR
+            Code.
+          </p>
+        </div>
+
+        <button className={styles.saveButton} onClick={goToWhatsAppPage}>
+          Conectar WhatsApp
+        </button>
+      </>
+    );
+  }
+
+  /* ============================================================
+     RENDER PRINCIPAL
+  ============================================================ */
+  return (
+    <div className={styles.setupContainer}>
+      <div className={styles.setupCard}>
+        <div className={styles.stepsIndicator}>
+          <span className={step === 1 ? styles.activeStep : ""}>1. Empresa</span>
+          <span className={step === 2 ? styles.activeStep : ""}>2. WhatsApp</span>
+        </div>
+
+        {step === 1 ? renderStep1() : renderStep2()}
       </div>
     </div>
   );
