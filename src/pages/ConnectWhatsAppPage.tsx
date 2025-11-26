@@ -1,53 +1,76 @@
+// src/components/ConnectWhatsAppPage.tsx
 
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 import { useEvolutionConnection } from "../hooks/useEvolutionConnection";
 import QRCodeDisplay from "./QRCodeDisplay";
 import N8nPauseButton from "../components/N8nPauseButton";
-import styles from "../css/ConnectWhatsApp.module.css"; // Importar o novo CSS
+import styles from "../css/ConnectWhatsApp.module.css";
 
-export default function ConnectWhatsAppPage() {
+/**
+ * 🔥 Este componente agora funciona:
+ * - Dentro do SETUP (Step 2)
+ * - Como página normal (`/integracoes/whatsapp`)
+ *
+ * Props adicionais:
+ *  insideSetup: boolean  → remove cabeçalho e mostra botão "Continuar"
+ *  onFinish: () => void → função chamada ao clicar no botão de continuar
+ */
+export default function ConnectWhatsAppPage({
+  insideSetup = false,
+  onFinish,
+}: {
+  insideSetup?: boolean;
+  onFinish?: () => void;
+}) {
   const { tenant, subscription, loading } = useUserAndTenant();
 
-  // 🔥 Sempre chamar hooks, mesmo que tenant não exista!
-  const instanceId = tenant?.id || ""; // safe
+  // 🔥 hooks SEMPRE no topo (REACT RULE)
+  const instanceId = tenant?.id || "";
   const evoBase =
     import.meta.env.VITE_EVO_PROXY_URL ?? "http://localhost:3001/api";
 
   const { status } = useEvolutionConnection({
     baseUrl: evoBase,
     autostart: false,
-    initialInstanceId: instanceId, // safe
+    initialInstanceId: instanceId,
   });
 
-  // 🔥 Sempre chamar hooks ACIMA de qualquer return condicional
+  // 🔄 loading
+  if (loading) {
+    return <div className={styles.loading}>Carregando informações…</div>;
+  }
 
-  if (loading)
-    return <div style={{ padding: "2rem" }}>Carregando informações…</div>;
+  // ❌ tenant ausente
+  if (!tenant) {
+    return <div className={styles.error}>Tenant não encontrado.</div>;
+  }
 
-  if (!tenant)
-    return <div style={{ padding: "2rem" }}>❌ Tenant não encontrado.</div>;
-
-  const isWhatsDisconnected =
+  // 📌 status desconectado
+  const isDisconnected =
     !status ||
-    status === "DISCONNECTED" ||
-    status === "LOGGED_OUT" ||
-    status === "ERROR" ||
-    status === "UNKNOWN" ||
-    status === "IDLE";
+    ["DISCONNECTED", "LOGGED_OUT", "ERROR", "UNKNOWN", "IDLE"].includes(status);
 
-  const shouldShowPauseButton = !!subscription && !isWhatsDisconnected;
+  const canShowPause =
+    subscription && !isDisconnected;
 
   return (
-    <div className={styles.container}> {/* Usar a classe do novo CSS */}
-      <h2 className={styles.title}>Integração WhatsApp</h2>
+    <div className={styles.container}>
+      
+      {/* 🚫 No setup o título de página some */}
+      {!insideSetup && (
+        <>
+          <h2 className={styles.title}>Integração WhatsApp</h2>
+          <p className={styles.description}>
+            Conecte o WhatsApp para habilitar automações, notificações e 
+            mensagens inteligentes via IA.
+          </p>
+        </>
+      )}
 
-      <p className={styles.description}>
-        Conecte o WhatsApp para habilitar automações, confirmações e mensagens
-        inteligentes via IA.
-      </p>
-
-      <div className={styles.card}> {/* Usar a classe do novo CSS */}
-        {/* 🔵 QRCode SEMPRE aparece */}
+      {/* 📦 Card principal */}
+      <div className={styles.card}>
+        
+        {/* QR CODE aparece SEMPRE */}
         <QRCodeDisplay
           instanceId={instanceId}
           autoStart={false}
@@ -56,22 +79,30 @@ export default function ConnectWhatsAppPage() {
 
         <div style={{ height: "1rem" }} />
 
-        {/* 🔵 Botão só aparece quando estiver conectado */}
-        {shouldShowPauseButton ? (
+        {/* 🔵 Botão para pausar fluxos quando conectado */}
+        {canShowPause ? (
           <N8nPauseButton
             subscriptionId={subscription!.id}
             initialState={subscription!.n8n_pause}
           />
-        ) : subscription ? (
-          <div className={styles.hint}> {/* Usar a classe do novo CSS */}
-            Conecte o WhatsApp para habilitar o controle de atendimento.
-          </div>
         ) : (
-          <div className={styles.hint}> {/* Usar a classe do novo CSS */}
-            Associe um plano de assinatura para ativar o controle de atendimento.
+          <div className={styles.hint}>
+            {subscription
+              ? "Conecte o WhatsApp para ativar o controle de atendimento."
+              : "Você precisa de um plano ativo para conectar o WhatsApp."}
           </div>
         )}
       </div>
+
+      {/* 👉 Apenas no SETUP */}
+      {insideSetup && (
+        <button
+          onClick={onFinish}
+          className={styles.nextButton}
+        >
+          Continuar
+        </button>
+      )}
     </div>
   );
 }
