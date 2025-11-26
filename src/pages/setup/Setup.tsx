@@ -1,5 +1,4 @@
 // src/pages/setup/Setup.tsx
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseCleint";
@@ -18,7 +17,7 @@ export default function Setup() {
   /* ============================================================
      LOCAL STATE
   ============================================================ */
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState<number>(1);
 
   const [name, setName] = useState("");
   const [primary, setPrimary] = useState("#ff1493");
@@ -28,16 +27,25 @@ export default function Setup() {
   const [saving, setSaving] = useState(false);
 
   /* ============================================================
-     CARREGA DADOS EXISTENTES DO TENANT
+     CARREGAR TENANT E SINCRONIZAR STEP
   ============================================================ */
   useEffect(() => {
     if (!tenant) return;
 
-    setName(tenant.name || "");
-    setPrimary(tenant.primary_color || "#ff1493");
-    setSecondary(tenant.secondary_color || "#ffffff");
-    setVariant(tenant.theme_variant || "light");
-  }, [tenant]);
+    // Sincroniza dados
+    setName(tenant.name ?? "");
+    setPrimary(tenant.primary_color ?? "#ff1493");
+    setSecondary(tenant.secondary_color ?? "#ffffff");
+    setVariant(tenant.theme_variant ?? "light");
+
+    // Sincroniza passo com onboarding_step
+    const stepDB = tenant.onboarding_step ?? 0;
+
+    if (stepDB <= 1) setStep(1);
+    else if (stepDB === 2) setStep(2);
+    else if (stepDB >= 99) navigate("/dashboard", { replace: true });
+
+  }, [tenant, navigate]);
 
   /* ============================================================
      PERMISSÃO
@@ -51,15 +59,11 @@ export default function Setup() {
     (profile.role === "professional" && !profile.tenant_id);
 
   if (!canAccessSetup) {
-    return (
-      <p className={styles.error}>
-        Você não tem permissão para acessar esta página.
-      </p>
-    );
+    return <p className={styles.error}>Você não tem permissão para acessar esta página.</p>;
   }
 
   /* ============================================================
-     THEME HANDLERS
+     TROCA DE TEMA
   ============================================================ */
   function selectLight() {
     setVariant("light");
@@ -72,10 +76,10 @@ export default function Setup() {
   }
 
   /* ============================================================
-     SAVE STEP 1 – CRIAR OU ATUALIZAR TENANT
+     STEP 1 – CRIAR / ATUALIZAR TENANT
   ============================================================ */
   async function saveStep1() {
-    if (!name.trim()) {
+    if (name.trim().length < 2) {
       toast.error("Digite um nome válido.");
       return;
     }
@@ -87,7 +91,7 @@ export default function Setup() {
       let tenantId = tenant?.id ?? null;
 
       /* ------------------------------------------
-         1) CRIAR TENANT SE NÃO EXISTE
+         CRIAR TENANT SE NÃO EXISTE
       ------------------------------------------ */
       if (!tenantId) {
         tenantId = crypto.randomUUID();
@@ -101,6 +105,7 @@ export default function Setup() {
             secondary_color: secondary,
             theme_variant: variant,
             setup_complete: false,
+            onboarding_step: 2, // PASSO IMPORTANTE
             created_by: userId,
           });
 
@@ -108,7 +113,8 @@ export default function Setup() {
 
         const updateProfile: any = { tenant_id: tenantId };
 
-        if (profile?.role !== "owner" && profile?.role !== "manager") {
+        // Profissional vira manager ao criar um salão
+        if (profile?.role === "professional") {
           updateProfile.role = "manager";
         }
 
@@ -121,7 +127,7 @@ export default function Setup() {
       }
 
       /* ------------------------------------------
-         2) ATUALIZAR TENANT EXISTENTE
+         ATUALIZAR TENANT EXISTENTE
       ------------------------------------------ */
       else {
         const { error: errUpdate } = await supabase
@@ -132,6 +138,7 @@ export default function Setup() {
             secondary_color: secondary,
             theme_variant: variant,
             setup_complete: false,
+            onboarding_step: 2, // Continua no passo 2
           })
           .eq("id", tenantId);
 
@@ -139,12 +146,9 @@ export default function Setup() {
       }
 
       await reloadAll();
+      setStep(2);
       setSaving(false);
 
-      /* ------------------------------------------
-         PRÓXIMO PASSO
-      ------------------------------------------ */
-      setStep(2);
     } catch (err: any) {
       console.error(err);
       toast.error("Erro ao salvar configurações.");
@@ -160,13 +164,17 @@ export default function Setup() {
       if (tenant?.id) {
         await supabase
           .from("tenants")
-          .update({ setup_complete: true })
+          .update({
+            setup_complete: true,
+            onboarding_step: 99,
+          })
           .eq("id", tenant.id);
       }
 
       await reloadAll();
-      navigate("/connect-whatsapp");
-    } catch (err: any) {
+      navigate("/connect-whatsapp", { replace: true });
+
+    } catch (err) {
       console.error(err);
       toast.error("Erro ao avançar.");
     }
@@ -179,7 +187,6 @@ export default function Setup() {
     return (
       <>
         <h2 className={styles.title}>Vamos começar criando sua empresa ✨</h2>
-
         <p className={styles.subtitle}>
           Antes de usar o sistema, vamos configurar sua marca e identidade visual.
         </p>
@@ -202,39 +209,31 @@ export default function Setup() {
           </p>
 
           <div className={styles.colorsRow}>
-            {/* PRIMÁRIA */}
             <div className={styles.colorItem}>
               <label className={styles.colorLabel}>
                 Cor primária
-                <span className={styles.colorHint}>
-                  Usada em botões e destaques principais.
-                </span>
+                <span className={styles.colorHint}>Usada em botões e destaques principais.</span>
               </label>
-
               <input
                 type="color"
                 className={styles.colorInput}
                 value={primary}
                 onChange={(e) => setPrimary(e.target.value)}
               />
-
               <p className={styles.colorExample}>Ex.: rosa, azul, roxo…</p>
             </div>
 
-            {/* SECUNDÁRIA */}
             <div className={styles.colorItem}>
               <label className={styles.colorLabel}>
                 Cor secundária
                 <span className={styles.colorHint}>Usada em fundos e detalhes.</span>
               </label>
-
               <input
                 type="color"
                 className={styles.colorInput}
                 value={secondary}
                 onChange={(e) => setSecondary(e.target.value)}
               />
-
               <p className={styles.colorExample}>Geralmente uma cor mais clara.</p>
             </div>
           </div>
@@ -243,18 +242,14 @@ export default function Setup() {
         {/* TEMA */}
         <div className={styles.themeRow}>
           <button
-            className={`${styles.themeBtn} ${
-              variant === "light" ? styles.themeSelected : ""
-            }`}
+            className={`${styles.themeBtn} ${variant === "light" ? styles.themeSelected : ""}`}
             onClick={selectLight}
           >
             🌞 Claro
           </button>
 
           <button
-            className={`${styles.themeBtn} ${
-              variant === "dark" ? styles.themeSelected : ""
-            }`}
+            className={`${styles.themeBtn} ${variant === "dark" ? styles.themeSelected : ""}`}
             onClick={selectDark}
           >
             🌙 Escuro
@@ -287,8 +282,7 @@ export default function Setup() {
 
         <div className={styles.infoCard}>
           <p>
-            Você será redirecionado para a página onde poderá escanear o QR Code
-            do WhatsApp.
+            Você será redirecionado à página onde poderá escanear o QR Code do WhatsApp.
           </p>
         </div>
 
@@ -305,6 +299,7 @@ export default function Setup() {
   return (
     <div className={styles.setupContainer}>
       <div className={styles.setupCard}>
+
         {/* HEADER DOS STEPS */}
         <div className={styles.stepsIndicator}>
           <span className={step === 1 ? styles.activeStep : ""}>1. Empresa</span>
