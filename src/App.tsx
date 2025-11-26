@@ -36,7 +36,7 @@ import spinnerStyles from "./css/LoadingSpinner.module.css"; // Importar o CSS d
 import Onboarding from "./pages/onboarding/Onboarding";
 import { OnboardingGuard } from "./guards/OnBoardingGuard";
 //import { SetupRedirectGuard } from "./guards/SetupRedirectGuard";
-import { SetupRedirectGuard } from "./guards/SetupRedirectGuard";
+import { SetupRedirectGuards } from "./guards/SetupRedirectGuards";
  
 // =============================
 // 🔹 TELA DE LOADING GLOBAL
@@ -154,9 +154,9 @@ export default function App() {
           element={
             <PrivateRoute>
               <OnboardingGuard>     {/* garante que não entra no setup antes do onboarding */}
-                <SetupRedirectGuard>
+                <SetupRedirectGuards>
                   <Setup />
-                </SetupRedirectGuard>
+                </SetupRedirectGuards>
               </OnboardingGuard>
             </PrivateRoute>
           }
@@ -168,9 +168,9 @@ export default function App() {
           element={
             <PrivateRoute>
               <OnboardingGuard>      {/* onboarding entra antes */}
-                <SetupRedirectGuard> {/* setup entra só depois */}
+                <SetupRedirectGuards> {/* setup entra só depois */}
                   <Layout />
-                </SetupRedirectGuard>
+                </SetupRedirectGuards>
               </OnboardingGuard>
             </PrivateRoute>
           }

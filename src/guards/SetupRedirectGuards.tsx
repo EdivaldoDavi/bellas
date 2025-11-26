@@ -15,7 +15,7 @@ interface Props {
  *    - /setup (wizard em andamento)
  *    - fluxo de convite (profile.invited)
  */
-export function SetupRedirectGuard({ children }: Props) {
+export function SetupRedirectGuards({ children }: Props) {
   const { needsSetup, loading, profile } = useUserTenant();
   const { loading: authLoading } = useAuth();
   const location = useLocation();
