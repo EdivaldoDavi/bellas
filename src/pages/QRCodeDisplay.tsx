@@ -1,4 +1,3 @@
-
 import { useEffect, useMemo } from "react";
 import { useEvolutionConnection } from "../hooks/useEvolutionConnection";
 import type { EvoStatus } from "../hooks/useEvolutionConnection";
@@ -12,7 +11,7 @@ export interface QRCodeDisplayProps {
 
 export default function QRCodeDisplay({
   instanceId,
-  autoStart = false,
+  autoStart = true,          // 🔥 agora por padrão já tenta conectar
   baseUrl = "/api",
 }: QRCodeDisplayProps) {
   const safeInstanceId = useMemo(() => instanceId.trim(), [instanceId]);
@@ -40,10 +39,12 @@ export default function QRCodeDisplay({
   }, [refresh]);
 
   /* ============================================================
-     🚀 AutoStart opcional
+     🚀 AutoStart: se estiver desconectado, já tenta abrir sessão
   ============================================================ */
   useEffect(() => {
-    if (autoStart && safeInstanceId) start();
+    if (autoStart && safeInstanceId) {
+      start();
+    }
   }, [autoStart, safeInstanceId, start]);
 
   /* ============================================================
@@ -60,7 +61,7 @@ export default function QRCodeDisplay({
   const showQR = !!qrBase64 && !isConnected && !isConnecting;
 
   /* ============================================================
-     🛑 Remover erro “Not Found” ou erros irrelevantes
+     🛑 Esconde alguns erros “ruins”, tipo Not Found
   ============================================================ */
   const hideError =
     error === "Not Found" ||
@@ -124,44 +125,32 @@ export default function QRCodeDisplay({
           </div>
         )}
 
-        {/* BOTÕES */}
+        {/* INSTRUÇÕES / BOTÕES */}
         <div className={styles.buttons}>
+          {/* 🔴 DESCONEXÃO → só instruções, sem botão "Conectar" */}
           {isDisconnected && (
-            <>
-              <div className={styles.instructionsBox}>
-                <p className={styles.instructionsTitle}>
-                  📱 Como conectar seu WhatsApp:
-                </p>
+            <div className={styles.instructionsBox}>
+              <p className={styles.instructionsTitle}>
+                📱 Como conectar seu WhatsApp:
+              </p>
 
-                <ol className={styles.instructionsList}>
-                  <li>
-                    Abra o aplicativo <strong>WhatsApp</strong> no seu celular.
-                  </li>
-                  <li>
-                    Vá em{" "}
-                    <strong> ... três pontinhos → Dispositivos conectados</strong>.
-                  </li>
-                  <li>
-                    Toque em <strong>“Conectar um dispositivo”</strong>.
-                  </li>
-                  <li>Escaneie o QR Code exibido aqui na tela.</li>
-                </ol>
-              </div>
-
-              <button
-                onClick={start}
-                disabled={loading}
-                className={styles.btnPrimary}
-              >
-                {loading ? "Conectando..." : "Conectar WhatsApp"}
-              </button>
-
-              <button className={styles.btnSecondary} onClick={refresh}>
-                Recarregar
-              </button>
-            </>
+              <ol className={styles.instructionsList}>
+                <li>
+                  Abra o aplicativo <strong>WhatsApp</strong> no seu celular.
+                </li>
+                <li>
+                  Vá em{" "}
+                  <strong>… três pontinhos → Dispositivos conectados</strong>.
+                </li>
+                <li>
+                  Toque em <strong>“Conectar um dispositivo”</strong>.
+                </li>
+                <li>Escaneie o QR Code exibido nesta tela.</li>
+              </ol>
+            </div>
           )}
 
+          {/* ✅ CONECTADO → ainda mostra botão de desconectar */}
           {isConnected && (
             <button className={styles.btnDanger} onClick={logout}>
               Desconectar
