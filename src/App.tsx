@@ -1,10 +1,10 @@
 // src/App.tsx
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { useEffect, type ReactNode } from "react";
+import {  type ReactNode } from "react";
 
 import { useUserTenant } from "./context/UserTenantProvider";
 import { useAuth } from "./context/AuthProvider";
-import { applyTenantTheme } from "./utils/theme";
+
 
 // Layout e páginas
 import { Layout } from "./components/layout";
@@ -37,6 +37,7 @@ import Onboarding from "./pages/onboarding/Onboarding";
 import { OnboardingGuard } from "./guards/OnBoardingGuard";
 //import { SetupRedirectGuard } from "./guards/SetupRedirectGuard";
 import { SetupRedirectGuards } from "./guards/SetupRedirectGuards";
+import { useApplyTenantTheme } from "./hooks/useApplyTenantTheme";
  
 // =============================
 // 🔹 TELA DE LOADING GLOBAL
@@ -115,11 +116,10 @@ function SetupRedirectGuard({ children }: { children: ReactNode }) {
 // 🔹 APP PRINCIPAL
 // =============================
 export default function App() {
-  const { tenant } = useUserTenant();
+  
 
-  useEffect(() => {
-    applyTenantTheme(tenant);
-  }, [tenant]);
+
+  useApplyTenantTheme();
 
   return (
     <BrowserRouter>
