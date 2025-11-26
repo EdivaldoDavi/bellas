@@ -3,8 +3,9 @@
    TEMA BASE (modo claro)
 =========================== */
 :root {
-  --color-primary: #ff1493;
-  --color-secondary: #ffffff;
+--color-primary: var(--tenant-primary, #ff1493);
+--color-secondary: var(--tenant-secondary, #ffffff);
+
 
   --bg: #ffffff;
   --text: #111111;
