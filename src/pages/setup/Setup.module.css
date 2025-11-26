@@ -1,4 +1,6 @@
-/* --- Containers --- */
+/* ============================================================
+   🧱 CONTAINER PRINCIPAL
+============================================================ */
 .setupContainer {
   display: flex;
   justify-content: center;
@@ -6,31 +8,39 @@
 }
 
 .setupCard {
+  width: 100%;
+  max-width: 720px;
   background: var(--modal-bg);
   padding: 32px;
   border-radius: 18px;
-  width: 100%;
-  max-width: 720px;
+
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.06),
     0 16px 40px rgba(0, 0, 0, 0.25);
+
+  display: flex;
+  flex-direction: column;
 }
 
-/* --- Textos --- */
+/* ============================================================
+   📌 TEXTOS GERAIS
+============================================================ */
 .title {
-  font-size: 1.8rem;
+  font-size: 1.9rem;
   font-weight: 700;
   margin-bottom: 12px;
 }
 
 .subtitle {
-  color: var(--text-secondary);
   font-size: 1rem;
   line-height: 1.5;
+  color: var(--text-secondary);
   margin-bottom: 28px;
 }
 
-/* --- Input geral --- */
+/* ============================================================
+   📌 INPUT GERAL
+============================================================ */
 .input {
   width: 100%;
   padding: 14px 16px;
@@ -40,59 +50,105 @@
   font-size: 1rem;
   color: var(--text-color);
   margin-bottom: 20px;
+  transition: border-color 0.25s;
 }
 
-/* ===== Cores ===== */
-.colorsRow {
-  display: flex;
-  gap: 24px;
+.input:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+/* ============================================================
+   🎨 SEÇÃO DE CORES
+============================================================ */
+
+.colorsSection {
+  margin-top: 24px;
+}
+
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.sectionDescription {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.4;
   margin-bottom: 20px;
 }
 
+/* ROW das duas cores */
+.colorsRow {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+/* item individual */
 .colorItem {
   flex: 1;
-  min-width: 160px;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
 }
 
 .colorLabel {
   font-weight: 600;
+  font-size: 0.95rem;
   margin-bottom: 4px;
-  display: block;
 }
 
 .colorHint {
-  display: block;
   font-size: 0.8rem;
   color: var(--text-secondary);
-  margin-bottom: 6px;
+  margin-top: 2px;
 }
 
-/* --- input type=color blindado --- */
+.colorExample {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+/* input de cor blindado */
 .colorInput {
   width: 100%;
   height: 48px;
   border-radius: 12px;
-  border: 2px solid #ccc !important;
+  border: 2px solid var(--input-border);
   background: #fff !important;
   cursor: pointer;
   padding: 0 !important;
   appearance: none !important;
+  margin-top: 6px;
+  transition: border-color 0.2s ease;
+}
+
+.colorInput:hover {
+  border-color: var(--color-primary);
 }
 
 .colorInput::-webkit-color-swatch {
-  border-radius: 8px !important;
-  border: none !important;
+  border-radius: 8px;
+  border: none;
 }
 
 .colorInput::-webkit-color-swatch-wrapper {
-  padding: 0 !important;
+  padding: 0;
 }
 
-/* ===== Tema ===== */
+/* ============================================================
+   🌙/🌞 TEMA
+============================================================ */
 .themeRow {
   display: flex;
   gap: 16px;
-  margin-bottom: 28px;
+  margin: 20px 0 32px;
+  flex-wrap: wrap;
 }
 
 .themeBtn {
@@ -100,31 +156,46 @@
   padding: 14px;
   border-radius: 14px;
   border: 2px solid var(--input-border);
-  cursor: pointer;
-  font-weight: 600;
   background: var(--input-bg);
   color: var(--text-color);
+  font-weight: 600;
   text-align: center;
+  cursor: pointer;
+  transition: 0.25s;
 }
 
-/* --- quando selecionado --- */
-.themeSelected {
+.themeBtn:hover {
   border-color: var(--color-primary);
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.themeSelected {
   background: var(--color-primary);
+  border-color: var(--color-primary);
   color: #fff;
 }
 
-/* --- botão salvar --- */
+/* ============================================================
+   💾 BOTÃO SALVAR
+============================================================ */
 .saveButton {
   width: 100%;
   padding: 15px;
-  font-size: 1.1rem;
-  font-weight: 700;
   border-radius: 14px;
   border: none;
+  cursor: pointer;
+
+  font-size: 1.15rem;
+  font-weight: 700;
+
   background: #0d9e4d;
   color: #fff;
-  cursor: pointer;
+
+  transition: 0.25s;
+}
+
+.saveButton:hover:not(:disabled) {
+  background: #0c8a43;
 }
 
 .saveButton:disabled {
@@ -132,64 +203,42 @@
   cursor: not-allowed;
 }
 
+/* ============================================================
+   ⚠️ ESTADOS
+============================================================ */
 .loading {
   text-align: center;
   margin-top: 30px;
 }
 
 .error {
-  text-align: center;
   color: #c00;
+  text-align: center;
   margin-top: 20px;
 }
-.colorsSection {
-  margin-top: 20px;
-}
 
-.sectionTitle {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: 6px;
-}
+/* ============================================================
+   📱 RESPONSIVIDADE
+============================================================ */
+@media (max-width: 640px) {
+  .setupCard {
+    padding: 24px 20px;
+  }
 
-.sectionDescription {
-  font-size: 0.95rem;
-  color: var(--text-muted, #666);
-  margin-bottom: 20px;
-  line-height: 1.4;
-}
+  .title {
+    font-size: 1.6rem;
+  }
 
-.colors {
-  display: flex;
-  gap: 24px;
-  flex-wrap: wrap;
-}
+  .colorsRow {
+    flex-direction: column;
+    gap: 16px;
+  }
 
-.colorItem {
-  flex: 1;
-  min-width: 220px;
-}
+  .themeRow {
+    flex-direction: column;
+  }
 
-.colorHint {
-  display: block;
-  font-size: 0.8rem;
-  font-weight: 400;
-  color: var(--text-muted, #7a7a7a);
-  margin-top: 2px;
-}
-
-.colorExample {
-  margin-top: 6px;
-  font-size: 0.8rem;
-  color: var(--text-muted, #777);
-  font-style: italic;
-}
-
-.color {
-  margin-top: 6px;
-  width: 100%;
-  height: 42px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  cursor: pointer;
+  .themeBtn {
+    width: 100%;
+  }
 }
