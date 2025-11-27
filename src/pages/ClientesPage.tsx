@@ -209,10 +209,10 @@ export default function ClientesPage() {
                     <div className={styles.title}>{c.full_name}</div>
                       <div className={styles.meta}>
                         <div className={styles.phoneWrapper}>
-                        📞 {dbPhoneToMasked(c.customer_phone)}
-                        <CopyButton value={onlyDigits(c.customer_phone)} />
-                          </div>
-                        ·{" "}
+                          📞 {dbPhoneToMasked(c.customer_phone ?? "")}
+                          <CopyButton value={onlyDigits(c.customer_phone ?? "")} />
+                        </div>
+
                         <span
                           style={{
                             color: c.is_active ? "#00c851" : "#dc3545",

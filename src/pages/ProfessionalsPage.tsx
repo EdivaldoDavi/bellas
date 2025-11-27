@@ -222,10 +222,10 @@ export default function ProfessionalsPage() {
                     </div>
 
                     {/* TELEFONE FORMATADO */}
-                   <div className={styles.phone}>
-                  📞 {dbPhoneToMasked(p.phone)}
-                    <CopyButton value={onlyDigits(p.phone ?? "")} />
-                </div>
+                    <div className={styles.phoneWrapper}>
+                      📞 {dbPhoneToMasked(p.phone ?? "")}
+                      <CopyButton value={onlyDigits(p.phone ?? "")} />
+                    </div>
 
                   </div>
 
