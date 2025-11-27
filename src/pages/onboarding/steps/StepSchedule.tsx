@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState  } from "react";
 import { useUserTenant } from "../../../context/UserTenantProvider";
 import { supabase } from "../../../lib/supabaseCleint";
 import { toast } from "react-toastify";
