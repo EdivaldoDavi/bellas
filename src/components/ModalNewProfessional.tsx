@@ -6,6 +6,12 @@ import { X } from "lucide-react";
 import styles from "../css/ModalNewProfessional.module.css";
 import ModalSelectServiceForProfessional from "./ModalSelectServiceForProfessional";
 import ModalSelectScheduleForProfessional from "./ModalSelectScheduleForProfessional";
+import {
+  formatPhoneInput,
+  dbPhoneToMasked,
+  maskedToDbPhone,
+  isValidMaskedPhone,
+} from "../utils/phoneUtils";
 
 interface ModalNewProfessionalProps {
   tenantId?: string;
@@ -60,6 +66,31 @@ function padSeconds(t: string) {
   if (!t) return "";
   return t.length === 5 ? `${t}:00` : t;
 }
+
+/* ============================================================
+   📌 Utilitários de telefone
+   - Máscara: (14) 99655-2177
+   - Salvar: 5514996552177 (sem o usuário digitar 55)
+============================================================ */
+function onlyDigits(value: string): string {
+  return value.replace(/\D/g, "");
+}
+
+function maskPhoneFromDigits(digits: string): string {
+  // Limita a 11 dígitos (2 DDD + 9 número)
+  const d = digits.slice(0, 11);
+
+  if (d.length === 0) return "";
+  if (d.length <= 2) return `(${d}`;
+  if (d.length <= 7) {
+    // (14) 9965
+    return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  }
+  // (14) 99655-2177
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+}
+
+
 
 /**
  * Monta o texto de resumo dos horários a partir dos weekRows.
@@ -163,7 +194,7 @@ export default function ModalNewProfessional({
   // CAMPOS PRINCIPAIS
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(""); // agora com máscara
 
   const [services, setServices] = useState<Service[]>([]);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
@@ -238,7 +269,8 @@ export default function ModalNewProfessional({
         if (prof) {
           setName(prof.name ?? "");
           setEmail(prof.email ?? "");
-          setPhone(prof.phone ?? "");
+          // Converte o que vier do banco (provavelmente 5514996552177) para máscara
+          setPhone(dbPhoneToMasked(prof.phone));
         }
 
         // Serviços vinculados
@@ -288,6 +320,18 @@ export default function ModalNewProfessional({
   async function handleSave() {
     if (!tenantId) return toast.error("Tenant inválido");
     if (!name.trim()) return toast.warn("Informe o nome");
+
+    // Telefone agora é obrigatório
+    if (!phone.trim()) {
+      return toast.warn("Informe o telefone do profissional");
+    }
+
+    const dbPhone = maskedToDbPhone(phone);
+
+    if (!dbPhone) {
+      return toast.warn("Telefone inválido. Use o formato (99) 99999-9999");
+    }
+
     if (selectedServices.length === 0) {
       return toast.warn("Selecione ao menos um serviço");
     }
@@ -306,7 +350,7 @@ export default function ModalNewProfessional({
               tenant_id: tenantId,
               name,
               email: email || null,
-              phone: phone || null,
+              phone: dbPhone, // ✅ sempre "55" + 11 dígitos
             },
           ])
           .select()
@@ -322,7 +366,7 @@ export default function ModalNewProfessional({
           .update({
             name,
             email: email || null,
-            phone: phone || null,
+            phone: dbPhone, // ✅ sempre "55" + 11 dígitos
           })
           .eq("tenant_id", tenantId)
           .eq("id", professionalId);
@@ -345,8 +389,7 @@ export default function ModalNewProfessional({
         }))
       );
 
-      // HORÁRIOS (agora SEM branch de copyToWeek;
-      // weekRows já vem pronto do modal, inclusive quando copiar segunda)
+      // HORÁRIOS
       await supabase
         .from("professional_schedules")
         .delete()
@@ -439,9 +482,10 @@ export default function ModalNewProfessional({
 
               <input
                 className={styles.input}
-                placeholder="Telefone (opcional)"
+                placeholder="Telefone (ex: (14) 99655-2177)"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
+                maxLength={17} // (99) 99999-9999
               />
 
               {/* SERVIÇOS */}
