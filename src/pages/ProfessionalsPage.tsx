@@ -9,7 +9,8 @@ import ModalNewProfessional from "../components/ModalNewProfessional";
 import styles from "../css/ProfessionalsPage.module.css";
 
 // 📌 IMPORTANDO UTIL DE TELEFONE
-import { dbPhoneToMasked } from "../utils/phoneUtils";
+import { dbPhoneToMasked , onlyDigits} from "../utils/phoneUtils";
+import CopyButton from "../components/CopyButton";
 
 type Professional = {
   id: string;
@@ -221,9 +222,11 @@ export default function ProfessionalsPage() {
                     </div>
 
                     {/* TELEFONE FORMATADO */}
-                    <div className={styles.phone}>
-                      📞 {p.phone ? dbPhoneToMasked(p.phone) : "Sem telefone"}
-                    </div>
+                   <div className={styles.phone}>
+                  📞 {dbPhoneToMasked(p.phone)}
+                    <CopyButton value={onlyDigits(p.phone ?? "")} />
+                </div>
+
                   </div>
 
                   {/* ACTIONS */}

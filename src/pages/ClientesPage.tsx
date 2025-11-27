@@ -11,7 +11,8 @@ import ModalNewCustomer from "../components/ModalNewCustomer";
 import styles from "../css/ClientesPage.module.css";
 
 // 📌 UTIL DE TELEFONE
-import { dbPhoneToMasked } from "../utils/phoneUtils";
+import CopyButton from "../components/CopyButton";
+import { dbPhoneToMasked, onlyDigits } from "../utils/phoneUtils";
 
 type Customer = {
   id: string;
@@ -206,17 +207,20 @@ export default function ClientesPage() {
                 <div key={c.id} className={styles.card}>
                   <div>
                     <div className={styles.title}>{c.full_name}</div>
-                    <div className={styles.meta}>
-                      📞 {dbPhoneToMasked(c.customer_phone)} ·{" "}
-                      <span
-                        style={{
-                          color: c.is_active ? "#00c851" : "#dc3545",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {c.is_active ? "Ativo" : "Inativo"}
-                      </span>
-                    </div>
+                      <div className={styles.meta}>
+                        📞 {dbPhoneToMasked(c.customer_phone)}
+                        <CopyButton value={onlyDigits(c.customer_phone)} />
+
+                        ·{" "}
+                        <span
+                          style={{
+                            color: c.is_active ? "#00c851" : "#dc3545",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {c.is_active ? "Ativo" : "Inativo"}
+                        </span>
+                      </div>
                   </div>
 
                   <div className={styles.actions}>

@@ -7,6 +7,9 @@
 export function onlyDigits(value: string): string {
   return value.replace(/\D/g, "");
 }
+export function extractDbPhoneMasked(dbPhone: string): string {
+  return onlyDigits(dbPhone);
+}
 
 /** Aplica máscara brasileira: (14) 99655-2177 */
 export function maskPhoneFromDigits(digits: string): string {
