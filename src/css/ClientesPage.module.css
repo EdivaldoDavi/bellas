@@ -171,6 +171,11 @@
   color: var(--text-muted);
   margin-top: 3px;
 }
+.phoneWrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 
 /* ================================
    AÇÕES
