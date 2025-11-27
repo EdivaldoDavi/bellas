@@ -170,7 +170,15 @@
   font-size: 0.85rem;
   color: var(--text-muted);
   margin-top: 3px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  flex-wrap: nowrap;     /* 🔥 impede quebra de linha */
+  white-space: nowrap;   /* 🔥 garante tudo na mesma linha */
 }
+
 .phoneWrapper {
   display: flex;
   align-items: center;
