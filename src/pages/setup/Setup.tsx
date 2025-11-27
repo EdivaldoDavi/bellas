@@ -141,6 +141,25 @@ export default function Setup() {
 
         if (errProfile) throw errProfile;
       }
+
+      // 🔥 Criar PROFESSIONAL automaticamente caso ainda não exista
+          const { data: existingProfessional } = await supabase
+            .from("professionals")
+            .select("id")
+            .eq("tenant_id", tenantId)
+            .eq("user_id", profile?.user_id)
+            .maybeSingle();
+
+          if (!existingProfessional) {
+            await supabase.from("professionals").insert({
+              tenant_id: tenantId,
+              user_id: profile?.user_id,
+              name: profile?.full_name,
+              email: profile?.email || null,
+              is_active: true,
+            });
+          }
+
       // 2) Atualizar tenant existente
       else {
         const { error: errUpdate } = await supabase
