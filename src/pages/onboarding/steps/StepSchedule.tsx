@@ -44,7 +44,7 @@ export default function StepSchedule() {
         .eq("professional_id", professionalId);
 
       if (!serviceCount || serviceCount === 0) {
-        toast.warn("Você deve selecionar ao menos 1 serviço.");
+        toast.warn("Você deve selecionar ao menos 1 serviço ao profissional selecionado.");
         setLoadingCheck(false);
         return;
       }
@@ -57,7 +57,7 @@ export default function StepSchedule() {
         .eq("professional_id", professionalId);
 
       if (!scheduleCount || scheduleCount === 0) {
-        toast.warn("Você deve definir ao menos 1 horário.");
+        toast.warn("Você deve definir ao menos 1 horário para o profissional selecionado.");
         setLoadingCheck(false);
         return;
       }
