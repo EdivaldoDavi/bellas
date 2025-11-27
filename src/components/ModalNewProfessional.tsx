@@ -72,24 +72,6 @@ function padSeconds(t: string) {
    - Máscara: (14) 99655-2177
    - Salvar: 5514996552177 (sem o usuário digitar 55)
 ============================================================ */
-function onlyDigits(value: string): string {
-  return value.replace(/\D/g, "");
-}
-
-function maskPhoneFromDigits(digits: string): string {
-  // Limita a 11 dígitos (2 DDD + 9 número)
-  const d = digits.slice(0, 11);
-
-  if (d.length === 0) return "";
-  if (d.length <= 2) return `(${d}`;
-  if (d.length <= 7) {
-    // (14) 9965
-    return `(${d.slice(0, 2)}) ${d.slice(2)}`;
-  }
-  // (14) 99655-2177
-  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
-}
-
 
 
 /**
