@@ -205,6 +205,20 @@
 }
 
 
+.professionalItem {
+  margin-bottom: 8px;
+}
+
+.professionalLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;          /* espaço entre o checkbox e o nome */
+  cursor: pointer;
+}
+
+.professionalLabel input {
+  margin: 0;         /* tira margem padrão do checkbox */
+}
 
 
 
