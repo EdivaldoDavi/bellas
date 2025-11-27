@@ -26,7 +26,7 @@ type Service = { id: string; name: string; duration_min?: number | null };
 interface ModalScheduleWizardProps {
   open: boolean;
   tenantId: string;
-  onClose: () => void;
+ onClose: (reason: "cancel" | "completed") => void;
   onBooked?: () => void;
 }
 
@@ -88,7 +88,7 @@ export default function ModalScheduleWizard({
 
   function handleClose() {
     resetAll();
-    onClose();
+   onClose("cancel"); // <<
   }
 
   /* ----------------------------- LOAD INICIAL ----------------------------- */
