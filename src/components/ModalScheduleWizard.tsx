@@ -373,29 +373,31 @@ export default function ModalScheduleWizard({
           )}
 
           {/* STEP 5 */}
-          {step === 5 && (
-            <div className={styles.step}>
-              <h3 className={styles.stepTitle}>Selecione o horário</h3>
+            {step === 5 && (
+              <div className={styles.step}>
+                <h3 className={styles.stepTitle}>Selecione o horário</h3>
 
-              {availableTimes.length === 0 && (
-                <p style={{ color: "#f0ad4e", fontSize: "0.9rem" }}>
-                  Nenhum horário disponível nesta data.
-                </p>
-              )}
+                {availableTimes.length === 0 && (
+                  <p style={{ color: "#f0ad4e", fontSize: "0.9rem" }}>
+                    Nenhum horário disponível nesta data.
+                  </p>
+                )}
 
-              <div className={styles.timeGrid}>
-                {availableTimes.map((t) => (
-                  <button
-                    key={t}
-                    className={`${styles.timeBtn} ${t === selectedTime ? styles.timeActive : ""}`}
-                    onClick={() => setSelectedTime(t)}
-                  >
-                    {t}
-                  </button>
-                ))}
+                <div className={styles.timeGrid}>
+                  {availableTimes.map((t) => (
+                    <button
+                      key={t}
+                      className={`${styles.timeBtn} ${
+                        t === selectedTime ? styles.timeActive : ""
+                      }`}
+                      onClick={() => setSelectedTime(t)}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           {/* STEP 6 */}
           {step === 6 && (
