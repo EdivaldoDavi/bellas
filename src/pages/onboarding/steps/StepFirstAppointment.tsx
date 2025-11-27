@@ -35,7 +35,7 @@ export default function StepFirstAppointment() {
           className={styles.secondaryBtn}
           onClick={() => updateOnboardingStep(99)}
         >
-          Pular, já entendi
+          Pular, já fiz um agendamento
         </button>
       </div>
 
