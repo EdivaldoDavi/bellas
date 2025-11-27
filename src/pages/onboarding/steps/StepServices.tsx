@@ -46,7 +46,7 @@ export default function StepServices() {
           className={styles.secondaryBtn}
           onClick={handleContinue}
         >
-          Já cadastrei um / vou cadastrar mmais depois
+          Continuar
         </button>
 
       </div>
