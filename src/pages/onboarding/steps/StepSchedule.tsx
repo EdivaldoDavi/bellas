@@ -78,9 +78,10 @@ export default function StepSchedule() {
       <h2 className={styles.stepTitle}>Escolha o(s) profissionais que irão atender .</h2>
 
       <p className={styles.stepText}>
-        Agora vamos configurar os profissionais que irão atender, por padrão o sistema inseriu você como profissional e cadastrou automaticamente o horário de atendimento Segunda
+        Agora vamos configurar os profissionais que irão atender e os horários de atendimento, por padrão o sistema inseriu você como profissional e cadastrou automaticamente o horário de atendimento Segunda
          à Domingo das 09:00 ás 18:00hs sem horário de almoço, mas você poderá editar agora clicando no botão ajustar horários agora e em seguida no ícone    <Pencil size={18} /> ou
-        pode editar mais tarde se preferir, se for este seu caso basta clicar em <strong>continuar</strong>
+        pode editar mais tarde se preferir, se for este seu caso basta clicar em <strong>continuar</strong>, se precisar cadastrar mais profissionais clique também no botão ajsutar horarios agora, e em seguida
+        no botão + novo profissional!  
       </p>
 
       <div className={styles.actions}>
