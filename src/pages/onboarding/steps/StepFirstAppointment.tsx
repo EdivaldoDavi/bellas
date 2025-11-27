@@ -16,7 +16,7 @@ export default function StepFirstAppointment() {
       <h2 className={styles.stepTitle}>Crie seu primeiro agendamento</h2>
       <p className={styles.stepText}>
         Vamos criar um agendamento de teste para você ver a agenda funcionando.
-        Depois você pode apagar ou manter normalmente.
+        Depois você pode cancelar ou manter normalmente.
       </p>
 
       <div className={styles.actions}>
