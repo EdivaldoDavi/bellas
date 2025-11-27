@@ -1,3 +1,4 @@
+// src/pages/ProfessionalsPage.tsx
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
@@ -34,9 +35,9 @@ export default function ProfessionalsPage({ onClose }: ProfessionalsPageProps) {
   const [openModal, setOpenModal] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
 
-  // ============================================================
+  // ================================
   // LOAD
-  // ============================================================
+  // ================================
   useEffect(() => {
     if (tenantId) load();
   }, [tenantId, search]);
@@ -51,11 +52,11 @@ export default function ProfessionalsPage({ onClose }: ProfessionalsPageProps) {
       .select("id, name, email, phone, is_active, created_at")
       .eq("tenant_id", tenantId);
 
-    const searchTerm = search.trim();
+    const s = search.trim();
 
-    if (searchTerm) {
+    if (s) {
       query = query.or(
-        `name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,phone.ilike.%${searchTerm}%`
+        `name.ilike.%${s}%,email.ilike.%${s}%,phone.ilike.%${s}%`
       );
       query = query.order("name");
     } else {
@@ -64,27 +65,27 @@ export default function ProfessionalsPage({ onClose }: ProfessionalsPageProps) {
 
     const { data, error } = await query;
 
-    if (!error) {
-      setProfessionals(data as Professional[]);
-    } else {
+    if (error) {
       toast.error("Erro ao carregar profissionais.");
       console.error(error);
+    } else {
+      setProfessionals(data as Professional[]);
     }
 
     setLoading(false);
   }
 
-  // ============================================================
-  // CLOSE HANDLER (normal ou onboarding)
-  // ============================================================
+  // ================================
+  // CLOSE HANDLER
+  // ================================
   function handleClose() {
     if (onClose) onClose();
     else history.back();
   }
 
-  // ============================================================
+  // ================================
   // ATIVAR / INATIVAR
-  // ============================================================
+  // ================================
   async function toggleActive(p: Professional) {
     const { error } = await supabase
       .from("professionals")
@@ -92,13 +93,11 @@ export default function ProfessionalsPage({ onClose }: ProfessionalsPageProps) {
       .eq("tenant_id", tenantId)
       .eq("id", p.id);
 
-    if (!error) {
-      setProfessionals((old) =>
-        old.map((x) =>
-          x.id === p.id ? { ...x, is_active: !x.is_active } : x
-        )
-      );
-    }
+    if (error) return;
+
+    setProfessionals((old) =>
+      old.map((x) => (x.id === p.id ? { ...x, is_active: !x.is_active } : x))
+    );
   }
 
   function confirmToggle(p: Professional) {
@@ -148,24 +147,24 @@ export default function ProfessionalsPage({ onClose }: ProfessionalsPageProps) {
       {
         autoClose: false,
         draggable: false,
-        closeOnClick: false,
         icon: false,
+        closeOnClick: false,
         style: { background: "#1d1b23", color: "#fff" },
       }
     );
   }
 
-  // ============================================================
+  // ================================
   // EDITAR PROFISSIONAL
-  // ============================================================
+  // ================================
   function openEdit(id: string) {
     setEditId(id);
     setOpenModal(true);
   }
 
-  // ============================================================
+  // ================================
   // RENDER
-  // ============================================================
+  // ================================
   return (
     <>
       <div className={styles.overlay}>
@@ -200,7 +199,7 @@ export default function ProfessionalsPage({ onClose }: ProfessionalsPageProps) {
             onChange={(e) => setSearch(e.target.value)}
           />
 
-          {/* LISTA */}
+          {/* LIST */}
           <div className={styles.list}>
             {loading && (
               <div className={styles.empty}>Carregando profissionais...</div>
@@ -213,7 +212,6 @@ export default function ProfessionalsPage({ onClose }: ProfessionalsPageProps) {
             {!loading &&
               professionals.map((p) => (
                 <div key={p.id} className={styles.card}>
-                  {/* INFO ESQUERDA */}
                   <div>
                     <div className={styles.title}>{p.name}</div>
 
@@ -229,14 +227,14 @@ export default function ProfessionalsPage({ onClose }: ProfessionalsPageProps) {
                       </span>
                     </div>
 
-                    {/* TELEFONE FORMATADO COM COPY */}
+                    {/* TELEFONE COM COPY */}
                     <div className={styles.phoneWrapper}>
                       <span>📞 {dbPhoneToMasked(p.phone ?? "")}</span>
                       <CopyButton value={onlyDigits(p.phone ?? "")} />
                     </div>
                   </div>
 
-                  {/* AÇÕES */}
+                  {/* ACTIONS */}
                   <div className={styles.actions}>
                     <button
                       className={styles.iconBtn}
@@ -262,7 +260,7 @@ export default function ProfessionalsPage({ onClose }: ProfessionalsPageProps) {
         </div>
       </div>
 
-      {/* MODAL DE CADASTRO/EDIÇÃO */}
+      {/* MODAL */}
       <ModalNewProfessional
         tenantId={tenantId!}
         show={openModal}
