@@ -1,29 +1,26 @@
 // src/pages/onboarding/steps/StepServices.tsx
 import { useState } from "react";
 import { supabase } from "../../../lib/supabaseCleint";
-import { toast } from "react-toastify";
 import { useUserTenant } from "../../../context/UserTenantProvider";
+import { toast } from "react-toastify";
+
 import styles from "../Onboarding.module.css";
 import ModalNewService from "../../../components/ModalNewService";
 
 export default function StepServices() {
   const { updateOnboardingStep, tenant } = useUserTenant();
   const [showModal, setShowModal] = useState(true);
-  const [, setCreatedSomething] = useState(false);
+  const [createdSomething, setCreatedSomething] = useState(false);
 
-  const handleClose = () => {
-    setShowModal(false);
-  };
+  const handleClose = () => setShowModal(false);
 
   const handleSuccess = () => {
     setCreatedSomething(true);
+    setShowModal(false);
   };
 
-  /* ============================================================
-     ⚠ IMPEDE CONTINUAR SE NÃO HOUVER SERVIÇOS CADASTRADOS
-  ============================================================ */
-  async function handleContinue() {
-    if (!tenant?.id) return;
+  async function checkIfHasServices() {
+    if (!tenant?.id) return false;
 
     const { data, error } = await supabase
       .from("services")
@@ -33,31 +30,35 @@ export default function StepServices() {
 
     if (error) {
       console.error("Erro ao verificar serviços:", error);
-      toast.error("Erro ao verificar serviços.");
-      return;
+      toast.error("Erro ao verificar serviços cadastrados.");
+      return false;
     }
 
-    if (!data || data.length === 0) {
+    return data.length > 0;
+  }
+
+  const handleContinue = async () => {
+    const hasServices = await checkIfHasServices();
+
+    if (!hasServices) {
       toast.warn("Por favor, cadastre pelo menos um serviço.");
       return;
     }
 
-    // Tudo certo → avançar
     updateOnboardingStep(3);
-  }
+  };
 
   return (
     <div>
       <h2 className={styles.stepTitle}>Cadastre seus serviços principais</h2>
+
       <p className={styles.stepText}>
-        Vamos começar cadastrando alguns serviços, como manicure, unha em gel,
-        cílios... Você pode adicionar mais depois.
+        Vamos começar cadastrando seus serviços principais como manicure, unha em gel,
+        extensão de cílios… Você poderá adicionar mais depois.
       </p>
 
       <p className={styles.stepText}>
-        Um modal será aberto para você cadastrar seus serviços,
-        <strong> Importante!</strong> cadastre pelo menos um serviço.
-        Quando terminar, clique em <strong>Continuar</strong>.
+        Cadastre pelo menos um serviço para continuar.
       </p>
 
       <div className={styles.actions}>
