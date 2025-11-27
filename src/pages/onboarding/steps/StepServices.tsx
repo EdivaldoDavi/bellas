@@ -16,17 +16,17 @@ export default function StepServices() {
   const handleSuccess = () => {
     setCreatedSomething(true);
   };
-
+/* função para pular onboarding comentada 
   const handleContinue = () => {
     updateOnboardingStep(3);
   };
-
+*/
   return (
     <div>
       <h2 className={styles.stepTitle}>Cadastre seus serviços principais</h2>
       <p className={styles.stepText}>
-        Vamos começar cadastrando alguns serviços, como manicure, corte de
-        cabelo, sobrancelha, depilação… Você pode adicionar mais depois.
+        Vamos começar cadastrando alguns serviços, como manicure, unha em gel
+        cílios... Você pode adicionar mais depois.
       </p>
 
       <p className={styles.stepText}>
@@ -41,13 +41,14 @@ export default function StepServices() {
         >
           Abrir cadastro de serviços
         </button>
-
+{/*
         <button
           className={styles.secondaryBtn}
           onClick={handleContinue}
         >
           Já cadastrei / vou cadastrar depois
         </button>
+        */}
       </div>
 
       <button

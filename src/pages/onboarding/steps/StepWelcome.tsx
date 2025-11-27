@@ -22,21 +22,23 @@ export default function StepWelcome() {
         >
           Começar configuração
         </button>
-
+{/*
         <button
           className={styles.secondaryBtn}
           onClick={() => updateOnboardingStep(99)}
         >
           Pular por enquanto
         </button>
+        */}
       </div>
-
+{/*
       <button
         className={styles.skipBtn}
         onClick={() => updateOnboardingStep(99)}
       >
         Quero explorar sozinho agora
       </button>
+      */}
     </div>
   );
 }

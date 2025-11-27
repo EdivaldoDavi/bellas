@@ -22,7 +22,7 @@ export default function StepReviewProfile() {
           <strong>E-mail:</strong> {profile?.email || "—"}
         </li>
         <li>
-          <strong>Salão:</strong> {tenant?.name || "—"}
+          <strong>Studio:</strong> {tenant?.name || "—"}
         </li>
       </ul>
 
@@ -38,13 +38,14 @@ export default function StepReviewProfile() {
         >
           Está tudo certo, continuar
         </button>
-
+{/*}
         <button
           className={styles.secondaryBtn}
           onClick={() => updateOnboardingStep(99)}
         >
           Pular onboarding
         </button>
+        */}
       </div>
     </div>
   );
