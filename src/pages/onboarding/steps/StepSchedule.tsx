@@ -2,7 +2,9 @@
 import { useState } from "react";
 import { useUserTenant } from "../../../context/UserTenantProvider";
 import styles from "../Onboarding.module.css";
-import ModalNewProfessional from "../../../components/ModalNewProfessional"; // ajuste caminho
+
+// Agora vamos chamar a página de profissionais como modal
+import ProfessionalsPage from "../../ProfessionalsPage";
 
 export default function StepSchedule() {
   const { tenant, updateOnboardingStep } = useUserTenant();
@@ -10,15 +12,17 @@ export default function StepSchedule() {
 
   const handleClose = () => {
     setShowModal(false);
+    updateOnboardingStep(4); // avança o onboarding ao fechar
   };
 
-  const handleSuccess = () => {
-    updateOnboardingStep(4);
+  const handleOpen = () => {
+    setShowModal(true);
   };
 
   return (
     <div>
       <h2 className={styles.stepTitle}>Defina seus horários de atendimento</h2>
+
       <p className={styles.stepText}>
         Agora vamos configurar os horários em que você (ou o profissional
         principal) irá atender. Isso garante que a agenda só permita
@@ -26,10 +30,7 @@ export default function StepSchedule() {
       </p>
 
       <div className={styles.actions}>
-        <button
-          className={styles.primaryBtn}
-          onClick={() => setShowModal(true)}
-        >
+        <button className={styles.primaryBtn} onClick={handleOpen}>
           Ajustar horários agora
         </button>
 
@@ -40,25 +41,9 @@ export default function StepSchedule() {
           Fazer isso depois
         </button>
       </div>
-{/*
-      <button
-        className={styles.skipBtn}
-        onClick={() => updateOnboardingStep(99)}
-      >
-        Pular todo o onboarding
-      </button>
-*/}
-      {tenant?.id && (
-        <ModalNewProfessional
-          tenantId={tenant.id}
-          show={showModal}
-          mode="agenda"
-          onClose={handleClose}
-          onSuccess={() =>
-            handleSuccess()
-          } // você pode receber (id, name) se quiser
-         
-        />
+
+      {tenant?.id && showModal && (
+        <ProfessionalsPage onClose={handleClose} />
       )}
     </div>
   );

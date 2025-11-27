@@ -6,11 +6,10 @@ import { X, Plus, Pencil } from "lucide-react";
 import { toast } from "react-toastify";
 
 import ModalNewProfessional from "../components/ModalNewProfessional";
-import styles from "../css/ProfessionalsPage.module.css";
-
-// 📌 IMPORTANDO UTIL DE TELEFONE
-import { dbPhoneToMasked , onlyDigits} from "../utils/phoneUtils";
 import CopyButton from "../components/CopyButton";
+
+import { dbPhoneToMasked, onlyDigits } from "../utils/phoneUtils";
+import styles from "../css/ProfessionalsPage.module.css";
 
 type Professional = {
   id: string;
@@ -20,7 +19,11 @@ type Professional = {
   is_active: boolean;
 };
 
-export default function ProfessionalsPage() {
+type ProfessionalsPageProps = {
+  onClose?: () => void; // usado no onboarding
+};
+
+export default function ProfessionalsPage({ onClose }: ProfessionalsPageProps) {
   const { tenant } = useUserAndTenant();
   const tenantId = tenant?.id;
 
@@ -31,9 +34,9 @@ export default function ProfessionalsPage() {
   const [openModal, setOpenModal] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
 
-  /* ============================================================
-     🔄 LOAD
-  ============================================================ */
+  // ============================================================
+  // LOAD
+  // ============================================================
   useEffect(() => {
     if (tenantId) load();
   }, [tenantId, search]);
@@ -54,7 +57,7 @@ export default function ProfessionalsPage() {
       query = query.or(
         `name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,phone.ilike.%${searchTerm}%`
       );
-      query = query.order("name", { ascending: true });
+      query = query.order("name");
     } else {
       query = query.order("created_at", { ascending: false }).limit(3);
     }
@@ -64,16 +67,24 @@ export default function ProfessionalsPage() {
     if (!error) {
       setProfessionals(data as Professional[]);
     } else {
-      console.error("Erro ao carregar profissionais:", error);
       toast.error("Erro ao carregar profissionais.");
+      console.error(error);
     }
 
     setLoading(false);
   }
 
-  /* ============================================================
-     🔁 ATIVAR / INATIVAR
-  ============================================================ */
+  // ============================================================
+  // CLOSE HANDLER (normal ou onboarding)
+  // ============================================================
+  function handleClose() {
+    if (onClose) onClose();
+    else history.back();
+  }
+
+  // ============================================================
+  // ATIVAR / INATIVAR
+  // ============================================================
   async function toggleActive(p: Professional) {
     const { error } = await supabase
       .from("professionals")
@@ -137,24 +148,24 @@ export default function ProfessionalsPage() {
       {
         autoClose: false,
         draggable: false,
-        icon: false,
         closeOnClick: false,
+        icon: false,
         style: { background: "#1d1b23", color: "#fff" },
       }
     );
   }
 
-  /* ============================================================
-     ✏️ EDITAR
-  ============================================================ */
+  // ============================================================
+  // EDITAR PROFISSIONAL
+  // ============================================================
   function openEdit(id: string) {
     setEditId(id);
     setOpenModal(true);
   }
 
-  /* ============================================================
-     📌 RENDER
-  ============================================================ */
+  // ============================================================
+  // RENDER
+  // ============================================================
   return (
     <>
       <div className={styles.overlay}>
@@ -163,7 +174,7 @@ export default function ProfessionalsPage() {
           <div className={styles.header}>
             <h2>Profissionais</h2>
 
-            <button className={styles.closeBtn} onClick={() => history.back()}>
+            <button className={styles.closeBtn} onClick={handleClose}>
               <X size={20} />
             </button>
           </div>
@@ -202,15 +213,12 @@ export default function ProfessionalsPage() {
             {!loading &&
               professionals.map((p) => (
                 <div key={p.id} className={styles.card}>
-                  {/* LEFT SIDE */}
+                  {/* INFO ESQUERDA */}
                   <div>
                     <div className={styles.title}>{p.name}</div>
 
                     <div className={styles.meta}>
-                      {/* EMAIL */}
                       {p.email || "Sem e-mail"} ·{" "}
-
-                      {/* STATUS */}
                       <span
                         style={{
                           color: p.is_active ? "#00c851" : "#dc3545",
@@ -221,15 +229,14 @@ export default function ProfessionalsPage() {
                       </span>
                     </div>
 
-                    {/* TELEFONE FORMATADO */}
-                  <div className={styles.phoneWrapper}>
-                  <span>📞 {dbPhoneToMasked(p.phone ?? "")}</span>
-                    <CopyButton value={onlyDigits(p.phone ?? "")} />
+                    {/* TELEFONE FORMATADO COM COPY */}
+                    <div className={styles.phoneWrapper}>
+                      <span>📞 {dbPhoneToMasked(p.phone ?? "")}</span>
+                      <CopyButton value={onlyDigits(p.phone ?? "")} />
+                    </div>
                   </div>
 
-                  </div>
-
-                  {/* ACTIONS */}
+                  {/* AÇÕES */}
                   <div className={styles.actions}>
                     <button
                       className={styles.iconBtn}
@@ -255,7 +262,7 @@ export default function ProfessionalsPage() {
         </div>
       </div>
 
-      {/* MODAL PROFISSIONAL */}
+      {/* MODAL DE CADASTRO/EDIÇÃO */}
       <ModalNewProfessional
         tenantId={tenantId!}
         show={openModal}
