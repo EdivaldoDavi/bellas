@@ -29,13 +29,14 @@ export default function StepFirstCustomer() {
         >
           Cadastrar cliente de teste
         </button>
-
+{/*
         <button
           className={styles.secondaryBtn}
           onClick={() => updateOnboardingStep(5)}
         >
           Pular este passo
         </button>
+        */}
       </div>
 
       {tenant?.id && (
