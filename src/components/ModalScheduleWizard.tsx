@@ -13,15 +13,12 @@ import { CalendarDays, Clock } from "lucide-react";
 import { useTheme } from "../hooks/useTheme";
 
 import {
-  
   combineLocalDateTime,
-  
   weekdayName,
-  dateBR,
-  
+  dateBR
 } from "../utils/date";
 
-import { getAvailableTimeSlots } from "../utils/schedule"; // Importa a nova função
+import { getAvailableTimeSlots } from "../utils/schedule";
 
 type Professional = { id: string; name: string };
 type Service = { id: string; name: string; duration_min?: number | null };
@@ -39,8 +36,7 @@ export default function ModalScheduleWizard({
   onClose,
   onBooked
 }: ModalScheduleWizardProps) {
-  
-  /* -------------------------------- THEME -------------------------------- */
+
   const { theme } = useTheme();
 
   /* -------------------------------- STATES -------------------------------- */
@@ -63,7 +59,9 @@ export default function ModalScheduleWizard({
   const [services, setServices] = useState<Service[]>([]);
   const [serviceId, setServiceId] = useState("");
   const [serviceName, setServiceName] = useState("");
-  const [serviceDuration, setServiceDuration] = useState<number | null>(null);
+
+  // Nunca pode ser null
+  const [serviceDuration, setServiceDuration] = useState<number>(60);
 
   const [customerId, setCustomerId] = useState("");
   const [customerName, setCustomerName] = useState("");
@@ -79,7 +77,8 @@ export default function ModalScheduleWizard({
     setProfessionalName("");
     setServiceId("");
     setServiceName("");
-    setServiceDuration(null);
+    setServiceDuration(60); // sempre seguro
+
     setCustomerId("");
     setCustomerName("");
     setSelectedDate("");
@@ -125,7 +124,13 @@ export default function ModalScheduleWizard({
 
     if (!tenantId || !date || !profId || !duration) return;
 
-    const times = await getAvailableTimeSlots(tenantId, profId, duration, date);
+    const times = await getAvailableTimeSlots(
+      tenantId,
+      profId,
+      duration,
+      date
+    );
+
     setAvailableTimes(times);
   }
 
@@ -139,7 +144,15 @@ export default function ModalScheduleWizard({
       case 5: return !!selectedTime;
       default: return true;
     }
-  }, [step, professionalId, serviceId, serviceDuration, customerId, selectedDate, selectedTime]);
+  }, [
+    step,
+    professionalId,
+    serviceId,
+    serviceDuration,
+    customerId,
+    selectedDate,
+    selectedTime
+  ]);
 
   function goNext() {
     if (!canNext) return toast.warn("Complete esta etapa.");
@@ -160,7 +173,7 @@ export default function ModalScheduleWizard({
       .single();
 
     const start = combineLocalDateTime(selectedDate, selectedTime);
-    const end = new Date(start.getTime() + (serviceDuration || 60) * 60000);
+    const end = new Date(start.getTime() + serviceDuration * 60000);
 
     const payload = {
       tenant_id: tenantId,
@@ -197,15 +210,30 @@ export default function ModalScheduleWizard({
     s.name.toLowerCase().includes(searchService.toLowerCase())
   );
 
-  const labels = ["Profissional", "Serviço", "Cliente", "Data", "Horário", "Revisão"];
+  const labels = [
+    "Profissional",
+    "Serviço",
+    "Cliente",
+    "Data",
+    "Horário",
+    "Revisão"
+  ];
   const stepName = labels[step - 1];
 
-  const stepPct = totalSteps > 1 ? ((step - 1) / (totalSteps - 1)) * 100 : 0;
+  const stepPct =
+    totalSteps > 1 ? ((step - 1) / (totalSteps - 1)) * 100 : 0;
 
   return (
-    <div className={`${styles.overlay} ${theme === "dark" ? styles.dark : ""}`}>
-      <div className={`${styles.modal} ${theme === "dark" ? styles.modalDark : ""}`}>
-
+    <div
+      className={`${styles.overlay} ${
+        theme === "dark" ? styles.dark : ""
+      }`}
+    >
+      <div
+        className={`${styles.modal} ${
+          theme === "dark" ? styles.modalDark : ""
+        }`}
+      >
         {/* HEADER */}
         <div className={styles.header}>
           <div className={styles.headerBar}>
@@ -214,7 +242,10 @@ export default function ModalScheduleWizard({
             <div className={styles.headerCenter}>
               <span className={styles.headerKicker}>Agendamento</span>
               <h4 className={styles.headerTitle}>
-                {stepName} <span className={styles.headerCount}>({step}/{totalSteps})</span>
+                {stepName}{" "}
+                <span className={styles.headerCount}>
+                  ({step}/{totalSteps})
+                </span>
               </h4>
             </div>
 
@@ -224,25 +255,35 @@ export default function ModalScheduleWizard({
           </div>
 
           <div className={styles.headerProgress}>
-            <div className={styles.headerProgressFill} style={{ width: `${stepPct}%` }} />
+            <div
+              className={styles.headerProgressFill}
+              style={{ width: `${stepPct}%` }}
+            />
           </div>
 
           <div className={styles.headerDots}>
             {Array.from({ length: totalSteps }).map((_, i) => (
-              <span key={i} className={`${styles.dot} ${i < step ? styles.dotActive : ""}`} />
+              <span
+                key={i}
+                className={`${styles.dot} ${
+                  i < step ? styles.dotActive : ""
+                }`}
+              />
             ))}
           </div>
         </div>
 
         {/* BODY */}
         <div className={styles.body}>
-
           {/* STEP 1 */}
           {step === 1 && (
             <div className={styles.step}>
               <h3 className={styles.stepTitle}>Selecione o profissional</h3>
 
-              <button className={styles.addButton} onClick={() => setShowNewProfessional(true)}>
+              <button
+                className={styles.addButton}
+                onClick={() => setShowNewProfessional(true)}
+              >
                 + Novo profissional
               </button>
 
@@ -258,12 +299,14 @@ export default function ModalScheduleWizard({
                 {filteredProfessionals.map((p) => (
                   <li key={p.id}>
                     <button
-                      className={`${styles.item} ${p.id === professionalId ? styles.active : ""}`}
+                      className={`${styles.item} ${
+                        p.id === professionalId ? styles.active : ""
+                      }`}
                       onClick={async () => {
                         setProfessionalId(p.id);
                         setProfessionalName(p.name);
                         setServiceId("");
-                        setServiceDuration(null);
+                        setServiceDuration(60);
                         await loadServices(p.id);
                       }}
                     >
@@ -278,9 +321,14 @@ export default function ModalScheduleWizard({
           {/* STEP 2 */}
           {step === 2 && (
             <div className={styles.step}>
-              <h3 className={styles.stepTitle}>Serviços de {professionalName}</h3>
+              <h3 className={styles.stepTitle}>
+                Serviços de {professionalName}
+              </h3>
 
-              <button className={styles.addButton} onClick={() => setShowNewService(true)}>
+              <button
+                className={styles.addButton}
+                onClick={() => setShowNewService(true)}
+              >
                 + Novo serviço
               </button>
 
@@ -300,15 +348,19 @@ export default function ModalScheduleWizard({
                   return (
                     <li key={s.id}>
                       <button
-                        className={`${styles.item} ${active ? styles.active : ""}`}
+                        className={`${styles.item} ${
+                          active ? styles.active : ""
+                        }`}
                         onClick={() => {
                           setServiceId(s.id);
                           setServiceName(s.name);
-                          setServiceDuration(dur);
+                          setServiceDuration(dur ?? 60);
                         }}
                       >
                         <div className={styles.itemCol}>
-                          <span className={styles.itemTitle}>{s.name}</span>
+                          <span className={styles.itemTitle}>
+                            {s.name}
+                          </span>
                           <span className={styles.badge}>{dur} min</span>
                         </div>
                       </button>
@@ -324,7 +376,10 @@ export default function ModalScheduleWizard({
             <div className={styles.step}>
               <h3 className={styles.stepTitle}>Cliente</h3>
 
-              <button className={styles.addButton} onClick={() => setShowNewCustomer(true)}>
+              <button
+                className={styles.addButton}
+                onClick={() => setShowNewCustomer(true)}
+              >
                 + Novo cliente
               </button>
 
@@ -349,12 +404,12 @@ export default function ModalScheduleWizard({
               <DatePickerModal
                 tenantId={tenantId}
                 professionalId={professionalId}
-                serviceDuration={serviceDuration || 60}
-                value={selectedDate}
+                serviceDuration={serviceDuration}
+                value={selectedDate || ""}
                 onSelect={async (d) => {
                   setSelectedDate(d);
                   setSelectedTime("");
-                  await loadTimes(d, professionalId, serviceDuration || 60);
+                  await loadTimes(d, professionalId, serviceDuration);
                 }}
               />
 
@@ -362,9 +417,12 @@ export default function ModalScheduleWizard({
                 <div className={styles.helper}>
                   <CalendarDays size={20} className={styles.helperIcon} />
                   <div className={styles.helperBody}>
-                    <div className={styles.helperLabel}>Data selecionada</div>
+                    <div className={styles.helperLabel}>
+                      Data selecionada
+                    </div>
                     <div className={styles.helperValue}>
-                      <strong>{dateBR(selectedDate)}</strong> — {weekdayName(selectedDate)}
+                      <strong>{dateBR(selectedDate)}</strong> —{" "}
+                      {weekdayName(selectedDate)}
                     </div>
                   </div>
                 </div>
@@ -373,31 +431,31 @@ export default function ModalScheduleWizard({
           )}
 
           {/* STEP 5 */}
-            {step === 5 && (
-              <div className={styles.step}>
-                <h3 className={styles.stepTitle}>Selecione o horário</h3>
+          {step === 5 && (
+            <div className={styles.step}>
+              <h3 className={styles.stepTitle}>Selecione o horário</h3>
 
-                {availableTimes.length === 0 && (
-                  <p style={{ color: "#f0ad4e", fontSize: "0.9rem" }}>
-                    Nenhum horário disponível nesta data.
-                  </p>
-                )}
+              {availableTimes.length === 0 && (
+                <p style={{ color: "#f0ad4e", fontSize: "0.9rem" }}>
+                  Nenhum horário disponível nesta data.
+                </p>
+              )}
 
-                <div className={styles.timeGrid}>
-                  {availableTimes.map((t) => (
-                    <button
-                      key={t}
-                      className={`${styles.timeBtn} ${
-                        t === selectedTime ? styles.timeActive : ""
-                      }`}
-                      onClick={() => setSelectedTime(t)}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
+              <div className={styles.timeGrid}>
+                {availableTimes.map((t) => (
+                  <button
+                    key={t}
+                    className={`${styles.timeBtn} ${
+                      t === selectedTime ? styles.timeActive : ""
+                    }`}
+                    onClick={() => setSelectedTime(t)}
+                  >
+                    {t}
+                  </button>
+                ))}
               </div>
-            )}
+            </div>
+          )}
 
           {/* STEP 6 */}
           {step === 6 && (
@@ -419,7 +477,9 @@ export default function ModalScheduleWizard({
 
                 <div className={styles.reviewRow}>
                   <span className={styles.label}>Cliente</span>
-                  <span className={styles.value}>{customerName || "-"}</span>
+                  <span className={styles.value}>
+                    {customerName || "-"}
+                  </span>
                 </div>
 
                 <div className={`${styles.reviewRow} ${styles.dateRow}`}>
@@ -427,7 +487,9 @@ export default function ModalScheduleWizard({
                     <CalendarDays size={18} />
                     <span className={styles.label}>Data</span>
                   </div>
-                  <span className={styles.value}>{dateBR(selectedDate)}</span>
+                  <span className={styles.value}>
+                    {dateBR(selectedDate)}
+                  </span>
                 </div>
 
                 <div className={`${styles.reviewRow} ${styles.timeRow}`}>
@@ -440,7 +502,6 @@ export default function ModalScheduleWizard({
               </div>
             </div>
           )}
-
         </div>
 
         {/* FOOTER */}
@@ -482,33 +543,33 @@ export default function ModalScheduleWizard({
       )}
 
       {showNewProfessional && (
-<ModalNewProfessional
-  tenantId={tenantId}
-  mode="agenda"
-  show={showNewProfessional}
-  editId={null}   // <-- IMPORTANTE para o fluxo agenda
-  onClose={() => setShowNewProfessional(false)}
-  onSuccess={async (id, name) => {
-    setShowNewProfessional(false);
+        <ModalNewProfessional
+          tenantId={tenantId}
+          mode="agenda"
+          show={showNewProfessional}
+          editId={null}
+          onClose={() => setShowNewProfessional(false)}
+          onSuccess={async (id, name) => {
+            setShowNewProfessional(false);
 
-    const { data } = await supabase
-      .from("professionals")
-      .select("id,name")
-      .order("name");
+            const { data } = await supabase
+              .from("professionals")
+              .select("id,name")
+              .order("name");
 
-    const ordered = [
-      { id, name },
-      ...(data || []).filter((p) => p.id !== id)
-    ];
+            const ordered = [
+              { id, name },
+              ...(data || []).filter((p) => p.id !== id)
+            ];
 
-    setProfessionals(ordered);
-    setProfessionalId(id);
-    setProfessionalName(name);
+            setProfessionals(ordered);
+            setProfessionalId(id);
+            setProfessionalName(name);
 
-    await loadServices(id);
-    toast.success(`Profissional ${name} cadastrado!`);
-  }}
-/>
+            await loadServices(id);
+            toast.success(`Profissional ${name} cadastrado!`);
+          }}
+        />
       )}
 
       {showNewService && (
@@ -527,7 +588,9 @@ export default function ModalScheduleWizard({
 
             const ordered = [
               { id, name, duration_min: duration },
-              ...(data || []).map((r: any) => r.service).filter((s) => s.id !== id)
+              ...(data || [])
+                .map((r: any) => r.service)
+                .filter((s) => s.id !== id)
             ];
 
             setServices(ordered);
