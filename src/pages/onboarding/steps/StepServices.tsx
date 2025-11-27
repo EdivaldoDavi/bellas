@@ -10,7 +10,7 @@ import ModalNewService from "../../../components/ModalNewService";
 export default function StepServices() {
   const { updateOnboardingStep, tenant } = useUserTenant();
   const [showModal, setShowModal] = useState(true);
-  const [createdSomething, setCreatedSomething] = useState(false);
+  const [, setCreatedSomething] = useState(false);
 
   const handleClose = () => setShowModal(false);
 
