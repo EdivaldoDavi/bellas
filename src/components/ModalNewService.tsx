@@ -313,27 +313,39 @@ async function handleSave() {
             )}
 
             {/* PROFISSIONAIS */}
-            <h4 className={styles.sectionTitle}>Profissionais</h4>
-            {professionals.length === 0 ? (
-              <p className={styles.smallMuted}>
-                Nenhum profissional cadastrado ainda.
-              </p>
-            ) : (
-              <div className={styles.profList}>
-                {professionals.map((prof) => (
-                  <div key={prof.id} className={styles.professionalItem}>
-                    <label className={styles.professionalLabel}>
-                      <input
-                        type="checkbox"
-                        checked={selectedProfessionalIds.includes(prof.id)}
-                        onChange={() => toggleProfessional(prof.id)}
-                      />
-                      <span>{prof.name}</span>
-                    </label>
-                  </div>
-                ))}
-              </div>
-            )}
+<h4 className={styles.sectionTitle}>Profissionais</h4>
+
+{professionals.length === 0 ? (
+  <p className={styles.smallMuted}>
+    Nenhum profissional cadastrado ainda.
+  </p>
+) : (
+  <div className={styles.checkList}>
+    {professionals.map((prof) => {
+      const checked = selectedProfessionalIds.includes(prof.id);
+
+      return (
+        <label
+          key={prof.id}
+          className={styles.checkItem}
+          onClick={(e) => {
+            // Evita toggle duplo quando clicado diretamente no input
+            if ((e.target as HTMLElement).tagName !== "INPUT") {
+              toggleProfessional(prof.id);
+            }
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={checked}
+            onChange={() => toggleProfessional(prof.id)}
+          />
+          <p className={styles.profName}>{prof.name}</p>
+        </label>
+      );
+    })}
+  </div>
+)}
 
             <button
               className={styles.saveBtn}
@@ -348,6 +360,7 @@ async function handleSave() {
             </button>
           </>
         )}
+        
       </div>
     </div>
   );
