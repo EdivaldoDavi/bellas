@@ -40,14 +40,14 @@ export default function StepSchedule() {
           Fazer isso depois
         </button>
       </div>
-
+{/*
       <button
         className={styles.skipBtn}
         onClick={() => updateOnboardingStep(99)}
       >
         Pular todo o onboarding
       </button>
-
+*/}
       {tenant?.id && (
         <ModalNewProfessional
           tenantId={tenant.id}

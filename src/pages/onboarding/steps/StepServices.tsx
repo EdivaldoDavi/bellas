@@ -16,11 +16,11 @@ export default function StepServices() {
   const handleSuccess = () => {
     setCreatedSomething(true);
   };
-/* função para pular onboarding comentada 
+
   const handleContinue = () => {
     updateOnboardingStep(3);
   };
-*/
+
   return (
     <div>
       <h2 className={styles.stepTitle}>Cadastre seus serviços principais</h2>
@@ -30,7 +30,7 @@ export default function StepServices() {
       </p>
 
       <p className={styles.stepText}>
-        Um modal será aberto para você cadastrar seus serviços. Quando terminar,
+        Um modal será aberto para você cadastrar seus serviços, <strong>Importante!</strong> cadastre pelo menos um serviço. Quando terminar,
         clique em <strong>Continuar</strong>.
       </p>
 
@@ -41,14 +41,14 @@ export default function StepServices() {
         >
           Abrir cadastro de serviços
         </button>
-{/*
+
         <button
           className={styles.secondaryBtn}
           onClick={handleContinue}
         >
-          Já cadastrei / vou cadastrar depois
+          Já cadastrei um / vou cadastrar mmais depois
         </button>
-        */}
+
       </div>
 
       <button
