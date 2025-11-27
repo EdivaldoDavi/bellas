@@ -48,7 +48,6 @@ export default function Setup() {
 
   /* ============================================================
      SINCRONIZA CAMPOS QUANDO O TENANT CARREGAR/ATUALIZAR
-     (removeu o !saving que travava o reload após salvar)
   ============================================================ */
   useEffect(() => {
     if (!tenant) return;
@@ -97,7 +96,7 @@ export default function Setup() {
   }
 
   /* ============================================================
-     STEP 1 — CRIAR / ATUALIZAR TENANT
+     STEP 1 — CRIAR / ATUALIZAR TENANT + GARANTIR PROFESSIONAL
   ============================================================ */
   async function saveStep1() {
     if (!name.trim()) {
@@ -105,63 +104,68 @@ export default function Setup() {
       return;
     }
 
+    if (!profile) {
+      toast.error("Perfil não encontrado.");
+      return;
+    }
+
     setSaving(true);
 
     try {
-      const userId = profile?.user_id;
-      let tenantId = tenant?.id ?? null;
+      const currentUserId = profile.user_id;
+      let currentTenantId = tenant?.id ?? null;
 
-      // 1) Criar tenant
-      if (!tenantId) {
-        tenantId = crypto.randomUUID();
+      // 1️⃣ Criar tenant (primeira vez)
+      if (!currentTenantId) {
+        const generatedId = crypto.randomUUID();
 
-        const { error: errInsert } = await supabase.from("tenants").insert({
-          id: tenantId,
-          name,
-          primary_color: primary,
-          secondary_color: secondary,
-          theme_variant: variant,
-          setup_complete: false, // só termina no final do step 2
-          created_by: userId,
-        });
+        const { data: newTenant, error: errInsert } = await supabase
+          .from("tenants")
+          .insert({
+            id: generatedId,
+            name,
+            primary_color: primary,
+            secondary_color: secondary,
+            theme_variant: variant,
+            setup_complete: false, // só termina no final do step 2
+            created_by: currentUserId,
+          })
+          .select("*")
+          .single();
 
         if (errInsert) throw errInsert;
 
-        const updateProfile: any = { tenant_id: tenantId };
+        currentTenantId = newTenant.id;
 
-        // promove a manager caso não seja owner/manager
-        if (profile?.role !== "owner" && profile?.role !== "manager") {
+        // Atualiza o perfil com o tenant e, se necessário, promove para manager
+        const updateProfile: any = { tenant_id: currentTenantId };
+
+        if (profile.role !== "owner" && profile.role !== "manager") {
           updateProfile.role = "manager";
         }
 
         const { error: errProfile } = await supabase
           .from("profiles")
           .update(updateProfile)
-          .eq("user_id", userId);
+          .eq("user_id", currentUserId);
 
         if (errProfile) throw errProfile;
+
+        // 🔄 Atualiza JWT e contexto (importante para RLS que usa tenant_id no token)
+        await supabase.auth.refreshSession();
+        await reloadAll();
       }
-
-      // 🔥 Criar PROFESSIONAL automaticamente caso ainda não exista
-          const { data: existingProfessional } = await supabase
-            .from("professionals")
-            .select("id")
-            .eq("tenant_id", tenantId)
-            .eq("user_id", profile?.user_id)
-            .maybeSingle();
-
-          if (!existingProfessional) {
-            await supabase.from("professionals").insert({
-              tenant_id: tenantId,
-              user_id: profile?.user_id,
-              name: profile?.full_name,
-              email: profile?.email || null,
-              is_active: true,
-            });
-          }
-
-      // 2) Atualizar tenant existente
+      // 2️⃣ Atualizar tenant existente
       else {
+        const canUpdateTenant =
+          profile.role === "owner" || profile.role === "manager";
+
+        if (!canUpdateTenant) {
+          toast.error("Você não pode alterar estes dados.");
+          setSaving(false);
+          return;
+        }
+
         const { error: errUpdate } = await supabase
           .from("tenants")
           .update({
@@ -169,21 +173,48 @@ export default function Setup() {
             primary_color: primary,
             secondary_color: secondary,
             theme_variant: variant,
-            setup_complete: false,
+            setup_complete: false, // continua falso até finalizar o step 2
           })
-          .eq("id", tenantId);
+          .eq("id", currentTenantId);
 
         if (errUpdate) throw errUpdate;
       }
 
+      // 3️⃣ Garante que exista um PROFESSIONAL para este usuário + tenant
+      if (currentTenantId) {
+        const { data: existingProfessional, error: profSelectErr } =
+          await supabase
+            .from("professionals")
+            .select("id")
+            .eq("tenant_id", currentTenantId)
+            .eq("user_id", currentUserId)
+            .maybeSingle();
+
+        if (profSelectErr) throw profSelectErr;
+
+        if (!existingProfessional) {
+          const { error: profInsertErr } = await supabase
+            .from("professionals")
+            .insert({
+              tenant_id: currentTenantId,
+              user_id: currentUserId,
+              name: profile.full_name,
+              email: profile.email || null,
+              is_active: true,
+            });
+
+          if (profInsertErr) throw profInsertErr;
+        }
+      }
+
       await reloadAll();
-      setSaving(false);
 
       // 👉 Avança para o passo 2 (WhatsApp dentro do setup)
       setStep(2);
     } catch (err: any) {
       console.error(err);
-      toast.error("Erro ao salvar configurações.");
+      toast.error(err.message || "Erro ao salvar configurações.");
+    } finally {
       setSaving(false);
     }
   }
@@ -193,7 +224,6 @@ export default function Setup() {
   ============================================================ */
   async function finishAfterWhatsApp() {
     try {
-      // usa o tenant mais recente do contexto
       if (tenant?.id) {
         await supabase
           .from("tenants")
