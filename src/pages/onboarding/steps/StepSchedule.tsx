@@ -1,68 +1,76 @@
-// src/pages/onboarding/steps/StepSchedule.tsx
-import { useState } from "react";
-import { supabase } from "../../../lib/supabaseCleint";
+import { useState, useEffect } from "react";
 import { useUserTenant } from "../../../context/UserTenantProvider";
+import { supabase } from "../../../lib/supabaseCleint";
 import { toast } from "react-toastify";
 import styles from "../Onboarding.module.css";
 
 import ProfessionalsPage from "../../ProfessionalsPage";
 
 export default function StepSchedule() {
-  const { tenant, updateOnboardingStep, profile } = useUserTenant();
-  const [showModal, setShowModal] = useState(true);
+  const { tenant, profile, updateOnboardingStep } = useUserTenant();
   const tenantId = tenant?.id;
+  const userId = profile?.user_id;
 
-  /* ============================================================
-     ⚠️ Verifica requisitos antes de avançar
-  ============================================================ */
-  async function canContinue() {
-    if (!tenantId || !profile?.user_id) return false;
+  const [showModal, setShowModal] = useState(false);
+  const [loadingCheck, setLoadingCheck] = useState(false);
 
-    // 1) Verifica se existe pelo menos 1 serviço
-    const { data: services } = await supabase
-      .from("services")
-      .select("id")
-      .eq("tenant_id", tenantId)
-      .limit(1);
+  async function validateAndContinue() {
+    if (!tenantId || !userId) return;
 
-    if (!services || services.length === 0) {
-      toast.warn("Cadastre pelo menos um serviço antes de continuar.");
-      return false;
-    }
+    setLoadingCheck(true);
 
-    // 2) Verifica se existe pelo menos 1 horário cadastrado (para qualquer profissional)
-    const { data: schedules } = await supabase
-      .from("professional_schedules")
-      .select("id")
-      .eq("tenant_id", tenantId)
-      .limit(1);
+    try {
+      // 1️⃣ Verifica se o usuário tem profissional
+      const { data: prof } = await supabase
+        .from("professionals")
+        .select("id")
+        .eq("tenant_id", tenantId)
+        .eq("user_id", userId)
+        .single();
 
-    if (!schedules || schedules.length === 0) {
-      toast.warn("Defina pelo menos um horário de atendimento antes de continuar.");
-      return false;
-    }
+      if (!prof) {
+        toast.error("Profissional não encontrado.");
+        setLoadingCheck(false);
+        return;
+      }
 
-    return true;
-  }
+      const professionalId = prof.id;
 
-  /* ============================================================
-     BOTÃO: Fazer isso depois
-  ============================================================ */
-  async function handleContinueLater() {
-    if (await canContinue()) {
+      // 2️⃣ Verifica serviços
+      const { count: serviceCount } = await supabase
+        .from("professional_services")
+        .select("id", { count: "exact", head: true })
+        .eq("tenant_id", tenantId)
+        .eq("professional_id", professionalId);
+
+      if (!serviceCount || serviceCount === 0) {
+        toast.warn("Você deve selecionar ao menos 1 serviço.");
+        setLoadingCheck(false);
+        return;
+      }
+
+      // 3️⃣ Verifica horários
+      const { count: scheduleCount } = await supabase
+        .from("professional_schedules")
+        .select("id", { count: "exact", head: true })
+        .eq("tenant_id", tenantId)
+        .eq("professional_id", professionalId);
+
+      if (!scheduleCount || scheduleCount === 0) {
+        toast.warn("Você deve definir ao menos 1 horário.");
+        setLoadingCheck(false);
+        return;
+      }
+
+      // Tudo certo → avança
       updateOnboardingStep(4);
-    }
-  }
 
-  /* ============================================================
-     FECHAR MODAL (somente se já cadastrou horário)
-  ============================================================ */
-  async function handleCloseModal() {
-    setShowModal(false);
-
-    if (await canContinue()) {
-      updateOnboardingStep(4);
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao validar dados.");
     }
+
+    setLoadingCheck(false);
   }
 
   return (
@@ -70,23 +78,28 @@ export default function StepSchedule() {
       <h2 className={styles.stepTitle}>Defina seus horários de atendimento</h2>
 
       <p className={styles.stepText}>
-        Agora vamos configurar os horários em que você (ou o profissional 
-        principal) irá atender. Isso garante que a agenda só permita 
-        agendamentos em horários válidos.
+        Agora vamos configurar os horários em que você irá atender.
       </p>
 
       <div className={styles.actions}>
-        <button className={styles.primaryBtn} onClick={() => setShowModal(true)}>
+        <button
+          className={styles.primaryBtn}
+          onClick={() => setShowModal(true)}
+        >
           Ajustar horários agora
         </button>
 
-        <button className={styles.secondaryBtn} onClick={handleContinueLater}>
-          Fazer isso depois
+        <button
+          className={styles.secondaryBtn}
+          disabled={loadingCheck}
+          onClick={validateAndContinue}
+        >
+          {loadingCheck ? "Validando..." : "Continuar"}
         </button>
       </div>
 
       {tenantId && showModal && (
-        <ProfessionalsPage onClose={handleCloseModal} />
+        <ProfessionalsPage onClose={() => setShowModal(false)} />
       )}
     </div>
   );
