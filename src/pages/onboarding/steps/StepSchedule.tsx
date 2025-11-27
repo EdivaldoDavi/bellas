@@ -3,7 +3,7 @@ import { useUserTenant } from "../../../context/UserTenantProvider";
 import { supabase } from "../../../lib/supabaseCleint";
 import { toast } from "react-toastify";
 import styles from "../Onboarding.module.css";
-
+import {  Pencil } from "lucide-react";
 import ProfessionalsPage from "../../ProfessionalsPage";
 
 export default function StepSchedule() {
@@ -75,11 +75,12 @@ export default function StepSchedule() {
 
   return (
     <div>
-      <h2 className={styles.stepTitle}>Defina seus horários de atendimento</h2>
+      <h2 className={styles.stepTitle}>Escolha o(s) profissionais que irão atender .</h2>
 
       <p className={styles.stepText}>
-        Agora vamos configurar os horários em que você irá atender, por padrão o sistema inseriu automaticamente das 09:00 ás 18:00hs sem horário de almoço, mas você
-        pode editar, cadastrar novos profissionais e até mesmo selecionar mais serviços caso tenha cadastrado na etapa anterior.
+        Agora vamos configurar os profissionais que irão atender, por padrão o sistema inseriu você como profissional e cadastrou automaticamente o horário de atendimento Segunda
+         à Domingo das 09:00 ás 18:00hs sem horário de almoço, mas você poderá editar agora clicando no botão ajustar horários agora e em seguida no ícone    <Pencil size={18} /> ou
+        pode editar mais tarde se preferir, se for este seu caso basta clicar em <strong>continuar</strong>
       </p>
 
       <div className={styles.actions}>
