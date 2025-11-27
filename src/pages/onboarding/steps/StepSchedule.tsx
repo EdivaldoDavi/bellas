@@ -78,7 +78,8 @@ export default function StepSchedule() {
       <h2 className={styles.stepTitle}>Defina seus horários de atendimento</h2>
 
       <p className={styles.stepText}>
-        Agora vamos configurar os horários em que você irá atender.
+        Agora vamos configurar os horários em que você irá atender, por padrão o sistema inseriu automaticamente das 09:00 ás 18:00hs sem horário de almoço, mas você
+        pode editar, cadastrar novos profissionais e até mesmo selecionar mais serviços caso tenha cadastrado na etapa anterior.
       </p>
 
       <div className={styles.actions}>
