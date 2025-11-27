@@ -22,10 +22,10 @@ type ProfessionalRow = {
 interface ModalNewServiceProps {
   tenantId?: string;
   show: boolean;
-  mode?: "cadastro" | "edit";
+ mode?: "agenda" | "edit" | "cadastro";
   service?: ServiceRow;
   onClose: () => void;
-  onSuccess?: () => void;
+onSuccess?: (id: string, name: string, duration: number) => void;
 }
 
 export default function ModalNewService({
@@ -122,99 +122,143 @@ export default function ModalNewService({
     );
   }
 
-  async function handleSave() {
-    if (!tenantId) {
-      toast.error("Tenant inválido.");
-      return;
-    }
+async function handleSave() {
+  if (!tenantId) {
+    toast.error("Tenant inválido.");
+    return;
+  }
 
-    const trimmedName = name.trim();
-    if (!trimmedName) {
-      toast.warn("Informe o nome do serviço.");
-      return;
-    }
+  const trimmedName = name.trim();
+  if (!trimmedName) {
+    toast.warn("Informe o nome do serviço.");
+    return;
+  }
 
-    const durationNumber = Number(duration) || 0;
-    const priceNumber = Number(price.replace(",", ".")) || 0;
+  const durationNumber = Number(duration) || 0;
+  const priceNumber = Number(price.replace(",", ".")) || 0;
 
-    setLoading(true);
+  setLoading(true);
 
-    try {
-      let serviceId = service?.id ?? null;
+  try {
+    let serviceFinal: {
+      id: string;
+      name: string;
+      duration_min: number;
+    } | null = null;
 
-      // 1) Insere ou atualiza serviço
-      if (!isEditing) {
-        const { data, error } = await supabase
-          .from("services")
-          .insert([
-            {
-              tenant_id: tenantId,
-              name: trimmedName,
-              duration_min: durationNumber,
-              price_cents: Math.round(priceNumber * 100),
-              is_active: true,
-            },
-          ])
-          .select()
-          .single();
+    /* ===========================================================
+       1) INSERT OU UPDATE DO SERVICE
+    ============================================================ */
 
-        if (error || !data) throw error;
-        serviceId = data.id;
-      } else if (serviceId) {
-        const { error } = await supabase
-          .from("services")
-          .update({
+    if (!isEditing) {
+      // INSERT
+      const { data, error } = await supabase
+        .from("services")
+        .insert([
+          {
+            tenant_id: tenantId,
             name: trimmedName,
             duration_min: durationNumber,
             price_cents: Math.round(priceNumber * 100),
-            is_active: isActive,
-          })
-          .eq("tenant_id", tenantId)
-          .eq("id", serviceId);
+            is_active: true,
+          },
+        ])
+        .select()
+        .single();
 
-        if (error) throw error;
-      }
+      if (error || !data) throw error || new Error("Falha ao criar serviço.");
 
-      if (!serviceId) throw new Error("ID de serviço inválido.");
+      serviceFinal = {
+        id: data.id,
+        name: data.name,
+        duration_min: data.duration_min,
+      };
+    } else {
+      // UPDATE
+      if (!service?.id) throw new Error("ID de serviço inválido para edição.");
 
-      // 2) Atualiza vínculos em professional_services
-      // remove tudo para este serviço
-      const { error: delErr } = await supabase
-        .from("professional_services")
-        .delete()
+      const { error } = await supabase
+        .from("services")
+        .update({
+          name: trimmedName,
+          duration_min: durationNumber,
+          price_cents: Math.round(priceNumber * 100),
+          is_active: isActive,
+        })
         .eq("tenant_id", tenantId)
-        .eq("service_id", serviceId);
+        .eq("id", service.id);
 
-      if (delErr) throw delErr;
+      if (error) throw error;
 
-      // insere os selecionados
-      if (selectedProfessionalIds.length > 0) {
-        const rows = selectedProfessionalIds.map((profId) => ({
-          tenant_id: tenantId,
-          professional_id: profId,
-          service_id: serviceId,
-        }));
+      // O update não retorna o registro por padrão → buscar o atualizado
+      const { data, error: fetchErr } = await supabase
+        .from("services")
+        .select("id, name, duration_min")
+        .eq("tenant_id", tenantId)
+        .eq("id", service.id)
+        .single();
 
-        const { error: insErr } = await supabase
-          .from("professional_services")
-          .insert(rows);
+      if (fetchErr || !data)
+        throw fetchErr || new Error("Erro ao buscar serviço atualizado.");
 
-        if (insErr) throw insErr;
-      }
-
-      toast.success(
-        isEditing ? "Serviço atualizado com sucesso!" : "Serviço cadastrado com sucesso!"
-      );
-
-      onSuccess?.();
-      onClose();
-    } catch (err) {
-      console.error("[ModalNewService] Erro ao salvar:", err);
-      toast.error("Erro ao salvar serviço.");
-    } finally {
-      setLoading(false);
+      serviceFinal = data;
     }
+
+    if (!serviceFinal) throw new Error("Falha inesperada: serviceFinal nulo.");
+
+    const serviceId = serviceFinal.id;
+
+    /* ===========================================================
+       2) ATUALIZAR VÍNCULOS EM professional_services
+    ============================================================ */
+
+    const { error: delErr } = await supabase
+      .from("professional_services")
+      .delete()
+      .eq("tenant_id", tenantId)
+      .eq("service_id", serviceId);
+
+    if (delErr) throw delErr;
+
+    if (selectedProfessionalIds.length > 0) {
+      const rows = selectedProfessionalIds.map((profId) => ({
+        tenant_id: tenantId,
+        professional_id: profId,
+        service_id: serviceId,
+      }));
+
+      const { error: insErr } = await supabase
+        .from("professional_services")
+        .insert(rows);
+
+      if (insErr) throw insErr;
+    }
+
+    /* ===========================================================
+       3) SUCESSO
+    ============================================================ */
+
+    toast.success(
+      isEditing
+        ? "Serviço atualizado com sucesso!"
+        : "Serviço cadastrado com sucesso!"
+    );
+
+    // AGORA VAI PERFEITAMENTE!  100% seguro e definido
+    onSuccess?.(
+      serviceFinal.id,
+      serviceFinal.name,
+      serviceFinal.duration_min
+    );
+
+    onClose();
+  } catch (err) {
+    console.error("[ModalNewService] Erro ao salvar:", err);
+    toast.error("Erro ao salvar serviço.");
+  } finally {
+    setLoading(false);
   }
+}
 
   if (!show) return null;
 

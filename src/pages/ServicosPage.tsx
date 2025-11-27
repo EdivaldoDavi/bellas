@@ -280,7 +280,11 @@ export default function ServicosPage() {
         tenantId={tenantId}
         show={openModal}
         mode={editingService ? "edit" : "cadastro"}
-        service={editingService ?? undefined}
+        service={
+  editingService
+    ? { ...editingService, price_cents: editingService.price_cents ?? null }
+    : undefined
+}
         onClose={() => {
           setOpenModal(false);
           setEditingService(null);
