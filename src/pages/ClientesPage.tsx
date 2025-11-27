@@ -10,6 +10,9 @@ import { toast } from "react-toastify";
 import ModalNewCustomer from "../components/ModalNewCustomer";
 import styles from "../css/ClientesPage.module.css";
 
+// 📌 UTIL DE TELEFONE
+import { dbPhoneToMasked } from "../utils/phoneUtils";
+
 type Customer = {
   id: string;
   full_name: string;
@@ -22,76 +25,64 @@ export default function ClientesPage() {
   const { tenant } = useUserAndTenant();
   const tenantId = tenant?.id;
 
-  // const brandColor = tenant?.primary_color || "#22c55e"; // REMOVED, now using CSS variable
-
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [showAllCustomers, setShowAllCustomers] = useState(false); // Novo estado para controlar a exibição de todos os clientes
+  const [showAllCustomers, setShowAllCustomers] = useState(false);
 
   const [openModal, setOpenModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
 
-  /* aplica Brand Color */
-  // REMOVED: Direct style setting, now handled by applyTenantTheme
-  /*
-  useEffect(() => {
-    if (tenant?.primary_color) {
-      document.documentElement.style.setProperty("--primary", tenant.primary_color);
-    }
-  }, [tenant]);
-  */
-
-  /* LOAD customers */
+  /* ============================================================
+     LOAD
+  ============================================================ */
   useEffect(() => {
     if (tenantId) load();
-  }, [tenantId, showAllCustomers]); // Adicionado showAllCustomers como dependência
+  }, [tenantId, showAllCustomers]);
 
-async function load() {
-  if (!tenantId) return;
+  async function load() {
+    if (!tenantId) return;
 
-  setLoading(true);
+    setLoading(true);
 
-  let query = supabase
-    .from("customers")
-    .select(`
-      id,
-      full_name,
-      customer_phone,
-      is_active
-    `)
-    .eq("tenant_id", tenantId)
-    .order("full_name", { ascending: true });
+    let query = supabase
+      .from("customers")
+      .select("id, full_name, customer_phone, is_active")
+      .eq("tenant_id", tenantId)
+      .order("full_name", { ascending: true });
 
-  // Limita a 3 registros se não estiver no modo 'Ver todos' e não houver pesquisa
-  if (!showAllCustomers && !search.trim()) {
-    query = query.limit(3);
+    if (!showAllCustomers && !search.trim()) {
+      query = query.limit(3);
+    }
+
+    const { data } = await query;
+    setCustomers(data || []);
+    setLoading(false);
   }
 
-  const { data, error } = await query;
-
-  if (error) {
-    console.error("LOAD ERROR:", error);
-  }
-
-  setCustomers(data || []);
-  setLoading(false);
-}
-
-  /* FILTRAGEM */
+  /* ============================================================
+     FILTRO
+  ============================================================ */
   const filtered = useMemo(() => {
     const t = search.trim().toLowerCase();
     return t
-      ? customers.filter(c => c.full_name.toLowerCase().includes(t))
+      ? customers.filter((c) =>
+          c.full_name.toLowerCase().includes(t)
+        )
       : customers;
   }, [customers, search]);
 
+  /* ============================================================
+     EDITAR
+  ============================================================ */
   function openEdit(c: Customer) {
     setEditingCustomer(c);
     setOpenModal(true);
   }
 
-  /* CONFIRMAR toggle */
+  /* ============================================================
+     CONFIRMAR ATIVAR/INATIVAR
+  ============================================================ */
   function confirmToggle(customer: Customer) {
     const action = customer.is_active ? "inativar" : "ativar";
 
@@ -112,10 +103,10 @@ async function load() {
               marginRight: 10,
               padding: "6px 12px",
               borderRadius: 8,
-              background: "var(--color-primary)", // Use CSS variable
+              background: "var(--color-primary)",
               color: "#fff",
               border: "none",
-              cursor: "pointer"
+              cursor: "pointer",
             }}
           >
             Confirmar
@@ -129,7 +120,7 @@ async function load() {
               background: "#2a2833",
               color: "#fff",
               border: "1px solid #555",
-              cursor: "pointer"
+              cursor: "pointer",
             }}
           >
             Cancelar
@@ -141,7 +132,7 @@ async function load() {
         draggable: false,
         icon: false,
         closeOnClick: false,
-        style: { background: "#1d1b23", color: "#fff" }
+        style: { background: "#1d1b23", color: "#fff" },
       }
     );
   }
@@ -154,9 +145,11 @@ async function load() {
       .eq("tenant_id", tenantId);
 
     if (!error) {
-      setCustomers(old =>
-        old.map(c =>
-          c.id === customer.id ? { ...c, is_active: !c.is_active } : c
+      setCustomers((old) =>
+        old.map((c) =>
+          c.id === customer.id
+            ? { ...c, is_active: !c.is_active }
+            : c
         )
       );
     }
@@ -166,11 +159,13 @@ async function load() {
     navigate(-1);
   }
 
+  /* ============================================================
+     UI
+  ============================================================ */
   return (
     <>
       <div className={styles.overlay} onClick={close}>
-        <div className={styles.modal} onClick={e => e.stopPropagation()}>
-          
+        <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
           <div className={styles.header}>
             <h2>Clientes</h2>
             <button className={styles.closeBtn} onClick={close}>
@@ -180,7 +175,7 @@ async function load() {
 
           <button
             className={styles.newBtn}
-            style={{ backgroundColor: "var(--color-primary)" }} // Use CSS variable
+            style={{ backgroundColor: "var(--color-primary)" }}
             onClick={() => {
               setEditingCustomer(null);
               setOpenModal(true);
@@ -194,75 +189,87 @@ async function load() {
             className={styles.search}
             placeholder="Buscar cliente..."
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
           />
 
-                <div className={styles.list}>
+          <div className={styles.list}>
+            {loading && (
+              <div className={styles.empty}>Carregando...</div>
+            )}
 
-                {loading && (
-                    <div className={styles.empty}>Carregando...</div>
-                )}
+            {!loading && filtered.length === 0 && (
+              <div className={styles.empty}>Nenhum cliente encontrado.</div>
+            )}
 
-                {!loading && customers.length === 0 && (
-                    <div className={styles.empty}>Nenhum cliente cadastrado ainda.</div>
-                )}
-
-                {!loading && customers.length > 0 && filtered.length === 0 && (
-                    <div className={styles.empty}>Nenhum cliente encontrado.</div>
-                )}
-
-                {!loading && filtered.length > 0 && filtered.map(c => (
-                    <div key={c.id} className={styles.card}>
-                    <div>
-                        <div className={styles.title}>{c.full_name}</div>
-                        <div className={styles.meta}>
-                        {c.customer_phone} ·{" "}
-                        <span style={{ color: c.is_active ? '#007bff' : '#dc3545', fontWeight: 'bold' }}>
-                          {c.is_active ? "Ativo" : "Inativo"}
-                        </span>
-                        </div>
+            {!loading &&
+              filtered.map((c) => (
+                <div key={c.id} className={styles.card}>
+                  <div>
+                    <div className={styles.title}>{c.full_name}</div>
+                    <div className={styles.meta}>
+                      📞 {dbPhoneToMasked(c.customer_phone)} ·{" "}
+                      <span
+                        style={{
+                          color: c.is_active ? "#00c851" : "#dc3545",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {c.is_active ? "Ativo" : "Inativo"}
+                      </span>
                     </div>
+                  </div>
 
-                    <div className={styles.actions}>
-                        <button className={styles.iconBtn} onClick={() => openEdit(c)}>
-                        <Pencil size={18} />
-                        </button>
-                        <button
-                        className={styles.statusToggleButton}
-                        style={{ backgroundColor: c.is_active ? '#dc3545' : '#007bff', color: '#fff' }}
-                        onClick={() => confirmToggle(c)}
-                        >
-                        {c.is_active ? 'Inativar' : 'Ativar'}
-                        </button>
-                    </div>
-                    </div>
-                ))}
+                  <div className={styles.actions}>
+                    <button
+                      className={styles.iconBtn}
+                      onClick={() => openEdit(c)}
+                    >
+                      <Pencil size={18} />
+                    </button>
 
+                    <button
+                      className={styles.statusToggleButton}
+                      style={{
+                        backgroundColor: c.is_active
+                          ? "#dc3545"
+                          : "#007bff",
+                        color: "#fff",
+                      }}
+                      onClick={() => confirmToggle(c)}
+                    >
+                      {c.is_active ? "Inativar" : "Ativar"}
+                    </button>
+                  </div>
                 </div>
-                {!showAllCustomers && customers.length > 3 && !search.trim() && (
-                  <button
-                    className={styles.viewAllButton}
-                    style={{ backgroundColor: "var(--color-primary)" }} // Use CSS variable
-                    onClick={() => setShowAllCustomers(true)}
-                  >
-                    Ver todos os clientes
-                  </button>
-                )}
+              ))}
+          </div>
 
+          {!showAllCustomers &&
+            customers.length > 3 &&
+            !search.trim() && (
+              <button
+                className={styles.viewAllButton}
+                style={{ backgroundColor: "var(--color-primary)" }}
+                onClick={() => setShowAllCustomers(true)}
+              >
+                Ver todos os clientes
+              </button>
+            )}
         </div>
       </div>
 
-        <ModalNewCustomer
+      {/* MODAL */}
+      <ModalNewCustomer
         tenantId={tenantId}
         show={openModal}
         mode={editingCustomer ? "edit" : "cadastro"}
         customer={editingCustomer}
         onClose={() => {
-            setOpenModal(false);
-            load();           // 👈 SEMPRE recarrega ao fechar (solução imediata)
+          setOpenModal(false);
+          load();
         }}
-        onSuccess={() => load()}   // para o modo cadastro
-        />
+        onSuccess={() => load()}
+      />
     </>
   );
 }

@@ -5,6 +5,14 @@ import { toast } from "react-toastify";
 import { X } from "lucide-react";
 import styles from "../css/ModalNewCustomer.module.css";
 
+// 📌 Imports do util de telefone
+import {
+  formatPhoneInput,
+  maskedToDbPhone,
+  dbPhoneToMasked,
+  isValidMaskedPhone,
+} from "../utils/phoneUtils";
+
 interface Customer {
   id: string;
   full_name: string;
@@ -27,22 +35,21 @@ export default function ModalNewCustomer({
   mode,
   customer,
   onClose,
-  onSuccess
+  onSuccess,
 }: ModalNewCustomerProps) {
-
   const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(""); // agora com máscara
   const [loading, setLoading] = useState(false);
 
   /* ============================================================
-     CARREGA DADOS NO MODO EDIÇÃO
+     CARREGAR DADOS NO MODO EDIÇÃO
   ============================================================ */
   useEffect(() => {
     if (!show) return;
 
     if (mode === "edit" && customer) {
       setFullName(customer.full_name);
-      setPhone(customer.customer_phone);
+      setPhone(dbPhoneToMasked(customer.customer_phone)); // máscara
     } else {
       setFullName("");
       setPhone("");
@@ -52,19 +59,16 @@ export default function ModalNewCustomer({
   if (!show) return null;
 
   /* ============================================================
-     SALVAR CLIENTE
+     SALVAR
   ============================================================ */
   async function handleSave() {
-    if (!tenantId) {
-      toast.error("Tenant não encontrado.");
-      return;
-    }
+    if (!tenantId) return toast.error("Tenant não encontrado.");
 
     const name = fullName.trim();
-    const phoneClean = phone.replace(/\D/g, ""); // <-- mantém apenas números
+    const dbPhone = maskedToDbPhone(phone); // "5514996552177"
 
-    if (!name || !phoneClean) {
-      toast.warn("Preencha nome e telefone.");
+    if (!name || !isValidMaskedPhone(phone)) {
+      toast.warn("Informe nome e um telefone válido.");
       return;
     }
 
@@ -72,14 +76,14 @@ export default function ModalNewCustomer({
 
     try {
       /* ============================
-         EDITAR CLIENTE
+         EDITAR
       ============================ */
       if (mode === "edit" && customer) {
         const { error } = await supabase
           .from("customers")
           .update({
             full_name: name,
-            customer_phone: phoneClean
+            customer_phone: dbPhone,
           })
           .eq("id", customer.id)
           .eq("tenant_id", tenantId);
@@ -92,7 +96,7 @@ export default function ModalNewCustomer({
       }
 
       /* ============================
-         NOVO CLIENTE
+         NOVO
       ============================ */
       const { data, error } = await supabase
         .from("customers")
@@ -100,8 +104,8 @@ export default function ModalNewCustomer({
           {
             tenant_id: tenantId,
             full_name: name,
-            customer_phone: phoneClean
-          }
+            customer_phone: dbPhone,
+          },
         ])
         .select()
         .single();
@@ -112,13 +116,12 @@ export default function ModalNewCustomer({
 
       onSuccess?.(data.id, data.full_name);
 
-      if (mode === "agenda") {
-        onClose();
-      } else {
+      if (mode !== "agenda") {
         setFullName("");
         setPhone("");
+      } else {
+        onClose();
       }
-
     } catch (err) {
       console.error(err);
       toast.error("Erro ao salvar cliente.");
@@ -133,22 +136,13 @@ export default function ModalNewCustomer({
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
+        <div className={styles.header}>
+          <h3>{mode === "edit" ? "Editar Cliente" : "Novo Cliente"}</h3>
+          <button className={styles.closeBtn} onClick={onClose}>
+            <X size={22} />
+          </button>
+        </div>
 
-        {/* Botão fechar */}
-        <button className={styles.closeBtn} onClick={onClose}>
-          <X size={20} />
-        </button>
-
-        {/* Título dinâmico */}
-            <div className={styles.header}>
-        <h3>{mode === "edit" ? "Editar Cliente" : "Novo Cliente"}</h3>
-
-        <button className={styles.closeBtn} onClick={onClose}>
-          <X size={22} />
-        </button>
-      </div>
-
-              {/* Nome */}
         <input
           className={styles.input}
           placeholder="Nome completo"
@@ -156,15 +150,14 @@ export default function ModalNewCustomer({
           onChange={(e) => setFullName(e.target.value)}
         />
 
-        {/* Telefone */}
         <input
           className={styles.input}
           placeholder="Telefone"
           value={phone}
-          onChange={(e) => setPhone(e.target.value)}
+          onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
+          maxLength={17}
         />
 
-        {/* Botão salvar */}
         <button
           className={styles.saveBtn}
           disabled={loading}
