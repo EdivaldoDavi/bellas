@@ -263,6 +263,8 @@ export default function Setup() {
           weekday: i + 1,
           start_time: "09:00",
           end_time: "18:00",
+          break_start_time: "00:00",
+          break_end_time: "00:00",
         }));
 
         const { error: scheduleErr } = await supabase
