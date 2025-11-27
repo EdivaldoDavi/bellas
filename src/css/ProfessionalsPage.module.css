@@ -138,11 +138,18 @@
   gap: 12px;
 }
 
+
 .iconBtn {
-  background: var(--secondary);
-  border-radius: 10px;
+  border: none;
+  background: transparent;
   padding: 8px;
-  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.iconBtn:hover {
+  background: rgba(255,255,255,0.1);
 }
 
 .danger {
