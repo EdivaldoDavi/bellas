@@ -76,13 +76,14 @@ export default function StepServices() {
           Continuar
         </button>
       </div>
-
+{/*
       <button
         className={styles.skipBtn}
         onClick={() => updateOnboardingStep(99)}
       >
         Pular todo o onboarding
       </button>
+      */}
 
       {tenant?.id && (
         <ModalNewService

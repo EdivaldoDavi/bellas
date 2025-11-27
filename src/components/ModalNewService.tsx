@@ -320,17 +320,17 @@ async function handleSave() {
               </p>
             ) : (
               <div className={styles.profList}>
-                {professionals.map((p) => (
-                  <label key={p.id} className={styles.profItem}>
-                    <input
-                      type="checkbox"
-                      checked={selectedProfessionalIds.includes(p.id)}
-                      onChange={() => toggleProfessional(p.id)}
-                    />
-                    <span>
-                      {p.name} {p.is_active ? "" : "(inativo)"}
-                    </span>
-                  </label>
+                {professionals.map((prof) => (
+                  <div key={prof.id} className={styles.professionalItem}>
+                    <label className={styles.professionalLabel}>
+                      <input
+                        type="checkbox"
+                        checked={selectedProfessionalIds.includes(prof.id)}
+                        onChange={() => toggleProfessional(prof.id)}
+                      />
+                      <span>{prof.name}</span>
+                    </label>
+                  </div>
                 ))}
               </div>
             )}
