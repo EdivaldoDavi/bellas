@@ -120,10 +120,14 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-top: 4px;
-  font-size: 14px;
-  color: var(--text);
+  white-space: nowrap; /* 🚀 evita quebrar */
 }
+
+.phoneWrapper span {
+  display: inline-flex;
+  align-items: center;
+}
+
 .phoneWrapper svg {
   opacity: 0.7;
   transition: 0.2s;
