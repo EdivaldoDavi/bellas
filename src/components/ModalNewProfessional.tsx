@@ -10,7 +10,7 @@ import {
   formatPhoneInput,
   dbPhoneToMasked,
   maskedToDbPhone,
-  isValidMaskedPhone,
+  
 } from "../utils/phoneUtils";
 
 interface ModalNewProfessionalProps {
