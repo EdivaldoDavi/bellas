@@ -157,7 +157,7 @@ export default function ManageRoles({ tenantId, loggedInUserId }: Props) {
       {loading && <p className={styles.loading}>Carregando usuários...</p>}
 
       {!loading && users.length === 0 && (
-        <p className={styles.empty}>Nenhum usuário encontrado para este salão.</p>
+        <p className={styles.empty}>Nenhum usuário encontrado para este Studio.</p>
       )}
 
       {!loading && users.length > 0 && (

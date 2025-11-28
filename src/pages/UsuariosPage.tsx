@@ -10,7 +10,7 @@ export default function UsuariosPage() {
   return (
     <div className={styles.container}> {/* Aplicar estilo de container */}
       <h2 className={styles.title}>Usuários</h2> {/* Aplicar estilo de título */}
-      <p className={styles.description}>Gerencie os usuários do seu salão.</p> {/* Aplicar estilo de descrição */}
+      <p className={styles.description}>Gerencie os usuários do seu Studio.</p> {/* Aplicar estilo de descrição */}
 
       <button
         type="button"

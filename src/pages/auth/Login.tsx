@@ -93,7 +93,7 @@ export default function Login() {
           <div className={styles.welcomeBox}>
             <p className={styles.welcomeText}>
               👋 <strong>Bem-vindo!</strong>  
-              Se ainda não tem uma conta, clique em <strong>Registrar</strong> para começar a usar o sistema e configurar seu salão em poucos minutos.
+              Se ainda não tem uma conta, clique em <strong>Registrar</strong> para começar a usar o sistema e configurar seu Studio em poucos minutos.
             </p>
           </div>
 

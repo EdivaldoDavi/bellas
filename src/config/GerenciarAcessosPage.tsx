@@ -35,7 +35,7 @@ export default function GerenciarAcessosPage() {
   return (
     <div className={styles.container}>
       <h2 className={styles.title}>Gerenciar Acessos</h2>
-      <p className={styles.description}>Defina os papéis e permissões dos usuários do seu salão.</p>
+      <p className={styles.description}>Defina os papéis e permissões dos usuários do seu Studio.</p>
       <ManageRoles tenantId={profile.tenant_id} loggedInUserId={profile.user_id} />
     </div>
   );

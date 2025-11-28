@@ -318,7 +318,7 @@ export default function Setup() {
         </p>
 
         {/* NOME */}
-        <label className={styles.colorLabel}>Nome da sua marca ou salão</label>
+        <label className={styles.colorLabel}>Nome da sua marca ou Studio</label>
         <input
           className={styles.input}
           value={name}
@@ -433,8 +433,8 @@ export default function Setup() {
         <h2 className={styles.title}>Conectar WhatsApp 📲</h2>
 
         <p className={styles.subtitle}>
-          Conecte o WhatsApp do seu salão para habilitar lembretes automáticos,
-          confirmações e atendimento inteligente.
+          Conecte o WhatsApp do seu Studio para habilitar lembretes automáticos,
+          confirmações e atendimento inteligente, se preferir pode conectar depois, através da opção do menu Whatsapp.
         </p>
 
         <div style={{ marginTop: "24px" }}>

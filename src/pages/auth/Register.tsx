@@ -125,7 +125,7 @@ export default function Register() {
 {/* PRÉ-ONBOARDING — Mensagem amigável na tela de registro */}
       <div className={styles.welcomeBox}>
         <p className={styles.welcomeText}>
-          ✨ <strong>Vamos criar seu salão!</strong><br/>
+          ✨ <strong>Vamos criar seu Studio!</strong><br/>
           Preencha as informações abaixo e criaremos automaticamente seu ambiente,
           seu primeiro profissional e seu painel de controle.  
           Depois é só seguir o passo a passo guiado para configurar serviços,

@@ -48,7 +48,7 @@ export default function Onboarding() {
           <div>
             <h1 className={styles.title}>Configuração inicial</h1>
             <p className={styles.subtitle}>
-              Vamos deixar seu salão pronto para começar a receber agendamentos.
+              Vamos deixar seu Studio pronto para começar a receber agendamentos.
             </p>
           </div>
 

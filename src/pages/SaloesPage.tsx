@@ -84,7 +84,7 @@ export default function SaloesPage() {
                 className={styles.button}
                 onClick={() => navigate(`/saloes/${s.id}`)}
               >
-                👁 Visualizar Salão
+                👁 Visualizar Studio
               </button>
             </div>
           ))}

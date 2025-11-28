@@ -256,7 +256,7 @@ export default function DashboardTenant() {
     return (
       <div className={styles.container}>
         <p style={{ textAlign: "center", padding: 20 }}>
-          Seu perfil está associado a um salão, mas não foi possível carregar as informações do salão.
+          Seu perfil está associado a um Studio, mas não foi possível carregar as informações do Studio.
           Por favor, entre em contato com o administrador do sistema.
         </p>
       </div>
@@ -265,7 +265,7 @@ export default function DashboardTenant() {
 
   // Renderiza o LoadingSpinner se estiver carregando
   if (loading) {
-    return <LoadingSpinner message="Carregando dados do salão..." />;
+    return <LoadingSpinner message="Carregando dados do Studio..." />;
   }
 
   if (role === "manager") {
@@ -414,7 +414,7 @@ export default function DashboardTenant() {
       return (
         <div className={styles.container}>
           <p style={{ textAlign: "center", padding: 20 }}>
-            Seu perfil de usuário não está vinculado a um profissional cadastrado no salão.
+            Seu perfil de usuário não está vinculado a um profissional cadastrado no Studio.
             Por favor, entre em contato com o administrador do sistema para vincular seu usuário a um profissional.
           </p>
         </div>

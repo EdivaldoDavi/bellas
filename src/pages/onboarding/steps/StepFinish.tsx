@@ -9,7 +9,7 @@ export default function StepFinish() {
     <div>
       <h2 className={styles.stepTitle}>🎉 Tudo pronto!</h2>
       <p className={styles.stepText}>
-        Seu salão já está configurado com o básico para começar a atender. Você
+        Seu Studio já está configurado com o básico para começar a atender. Você
         pode continuar ajustando serviços, horários, profissionais e clientes a
         qualquer momento pelo menu lateral.
       </p>

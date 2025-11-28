@@ -81,7 +81,7 @@ export default function AssinaturasPage() {
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>Salão</th>
+              <th>Studio</th>
               <th>Plano</th>
               <th>Status</th>
               <th>Preço</th>
@@ -91,7 +91,7 @@ export default function AssinaturasPage() {
           <tbody>
             {rows.map((r) => (
               <tr key={r.id}>
-                <td data-label="Salão">{r.salao}</td>
+                <td data-label="Studio">{r.salao}</td>
                 <td data-label="Plano">{r.plano}</td>
                 <td data-label="Status">
                   {r.status === "active" && <span className={`${styles.badge} ${styles.badgeGreen}`}>Ativa</span>}

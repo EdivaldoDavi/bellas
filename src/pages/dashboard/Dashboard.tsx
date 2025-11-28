@@ -61,7 +61,7 @@ export default function Dashboard() {
       // Professional without a tenant: show a message
       return (
         <p style={{ textAlign: "center", padding: 20 }}>
-          Você é um profissional e precisa ser associado a um salão para ver seu dashboard.
+          Você é um profissional e precisa ser associado a um Studio para ver seu dashboard.
           Por favor, entre em contato com o administrador do sistema.
         </p>
       );
