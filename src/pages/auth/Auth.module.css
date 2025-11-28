@@ -69,6 +69,7 @@ button:hover {
   text-decoration: underline;
 }
 
+
 .resetBox {
   display: flex;
   flex-direction: column;
@@ -93,7 +94,7 @@ button:hover {
   position: relative;
   display: flex; /* Garante que o input e o botão fiquem na mesma linha */
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 6px;
 }
 
 .passwordInput {
