@@ -1,5 +1,5 @@
 // src/pages/ClientesPage.tsx
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
@@ -10,7 +10,6 @@ import { toast } from "react-toastify";
 import ModalNewCustomer from "../components/ModalNewCustomer";
 import styles from "../css/ClientesPage.module.css";
 
-// 📌 UTIL DE TELEFONE
 import CopyButton from "../components/CopyButton";
 import { dbPhoneToMasked, onlyDigits } from "../utils/phoneUtils";
 
@@ -21,6 +20,8 @@ type Customer = {
   is_active: boolean;
 };
 
+const PAGE_SIZE = 20;
+
 export default function ClientesPage() {
   const navigate = useNavigate();
   const { tenant } = useUserAndTenant();
@@ -29,58 +30,81 @@ export default function ClientesPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [showAllCustomers, setShowAllCustomers] = useState(false);
+
+  // paginação
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
 
   const [openModal, setOpenModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
 
   /* ============================================================
-     LOAD
+     LOAD — PAGINADO
   ============================================================ */
-  useEffect(() => {
-    if (tenantId) load();
-  }, [tenantId, showAllCustomers]);
+  const load = useCallback(
+    async (reset: boolean = false) => {
+      if (!tenantId) return;
+      setLoading(true);
 
-async function load() {
-  if (!tenantId) return;
+      const from = reset ? 0 : page * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
 
-  setLoading(true);
+      let query = supabase
+        .from("customers")
+        .select("id, full_name, customer_phone, is_active")
+        .eq("tenant_id", tenantId)
+        .order("full_name", { ascending: true })
+        .range(from, to);
 
-  let query = supabase
-    .from("customers")
-    .select("id, full_name, customer_phone, is_active")
-    .eq("tenant_id", tenantId)
-    .order("full_name", { ascending: true });
+      // 🔍 busca direta no Supabase
+      if (search.trim().length > 1) {
+        query = query.or(
+          `full_name.ilike.%${search}%,customer_phone.ilike.%${search}%`
+        );
+      }
 
-  // 🔥 Se estiver pesquisando → SEM LIMIT
-  if (search.trim().length > 0) {
-    const { data } = await query;
-    setCustomers(data || []);
-    setLoading(false);
-    return;
-  }
+      const { data, error } = await query;
 
-  // 🔥 Se NÃO estiver pesquisando → aplica limite de 3
-  if (!showAllCustomers) {
-    query = query.limit(3);
-  }
+      if (error) {
+        console.error(error);
+        setLoading(false);
+        return;
+      }
 
-  const { data } = await query;
-  setCustomers(data || []);
-  setLoading(false);
-}
+      // 🔄 resetar lista ao iniciar busca ou atualizar
+      if (reset) {
+        setCustomers(data || []);
+        setPage(0);
+      } else {
+        setCustomers((old) => [...old, ...(data || [])]);
+      }
+
+      // se trouxe menos que a página, acabou
+      setHasMore((data?.length || 0) === PAGE_SIZE);
+
+      setLoading(false);
+    },
+    [tenantId, page, search]
+  );
 
   /* ============================================================
-     FILTRO
+     INITIAL LOAD + SEARCH
   ============================================================ */
-  const filtered = useMemo(() => {
-    const t = search.trim().toLowerCase();
-    return t
-      ? customers.filter((c) =>
-          c.full_name.toLowerCase().includes(t)
-        )
-      : customers;
-  }, [customers, search]);
+  useEffect(() => {
+    if (tenantId) load(true);
+  }, [tenantId, search]);
+
+  /* ============================================================
+     LOAD MORE
+  ============================================================ */
+  function loadMore() {
+    if (!hasMore) return;
+    setPage((p) => p + 1);
+  }
+
+  useEffect(() => {
+    if (page > 0) load();
+  }, [page]);
 
   /* ============================================================
      EDITAR
@@ -116,7 +140,6 @@ async function load() {
               background: "var(--color-primary)",
               color: "#fff",
               border: "none",
-              cursor: "pointer",
             }}
           >
             Confirmar
@@ -130,20 +153,13 @@ async function load() {
               background: "#2a2833",
               color: "#fff",
               border: "1px solid #555",
-              cursor: "pointer",
             }}
           >
             Cancelar
           </button>
         </div>
       ),
-      {
-        autoClose: false,
-        draggable: false,
-        icon: false,
-        closeOnClick: false,
-        style: { background: "#1d1b23", color: "#fff" },
-      }
+      { autoClose: false, draggable: false, icon: false, closeOnClick: false }
     );
   }
 
@@ -203,76 +219,65 @@ async function load() {
           />
 
           <div className={styles.list}>
-            {loading && (
+            {loading && customers.length === 0 && (
               <div className={styles.empty}>Carregando...</div>
             )}
 
-            {!loading && filtered.length === 0 && (
+            {!loading && customers.length === 0 && (
               <div className={styles.empty}>Nenhum cliente encontrado.</div>
             )}
 
-            {!loading &&
-              filtered.map((c) => (
-                <div key={c.id} className={styles.card}>
-                  <div>
-                    <div className={styles.title}>{c.full_name}</div>
-                      <div className={styles.meta}>
-                        <div className={styles.phoneWrapper}>
-                          📞 {dbPhoneToMasked(c.customer_phone ?? "")}
-                          <CopyButton value={onlyDigits(c.customer_phone ?? "")} />
-                        </div>
+            {customers.map((c) => (
+              <div key={c.id} className={styles.card}>
+                <div>
+                  <div className={styles.title}>{c.full_name}</div>
 
-                        <span
-                          style={{
-                            color: c.is_active ? "#00c851" : "#dc3545",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          {c.is_active ? "Ativo" : "Inativo"}
-                        </span>
-                      </div>
-                  </div>
+                  <div className={styles.meta}>
+                    <div className={styles.phoneWrapper}>
+                      📞 {dbPhoneToMasked(c.customer_phone ?? "")}
+                      <CopyButton value={onlyDigits(c.customer_phone ?? "")} />
+                    </div>
 
-                  <div className={styles.actions}>
-                    <button
-                      className={styles.iconBtn}
-                      onClick={() => openEdit(c)}
-                    >
-                      <Pencil size={18} />
-                    </button>
-
-                    <button
-                      className={styles.statusToggleButton}
+                    <span
                       style={{
-                        backgroundColor: c.is_active
-                          ? "#dc3545"
-                          : "#007bff",
-                        color: "#fff",
+                        color: c.is_active ? "#00c851" : "#dc3545",
+                        fontWeight: "bold",
                       }}
-                      onClick={() => confirmToggle(c)}
                     >
-                      {c.is_active ? "Inativar" : "Ativar"}
-                    </button>
+                      {c.is_active ? "Ativo" : "Inativo"}
+                    </span>
                   </div>
                 </div>
-              ))}
+
+                <div className={styles.actions}>
+                  <button className={styles.iconBtn} onClick={() => openEdit(c)}>
+                    <Pencil size={18} />
+                  </button>
+
+                  <button
+                    className={styles.statusToggleButton}
+                    style={{
+                      backgroundColor: c.is_active ? "#dc3545" : "#007bff",
+                      color: "#fff",
+                    }}
+                    onClick={() => confirmToggle(c)}
+                  >
+                    {c.is_active ? "Inativar" : "Ativar"}
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
 
-          {!showAllCustomers &&
-            customers.length > 3 &&
-            !search.trim() && (
-              <button
-                className={styles.viewAllButton}
-                style={{ backgroundColor: "var(--color-primary)" }}
-                onClick={() => setShowAllCustomers(true)}
-              >
-                Ver todos os clientes
-              </button>
-            )}
+          {/* botão carregar mais */}
+          {hasMore && !loading && (
+            <button className={styles.viewAllButton} onClick={loadMore}>
+              Carregar mais
+            </button>
+          )}
         </div>
       </div>
 
-      {/* MODAL */}
       <ModalNewCustomer
         tenantId={tenantId}
         show={openModal}
@@ -280,9 +285,9 @@ async function load() {
         customer={editingCustomer}
         onClose={() => {
           setOpenModal(false);
-          load();
+          load(true);
         }}
-        onSuccess={() => load()}
+        onSuccess={() => load(true)}
       />
     </>
   );
