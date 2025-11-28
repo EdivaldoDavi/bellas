@@ -177,9 +177,7 @@ export default function QRCodeDisplay({
                 {loading ? "Gerando QR..." : "Gerar novo QR Code"}
               </button>
 
-              <button className={styles.btnSecondary} onClick={refresh}>
-                Recarregar status
-              </button>
+              
             </>
           )}
 
