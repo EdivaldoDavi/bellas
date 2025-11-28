@@ -1,5 +1,5 @@
 // src/pages/ClientesPage.tsx
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
@@ -20,8 +20,6 @@ type Customer = {
   is_active: boolean;
 };
 
-const PAGE_SIZE = 20;
-
 export default function ClientesPage() {
   const navigate = useNavigate();
   const { tenant } = useUserAndTenant();
@@ -31,80 +29,41 @@ export default function ClientesPage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // paginação
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-
   const [openModal, setOpenModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
 
   /* ============================================================
-     LOAD — PAGINADO
-  ============================================================ */
-  const load = useCallback(
-    async (reset: boolean = false) => {
-      if (!tenantId) return;
-      setLoading(true);
-
-      const from = reset ? 0 : page * PAGE_SIZE;
-      const to = from + PAGE_SIZE - 1;
-
-      let query = supabase
-        .from("customers")
-        .select("id, full_name, customer_phone, is_active")
-        .eq("tenant_id", tenantId)
-        .order("full_name", { ascending: true })
-        .range(from, to);
-
-      // 🔍 busca direta no Supabase
-      if (search.trim().length > 1) {
-        query = query.or(
-          `full_name.ilike.%${search}%,customer_phone.ilike.%${search}%`
-        );
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.error(error);
-        setLoading(false);
-        return;
-      }
-
-      // 🔄 resetar lista ao iniciar busca ou atualizar
-      if (reset) {
-        setCustomers(data || []);
-        setPage(0);
-      } else {
-        setCustomers((old) => [...old, ...(data || [])]);
-      }
-
-      // se trouxe menos que a página, acabou
-      setHasMore((data?.length || 0) === PAGE_SIZE);
-
-      setLoading(false);
-    },
-    [tenantId, page, search]
-  );
-
-  /* ============================================================
-     INITIAL LOAD + SEARCH
+     LOAD PRINCIPAL (3 clientes ou busca → todos)
   ============================================================ */
   useEffect(() => {
-    if (tenantId) load(true);
+    if (tenantId) load();
   }, [tenantId, search]);
 
-  /* ============================================================
-     LOAD MORE
-  ============================================================ */
-  function loadMore() {
-    if (!hasMore) return;
-    setPage((p) => p + 1);
-  }
+  async function load() {
+    if (!tenantId) return;
 
-  useEffect(() => {
-    if (page > 0) load();
-  }, [page]);
+    setLoading(true);
+
+    let query = supabase
+      .from("customers")
+      .select("id, full_name, customer_phone, is_active")
+      .eq("tenant_id", tenantId)
+      .order("full_name", { ascending: true });
+
+    // 🔍 BUSCA GLOBAL SEM LIMITE
+    if (search.trim().length > 0) {
+      query = query.or(
+        `full_name.ilike.%${search}%,customer_phone.ilike.%${search}%`
+      );
+    } else {
+      // 🔥 LISTA APENAS 3 inicialmente
+      query = query.limit(3);
+    }
+
+    const { data } = await query;
+    setCustomers(data || []);
+    setLoading(false);
+  }
 
   /* ============================================================
      EDITAR
@@ -173,9 +132,7 @@ export default function ClientesPage() {
     if (!error) {
       setCustomers((old) =>
         old.map((c) =>
-          c.id === customer.id
-            ? { ...c, is_active: !c.is_active }
-            : c
+          c.id === customer.id ? { ...c, is_active: !c.is_active } : c
         )
       );
     }
@@ -268,13 +225,6 @@ export default function ClientesPage() {
               </div>
             ))}
           </div>
-
-          {/* botão carregar mais */}
-          {hasMore && !loading && (
-            <button className={styles.viewAllButton} onClick={loadMore}>
-              Carregar mais
-            </button>
-          )}
         </div>
       </div>
 
@@ -285,9 +235,9 @@ export default function ClientesPage() {
         customer={editingCustomer}
         onClose={() => {
           setOpenModal(false);
-          load(true);
+          load();
         }}
-        onSuccess={() => load(true)}
+        onSuccess={() => load()}
       />
     </>
   );
