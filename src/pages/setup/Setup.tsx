@@ -434,7 +434,7 @@ export default function Setup() {
 
         <p className={styles.subtitle}>
           Conecte o WhatsApp do seu Studio para habilitar lembretes automáticos,
-          confirmações e atendimento inteligente, se preferir pode conectar depois, através da opção do menu Whatsapp.
+          confirmações e atendimento inteligente, se preferir  clique em finalizar configuração  e você pode conectar depois, através da opção whatsapp no menu do seu app.
         </p>
 
         <div style={{ marginTop: "24px" }}>

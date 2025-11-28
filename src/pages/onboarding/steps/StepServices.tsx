@@ -9,15 +9,9 @@ import ModalNewService from "../../../components/ModalNewService";
 
 export default function StepServices() {
   const { updateOnboardingStep, tenant } = useUserTenant();
-  const [showModal, setShowModal] = useState(true);
-  const [, setCreatedSomething] = useState(false);
-
-  const handleClose = () => setShowModal(false);
-
-  const handleSuccess = () => {
-    setCreatedSomething(true);
-    setShowModal(false);
-  };
+  
+  // 🔥 Agora começa fechado (antes começava true)
+  const [showModal, setShowModal] = useState(false);
 
   async function checkIfHasServices() {
     if (!tenant?.id) return false;
@@ -53,45 +47,36 @@ export default function StepServices() {
       <h2 className={styles.stepTitle}>Cadastre seus serviços principais</h2>
 
       <p className={styles.stepText}>
-        Vamos começar cadastrando seus serviços principais como manicure, unha em gel,
-        extensão de cílios… Você poderá adicionar mais depois.
+        Agora vamos cadastrar os serviços que você oferece, como manicure,
+        pedicure, gel, unhas decoradas, alongamentos ou qualquer outro.
       </p>
 
       <p className={styles.stepText}>
-        Cadastre pelo menos um serviço para continuar.
+        Você poderá adicionar quantos quiser depois, mas para seguir, precisa ter
+        ao menos <strong>um serviço</strong> cadastrado.
       </p>
 
       <div className={styles.actions}>
+        {/* 🔥 Agora o modal só abre quando o usuário pede */}
         <button
           className={styles.primaryBtn}
           onClick={() => setShowModal(true)}
         >
-          Abrir cadastro de serviços
+          Cadastrar serviço
         </button>
 
-        <button
-          className={styles.secondaryBtn}
-          onClick={handleContinue}
-        >
+        <button className={styles.secondaryBtn} onClick={handleContinue}>
           Continuar
         </button>
       </div>
-{/*
-      <button
-        className={styles.skipBtn}
-        onClick={() => updateOnboardingStep(99)}
-      >
-        Pular todo o onboarding
-      </button>
-      */}
 
       {tenant?.id && (
         <ModalNewService
           tenantId={tenant.id}
           show={showModal}
           mode="cadastro"
-          onClose={handleClose}
-          onSuccess={handleSuccess}
+          onClose={() => setShowModal(false)}
+          onSuccess={() => setShowModal(false)}
         />
       )}
     </div>
