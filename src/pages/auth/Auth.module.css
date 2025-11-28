@@ -44,7 +44,7 @@ button {
 }
 
 button:hover {
- background: var(--color-secondary) !important;
+ background: var(--color-primary) !important;
 }
 
 .linkText {
