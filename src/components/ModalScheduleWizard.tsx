@@ -383,16 +383,17 @@ export default function ModalScheduleWizard({
                 + Novo cliente
               </button>
 
-              <SelectClientWhatsApp
-                ref={clientRef}
-                tenantId={tenantId}
-                value={customerId}
-                onChange={(id, name) => {
-                  setCustomerId(id);
-                  setCustomerName(name);
-                }}
-                onAdd={() => setShowNewCustomer(true)}
-              />
+                <SelectClientWhatsApp
+                  ref={clientRef}
+                  tenantId={tenantId}
+                  value={customerId}
+                  hideAddButton={true}   // 🔥 remove o botão interno
+                  onChange={(id, name) => {
+                    setCustomerId(id);
+                    setCustomerName(name);
+                  }}
+                  onAdd={() => setShowNewCustomer(true)}
+                />
             </div>
           )}
 

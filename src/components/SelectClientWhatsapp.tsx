@@ -1,4 +1,9 @@
-import { useEffect, useState, forwardRef, useImperativeHandle } from "react";
+import {
+  useEffect,
+  useState,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import { supabase } from "../lib/supabaseCleint";
 import { Plus } from "lucide-react";
 import styles from "../css/SelectClientWhatsapp.module.css";
@@ -14,119 +19,123 @@ interface Props {
   value: string;
   onChange: (id: string, name: string) => void;
   onAdd: () => void;
+  newClientId?: string | null;
+  hideAddButton?: boolean; // 🔥 permite esconder o botão interno
 }
 
 export interface SelectClientRef {
   reload: (id?: string) => void;
 }
 
-const SelectClientWhatsApp = forwardRef<SelectClientRef, Props>(function SelectClientWhatsApp(
-  { tenantId, value, onChange, onAdd },
-  ref
+function SelectClientComponent(
+  { tenantId, value, onChange, onAdd, newClientId, hideAddButton = false }: Props,
+  ref: any
 ) {
   const [list, setList] = useState<Client[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 🔥 novo: highlight
-  const [highlightId, setHighlightId] = useState<string | null>(null);
-
+  /* ----------------------- LOAD INICIAL ----------------------- */
   useEffect(() => {
-    if (!tenantId) return;
-    loadInitial();
+    if (tenantId) load();
   }, [tenantId]);
 
+  /* ----------- Selecionar o novo cliente criado ----------- */
+  useEffect(() => {
+    if (newClientId) load(newClientId);
+  }, [newClientId]);
+
+  /* ----------------------- RELOAD VIA REF ----------------------- */
   useImperativeHandle(ref, () => ({
-    reload: async (selectedId?: string) => {
-      await loadInitial(selectedId);
-
-      if (selectedId) {
-        setHighlightId(selectedId);
-
-        // 🔥 remove highlight após 1 segundo
-        setTimeout(() => setHighlightId(null), 1000);
-      }
-    }
+    reload: (id?: string) => load(id),
   }));
 
-  async function loadInitial(selectId?: string) {
+  async function load(selectId?: string) {
     setLoading(true);
 
     const { data } = await supabase
       .from("customers")
-      .select("id,full_name,customer_phone")
+      .select("id, full_name, customer_phone")
       .eq("tenant_id", tenantId)
-      .order("full_name", { ascending: true })
-      .limit(50);
+      .order("full_name");
 
-    let listData = data || [];
+    let customers = data || [];
 
+    // 🔥 Se foi criado agora → coloca primeiro na lista
     if (selectId) {
-      const selected = listData.find((c) => c.id === selectId);
+      const selected = customers.find((c) => c.id === selectId);
       if (selected) {
-        listData = [selected, ...listData.filter((c) => c.id !== selectId)];
+        customers = [selected, ...customers.filter((c) => c.id !== selectId)];
         onChange(selected.id, selected.full_name);
       }
     }
 
-    setList(listData);
+    setList(customers);
     setLoading(false);
   }
 
+  /* ----------------------- SEARCH ----------------------- */
   async function handleSearch(text: string) {
     setSearch(text);
-    if (text.length < 2) return;
+    if (text.trim().length < 2) return;
 
     setLoading(true);
+
     const { data } = await supabase
       .from("customers")
-      .select("id,full_name,customer_phone")
+      .select("id, full_name, customer_phone")
       .eq("tenant_id", tenantId)
-      .or(`full_name.ilike.%${text}%,customer_phone.ilike.%${text}%`)
-      .order("full_name", { ascending: true })
-      .limit(50);
+      .or(
+        `full_name.ilike.%${text}%,customer_phone.ilike.%${text}%`
+      )
+      .order("full_name")
+      .limit(40);
 
     setList(data || []);
     setLoading(false);
   }
 
-  return (
-    <div className={styles.wrapper}>
-      <label className={styles.label}>Cliente</label>
+  /* ----------------------- FILTRO LOCAL ----------------------- */
+  const filtered = list.filter((c) =>
+    c.full_name.toLowerCase().includes(search.toLowerCase())
+  );
 
+  /* ----------------------------- RENDER ----------------------------- */
+  return (
+    <div className={styles.wrap}>
+      {/* 🔍 Busca */}
       <input
-        type="text"
-        className={styles.searchInput}
+        className={styles.search}
         placeholder="Digite nome ou telefone..."
         value={search}
         onChange={(e) => handleSearch(e.target.value)}
       />
 
       <div className={styles.listBox}>
-        {loading && <div className={styles.loading}>Carregando...</div>}
+        {loading && (
+          <div className={styles.loading}>Carregando...</div>
+        )}
 
-        {!loading && list.length === 0 && (
+        {!loading && filtered.length === 0 && (
           <div className={styles.empty}>Nenhum cliente encontrado</div>
         )}
 
-        {list.map((c) => (
+        {filtered.map((c) => (
           <div
             key={c.id}
-            className={`
-              ${styles.item} 
-              ${value === c.id ? styles.itemSelected : ""} 
-              ${highlightId === c.id ? styles.highlight : ""}
-            `}
+            className={`${styles.item} ${
+              value === c.id ? styles.selected : ""
+            }`}
             onClick={() => onChange(c.id, c.full_name)}
           >
             <img
               src={`https://api.dicebear.com/8.x/avataaars/svg?seed=${encodeURIComponent(
                 c.full_name
               )}`}
-              alt="avatar"
               className={styles.avatar}
             />
-            <div>
+
+            <div className={styles.info}>
               <div className={styles.name}>{c.full_name}</div>
               <div className={styles.phone}>
                 {c.customer_phone || "Sem telefone"}
@@ -136,12 +145,15 @@ const SelectClientWhatsApp = forwardRef<SelectClientRef, Props>(function SelectC
         ))}
       </div>
 
-      <button className={styles.addButton} onClick={onAdd}>
-        <Plus size={18} />
-        Novo Cliente
-      </button>
+      {/* 🔥 Botão interno removível */}
+      {!hideAddButton && (
+        <button className={styles.addBtn} onClick={onAdd}>
+          <Plus size={18} />
+          Novo Cliente
+        </button>
+      )}
     </div>
   );
-});
+}
 
-export default SelectClientWhatsApp;
+export default forwardRef(SelectClientComponent);
