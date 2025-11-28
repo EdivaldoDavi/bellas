@@ -44,7 +44,7 @@ button {
 }
 
 button:hover {
-  background: transparent;
+ background: var(--color-secondary) !important;
 }
 
 .linkText {
