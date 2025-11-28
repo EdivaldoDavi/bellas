@@ -202,7 +202,7 @@ export default function App() {
 
       </Routes>
 
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer position="top-right" autoClose={3000}   closeButton={false} />
     </BrowserRouter>
   );
 }
