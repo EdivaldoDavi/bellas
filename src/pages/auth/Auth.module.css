@@ -44,7 +44,7 @@ button {
 }
 
 button:hover {
- background: var(--color-primary) !important;
+ background: rgba(117, 116, 116, 0.623) !important;
 }
 
 .linkText {
