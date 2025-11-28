@@ -41,25 +41,34 @@ export default function ClientesPage() {
     if (tenantId) load();
   }, [tenantId, showAllCustomers]);
 
-  async function load() {
-    if (!tenantId) return;
+async function load() {
+  if (!tenantId) return;
 
-    setLoading(true);
+  setLoading(true);
 
-    let query = supabase
-      .from("customers")
-      .select("id, full_name, customer_phone, is_active")
-      .eq("tenant_id", tenantId)
-      .order("full_name", { ascending: true });
+  let query = supabase
+    .from("customers")
+    .select("id, full_name, customer_phone, is_active")
+    .eq("tenant_id", tenantId)
+    .order("full_name", { ascending: true });
 
-    if (!showAllCustomers && !search.trim()) {
-      query = query.limit(3);
-    }
-
+  // 🔥 Se estiver pesquisando → SEM LIMIT
+  if (search.trim().length > 0) {
     const { data } = await query;
     setCustomers(data || []);
     setLoading(false);
+    return;
   }
+
+  // 🔥 Se NÃO estiver pesquisando → aplica limite de 3
+  if (!showAllCustomers) {
+    query = query.limit(3);
+  }
+
+  const { data } = await query;
+  setCustomers(data || []);
+  setLoading(false);
+}
 
   /* ============================================================
      FILTRO
