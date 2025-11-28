@@ -313,7 +313,7 @@ async function handleSave() {
             )}
 
             {/* PROFISSIONAIS */}
-<h4 className={styles.sectionTitle}>Profissionais</h4>
+<h4 className={styles.sectionTitle}>Profissionais</h4><h5>Selecione os profissionais que prestam esse serviço</h5>
 
 {professionals.length === 0 ? (
   <p className={styles.smallMuted}>
