@@ -1,8 +1,10 @@
 import { useEffect, useRef } from "react";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 import { useEvolutionConnection } from "../hooks/useEvolutionConnection";
+
 import QRCodeDisplay from "./QRCodeDisplay";
 import N8nPauseButton from "../components/N8nPauseButton";
+
 import styles from "../css/ConnectWhatsApp.module.css";
 
 export default function ConnectWhatsAppPage({
@@ -17,25 +19,30 @@ export default function ConnectWhatsAppPage({
   const instanceId = tenant?.id || "";
   const evoBase = import.meta.env.VITE_EVO_PROXY_URL;
 
-  /** 🔥 Controle ÚNICO da conexão Evolution */
+  // ============================================================
+  // 🔥 Hook Evolution – ÚNICA instância de conexão!
+  // ============================================================
   const {
     status,
+    qrBase64,
+    loading: evoLoading,
+    error,
+    realInstanceId,
     start,
-   
-    
+    logout,
   } = useEvolutionConnection({
     baseUrl: evoBase,
-    autostart: false,
+    autostart: false, // sempre false, autostart manual abaixo
     initialInstanceId: instanceId,
   });
 
-  // =====================================================================
-  // 🔐 AUTOSTART INTELIGENTE (sem loops, sem repeated start)
-  // =====================================================================
+  // ============================================================
+  // 🔄 AUTOSTART SEGURO (garante QR automático sem loops)
+  // ============================================================
   const autoStartLock = useRef(false);
 
   useEffect(() => {
-    if (autoStartLock.current) return;
+    if (!instanceId) return;
 
     const needsStart =
       !status ||
@@ -43,21 +50,21 @@ export default function ConnectWhatsAppPage({
         status
       );
 
-    if (instanceId && needsStart) {
+    if (needsStart && !autoStartLock.current) {
       autoStartLock.current = true;
 
-      start();
+      start(); // 🔥 dispara conexão automática
 
-      // libera trava depois de 10s (garante que não loopa)
+      // previne loop infinito
       setTimeout(() => {
         autoStartLock.current = false;
-      }, 10000);
+      }, 8000);
     }
   }, [status, instanceId, start]);
 
-  // =====================================================================
-  // Loading global
-  // =====================================================================
+  // ============================================================
+  // GLOBAL LOADING
+  // ============================================================
   if (loading) {
     return <div className={styles.loading}>Carregando informações…</div>;
   }
@@ -86,8 +93,18 @@ export default function ConnectWhatsAppPage({
       )}
 
       <div className={styles.card}>
-        {/* QR Code e Status – UI apenas */}
-        <QRCodeDisplay instanceId={instanceId} baseUrl={evoBase} />
+        {/* ======================================================
+            QRCodeDisplay agora é UI apenas – recebe tudo via props
+        ======================================================= */}
+        <QRCodeDisplay
+          status={status}
+          qrBase64={qrBase64}
+          loading={evoLoading}
+          error={error}
+          realInstanceId={realInstanceId}
+          onStart={start}
+          onLogout={logout}
+        />
 
         <div style={{ height: "1rem" }} />
 

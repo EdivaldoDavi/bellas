@@ -1,184 +1,126 @@
-import { useMemo } from "react";
-import { useEvolutionConnection } from "../hooks/useEvolutionConnection";
-import type { EvoStatus } from "../hooks/useEvolutionConnection";
 import styles from "../css/QRCodeDisplay.module.css";
+import type { EvoStatus } from "../hooks/useEvolutionConnection";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
 export interface QRCodeDisplayProps {
-  instanceId: string;
-  baseUrl?: string;
+  status: EvoStatus;
+  qrBase64: string | null;
+  loading: boolean;
+  error: string | null;
+  realInstanceId: string;
+  onStart: () => void;
+  onLogout: () => void;
 }
 
 export default function QRCodeDisplay({
-  instanceId,
-  baseUrl = "/api",
+  status,
+  qrBase64,
+  loading,
+  error,
+  realInstanceId,
+  onStart,
+  onLogout,
 }: QRCodeDisplayProps) {
-  const safeInstanceId = useMemo(() => instanceId.trim(), [instanceId]);
-
-  const {
-    status,
-    qrBase64,
-    error,
-    loading,
-    start,
-    logout,
-    realInstanceId,
-  } = useEvolutionConnection({
-    baseUrl,
-    autostart: false, // sempre desligado
-    initialInstanceId: safeInstanceId,
-  });
 
   const { tenant } = useUserAndTenant();
 
-  /* ============================================================
-     🔍 UI STATES
-  ============================================================ */
   const isConnecting = loading || status === "OPENING";
   const isConnected = status === "CONNECTED";
 
   const isDisconnected =
-    status === "DISCONNECTED" ||
-    status === "LOGGED_OUT" ||
-    status === "ERROR" ||
-    status === "UNKNOWN" ||
-    status === "IDLE";
+    ["DISCONNECTED", "LOGGED_OUT", "UNKNOWN", "IDLE", "ERROR"].includes(
+      status
+    );
 
-  const showQR = Boolean(
-    qrBase64 &&
-      !isConnected &&
-      !isConnecting &&
-      status !== "ERROR" &&
-      status !== "LOGGED_OUT"
-  );
+  const showQR =
+    !!qrBase64 &&
+    !isConnected &&
+    !isConnecting &&
+    status !== "ERROR" &&
+    status !== "LOGGED_OUT";
 
   const showError =
     error &&
-    status !== "LOGGED_OUT" &&
     status !== "IDLE" &&
+    status !== "LOGGED_OUT" &&
     status !== "DISCONNECTED";
 
-  /* ============================================================
-     🔽 RENDER
-  ============================================================ */
   return (
-    <div className={styles.container}>
-      <div className={styles.card}>
-        {/* CABEÇALHO */}
-        <div className={styles.header}>
-          <h2 className={styles.title}>WhatsApp · Conexão</h2>
+    <div className={styles.card}>
+      <div className={styles.header}>
+        <h2 className={styles.title}>WhatsApp · Conexão</h2>
+        {realInstanceId && (
+          <span className={styles.instanceId}>
+            Instância: {realInstanceId}
+          </span>
+        )}
+      </div>
 
-          {realInstanceId && (
-            <span className={styles.instanceId}>
-              Instância: {realInstanceId}
-            </span>
-          )}
+      <div className={styles.statusBox}>
+        <span className={styles.statusDot} data-status={status} />
+        <span className={styles.statusText}>{labelFromStatus(status)}</span>
+      </div>
+
+      {showError && <div className={styles.errorBox}>❌ {error}</div>}
+
+      {showQR && (
+        <div className={styles.qrArea}>
+          <img src={qrBase64 ?? undefined} className={styles.qr} alt="QR Code" />
+          <p className={styles.qrHint}>Escaneie o QR Code no WhatsApp.</p>
         </div>
+      )}
 
-        {/* STATUS */}
-        <div className={styles.statusBox}>
-          <span className={styles.statusDot} data-status={status} />
-          <span className={styles.statusText}>{labelFromStatus(status)}</span>
+      {isConnecting && (
+        <div className={styles.loadingBox}>
+          <div className={styles.spinner} />
+          <p>Conectando…</p>
         </div>
+      )}
 
-        {/* ERRO */}
-        {showError && <div className={styles.errorBox}>❌ {error}</div>}
-
-        {/* QR CODE */}
-        {showQR && (
-          <div className={styles.qrArea}>
-           <img src={qrBase64 ?? undefined} className={styles.qr} alt="QR Code" />
-
-            <p className={styles.qrHint}>
-              Escaneie o QR Code no aplicativo WhatsApp.
-            </p>
+      {isConnected && (
+        <div className={styles.connectedBox}>
+          <div className={styles.connectedIllustration}>
+            <div className={styles.checkInside}>✓</div>
           </div>
+          <p>Conectado com sucesso!</p>
+        </div>
+      )}
+
+      <div className={styles.buttons}>
+        {isDisconnected && (
+          <button
+            onClick={onStart}
+            disabled={loading}
+            className={styles.btnPrimary}
+            style={{
+              backgroundColor: tenant?.primary_color || "var(--color-primary)",
+            }}
+          >
+            {loading ? "Gerando QR..." : "Conectar WhatsApp"}
+          </button>
         )}
 
-        {/* LOADING */}
-        {isConnecting && (
-          <div className={styles.loadingBox}>
-            <div className={styles.spinner} />
-            <p>Conectando…</p>
-          </div>
-        )}
-
-        {/* CONECTADO */}
         {isConnected && (
-          <div className={styles.connectedBox}>
-            <div className={styles.connectedIllustration}>
-              <div className={styles.checkInside}>✓</div>
-            </div>
-            <p>✅ Conectado com sucesso!</p>
-          </div>
+          <button className={styles.btnDanger} onClick={onLogout}>
+            Desconectar
+          </button>
         )}
-
-        {/* INSTRUÇÕES + BOTÕES */}
-        <div className={styles.buttons}>
-          {isDisconnected && (
-            <>
-              <div className={styles.instructionsBox}>
-                <p className={styles.instructionsTitle}>
-                  📱 Como conectar seu WhatsApp:
-                </p>
-
-                <ol className={styles.instructionsList}>
-                  <li>Abra o app <strong>WhatsApp</strong> no celular.</li>
-                  <li>Toque em <strong>Dispositivos conectados</strong>.</li>
-                  <li>
-                    Toque em <strong>“Conectar um dispositivo”</strong>.
-                  </li>
-                  <li>Escaneie o QR Code exibido nesta tela.</li>
-                </ol>
-              </div>
-
-              {/* BOTÃO MANUAL */}
-              <button
-                onClick={() => start()}
-                disabled={loading}
-                className={styles.btnPrimary}
-                style={{
-                  backgroundColor: tenant?.primary_color || "var(--color-primary)",
-                }}
-              >
-                {loading ? "Gerando QR..." : "Gerar novo QR Code"}
-              </button>
-            </>
-          )}
-
-          {isConnected && (
-            <button className={styles.btnDanger} onClick={logout}>
-              Desconectar
-            </button>
-          )}
-        </div>
       </div>
     </div>
   );
 }
 
-/* ============================================================
-   ↪ LABEL DO STATUS
-============================================================ */
-function labelFromStatus(s: EvoStatus | string) {
-  const up = (s || "UNKNOWN").toUpperCase();
-
-  switch (up) {
-    case "IDLE":
-      return "Pronto";
-    case "OPENING":
-      return "Conectando…";
-    case "QRCODE":
-      return "Aguardando leitura…";
-    case "CONNECTED":
-      return "Conectado";
-    case "DISCONNECTED":
-      return "Desconectado";
-    case "LOGGED_OUT":
-      return "Sessão encerrada";
-    case "ERROR":
-      return "Erro";
-    default:
-      return "Desconectado";
-  }
+function labelFromStatus(status: EvoStatus) {
+  return (
+    {
+      IDLE: "Pronto",
+      OPENING: "Conectando…",
+      QRCODE: "Aguardando leitura…",
+      CONNECTED: "Conectado",
+      DISCONNECTED: "Desconectado",
+      LOGGED_OUT: "Sessão encerrada",
+      ERROR: "Erro",
+      UNKNOWN: "Desconectado",
+    }[status] || "Desconectado"
+  );
 }
