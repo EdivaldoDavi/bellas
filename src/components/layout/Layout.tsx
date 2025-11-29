@@ -50,7 +50,7 @@ export default function Layout() {
       (profile?.role === "manager" || profile?.role === "owner");
 
     const dismissedKey = `whatsapp_alert_dismissed_instance_${instanceId}`;
-
+/*
     // Mostrar toast
     if (canShow && !localStorage.getItem(dismissedKey)) {
       toastId = toast(
@@ -73,7 +73,7 @@ export default function Layout() {
         }
       );
     }
-
+*/
     // Se reconectar → remover toast e resetar estado
     if (!isWhatsDisconnected && instanceId) {
       toast.dismiss();
