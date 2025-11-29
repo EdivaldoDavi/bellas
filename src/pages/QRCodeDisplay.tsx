@@ -15,7 +15,6 @@ export default function QRCodeDisplay({
 }: QRCodeDisplayProps) {
   const safeInstanceId = useMemo(() => instanceId.trim(), [instanceId]);
 
-  // 👉 IMPORTANTE: autostart DESLIGADO SEMPRE aqui
   const {
     status,
     qrBase64,
@@ -26,7 +25,7 @@ export default function QRCodeDisplay({
     realInstanceId,
   } = useEvolutionConnection({
     baseUrl,
-    autostart: false,
+    autostart: false, // sempre desligado
     initialInstanceId: safeInstanceId,
   });
 
@@ -37,27 +36,27 @@ export default function QRCodeDisplay({
   ============================================================ */
   const isConnecting = loading || status === "OPENING";
   const isConnected = status === "CONNECTED";
+
   const isDisconnected =
     status === "DISCONNECTED" ||
     status === "LOGGED_OUT" ||
+    status === "ERROR" ||
     status === "UNKNOWN" ||
-    status === "IDLE" ||
-    status === "ERROR";
+    status === "IDLE";
 
-  const showQR =
-    !!qrBase64 &&
-    !isConnected &&
-    !isConnecting &&
-    status !== "ERROR" &&
-    status !== "LOGGED_OUT";
+  const showQR = Boolean(
+    qrBase64 &&
+      !isConnected &&
+      !isConnecting &&
+      status !== "ERROR" &&
+      status !== "LOGGED_OUT"
+  );
 
-  const hideError =
-    !error ||
-    error === "Not Found" ||
-    status === "DISCONNECTED" ||
-    status === "UNKNOWN" ||
-    status === "IDLE" ||
-    status === "LOGGED_OUT";
+  const showError =
+    error &&
+    status !== "LOGGED_OUT" &&
+    status !== "IDLE" &&
+    status !== "DISCONNECTED";
 
   /* ============================================================
      🔽 RENDER
@@ -68,6 +67,7 @@ export default function QRCodeDisplay({
         {/* CABEÇALHO */}
         <div className={styles.header}>
           <h2 className={styles.title}>WhatsApp · Conexão</h2>
+
           {realInstanceId && (
             <span className={styles.instanceId}>
               Instância: {realInstanceId}
@@ -81,17 +81,16 @@ export default function QRCodeDisplay({
           <span className={styles.statusText}>{labelFromStatus(status)}</span>
         </div>
 
-        {/* ERRO (filtrado) */}
-        {!hideError && (
-          <div className={styles.errorBox}>❌ {error}</div>
-        )}
+        {/* ERRO */}
+        {showError && <div className={styles.errorBox}>❌ {error}</div>}
 
         {/* QR CODE */}
         {showQR && (
           <div className={styles.qrArea}>
-            <img src={qrBase64} className={styles.qr} alt="QR Code" />
+           <img src={qrBase64 ?? undefined} className={styles.qr} alt="QR Code" />
+
             <p className={styles.qrHint}>
-              Escaneie o QR Code no seu aplicativo WhatsApp.
+              Escaneie o QR Code no aplicativo WhatsApp.
             </p>
           </div>
         )}
@@ -124,13 +123,8 @@ export default function QRCodeDisplay({
                 </p>
 
                 <ol className={styles.instructionsList}>
-                  <li>
-                    Abra o aplicativo <strong>WhatsApp</strong>.
-                  </li>
-                  <li>
-                    Vá em{" "}
-                    <strong>“Dispositivos conectados”</strong>.
-                  </li>
+                  <li>Abra o app <strong>WhatsApp</strong> no celular.</li>
+                  <li>Toque em <strong>Dispositivos conectados</strong>.</li>
                   <li>
                     Toque em <strong>“Conectar um dispositivo”</strong>.
                   </li>
@@ -144,8 +138,7 @@ export default function QRCodeDisplay({
                 disabled={loading}
                 className={styles.btnPrimary}
                 style={{
-                  backgroundColor:
-                    tenant?.primary_color || "var(--color-primary)",
+                  backgroundColor: tenant?.primary_color || "var(--color-primary)",
                 }}
               >
                 {loading ? "Gerando QR..." : "Gerar novo QR Code"}

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 import { useEvolutionConnection } from "../hooks/useEvolutionConnection";
 import QRCodeDisplay from "./QRCodeDisplay";
@@ -14,15 +15,49 @@ export default function ConnectWhatsAppPage({
   const { tenant, subscription, loading } = useUserAndTenant();
 
   const instanceId = tenant?.id || "";
-//  const evoBase =
-  //  import.meta.env.VITE_EVO_PROXY_URL ?? "https://bellas-agenda-evo-proxy.hu6h7e.easypanel.host/api";
-const evoBase = import.meta.env.VITE_EVO_PROXY_URL;
-  const { status } = useEvolutionConnection({
+  const evoBase = import.meta.env.VITE_EVO_PROXY_URL;
+
+  /** 🔥 Controle ÚNICO da conexão Evolution */
+  const {
+    status,
+    start,
+    realInstanceId,
+    loading: evoLoading,
+  } = useEvolutionConnection({
     baseUrl: evoBase,
     autostart: false,
     initialInstanceId: instanceId,
   });
 
+  // =====================================================================
+  // 🔐 AUTOSTART INTELIGENTE (sem loops, sem repeated start)
+  // =====================================================================
+  const autoStartLock = useRef(false);
+
+  useEffect(() => {
+    if (autoStartLock.current) return;
+
+    const needsStart =
+      !status ||
+      ["DISCONNECTED", "UNKNOWN", "LOGGED_OUT", "IDLE", "ERROR"].includes(
+        status
+      );
+
+    if (instanceId && needsStart) {
+      autoStartLock.current = true;
+
+      start();
+
+      // libera trava depois de 10s (garante que não loopa)
+      setTimeout(() => {
+        autoStartLock.current = false;
+      }, 10000);
+    }
+  }, [status, instanceId, start]);
+
+  // =====================================================================
+  // Loading global
+  // =====================================================================
   if (loading) {
     return <div className={styles.loading}>Carregando informações…</div>;
   }
@@ -33,7 +68,7 @@ const evoBase = import.meta.env.VITE_EVO_PROXY_URL;
 
   const isDisconnected =
     !status ||
-    ["DISCONNECTED", "LOGGED_OUT", "ERROR", "UNKNOWN", "IDLE"].includes(
+    ["DISCONNECTED", "LOGGED_OUT", "UNKNOWN", "IDLE", "ERROR"].includes(
       status
     );
 
@@ -45,18 +80,14 @@ const evoBase = import.meta.env.VITE_EVO_PROXY_URL;
         <>
           <h2 className={styles.title}>Integração WhatsApp</h2>
           <p className={styles.description}>
-            Conecte o WhatsApp para habilitar automações, notificações e
-            mensagens inteligentes via IA.
+            Conecte o WhatsApp para habilitar automações, notificações e IA.
           </p>
         </>
       )}
 
       <div className={styles.card}>
-        {/* 🔥 Agora o QRCode já tenta conectar sozinho */}
-        <QRCodeDisplay
-          instanceId={instanceId}
-           baseUrl={evoBase}
-        />
+        {/* QR Code e Status – UI apenas */}
+        <QRCodeDisplay instanceId={instanceId} baseUrl={evoBase} />
 
         <div style={{ height: "1rem" }} />
 
@@ -75,7 +106,11 @@ const evoBase = import.meta.env.VITE_EVO_PROXY_URL;
       </div>
 
       {insideSetup && (
-        <button onClick={onFinish} className={styles.nextButton} style={{ backgroundColor: "var(--color-primary)" }}> {/* Use CSS variable */}
+        <button
+          onClick={onFinish}
+          className={styles.nextButton}
+          style={{ backgroundColor: "var(--color-primary)" }}
+        >
           Continuar
         </button>
       )}
