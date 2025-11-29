@@ -43,12 +43,13 @@ export default function Layout() {
   useEffect(() => {
     let toastId: number | string | null = null;
 
-    // Apenas owner ou manager devem ver o aviso
+    // Apenas owner ou manager devem ver o aviso/*
+    /*
     const canShow =
       instanceId &&
       isWhatsDisconnected &&
       (profile?.role === "manager" || profile?.role === "owner");
-
+*/
     const dismissedKey = `whatsapp_alert_dismissed_instance_${instanceId}`;
 /*
     // Mostrar toast
