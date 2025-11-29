@@ -14,9 +14,9 @@ export default function ConnectWhatsAppPage({
   const { tenant, subscription, loading } = useUserAndTenant();
 
   const instanceId = tenant?.id || "";
-  const evoBase =
-    import.meta.env.VITE_EVO_PROXY_URL ?? "https://bellas-agenda-evo-proxy.hu6h7e.easypanel.host/api";
-
+//  const evoBase =
+  //  import.meta.env.VITE_EVO_PROXY_URL ?? "https://bellas-agenda-evo-proxy.hu6h7e.easypanel.host/api";
+const evoBase = import.meta.env.VITE_EVO_PROXY_URL;
   const { status } = useEvolutionConnection({
     baseUrl: evoBase,
     autostart: false,

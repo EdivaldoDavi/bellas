@@ -9,7 +9,7 @@ import { useIsMobile } from "../../hooks/useIsMobile";
 import { useEvolutionConnection } from "../../hooks/useEvolutionConnection";
 import { useUserAndTenant } from "../../hooks/useUserAndTenant";
 
-//import WhatsAppDisconnectedToast from "../WhatsAppDisconnectedToast";
+import WhatsAppDisconnectedToast from "../WhatsAppDisconnectedToast";
 
 import styles from "./Layout.module.css";
 
@@ -43,15 +43,14 @@ export default function Layout() {
   useEffect(() => {
     let toastId: number | string | null = null;
 
-    // Apenas owner ou manager devem ver o aviso/*
-    /*
+    // Apenas owner ou manager devem ver o aviso
     const canShow =
       instanceId &&
       isWhatsDisconnected &&
       (profile?.role === "manager" || profile?.role === "owner");
-*/
+
     const dismissedKey = `whatsapp_alert_dismissed_instance_${instanceId}`;
-/*
+
     // Mostrar toast
     if (canShow && !localStorage.getItem(dismissedKey)) {
       toastId = toast(
@@ -74,7 +73,7 @@ export default function Layout() {
         }
       );
     }
-*/
+
     // Se reconectar → remover toast e resetar estado
     if (!isWhatsDisconnected && instanceId) {
       toast.dismiss();
