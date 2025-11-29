@@ -9,7 +9,7 @@ import { useIsMobile } from "../../hooks/useIsMobile";
 import { useEvolutionConnection } from "../../hooks/useEvolutionConnection";
 import { useUserAndTenant } from "../../hooks/useUserAndTenant";
 
-import WhatsAppDisconnectedToast from "../WhatsAppDisconnectedToast";
+//import WhatsAppDisconnectedToast from "../WhatsAppDisconnectedToast";
 
 import styles from "./Layout.module.css";
 
