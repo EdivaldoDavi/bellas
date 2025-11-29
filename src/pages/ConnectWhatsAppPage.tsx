@@ -21,8 +21,8 @@ export default function ConnectWhatsAppPage({
   const {
     status,
     start,
-    realInstanceId,
-    loading: evoLoading,
+   
+    
   } = useEvolutionConnection({
     baseUrl: evoBase,
     autostart: false,
