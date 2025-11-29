@@ -1,29 +1,27 @@
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useEvolutionConnection } from "../hooks/useEvolutionConnection";
 import type { EvoStatus } from "../hooks/useEvolutionConnection";
 import styles from "../css/QRCodeDisplay.module.css";
-import { useUserAndTenant } from "../hooks/useUserAndTenant"; // Import useUserAndTenant
+import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
 export interface QRCodeDisplayProps {
   instanceId: string;
-  autoStart?: boolean;
   baseUrl?: string;
 }
 
 export default function QRCodeDisplay({
   instanceId,
-  autoStart = true,
   baseUrl = "/api",
 }: QRCodeDisplayProps) {
   const safeInstanceId = useMemo(() => instanceId.trim(), [instanceId]);
 
+  // 👉 IMPORTANTE: autostart DESLIGADO SEMPRE aqui
   const {
     status,
     qrBase64,
     error,
     loading,
     start,
-    refresh,
     logout,
     realInstanceId,
   } = useEvolutionConnection({
@@ -32,38 +30,7 @@ export default function QRCodeDisplay({
     initialInstanceId: safeInstanceId,
   });
 
-  const { tenant } = useUserAndTenant(); // Get tenant to access primary_color
-
-  /* ============================================================
-     🔄 Atualiza estado na montagem
-  ============================================================ */
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
-
-  /* ============================================================
-     🚀 AutoStart + auto-refresh periódico
-  ============================================================ */
-  useEffect(() => {
-    // primeira tentativa
-    if (autoStart && safeInstanceId) {
-      start();
-    }
-
-    // ⏱ auto refresh enquanto NÃO estiver conectado
-    if (!autoStart) return;
-
-    const interval = setInterval(() => {
-      const isConnected = status === "CONNECTED";
-
-      if (!isConnected) {
-        // tenta reabrir / atualizar QR
-        start();
-      }
-    }, 60_000); // a cada 60s
-
-    return () => clearInterval(interval);
-  }, [autoStart, safeInstanceId, start, status]);
+  const { tenant } = useUserAndTenant();
 
   /* ============================================================
      🔍 UI STATES
@@ -74,14 +41,18 @@ export default function QRCodeDisplay({
     status === "DISCONNECTED" ||
     status === "LOGGED_OUT" ||
     status === "UNKNOWN" ||
-    status === "IDLE";
+    status === "IDLE" ||
+    status === "ERROR";
 
-  const showQR = !!qrBase64 && !isConnected && !isConnecting;
+  const showQR =
+    !!qrBase64 &&
+    !isConnected &&
+    !isConnecting &&
+    status !== "ERROR" &&
+    status !== "LOGGED_OUT";
 
-  /* ============================================================
-     🛑 Esconde alguns erros “ruins”
-  ============================================================ */
   const hideError =
+    !error ||
     error === "Not Found" ||
     status === "DISCONNECTED" ||
     status === "UNKNOWN" ||
@@ -111,7 +82,7 @@ export default function QRCodeDisplay({
         </div>
 
         {/* ERRO (filtrado) */}
-        {!hideError && error && (
+        {!hideError && (
           <div className={styles.errorBox}>❌ {error}</div>
         )}
 
@@ -143,7 +114,7 @@ export default function QRCodeDisplay({
           </div>
         )}
 
-        {/* INSTRUÇÕES / BOTÕES */}
+        {/* INSTRUÇÕES + BOTÕES */}
         <div className={styles.buttons}>
           {isDisconnected && (
             <>
@@ -154,11 +125,11 @@ export default function QRCodeDisplay({
 
                 <ol className={styles.instructionsList}>
                   <li>
-                    Abra o aplicativo <strong>WhatsApp</strong> no seu celular.
+                    Abra o aplicativo <strong>WhatsApp</strong>.
                   </li>
                   <li>
                     Vá em{" "}
-                    <strong>… três pontinhos → Dispositivos conectados</strong>.
+                    <strong>“Dispositivos conectados”</strong>.
                   </li>
                   <li>
                     Toque em <strong>“Conectar um dispositivo”</strong>.
@@ -167,17 +138,18 @@ export default function QRCodeDisplay({
                 </ol>
               </div>
 
-              {/* 🔁 Botão manual de novo QR */}
+              {/* BOTÃO MANUAL */}
               <button
                 onClick={() => start()}
                 disabled={loading}
                 className={styles.btnPrimary}
-                style={{ backgroundColor: tenant?.primary_color || "var(--color-primary)" }} // Use tenant's primary color or CSS variable
+                style={{
+                  backgroundColor:
+                    tenant?.primary_color || "var(--color-primary)",
+                }}
               >
                 {loading ? "Gerando QR..." : "Gerar novo QR Code"}
               </button>
-
-              
             </>
           )}
 
