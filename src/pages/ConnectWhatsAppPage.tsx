@@ -55,8 +55,7 @@ const evoBase = import.meta.env.VITE_EVO_PROXY_URL;
         {/* 🔥 Agora o QRCode já tenta conectar sozinho */}
         <QRCodeDisplay
           instanceId={instanceId}
-          autoStart={true}
-          baseUrl={evoBase}
+           baseUrl={evoBase}
         />
 
         <div style={{ height: "1rem" }} />
