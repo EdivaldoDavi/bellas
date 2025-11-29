@@ -1,136 +1,96 @@
-import { useEffect, useRef } from "react";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 import { useEvolutionConnection } from "../hooks/useEvolutionConnection";
-
 import QRCodeDisplay from "./QRCodeDisplay";
 import N8nPauseButton from "../components/N8nPauseButton";
 
-import styles from "../css/ConnectWhatsApp.module.css";
-
-export default function ConnectWhatsAppPage({
-  insideSetup = false,
-  onFinish,
-}: {
-  insideSetup?: boolean;
-  onFinish?: () => void;
-}) {
+export default function ConnectWhatsAppPage() {
   const { tenant, subscription, loading } = useUserAndTenant();
 
-  const instanceId = tenant?.id || "";
-  const evoBase = import.meta.env.VITE_EVO_PROXY_URL;
+  // 🔥 Sempre chamar hooks, mesmo que tenant não exista!
+  const instanceId = tenant?.id || ""; // safe
+  const evoBase =
+    import.meta.env.VITE_EVO_PROXY_URL ?? "http://localhost:3001/api";
 
-  // ============================================================
-  // 🔥 Hook Evolution – ÚNICA instância de conexão!
-  // ============================================================
-  const {
-    status,
-    qrBase64,
-    loading: evoLoading,
-    error,
-    realInstanceId,
-    start,
-    logout,
-  } = useEvolutionConnection({
+  const { status } = useEvolutionConnection({
     baseUrl: evoBase,
-    autostart: false, // sempre false, autostart manual abaixo
-    initialInstanceId: instanceId,
+    autostart: false,
+    initialInstanceId: instanceId, // safe
   });
 
-  // ============================================================
-  // 🔄 AUTOSTART SEGURO (garante QR automático sem loops)
-  // ============================================================
-  const autoStartLock = useRef(false);
+  // 🔥 Sempre chamar hooks ACIMA de qualquer return condicional
 
-  useEffect(() => {
-    if (!instanceId) return;
+  if (loading)
+    return <div style={{ padding: "2rem" }}>Carregando informações…</div>;
 
-    const needsStart =
-      !status ||
-      ["DISCONNECTED", "UNKNOWN", "LOGGED_OUT", "IDLE", "ERROR"].includes(
-        status
-      );
+  if (!tenant)
+    return <div style={{ padding: "2rem" }}>❌ Tenant não encontrado.</div>;
 
-    if (needsStart && !autoStartLock.current) {
-      autoStartLock.current = true;
-
-      start(); // 🔥 dispara conexão automática
-
-      // previne loop infinito
-      setTimeout(() => {
-        autoStartLock.current = false;
-      }, 8000);
-    }
-  }, [status, instanceId, start]);
-
-  // ============================================================
-  // GLOBAL LOADING
-  // ============================================================
-  if (loading) {
-    return <div className={styles.loading}>Carregando informações…</div>;
-  }
-
-  if (!tenant) {
-    return <div className={styles.error}>Tenant não encontrado.</div>;
-  }
-
-  const isDisconnected =
+  const isWhatsDisconnected =
     !status ||
-    ["DISCONNECTED", "LOGGED_OUT", "UNKNOWN", "IDLE", "ERROR"].includes(
-      status
-    );
+    status === "DISCONNECTED" ||
+    status === "LOGGED_OUT" ||
+    status === "ERROR" ||
+    status === "UNKNOWN" ||
+    status === "IDLE";
 
-  const canShowPause = subscription && !isDisconnected;
+  const shouldShowPauseButton = !!subscription && !isWhatsDisconnected;
 
   return (
-    <div className={styles.container}>
-      {!insideSetup && (
-        <>
-          <h2 className={styles.title}>Integração WhatsApp</h2>
-          <p className={styles.description}>
-            Conecte o WhatsApp para habilitar automações, notificações e IA.
-          </p>
-        </>
-      )}
+    <div style={{ padding: "1.5rem", maxWidth: 600 }}>
+      <h2>Integração WhatsApp</h2>
 
-      <div className={styles.card}>
-        {/* ======================================================
-            QRCodeDisplay agora é UI apenas – recebe tudo via props
-        ======================================================= */}
+      <p>
+        Conecte o WhatsApp para habilitar automações, confirmações e mensagens
+        inteligentes via IA.
+      </p>
+
+      <div
+        style={{
+          background: "var(--card-bg, #fff)",
+          padding: "1.5rem",
+          borderRadius: "16px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+        }}
+      >
+        {/* 🔵 QRCode SEMPRE aparece */}
         <QRCodeDisplay
-          status={status}
-          qrBase64={qrBase64}
-          loading={evoLoading}
-          error={error}
-          realInstanceId={realInstanceId}
-          onStart={start}
-          onLogout={logout}
+          instanceId={instanceId}
+          autoStart={false}
+          baseUrl={evoBase}
         />
 
         <div style={{ height: "1rem" }} />
 
-        {canShowPause ? (
+        {/* 🔵 Botão só aparece quando estiver conectado */}
+        {shouldShowPauseButton ? (
           <N8nPauseButton
             subscriptionId={subscription!.id}
             initialState={subscription!.n8n_pause}
           />
+        ) : subscription ? (
+          <div
+            style={{
+              marginTop: "0.75rem",
+              opacity: 0.7,
+              fontSize: "0.9rem",
+              textAlign: "center",
+            }}
+          >
+            Conecte o WhatsApp para habilitar o controle de atendimento.
+          </div>
         ) : (
-          <div className={styles.hint}>
-            {subscription
-              ? "Conecte o WhatsApp para ativar o controle de atendimento."
-              : "Você precisa de um plano ativo para conectar o WhatsApp."}
+          <div
+            style={{
+              marginTop: "0.75rem",
+              opacity: 0.7,
+              fontSize: "0.9rem",
+              textAlign: "center",
+            }}
+          >
+            Associe um plano de assinatura para ativar o controle de atendimento.
           </div>
         )}
       </div>
-
-      {insideSetup && (
-        <button
-          onClick={onFinish}
-          className={styles.nextButton}
-          style={{ backgroundColor: "var(--color-primary)" }}
-        >
-          Continuar
-        </button>
-      )}
     </div>
   );
 }
