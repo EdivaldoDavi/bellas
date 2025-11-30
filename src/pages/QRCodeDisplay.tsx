@@ -1,96 +1,71 @@
-import { useEffect, useMemo } from "react";
-import { useEvolutionConnection } from "../hooks/useEvolutionConnection";
-import type { EvoStatus } from "../hooks/useEvolutionConnection";
+// src/components/QRCodeDisplay.tsx
 import styles from "../css/QRCodeDisplay.module.css";
+import type { EvoStatus } from "../hooks/useEvolutionConnection";
 
 export interface QRCodeDisplayProps {
   instanceId: string;
+  status: EvoStatus | string;
+  qr?: string | null;
+  loading?: boolean;
   autoStart?: boolean;
-  baseUrl?: string;
+  onStart: () => void;
+  onRefresh: () => void;
+  onLogout: () => void;
 }
 
 export default function QRCodeDisplay({
   instanceId,
-  autoStart = false,
-  baseUrl = "/api",
+  status,
+  qr,
+  loading = false,
+  onStart,
+  onRefresh,
+  onLogout,
 }: QRCodeDisplayProps) {
-  const safeInstanceId = useMemo(() => instanceId.trim(), [instanceId]);
+  /* ---------------- STATES ---------------- */
+  const isConnecting =
+    loading || status === "OPENING" || status === "INITIALIZING";
 
-  const {
-    status,
-    qrBase64,
-    error,
-    loading,
-    start,
-    refresh,
-    logout,
-    realInstanceId,
-  } = useEvolutionConnection({
-    baseUrl,
-    autostart: false,
-    initialInstanceId: safeInstanceId,
-  });
-
-  // ✅ Atualiza status visual no body
-  useEffect(() => {
-    console.log("🔄 STATUS RECEBIDO DO HOOK:", status);
-    if (status === "CONNECTED") document.body.classList.add("wa-connected");
-    else document.body.classList.remove("wa-connected");
-  }, [status]);
-
-  // ✅ Refresh ao montar
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
-
-  // ✅ AutoStart (caso habilitado externamente)
-  useEffect(() => {
-    if (autoStart && safeInstanceId) start();
-  }, [autoStart, safeInstanceId, start]);
-
-  /* ---------------- UI STATES ---------------- */
-  const isConnecting = loading || status === "OPENING";
   const isConnected = status === "CONNECTED";
+
   const isDisconnected =
     status === "DISCONNECTED" ||
     status === "LOGGED_OUT" ||
     status === "UNKNOWN" ||
     status === "IDLE";
-  const showQR = !!qrBase64 && !isConnected && !isConnecting;
+
+  const showQR = !!qr && !isConnected && !isConnecting;
 
   /* ---------------- RENDER ---------------- */
   return (
     <div className={styles.container}>
       <div className={styles.card}>
+        
+        {/* Header */}
         <div className={styles.header}>
           <h2 className={styles.title}>WhatsApp · Conexão</h2>
-          {realInstanceId && (
-            <span className={styles.instanceId}>
-              Instância: {realInstanceId}
-            </span>
+          {instanceId && (
+            <span className={styles.instanceId}>Instância: {instanceId}</span>
           )}
         </div>
 
-        {/* STATUS BOX */}
+        {/* Status visual */}
         <div className={styles.statusBox}>
           <span className={styles.statusDot} data-status={status} />
           <span className={styles.statusText}>{labelFromStatus(status)}</span>
         </div>
 
-        {/* ERRO */}
-        {error && <div className={styles.errorBox}>❌ {error}</div>}
-
-        {/* QR */}
+        {/* QR Code */}
         {showQR && (
           <div className={styles.qrArea}>
-            <img src={qrBase64} className={styles.qr} alt="QR Code" />
+            <img src={qr!} className={styles.qr} alt="QR Code" />
             <p className={styles.qrHint}>
               Escaneie o QR Code no seu aplicativo WhatsApp.
             </p>
           </div>
         )}
 
-        {/* LOADING */}
+        {/* Loading */}
         {isConnecting && (
           <div className={styles.loadingBox}>
             <div className={styles.spinner} />
@@ -98,7 +73,7 @@ export default function QRCodeDisplay({
           </div>
         )}
 
-        {/* CONECTADO */}
+        {/* Conectado */}
         {isConnected && (
           <div className={styles.connectedBox}>
             <div className={styles.connectedIllustration}>
@@ -108,41 +83,46 @@ export default function QRCodeDisplay({
           </div>
         )}
 
-        {/* BOTÕES */}
+        {/* Botões */}
         <div className={styles.buttons}>
           {isDisconnected && (
             <>
-              {/* 🔹 Instruções antes de conectar */}
+              {/* Instruções */}
               <div className={styles.instructionsBox}>
                 <p className={styles.instructionsTitle}>
                   📱 Como conectar seu WhatsApp:
                 </p>
                 <ol className={styles.instructionsList}>
-                  <li>Abra o aplicativo <strong>WhatsApp</strong> no seu celular.</li>
                   <li>
-                    Vá em <strong> ... três pontinhos → Dispositivos conectados</strong>.
+                    Abra o aplicativo <strong>WhatsApp</strong> no seu celular.
                   </li>
-                  <li>Toque em <strong>“Conectar um dispositivo”</strong>.</li>
-                  <li>Escaneie o QR Code exibido aqui na tela.</li>
+                  <li>
+                    Vá em{" "}
+                    <strong>… (três pontinhos) → Dispositivos conectados</strong>.
+                  </li>
+                  <li>
+                    Toque em <strong>“Conectar um dispositivo”</strong>.
+                  </li>
+                  <li>Escaneie o QR Code exibido aqui.</li>
                 </ol>
               </div>
 
               <button
-                onClick={start}
+                onClick={onStart}
                 disabled={loading}
                 className={styles.btnPrimary}
               >
                 {loading ? "Conectando..." : "Conectar WhatsApp"}
               </button>
 
-              <button className={styles.btnSecondary} onClick={refresh}>
-                Recarregar
+              <button className={styles.btnSecondary} onClick={onRefresh}>
+                Recarregar QR Code
               </button>
             </>
           )}
 
           {isConnected && (
-            <button className={styles.btnDanger} onClick={logout}>
+            <button className={styles.btnDanger} onClick={onLogout}>
               Desconectar
             </button>
           )}
@@ -152,7 +132,7 @@ export default function QRCodeDisplay({
   );
 }
 
-/* ---------------- LABEL ---------------- */
+/* ---------------- STATUS LABEL ---------------- */
 function labelFromStatus(s: EvoStatus | string) {
   const up = (s || "UNKNOWN").toUpperCase();
   switch (up) {

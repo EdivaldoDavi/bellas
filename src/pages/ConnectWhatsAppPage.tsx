@@ -6,34 +6,36 @@ import N8nPauseButton from "../components/N8nPauseButton";
 export default function ConnectWhatsAppPage() {
   const { tenant, subscription, loading } = useUserAndTenant();
 
-  // 🔥 Sempre chamar hooks, mesmo que tenant não exista!
-  const instanceId = tenant?.id || ""; // safe
-  const evoBase =
-    import.meta.env.VITE_EVO_PROXY_URL ?? "http://localhost:3001/api";
+  // 📌 Garantir chamada dos hooks
+  const instanceId = tenant?.id || "";
+  const evoBase = import.meta.env.VITE_EVO_PROXY_URL;
 
-  const { status } = useEvolutionConnection({
+  // 🚀 UMA ÚNICA conexão Evolution controlando tudo
+  const {
+    status,
+    qrBase64,
+    loading: evoLoading,
+    start,
+    refresh,
+    logout,
+  } = useEvolutionConnection({
     baseUrl: evoBase,
     autostart: false,
-    initialInstanceId: instanceId, // safe
+    initialInstanceId: instanceId,
   });
 
-  // 🔥 Sempre chamar hooks ACIMA de qualquer return condicional
-
+  // 🔥 Hooks sempre acima dos returns condicionais
   if (loading)
     return <div style={{ padding: "2rem" }}>Carregando informações…</div>;
 
   if (!tenant)
     return <div style={{ padding: "2rem" }}>❌ Tenant não encontrado.</div>;
 
-  const isWhatsDisconnected =
-    !status ||
-    status === "DISCONNECTED" ||
-    status === "LOGGED_OUT" ||
-    status === "ERROR" ||
-    status === "UNKNOWN" ||
-    status === "IDLE";
+  // 🚦 Estados reais de conexão
+  const isWhatsConnected = status === "CONNECTED";
 
-  const shouldShowPauseButton = !!subscription && !isWhatsDisconnected;
+  // 🔵 Mostrar botão Pause somente se houver assinatura + conexão ativa
+  const shouldShowPauseButton = !!subscription && isWhatsConnected;
 
   return (
     <div style={{ padding: "1.5rem", maxWidth: 600 }}>
@@ -52,16 +54,21 @@ export default function ConnectWhatsAppPage() {
           boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
         }}
       >
-        {/* 🔵 QRCode SEMPRE aparece */}
+        {/* 🔵 QRCode agora recebe status e handlers do HOOK ÚNICO */}
         <QRCodeDisplay
           instanceId={instanceId}
+          status={status}
+          qr={qrBase64}
+          loading={evoLoading}
           autoStart={false}
-          baseUrl={evoBase}
+          onStart={start}
+          onRefresh={refresh}
+          onLogout={logout}
         />
 
         <div style={{ height: "1rem" }} />
 
-        {/* 🔵 Botão só aparece quando estiver conectado */}
+        {/* 🔵 Botão Pausar/Retomar Atendimento */}
         {shouldShowPauseButton ? (
           <N8nPauseButton
             subscriptionId={subscription!.id}
