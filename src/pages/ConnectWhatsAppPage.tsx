@@ -23,6 +23,7 @@ export default function ConnectWhatsAppPage() {
     autostart: false,
     initialInstanceId: instanceId,
   });
+console.log("STATUS REAL DO WHATSAPP:", status);
 
   // 🔥 Hooks sempre acima dos returns condicionais
   if (loading)
@@ -32,7 +33,15 @@ export default function ConnectWhatsAppPage() {
     return <div style={{ padding: "2rem" }}>❌ Tenant não encontrado.</div>;
 
   // 🚦 Estados reais de conexão
-  const isWhatsConnected = status === "CONNECTED";
+const isWhatsConnected = [
+  "CONNECTED",
+  "LOGGED_IN",
+  "PAIRING",
+  "READY",
+  "AUTHENTICATED",
+  "ONLINE"
+].includes(status?.toUpperCase());
+
 
   // 🔵 Mostrar botão Pause somente se houver assinatura + conexão ativa
   const shouldShowPauseButton = !!subscription && isWhatsConnected;
