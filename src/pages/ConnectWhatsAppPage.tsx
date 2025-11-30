@@ -45,6 +45,8 @@ const isWhatsConnected = [
 
   // 🔵 Mostrar botão Pause somente se houver assinatura + conexão ativa
   const shouldShowPauseButton = !!subscription && isWhatsConnected;
+console.log("TENANT:", tenant);
+console.log("SUBSCRIPTION:", subscription);
 
   return (
     <div style={{ padding: "1.5rem", maxWidth: 600 }}>
