@@ -99,44 +99,42 @@ const mapStatus = (raw: any): EvoStatus => {
   if (!raw) return "UNKNOWN";
   const s = String(raw).toLowerCase().trim();
 
-  // ❌ Desconectado / offline (verificado primeiro!)
-  if (
-    s === "disconnected" ||
-    s.includes("disconnected") ||
-    s.includes("offline") ||
-    s.includes("logout") ||
-    s.includes("closed") ||
-    s === "close"
-  ) {
-    return "DISCONNECTED";
-  }
-
-  // ✅ Conectado
+  // primeiro: estados claramente conectados
   if (
     s === "connected" ||
-    s.includes(" connected") || // evita "disconnected"
     s === "online" ||
-    s.includes(" phone_connected") ||
-    s.includes("phoneconnected")
+    s.includes("connected") && !s.includes("disconnected") ||
+    s.includes("phone_connected")
   ) {
     return "CONNECTED";
   }
 
-  // 🔄 Em conexão
-  if (s === "openning" || s.includes("opening") || s.includes("initializing")) {
-    return "OPENING";
-  }
-
-  // 🧾 QR
+  // estados de QR
   if (s.includes("qr") || s.includes("scan") || s.includes("waiting")) {
     return "QRCODE";
   }
 
-  // ⚠️ Estados intermediários
-  if (s === "open" || s.includes("ready") || s.includes("active")) {
+  // estados de abertura
+  if (
+    s === "open" ||
+    s === "opening" ||
+    s.includes("opening") ||
+    s.includes("initializing")
+  ) {
+    return "OPENING";
+  }
+
+  // estados realmente desconectados
+  if (
+    s === "disconnected" ||
+    s.includes("logout") ||
+    s.includes("closed") ||
+    s.includes("offline")
+  ) {
     return "DISCONNECTED";
   }
 
+  // fallback
   return "UNKNOWN";
 };
 
@@ -169,26 +167,30 @@ const mapStatus = (raw: any): EvoStatus => {
   };
 
   /** ⚙️ define se o payload representa conectado/desconectado */
-  const evaluateConnectivity = (payload: StatusPayload): EvoStatus => {
-    // explicitação direta
-    if (
-      payload.phoneConnected === true ||
-      payload.connected === true ||
-      payload.instance?.phoneConnected === true ||
-      payload.instance?.connected === true
-    )
-      return "CONNECTED";
-    if (
-      payload.phoneConnected === false ||
-      payload.connected === false ||
-      payload.instance?.phoneConnected === false
-    )
-      return "DISCONNECTED";
+const evaluateConnectivity = (payload: StatusPayload): EvoStatus => {
+  if (!payload) return "UNKNOWN";
 
-    // fallback textual
-    const mapped = mapStatus(extractStatus(payload));
-    return mapped;
-  };
+  // Verificação direta (mais confiável)
+  if (
+    payload.phoneConnected === true ||
+    payload.connected === true ||
+    payload.instance?.phoneConnected === true ||
+    payload.instance?.connected === true
+  ) {
+    return "CONNECTED";
+  }
+
+  if (
+    payload.phoneConnected === false ||
+    payload.connected === false ||
+    payload.instance?.phoneConnected === false
+  ) {
+    return "DISCONNECTED";
+  }
+
+  // fallback textual
+  return mapStatus(extractStatus(payload));
+};
 
   /* ---------------------------------------------------------
      SSE
