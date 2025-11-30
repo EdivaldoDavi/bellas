@@ -161,13 +161,19 @@ export function useUserAndTenant() {
       });
 
       /* ================ SUBSCRIPTION ================ */
-      const { data: sub } = await supabase
-        .from("subscriptions")
-        .select("*")
-        .eq("tenant_id", tData.id)
-        .maybeSingle();
+      /* ================ SUBSCRIPTIONS (CORRETO) ================ */
+          const { data: subs, error: subErr } = await supabase
+            .from("subscriptions")
+            .select("*")
+            .eq("tenant_id", tData.id)
+            .order("created_at", { ascending: false })
+            .limit(1);
 
-      setSubscription(sub ?? null);
+          if (subErr) console.error("Erro ao buscar assinatura:", subErr);
+
+          const latestSub = subs?.[0] ?? null;
+          setSubscription(latestSub);
+
 
       /* ================ PLAN + FEATURES ================ */
       if (tData.plan_id) {
