@@ -449,21 +449,38 @@ const evaluateConnectivity = (payload: StatusPayload): EvoStatus => {
 
 
   // 🧹 Auto-delete da instância se estiver desconectado
+// 🔥 Auto-delete seguro da instância
 useEffect(() => {
-  if (status !== "DISCONNECTED") return;
-  if (didLogoutRef.current) return; // evita loop de logout
+  // Só dispara para esses estados, pois significam DESLOGADO no aparelho
+  if (!["LOGGED_OUT", "CLOSED", "DISCONNECTED"].includes(status)) return;
+
+  if (didLogoutRef.current) return; // Usuário já clicou em "Deslogar"
   const id = realInstanceId || logicalInstanceId;
   if (!id) return;
 
-  console.log("🧹 Instância desconectada — agendando exclusão...");
+  console.log("⏳ Detectado possível logout no celular... validando em 5s");
+
   const timer = setTimeout(async () => {
     try {
-      await logout();
-      console.log("🗑️ Instância deletada automaticamente:", id);
+      // Revalida status real chamando endpoint oficial
+      const result = await fetch(
+        `${baseUrl}/evo/status?instanceId=${encodeURIComponent(id)}`,
+        { headers: { "X-Api-Key": evoToken } }
+      );
+      const data: any = await result.json();
+      const confirmedStatus = evaluateConnectivity(data);
+
+      console.log("🔍 Status confirmado após validação:", confirmedStatus);
+
+      // Só apaga se REALMENTE estiver deslogado
+      if (["LOGGED_OUT", "CLOSED", "DISCONNECTED"].includes(confirmedStatus)) {
+        console.log("🗑️ Instância removida (logout confirmado pelo aparelho):", id);
+        await logout();
+      }
     } catch (err) {
-      console.warn("Erro ao deletar instância automaticamente:", err);
+      console.warn("Erro ao revalidar desconexão:", err);
     }
-  }, 2500); // espera 2.5 segundos para garantir que não é desconexão momentânea
+  }, 5000);
 
   return () => clearTimeout(timer);
 }, [status, logout, realInstanceId, logicalInstanceId]);
