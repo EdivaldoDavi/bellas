@@ -58,7 +58,7 @@ export default function Onboarding() {
       <div className={styles.card}>
         <header className={styles.header}>
           <div>
-            <h1 className={styles.title}>Configuração inicial</h1>
+            <h1 className={styles.title}>Vamos preparar Tudo!</h1>
             <p className={styles.subtitle}>
               Vamos deixar seu Studio pronto para começar a receber agendamentos.
             </p>
