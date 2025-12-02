@@ -12,7 +12,7 @@ import StepFinish from "./steps/StepFinish";
 const TOTAL_STEPS = 5; // Agora sem o StepReviewProfile
 
 export default function Onboarding() {
-  const { tenant, updateOnboardingStep } = useUserTenant();
+  const { tenant } = useUserTenant();
 
   const step = tenant?.onboarding_step ?? 0;
 
