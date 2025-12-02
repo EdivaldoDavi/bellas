@@ -30,7 +30,7 @@ export default function Onboarding() {
       case 4:
         return <StepFirstAppointment />;
         
-      case 99:
+      case 5:
       return <StepCongratulations />;
       default:
         return <StepWelcome />;

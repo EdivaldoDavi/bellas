@@ -29,7 +29,7 @@ export default function StepFirstAppointment() {
       toast.error("Por favor, crie pelo menos um agendamento.");
       return;
     }
-    updateOnboardingStep(99); // <-- AJUSTE O STEP DO CONGRATULATIONS AQUI!
+    updateOnboardingStep(5); // <-- AJUSTE O STEP DO CONGRATULATIONS AQUI!
   }
 
   async function fetchAppointments() {
