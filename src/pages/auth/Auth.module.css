@@ -130,11 +130,11 @@
   right: 14px;
   transform: translateY(-50%);
 
-  background: var(--color-primary);
+  background: none;
   border: none;
   cursor: pointer;
 
-  color:  var(--color-primary);
+  color: #6b6b6b;  /* 🔥 cinza elegante, visível e moderno */
   width: 26px;
   height: 26px;
 
@@ -144,8 +144,9 @@
 }
 
 .eyeButton:hover {
-  color: var(--color-primary);
+  color: #333; /* mais forte no hover */
 }
+
 
 /* ===========================
    FORGOT PASSWORD
