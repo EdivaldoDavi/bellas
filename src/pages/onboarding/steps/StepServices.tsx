@@ -48,11 +48,11 @@ export default function StepServices() {
         Agora vamos cadastrar os serviços que você oferece, como manicure,
         pedicure, gel, unhas decoradas, alongamentos ou qualquer outro.
       </p>
-
+{/*
       <p className={styles.stepSubText}>
         Você poderá adicionar quantos quiser depois.
       </p>
-
+*/}
       <div className={styles.actions}> 
         <button className={styles.primaryBtn} onClick={() => setShowModal(true)}>
           Cadastrar serviço
