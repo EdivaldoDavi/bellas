@@ -128,6 +128,12 @@
   transform: scale(0.97);
 }
 
+.primaryBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
 /* BOTÃO SECUNDÁRIO */
 .secondaryBtn {
   border: 2px solid rgba(148, 163, 184, 0.7);
@@ -143,6 +149,11 @@
 
 .secondaryBtn:hover {
   background: rgba(148, 163, 184, 0.08);
+}
+
+.secondaryBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 /* BOTÃO VOLTAR */
@@ -163,39 +174,16 @@
   color: #ffffff;
 }
 
-/* BOTÃO CONTINUAR */
-.footerActions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 24px;
-}
-
-.continueBtn {
-  border: 2px solid var(--color-primary);
-  background: #ffffff;
-  color: var(--color-primary);
-  padding: 12px 24px;
-  border-radius: 999px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.continueBtn:disabled {
+.backButton:disabled {
   opacity: 0.45;
   cursor: not-allowed;
-}
-
-.continueBtn:not(:disabled):hover {
-  background: var(--color-primary);
-  color: #ffffff;
 }
 
 /* ===========================================================
    LISTAS — PADRÃO GLOBAL PARA SERVICES / PROFESSIONALS / CUSTOMERS
 =========================================================== */
 
+/* Card de lista usado no StepFirstCustomer (e se quiser em outros) */
 .listContainer {
   margin-top: 18px;
   background: var(--card-bg);
@@ -213,7 +201,6 @@
   gap: 12px;
 }
 
-/* CADA LINHA DA LISTA */
 .itemRow {
   background: var(--card-alt-bg);
   padding: 16px 18px;
@@ -228,8 +215,7 @@
   background: rgba(0, 0, 0, 0.04);
 }
 
-/* linha horizontal contendo:
-   título — sub1 — sub2 — status */
+/* Linha horizontal com várias infos: título — sub — sub2 */
 .itemLine {
   display: flex;
   flex-direction: row;
@@ -238,25 +224,29 @@
   font-size: 1rem;
 }
 
-/* título da linha */
 .itemTitle {
   font-weight: 600;
   color: var(--text);
 }
 
-/* sub-informações */
 .itemSub {
   color: var(--text-muted);
   font-size: 0.95rem;
 }
 
-/* tag Ativo para profissionais */
+/* Tag Ativo p/ profissionais, se usar */
 .itemTagActive {
   background: rgba(34,197,94,0.15);
   color: #15803d;
   font-size: 0.8rem;
   padding: 3px 8px;
   border-radius: 6px;
+}
+
+/* ✨ Hack global para corrigir "unha em gel60 min" e "venaAtivo"
+   em ULs simples, sem precisar mexer nos steps antigos */
+.stepContainer ul li > strong {
+  margin-right: 6px;
 }
 
 /* ===========================================================
@@ -285,15 +275,5 @@
     max-width: none;
     padding: 14px 20px;
     font-size: 1.05rem;
-  }
-
-  .footerActions {
-    justify-content: center;
-  }
-
-  .continueBtn {
-    width: 100%;
-    padding: 14px;
-    font-size: 1.1rem;
   }
 }

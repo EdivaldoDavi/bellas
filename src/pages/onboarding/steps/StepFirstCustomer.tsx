@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { supabase } from "../../../lib/supabaseCleint";
 import { useUserTenant } from "../../../context/UserTenantProvider";
 import styles from "../Onboarding.module.css";
-
 import ModalNewCustomer from "../../../components/ModalNewCustomer";
 
 type Customer = {
@@ -37,9 +36,6 @@ export default function StepFirstCustomer() {
     updateOnboardingStep(4);
   }
 
-  /* ============================================================
-     🔥 Buscar clientes existentes
-  ============================================================ */
   async function fetchCustomers() {
     if (!tenant?.id) return;
 
@@ -72,14 +68,12 @@ export default function StepFirstCustomer() {
         para testar o fluxo de agendamento.
       </p>
 
-      {/* ============================
-          LISTA DE CLIENTES
-      ============================= */}
+      {/* LISTA DE CLIENTES */}
       <div className={styles.listContainer}>
         {loading && <p>Carregando clientes...</p>}
 
         {!loading && customers.length === 0 && (
-          <p className={styles.emptyText}>Nenhum cliente cadastrado ainda.</p>
+          <p>Nenhum cliente cadastrado ainda.</p>
         )}
 
         {!loading && customers.length > 0 && (
@@ -89,7 +83,9 @@ export default function StepFirstCustomer() {
                 <div className={styles.itemLine}>
                   <span className={styles.itemTitle}>{c.full_name}</span>
                   {c.customer_phone && (
-                    <span className={styles.itemSub}>— {c.customer_phone}</span>
+                    <span className={styles.itemSub}>
+                      — {c.customer_phone}
+                    </span>
                   )}
                 </div>
               </li>
@@ -98,9 +94,7 @@ export default function StepFirstCustomer() {
         )}
       </div>
 
-      {/* ============================
-          BOTÕES CENTRAIS (PADRÃO)
-      ============================= */}
+      {/* BOTÕES NA MESMA LINHA (PADRÃO) */}
       <div className={styles.actions}>
         <button className={styles.backButton} onClick={goBack}>
           Voltar
@@ -112,14 +106,9 @@ export default function StepFirstCustomer() {
         >
           Cadastrar cliente
         </button>
-      </div>
 
-      {/* ============================
-          BOTÃO CONTINUAR (PADRÃO)
-      ============================= */}
-      <div className={styles.footerActions}>
         <button
-          className={styles.continueBtn}
+          className={styles.secondaryBtn}
           disabled={!canContinue}
           onClick={goNext}
         >
@@ -127,9 +116,6 @@ export default function StepFirstCustomer() {
         </button>
       </div>
 
-      {/* ============================
-          MODAL
-      ============================= */}
       {tenant?.id && (
         <ModalNewCustomer
           mode="agenda"
