@@ -9,18 +9,18 @@ export default function StepWelcome() {
     <div>
       <h2 className={styles.stepTitle}>
         👋 Olá, {tenant?.name || "bem-vindo(a)"}!
-      </h2>
+      </h2>{/*
       <p className={styles.stepText}>
         Vamos configurar o essencial para você começar a usar o sistema
         tranquilamente: serviços, horários e um primeiro agendamento.
       </p>
-
+*/}
       <div className={styles.actions}>
         <button
           className={styles.primaryBtn}
           onClick={() => updateOnboardingStep(1)}
         >
-          Começar configuração
+          Vamos Começar!
         </button>
 {/*
         <button

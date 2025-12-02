@@ -126,6 +126,20 @@
   font-size: 0.95rem;
   color: #6b7280;
 }
+.backButton {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+.backButton:hover {
+  text-decoration: underline;
+}
 
 /* Responsivo */
 
