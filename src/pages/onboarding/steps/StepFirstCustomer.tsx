@@ -103,14 +103,14 @@ export default function StepFirstCustomer() {
       ============================= */}
       <div className={styles.actions}>
         <button className={styles.backButton} onClick={goBack}>
-          ← Voltar etapa
+          Voltar
         </button>
 
         <button
           className={styles.primaryBtn}
           onClick={() => setShowModal(true)}
         >
-          Cadastrar cliente de teste
+          Cadastrar cliente
         </button>
       </div>
 

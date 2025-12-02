@@ -166,7 +166,7 @@ export default function StepSchedule() {
       {/* BOTÕES */}
       <div className={styles.actions}>
         <button className={styles.backButton} onClick={goBack}>
-          ← Voltar etapa
+          Voltar
         </button>
 
         <button

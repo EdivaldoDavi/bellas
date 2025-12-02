@@ -114,7 +114,7 @@ export default function StepServices() {
       {/* BOTÕES AÇÕES */}
       <div className={styles.actions}>
         <button className={styles.backButton} onClick={goBack}>
-          ← Voltar etapa
+          Voltar
         </button>
 
         <button
