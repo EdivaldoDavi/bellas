@@ -100,12 +100,11 @@
   font-weight: 600;
   font-size: 0.95rem;
 
-  /* garante que primária/secundária fiquem alinhadas */
-  min-height: 48px;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  /* REMOVIDO: min-height e flex-direction para permitir alinhamento flex */
+  /* REMOVIDO: min-height: 48px; */
+  /* REMOVIDO: display: flex; */
+  /* REMOVIDO: flex-direction: column; */
+  /* REMOVIDO: justify-content: center; */
 }
 
 .colorHint {
