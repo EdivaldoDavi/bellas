@@ -104,7 +104,7 @@
   width: 100%;
 
   padding: 12px 14px;
-  padding-right: 60px !important; /* MUITO espaço para nunca colidir */
+  padding-right: 100px !important; /* AUMENTADO para garantir espaço */
 
   background: #f5f5f7;
   border: 1px solid #e5e5e5;
@@ -119,10 +119,10 @@
   flex: none !important;
   align-items: initial !important;
   justify-content: initial !important;
-  line-height: normal !important;
+  line-height: normal !important; /* Garante line-height consistente */
 
-  position: relative;
-  z-index: 1;
+  position: relative; /* Adicionado para garantir que o input esteja em sua própria camada de empilhamento */
+  z-index: 1; /* Colocado abaixo do botão visualmente, mas com pointer-events no SVG, deve funcionar */
 }
 
 
@@ -133,22 +133,29 @@
 .eyeButton {
   position: absolute;
   top: 50%;
-  right: 16px;
+  right: 10px; /* Ajustado para ficar mais próximo da borda direita do wrapper */
   transform: translateY(-50%);
+
+  width: 40px; /* Definir largura e altura explícitas para a área clicável */
+  height: 40px;
 
   background: transparent;
   border: none;
   cursor: pointer;
 
   color: #5e1b88;
-  z-index: 10;
+  z-index: 2; /* Colocar o botão acima do input visualmente */
 
   padding: 0;
+  display: flex; /* Para centralizar o SVG */
+  align-items: center;
+  justify-content: center;
 }
 
 .eyeButton svg {
   width: 26px;
   height: 26px;
+  pointer-events: none; /* Garante que o SVG não bloqueie o input */
 }
 
 
