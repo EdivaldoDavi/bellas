@@ -19,13 +19,13 @@ export default function StepFirstCustomer() {
   const [loading, setLoading] = useState(true);
 
   const [showModal, setShowModal] = useState(false);
-  const [createdAtLeastOne, setCreatedAtLeastOne] = useState(false);
+  const [canContinue, setCanContinue] = useState(false);
 
   const handleClose = () => setShowModal(false);
 
   const handleSuccess = async () => {
     await fetchCustomers();
-    setCreatedAtLeastOne(true); // cliente criado → libera botão continuar
+    setCanContinue(true);
   };
 
   function goBack() {
@@ -33,7 +33,7 @@ export default function StepFirstCustomer() {
   }
 
   function goNext() {
-    if (customers.length === 0) return;
+    if (!canContinue) return;
     updateOnboardingStep(4);
   }
 
@@ -44,6 +44,7 @@ export default function StepFirstCustomer() {
     if (!tenant?.id) return;
 
     setLoading(true);
+
     const { data, error } = await supabase
       .from("customers")
       .select("id, full_name, customer_phone")
@@ -52,7 +53,7 @@ export default function StepFirstCustomer() {
 
     if (!error && data) {
       setCustomers(data);
-      if (data.length > 0) setCreatedAtLeastOne(true);
+      if (data.length > 0) setCanContinue(true);
     }
 
     setLoading(false);
@@ -72,7 +73,7 @@ export default function StepFirstCustomer() {
       </p>
 
       {/* ============================
-          LISTA DE CLIENTES EXISTENTES
+          LISTA DE CLIENTES
       ============================= */}
       <div className={styles.listContainer}>
         {loading && <p>Carregando clientes...</p>}
@@ -85,10 +86,10 @@ export default function StepFirstCustomer() {
           <ul className={styles.itemsList}>
             {customers.map((c) => (
               <li key={c.id} className={styles.itemRow}>
-                <div className={styles.itemInfo}>
-                  <strong className={styles.itemTitle}>{c.full_name}</strong>
+                <div className={styles.itemLine}>
+                  <span className={styles.itemTitle}>{c.full_name}</span>
                   {c.customer_phone && (
-                    <span className={styles.itemSub}>{c.customer_phone}</span>
+                    <span className={styles.itemSub}>— {c.customer_phone}</span>
                   )}
                 </div>
               </li>
@@ -98,7 +99,7 @@ export default function StepFirstCustomer() {
       </div>
 
       {/* ============================
-          AÇÕES
+          BOTÕES CENTRAIS (PADRÃO)
       ============================= */}
       <div className={styles.actions}>
         <button className={styles.backButton} onClick={goBack}>
@@ -114,12 +115,12 @@ export default function StepFirstCustomer() {
       </div>
 
       {/* ============================
-          BOTÃO CONTINUAR
+          BOTÃO CONTINUAR (PADRÃO)
       ============================= */}
       <div className={styles.footerActions}>
         <button
           className={styles.continueBtn}
-          disabled={!createdAtLeastOne}
+          disabled={!canContinue}
           onClick={goNext}
         >
           Continuar →
@@ -135,7 +136,7 @@ export default function StepFirstCustomer() {
           tenantId={tenant.id}
           show={showModal}
           onClose={handleClose}
-          onSuccess={handleSuccess} // NÃO avança mais automaticamente
+          onSuccess={handleSuccess}
         />
       )}
     </div>

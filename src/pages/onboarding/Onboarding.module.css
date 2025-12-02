@@ -262,6 +262,22 @@
   width: fit-content;
   border-radius: 8px;
 }
+.itemLine {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.itemTitle {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.itemSub {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
 
 /* ===========================================================
    RESPONSIVO
