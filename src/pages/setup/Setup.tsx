@@ -42,10 +42,10 @@ export default function Setup() {
   const [name, setName] = useState(() => tenant?.name || "");
   const [phone, setPhone] = useState("");
   const [primary, setPrimary] = useState(
-    () => tenant?.primary_color || "#ff1493"
+    () => tenant?.primary_color || "#8343A2"
   );
   const [secondary, setSecondary] = useState(
-    () => tenant?.secondary_color || "#ffffff"
+    () => tenant?.secondary_color || "rgba(224, 182, 245, 1)"
   );
   const [variant, setVariant] = useState<"light" | "dark">(
     () => tenant?.theme_variant || "light"
@@ -60,8 +60,8 @@ export default function Setup() {
     if (!tenant) return;
 
     setName(tenant.name || "");
-    setPrimary(tenant.primary_color || "#ff1493");
-    setSecondary(tenant.secondary_color || "#ffffff");
+    setPrimary(tenant.primary_color || "#8343A2");
+    setSecondary(tenant.secondary_color || "rgba(217, 179, 236, 1)");
     setVariant((tenant.theme_variant as "light" | "dark") || "light");
   }, [tenant]);
 
@@ -334,13 +334,13 @@ export default function Setup() {
           placeholder="(11) 98765-4321"
           onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
         />
-
+{/*
         <p className={styles.infoMessage}>
           Você será cadastrado como profissional automaticamente com horário
           padrão de <b>09h às 18h</b>.  
           Você poderá alterar seu horário depois em “Configurações”.
         </p>
-
+  */}
         {/* CORES */}
         <div className={styles.colorsSection}>
           <h4 className={styles.sectionTitle}>
@@ -392,7 +392,7 @@ export default function Setup() {
           </div>
         </div>
 
-        {/* TEMA */}
+        {/* TEMA 
         <div className={styles.themeRow}>
           <button
             className={`${styles.themeBtn} ${
@@ -412,7 +412,7 @@ export default function Setup() {
             🌙 Escuro
           </button>
         </div>
-
+*/}
         <button
           className={styles.saveButton}
           disabled={saving}
