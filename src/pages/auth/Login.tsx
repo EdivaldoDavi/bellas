@@ -1,14 +1,11 @@
-// src/pages/auth/Login.tsx
-
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthProvider";
 import { useTheme } from "../../hooks/useTheme";
-// import { useBrandColor } from "../../hooks/useBrandColor"; // REMOVED
-
 import styles from "./Auth.module.css";
 import { toast } from "react-toastify";
 import { Eye, EyeOff } from "lucide-react";
+
 import logoBellas from "../../assets/bellaslogotransp.png";
 
 export default function Login() {
@@ -19,29 +16,12 @@ export default function Login() {
 
   const navigate = useNavigate();
   const { signIn, user, loading } = useAuth();
-
   const { theme } = useTheme();
-  // const { brandColor } = useBrandColor(); // REMOVED
 
-  /* ============================================================
-     🎨 Tema (rely on useTheme for data-theme attribute)
-  ============================================================ */
   useEffect(() => {
     document.documentElement.setAttribute("data-theme-variant", theme);
   }, [theme]);
 
-  // REMOVED: useEffect for brandColor, now handled by applyTenantTheme or default CSS
-  /*
-  useEffect(() => {
-    if (brandColor) {
-      document.documentElement.style.setProperty("--color-primary", brandColor);
-    }
-  }, [brandColor]);
-  */
-
-  /* ============================================================
-     URL Messages
-  ============================================================ */
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
 
@@ -59,18 +39,12 @@ export default function Login() {
     }
   }, []);
 
-  /* ============================================================
-     Redirecionar se logado
-  ============================================================ */
   useEffect(() => {
     if (!loading && user) {
       navigate("/dashboard", { replace: true });
     }
   }, [user, loading, navigate]);
 
-  /* ============================================================
-     Login
-  ============================================================ */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -87,79 +61,68 @@ export default function Login() {
   };
 
   return (
-    <div className={`${styles.wrap} ${theme === "dark" ? styles.dark : ""}`}>
-      <div className={styles.card}>
-        <img src={logoBellas} alt="Bellas Logo" className={styles.logo} />
+    <div className={styles.pageWrapper}>
+      <div className={styles.loginCard}>
 
-        <h2 className={styles.loginTitle}>LOGIN</h2>
-          {/* MENSAGEM AMIGÁVEL (pré-onboarding) */}
-          <div className={styles.welcomeBox}>
-            <p className={styles.welcomeText}>
-              👋 <strong>Bem-vindo!&nbsp;&nbsp;</strong>  
-              Se ainda não tem uma conta, clique em <strong>Cadastre-se</strong> para começar a usar o sistema e configurar seu Studio em poucos minutos.
-            </p>
-          </div>
+        {/* LOGO */}
+        <div className={styles.logoWrapper}>
+          <img src={logoBellas} alt="Bellas Logo" className={styles.logo} />
+        </div>
 
-        <form onSubmit={handleSubmit}>
-          {error && <p className={styles.errorMessage}>{error}</p>}
+        <h2 className={styles.title}>Entrar na plataforma</h2>
+        <p className={styles.subtitle}>
+          Acesse seu painel para gerenciar seu Studio 💅
+        </p>
 
-          {/* EMAIL */}
+        <form onSubmit={handleSubmit} className={styles.form}>
+          {error && <p className={styles.error}>{error}</p>}
+
+          <label className={styles.label}>Email</label>
           <input
             type="email"
-            placeholder="Email"
+            className={styles.input}
+            placeholder="seuemail@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required
           />
 
-          {/* SENHA + OLHO */}
+          <label className={styles.label}>Senha</label>
           <div className={styles.passwordWrapper}>
             <input
               type={showPassword ? "text" : "password"}
-              placeholder="Senha"
-              className={styles.passwordInput}
+              className={styles.input}
+              placeholder="Digite sua senha"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
-              required
             />
-
             <button
               type="button"
               className={styles.eyeButton}
-              onClick={() => setShowPassword((v) => !v)}
-              aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+              onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
 
-          {/* LINK "ESQUECEU A SENHA?" — fora do WRAPPER */}
           <button
             type="button"
-            className={styles.forgotPassword}
+            className={styles.forgot}
             onClick={() => navigate("/forgot-password")}
           >
-            Esqueceu a senha?
+            Esqueceu sua senha?
           </button>
 
-          {/* BOTÃO ENTRAR */}
-          <button type="submit" disabled={!email || !senha || loading}>
+          <button type="submit" className={styles.submit} disabled={loading}>
             {loading ? "Entrando..." : "Entrar"}
           </button>
         </form>
 
-        {/* CADASTRE-SE */}
-        <p className={styles.linkText}>
-          Ainda não tem conta? <Link to="/register">Cadastre-se</Link>
+        <p className={styles.registerText}>
+          Não tem conta?{" "}
+          <Link to="/register" className={styles.link}>
+            Cadastre-se
+          </Link>
         </p>
-
-        {/* THEME BUTTON 
-        <div className={styles.themeToggleWrapper}>
-          <button className={styles.themeToggle} onClick={toggleTheme}>
-            {theme === "light" ? "🌙 Dark Mode" : "🌞 Light Mode"}
-          </button>
-        </div>
-        */}
       </div>
     </div>
   );

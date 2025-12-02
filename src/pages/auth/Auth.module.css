@@ -1,193 +1,167 @@
-.wrap {
-  min-height: 100dvh;
-  display: grid;
-  place-items: center;
-  background: var(--bg, #f7f7f9);
+/* ===========================
+   PAGE LAYOUT
+=========================== */
+.pageWrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  padding: 20px;
 }
 
-.card {
-  width: min(420px, 92vw);
-  background: #fff;
-  padding: 24px;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.08);
+/* ===========================
+   LOGIN CARD (Estilo SaaS premium)
+=========================== */
+.loginCard {
+  width: 100%;
+  max-width: 420px;
+  background: var(--card-bg);
+  padding: 48px 40px;
+  border-radius: 20px;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.06),
+    0 2px 4px rgba(0, 0, 0, 0.03);
+  animation: fadeIn 0.25s ease-out;
   text-align: center;
 }
 
-.loginTitle {
-  margin-bottom: 1rem;
-  font-weight: bold;
-}
-/* ===========================
-   LOGO NO LOGIN
-=========================== */
-.logo {
-  width: 160px;          /* ajuste conforme necessário */
-  margin: 0 auto 12px;   /* centraliza */
-  display: block;
-  object-fit: contain;
-}
-
-form {
+/* LOGO AREA */
+.logoWrapper {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-input {
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-}
-
-button {
-  padding: 12px;
-  border-radius: 8px;
-  background: #ff3e8a; /* rosa NailUp */
-  color: #fff;
-  font-weight: bold;
-  border: none;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-button:hover {
-  background: #e295b4 !important;
-}
-
-.linkText {
-  margin-top: 12px;
-}
-
-.linkText a {
-  color: #ff3e8a;
-  text-decoration: none;
-  font-weight: bold;
-}
-.forgotPassword {
-  background: none;
-  border: none;
-  color: var(--color-primary);
-  font-size: 0.85rem;
-  margin-top: 4px;
-  margin-bottom: 8px;
-  cursor: pointer;
-  text-align: right;
-  width: 100%;
-  text-decoration: underline;
-}
-
-
-.resetBox {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  justify-content: center;
   margin-bottom: 12px;
 }
 
-.resetButton {
-  background: var(--color-primary);
-  border: none;
-  color: white;
-  padding: 8px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.85rem;
+.logo {
+  width: 150px;
+  object-fit: contain;
+  transition: transform 0.2s ease;
+}
+.logo:hover {
+  transform: scale(1.03);
 }
 
-/* ============================================================
-   NOVOS ESTILOS PARA O CAMPO DE SENHA COM BOTÃO DE OLHO
-============================================================ */
+/* TITLES */
+.title {
+  font-size: 1.45rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: var(--text);
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 32px;
+}
+
+/* ===========================
+   FORM
+=========================== */
+.form {
+  text-align: left;
+}
+
+.label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  display: block;
+}
+
+/* INPUT PREMIUM */
+.input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--separator);
+  background: var(--card-alt-bg);
+  color: var(--text);
+  font-size: 0.95rem;
+  margin-bottom: 14px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background: #fff;
+}
+
+/* PASSWORD FIELD COM ÍCONE */
 .passwordWrapper {
   position: relative;
-  display: flex; /* Garante que o input e o botão fiquem na mesma linha */
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-.passwordInput {
-  width: 100%;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  padding: 12px 40px 12px 12px; /* Espaço extra à direita para o ícone */
-  font-size: 1rem;
-  outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.passwordInput:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(255, 20, 147, 0.2);
 }
 
 .eyeButton {
   position: absolute;
-  right: 8px; /* Ajusta a posição do botão à direita */
   top: 50%;
+  right: 12px;
   transform: translateY(-50%);
-  width: 32px; /* Tamanho fixo para o botão */
-  height: 32px; /* Tamanho fixo para o botão */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none; /* Remove a borda */
-  background: transparent; /* Fundo transparente para não ter a cor do botão global */
-  padding: 0; /* Remove o padding */
-  margin: 0; /* Remove a margem */
+  background: none;
+  border: none;
   cursor: pointer;
-  color: #64748b; /* Cor padrão para o ícone */
-  transition: color 0.2s ease, background-color 0.2s ease; /* Adiciona transição para o background */
-  border-radius: 50%; /* Deixa o hover circular */
+  color: var(--text-muted);
+  padding: 4px;
 }
 
 .eyeButton:hover {
-  color: var(--color-primary); /* Cor do tema no hover */
-  background-color: rgba(0, 0, 0, 0.05); /* Fundo leve no hover */
+  color: var(--text);
 }
 
-/* Garante que o ícone seja visível em ambos os temas */
-.eyeButton svg {
-  color: inherit !important;
-  stroke: currentColor !important;
-  opacity: 1 !important;
-}
-
-/* Estilos para o tema escuro */
-:root[data-theme="dark"] .card {
-  background: #1e1e1e;
-  color: #e8e8e8;
-}
-
-:root[data-theme="dark"] input {
-  background: #141414;
-  border-color: #333;
-  color: #e8e8e8;
-}
-
-:root[data-theme="dark"] .eyeButton {
-  color: #a9a6b7; /* Cor do ícone no tema escuro */
-}
-
-:root[data-theme="dark"] .eyeButton:hover {
-  background-color: rgba(255, 255, 255, 0.1); /* Fundo leve no hover no tema escuro */
-}
-
-.welcomeBox {
-  background: rgba(0,0,0,0.03);
-  padding: 14px 16px;
-  margin-bottom: 20px;
-  border-radius: 12px;
-  font-size: 0.92rem;
-  color: #4b5563;
-  line-height: 1.45;
-}
-
-.dark .welcomeBox {
-  background: rgba(255,255,255,0.08);
-  color: #e5e7eb;
-}
-
-.welcomeText strong {
+/* ESQUECEU A SENHA */
+.forgot {
+  margin-top: -4px;
+  margin-bottom: 18px;
+  background: none;
+  border: none;
   color: var(--color-primary);
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 0.85rem;
+  padding: 0;
+}
+
+/* BOTÃO SUBMIT PREMIUM */
+.submit {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: none;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.2s ease;
+}
+
+.submit:active {
+  transform: scale(0.97);
+}
+
+.submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* REGISTER LINK */
+.registerText {
+  margin-top: 26px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.link {
+  color: var(--color-primary);
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+/* ANIMAÇÃO */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
