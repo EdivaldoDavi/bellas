@@ -90,7 +90,7 @@
 }
 
 /* ===========================================================
-   BOTÕES
+   BOTÕES — PADRÃO GERAL ENTRE TODOS STEPS
 =========================================================== */
 .actions {
   margin-top: 28px;
@@ -107,7 +107,7 @@
   max-width: 260px;
 }
 
-/* PRIMÁRIO */
+/* BOTÃO PRIMÁRIO */
 .primaryBtn {
   border: none;
   background: var(--color-primary);
@@ -117,7 +117,7 @@
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
-  transition: transform 0.15s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+  transition: 0.15s ease;
 }
 
 .primaryBtn:hover {
@@ -129,9 +129,9 @@
   transform: scale(0.97);
 }
 
-/* SECUNDÁRIO */
+/* BOTÃO SECUNDÁRIO */
 .secondaryBtn {
-  border: 1px solid rgba(148, 163, 184, 0.7);
+  border: 2px solid rgba(148, 163, 184, 0.7);
   background: #ffffff;
   color: #374151;
   padding: 12px 20px;
@@ -146,7 +146,7 @@
   background: rgba(148, 163, 184, 0.08);
 }
 
-/* VOLTAR */
+/* BOTÃO VOLTAR */
 .backButton {
   border: 2px solid var(--color-primary);
   background: #ffffff;
@@ -164,33 +164,20 @@
   color: #ffffff;
 }
 
-/* PULAR */
-.skipBtn {
-  margin-top: 8px;
-  background: none;
-  border: none;
-  color: #9ca3af;
-  font-size: 0.9rem;
-  cursor: pointer;
-  text-decoration: underline;
-}
-
-/* ===============================================
-   BOTÃO CONTINUAR (StepFirstCustomer)
-=============================================== */
+/* BOTÃO CONTINUAR (StepFirstCustomer e outros) */
 .footerActions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 16px;
+  margin-top: 12px;
 }
 
 .continueBtn {
-  background: var(--color-primary);
-  color: #ffffff;
-  padding: 12px 26px;
-  border-radius: 12px;
-  border: none;
-  font-size: 1.05rem;
+  border: 2px solid var(--color-primary);
+  background: #ffffff;
+  color: var(--color-primary);
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: 0.2s ease;
@@ -202,11 +189,12 @@
 }
 
 .continueBtn:not(:disabled):hover {
-  opacity: 0.92;
+  background: var(--color-primary);
+  color: #ffffff;
 }
 
 /* ===========================================================
-   LISTA PADRÃO (usada em services, professionals, customers)
+   LISTAS — USADO EM SERVICES, PROFESSIONALS, CUSTOMERS
 =========================================================== */
 .listContainer {
   margin-top: 14px;
@@ -223,24 +211,22 @@
   padding: 8px 0;
 }
 
-/* Lista vertical */
 .itemsList {
   list-style: none;
-  padding: 0;
   margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-/* Item da lista */
 .itemRow {
   background: var(--card-alt-bg);
-  padding: 14px 16px;
+  padding: 16px 18px;
   border-radius: 14px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start; /* crucial p/ listas com tag */
   transition: 0.2s ease;
   border: 1px solid rgba(0,0,0,0.04);
 }
@@ -249,11 +235,10 @@
   background: rgba(0, 0, 0, 0.04);
 }
 
-/* Conteúdo interno */
 .itemInfo {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px; /* AFASTAMENTO entre nome e telefone/status */
 }
 
 .itemTitle {
@@ -265,6 +250,17 @@
 .itemSub {
   font-size: 0.9rem;
   color: var(--text-muted);
+}
+
+/* TAG PARA PROFISSIONAL ATIVO */
+.itemTagActive {
+  background: rgba(34, 197, 94, 0.18);
+  color: #15803d;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  width: fit-content;
+  border-radius: 8px;
 }
 
 /* ===========================================================
@@ -293,6 +289,10 @@
     max-width: none;
     padding: 14px 20px;
     font-size: 1.05rem;
+  }
+
+  .footerActions {
+    justify-content: center;
   }
 
   .continueBtn {
