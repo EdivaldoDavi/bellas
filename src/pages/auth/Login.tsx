@@ -71,7 +71,7 @@ export default function Login() {
 
         <h2 className={styles.title}>Entrar na plataforma</h2>
         <p className={styles.subtitle}>
-          Acesse seu painel para gerenciar seu Studio 💅
+          Acesse seu painel para gerenciar seu Studio. 
         </p>
 
         <form onSubmit={handleSubmit} className={styles.form}>
