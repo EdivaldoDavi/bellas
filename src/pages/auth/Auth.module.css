@@ -130,7 +130,7 @@
   right: 14px;
   transform: translateY(-50%);
 
-  background: none;
+  background: var(--color-primary);
   border: none;
   cursor: pointer;
 
