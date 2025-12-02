@@ -8,6 +8,8 @@ import { useUserTenant } from "../../context/UserTenantProvider";
 import styles from "./Setup.module.css";
 import LoadingSpinner from "../../components/LoadingSpinner";
 
+import { HelpCircle } from "lucide-react";
+
 import {
   maskedToDbPhone,
   formatPhoneInput,
@@ -15,7 +17,7 @@ import {
 } from "../../utils/phoneUtils";
 
 export default function Setup() {
-  const { loading: userTenantLoading, profile, tenant, reloadAll } =
+  const { loading: loadingUserTenant, profile, tenant, reloadAll } =
     useUserTenant();
   const navigate = useNavigate();
 
@@ -23,12 +25,18 @@ export default function Setup() {
      FORM STATE
   ============================================================ */
   const [name, setName] = useState(() => tenant?.name || "");
-  const [phone, setPhone] = useState("");
+
+  // NOVOS CAMPOS
+  const [studioPhone, setStudioPhone] = useState(
+    () => tenant?.whatsapp_number || ""
+  );
+  const [personalPhone, setPersonalPhone] = useState("");
+
   const [primary, setPrimary] = useState(
     () => tenant?.primary_color || "#8343A2"
   );
   const [secondary, setSecondary] = useState(
-    () => tenant?.secondary_color || "rgba(224, 182, 245, 1)"
+    () => tenant?.secondary_color || "#e0b6f5"
   );
   const [variant, setVariant] = useState<"light" | "dark">(
     () => tenant?.theme_variant || "light"
@@ -43,15 +51,16 @@ export default function Setup() {
     if (!tenant) return;
 
     setName(tenant.name || "");
+    setStudioPhone(tenant.whatsapp_number || "");
     setPrimary(tenant.primary_color || "#8343A2");
-    setSecondary(tenant.secondary_color || "#ffffff");
+    setSecondary(tenant.secondary_color || "#e0b6f5");
     setVariant((tenant.theme_variant as "light" | "dark") || "light");
   }, [tenant]);
 
   /* ============================================================
-     PERMISSIONS / LOADING
+     PERMISSIONS
   ============================================================ */
-  if (userTenantLoading) {
+  if (loadingUserTenant) {
     return <LoadingSpinner message="Carregando configurações..." />;
   }
 
@@ -73,62 +82,62 @@ export default function Setup() {
   }
 
   /* ============================================================
-     SALVAR SETUP (SOMENTE ETAPA ÚNICA)
+     SALVAR SETUP
   ============================================================ */
   async function saveSetup() {
     if (!name.trim()) return toast.error("Digite um nome válido.");
 
-    if (!isValidMaskedPhone(phone)) {
-      toast.error("Informe um telefone válido.");
+    if (!isValidMaskedPhone(studioPhone)) {
+      toast.error("Telefone do Studio inválido.");
       return;
     }
 
-    const dbPhone = maskedToDbPhone(phone);
-    if (!dbPhone) return toast.error("Telefone inválido.");
+    if (!isValidMaskedPhone(personalPhone)) {
+      toast.error("Telefone pessoal inválido.");
+      return;
+    }
 
-    if (!profile) return toast.error("Perfil não encontrado.");
+    const dbStudioPhone = maskedToDbPhone(studioPhone);
+    const dbPersonalPhone = maskedToDbPhone(personalPhone);
+
+    if (!dbStudioPhone || !dbPersonalPhone)
+      return toast.error("Verifique os telefones informados.");
 
     setSaving(true);
 
     try {
-      const currentUserId = profile.user_id;
-      let currentTenantId = tenant?.id ?? null;
+      const userId = profile?.user_id;
+      let tenantId = tenant?.id ?? null;
 
       /* ============================================================
          1) CRIAR TENANT CASO NÃO EXISTA
       ============================================================ */
-      if (!currentTenantId) {
-        const generatedId = crypto.randomUUID();
+      if (!tenantId) {
+        tenantId = crypto.randomUUID();
 
-        const { data: newTenant, error: errInsert } = await supabase
-          .from("tenants")
-          .insert({
-            id: generatedId,
-            name,
-            primary_color: primary,
-            secondary_color: secondary,
-            theme_variant: variant,
-            setup_complete: false,
-            created_by: currentUserId,
-          })
-          .select("*")
-          .single();
+        const { error: errInsert } = await supabase.from("tenants").insert({
+          id: tenantId,
+          name,
+          whatsapp_number: dbStudioPhone,
+          primary_color: primary,
+          secondary_color: secondary,
+          theme_variant: variant,
+          setup_complete: false,
+          created_by: userId,
+        });
 
         if (errInsert) throw errInsert;
 
-        currentTenantId = newTenant.id;
-
-        // Atualizar o profile com tenant_id
-        const updateProfile: any = { tenant_id: currentTenantId };
-
-        if (profile.role !== "owner" && profile.role !== "manager") {
+        // Atualiza o profile com tenant_id
+        const updateProfile: any = { tenant_id: tenantId };
+        if (profile?.role !== "owner" && profile?.role !== "manager") {
           updateProfile.role = "manager";
         }
 
         await supabase
           .from("profiles")
           .update(updateProfile)
-          .eq("user_id", currentUserId);
+          .eq("user_id", userId);
 
         await supabase.auth.refreshSession();
         await reloadAll();
@@ -137,59 +146,67 @@ export default function Setup() {
            2) ATUALIZAR TENANT EXISTENTE
         ============================================================ */
         const allowed =
-          profile.role === "owner" || profile.role === "manager";
-        if (!allowed)
-          return toast.error("Você não pode alterar estes dados.");
+          profile?.role === "owner" || profile?.role === "manager";
+
+        if (!allowed) {
+          toast.error("Você não pode alterar estes dados.");
+          setSaving(false);
+          return;
+        }
 
         const { error: errUpdate } = await supabase
           .from("tenants")
           .update({
             name,
+            whatsapp_number: dbStudioPhone,
             primary_color: primary,
             secondary_color: secondary,
             theme_variant: variant,
             setup_complete: false,
           })
-          .eq("id", currentTenantId);
+          .eq("id", tenantId);
 
         if (errUpdate) throw errUpdate;
       }
 
       /* ============================================================
-         3) CRIAR/ATUALIZAR PROFESSIONAL
+         3) CRIAR OU ATUALIZAR PROFESSIONAL
       ============================================================ */
-      const { data: existingProfessional } = await supabase
+      const { data: existingProfessional, error: selectErr } = await supabase
         .from("professionals")
         .select("*")
-        .eq("tenant_id", currentTenantId)
-        .eq("user_id", profile.user_id)
+        .eq("tenant_id", tenantId)
+        .eq("user_id", profile?.user_id)
         .maybeSingle();
+
+      if (selectErr) throw selectErr;
 
       let professionalId = existingProfessional?.id ?? null;
 
       if (!professionalId) {
-        const { data: newProfessional, error: profErr } = await supabase
+        const { data: newProf, error: newErr } = await supabase
           .from("professionals")
           .insert({
-            tenant_id: currentTenantId,
-            user_id: profile.user_id,
-            name: profile.full_name,
-            email: profile.email,
-            phone: dbPhone,
+            tenant_id: tenantId,
+            user_id: profile?.user_id,
+            name: profile?.full_name,
+            email: profile?.email,
+            phone: dbPersonalPhone,
             is_active: true,
           })
           .select("*")
           .single();
 
-        if (profErr) throw profErr;
+        if (newErr) throw newErr;
 
-        professionalId = newProfessional.id;
+        professionalId = newProf.id;
       } else {
-        await supabase
+        const { error: updateErr } = await supabase
           .from("professionals")
-          .update({ phone: dbPhone })
-          .eq("id", professionalId)
-          .eq("tenant_id", currentTenantId);
+          .update({ phone: dbPersonalPhone })
+          .eq("id", professionalId);
+
+        if (updateErr) throw updateErr;
       }
 
       /* ============================================================
@@ -199,11 +216,11 @@ export default function Setup() {
         await supabase
           .from("professional_schedules")
           .delete()
-          .eq("tenant_id", currentTenantId)
+          .eq("tenant_id", tenantId)
           .eq("professional_id", professionalId);
 
         const rows = Array.from({ length: 7 }).map((_, idx) => ({
-          tenant_id: currentTenantId,
+          tenant_id: tenantId!,
           professional_id: professionalId!,
           weekday: idx + 1,
           start_time: "09:00",
@@ -216,13 +233,11 @@ export default function Setup() {
       }
 
       await reloadAll();
-
-      // FINAL -> vai para onboarding!
       navigate("/onboarding", { replace: true });
 
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || "Erro ao salvar setup.");
+      toast.error(err.message || "Erro ao salvar configurações.");
     } finally {
       setSaving(false);
     }
@@ -237,7 +252,7 @@ export default function Setup() {
         <h2 className={styles.title}>Vamos começar criando sua empresa ✨</h2>
 
         <p className={styles.subtitle}>
-          Antes de usar o sistema, vamos configurar sua marca e identidade visual.
+          Configure sua marca, telefone e identidade visual.
         </p>
 
         {/* NOME */}
@@ -249,20 +264,45 @@ export default function Setup() {
           onChange={(e) => setName(e.target.value)}
         />
 
-        {/* TELEFONE */}
-        <label className={styles.colorLabel}>Telefone profissional</label>
+        {/* TELEFONE DO STUDIO */}
+        <label className={styles.colorLabel}>
+          Telefone do Studio (WhatsApp)
+          <span className={styles.helpIcon}>
+            <HelpCircle size={16} />
+            <span className={styles.tooltip}>
+              Este será o número usado para automação, confirmações e lembretes.
+            </span>
+          </span>
+        </label>
+
         <input
           className={styles.input}
-          value={formatPhoneInput(phone)}
-          placeholder="(11) 98765-4321"
-          onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
+          value={formatPhoneInput(studioPhone)}
+          placeholder="(11) 99999-8888"
+          onChange={(e) => setStudioPhone(formatPhoneInput(e.target.value))}
+        />
+
+        {/* TELEFONE PESSOAL */}
+        <label className={styles.colorLabel}>
+          Seu telefone pessoal
+          <span className={styles.helpIcon}>
+            <HelpCircle size={16} />
+            <span className={styles.tooltip}>
+              Este número é interno e não será usado para automação.
+            </span>
+          </span>
+        </label>
+
+        <input
+          className={styles.input}
+          value={formatPhoneInput(personalPhone)}
+          placeholder="(11) 98888-7777"
+          onChange={(e) => setPersonalPhone(formatPhoneInput(e.target.value))}
         />
 
         {/* CORES */}
         <div className={styles.colorsSection}>
-          <h4 className={styles.sectionTitle}>
-            Personalize o visual da sua marca 🎨
-          </h4>
+          <h4 className={styles.sectionTitle}>Cores da sua marca 🎨</h4>
 
           <div className={styles.colorsRow}>
             <div className={styles.colorItem}>
@@ -288,7 +328,11 @@ export default function Setup() {
         </div>
 
         {/* BOTÃO SALVAR */}
-        <button className={styles.saveButton} disabled={saving} onClick={saveSetup}>
+        <button
+          className={styles.saveButton}
+          disabled={saving}
+          onClick={saveSetup}
+        >
           {saving ? "Salvando..." : "Salvar e continuar"}
         </button>
       </div>
