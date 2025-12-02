@@ -265,15 +265,16 @@ export default function Setup() {
         />
 
         {/* TELEFONE DO STUDIO */}
-        <label className={styles.colorLabel}>
-          Telefone do Studio (WhatsApp)
+      <div className={styles.labelWithIcon}>
+  <label className={styles.colorLabel}>Telefone do Studio (WhatsApp)</label>
+
           <span className={styles.helpIcon}>
             <HelpCircle size={16} />
             <span className={styles.tooltip}>
               Este será o número usado para automação, confirmações e lembretes.
             </span>
           </span>
-        </label>
+        </div>
 
         <input
           className={styles.input}
@@ -283,15 +284,16 @@ export default function Setup() {
         />
 
         {/* TELEFONE PESSOAL */}
-        <label className={styles.colorLabel}>
-          Seu telefone pessoal
+     <div className={styles.labelWithIcon}>
+            <label className={styles.colorLabel}>Seu telefone pessoal</label>
+
           <span className={styles.helpIcon}>
             <HelpCircle size={16} />
             <span className={styles.tooltip}>
-              Este número é interno e não será usado para automação.
+             É o mesmo número que você usa para a empresa/profissional ou pessoal? Se sim, basta preenchê-lo novamente.
             </span>
           </span>
-        </label>
+        </div>
 
         <input
           className={styles.input}
