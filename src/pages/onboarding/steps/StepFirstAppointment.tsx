@@ -17,8 +17,11 @@ export default function StepFirstAppointment() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // GATILHO PARA FORÇAR RELOAD
+  const [reloadFlag, setReloadFlag] = useState(0);
+
   function goBack() {
-    updateOnboardingStep(3); // volta para StepFirstCustomer
+    updateOnboardingStep(3);
   }
 
   function goNext() {
@@ -26,12 +29,9 @@ export default function StepFirstAppointment() {
       toast.error("Por favor, crie pelo menos um agendamento.");
       return;
     }
-    updateOnboardingStep(4); // StepCongratulations
+    updateOnboardingStep(5); // <-- AJUSTE O STEP DO CONGRATULATIONS AQUI!
   }
 
-  /* ============================================================
-     🔥 Buscar agendamentos existentes
-  ============================================================ */
   async function fetchAppointments() {
     if (!tenant?.id) return;
 
@@ -50,7 +50,7 @@ export default function StepFirstAppointment() {
 
   useEffect(() => {
     fetchAppointments();
-  }, [tenant?.id]);
+  }, [tenant?.id, reloadFlag]); // <-- atualiza sempre
 
   function formatDateTime(iso: string) {
     const d = new Date(iso);
@@ -69,10 +69,8 @@ export default function StepFirstAppointment() {
 
       <p className={styles.stepText}>
         Vamos criar um agendamento de teste para você ver a agenda funcionando.
-        Depois você pode cancelar ou manter normalmente.
       </p>
 
-      {/* LISTA DE AGENDAMENTOS */}
       <div className={styles.listContainer}>
         {loading && <p>Carregando agendamentos...</p>}
 
@@ -96,7 +94,6 @@ export default function StepFirstAppointment() {
         )}
       </div>
 
-      {/* BOTÕES — SEGUIR PADRÃO DO ONBOARDING */}
       <div className={styles.actions}>
         <button className={styles.backButton} onClick={goBack}>
           Voltar
@@ -115,18 +112,16 @@ export default function StepFirstAppointment() {
         </button>
       </div>
 
-      {/* MODAL */}
       {tenant?.id && (
         <ModalScheduleWizard
           open={showWizard}
           tenantId={tenant.id}
           onClose={(reason) => {
+            setShowWizard(false);
+            setReloadFlag((v) => v + 1); // força reload da lista
+
             if (reason === "completed") {
-              setShowWizard(false);
-              fetchAppointments();
               toast.success("Agendamento criado com sucesso!");
-            } else {
-              setShowWizard(false);
             }
           }}
         />

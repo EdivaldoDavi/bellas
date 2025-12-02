@@ -124,6 +124,7 @@ export default function StepSchedule() {
   ============================================================ */
   return (
     <div className={styles.stepContainer}>
+      {/*
       <h2 className={styles.stepTitle}>
         Escolha o(s) profissionais que irão atender
       </h2>
@@ -134,10 +135,10 @@ export default function StepSchedule() {
         09:00 às 18:00 todos os dias. Se quiser ajustar agora, clique em{" "}
         <strong>Ajustar horários agora</strong>.
       </p>
-
+*/}
       {/* LISTA DE PROFISSIONAIS */}
       <div className={styles.professionalsListWrapper}>
-        <p className={styles.servicesLabel}>Profissionais cadastrados:</p>
+        <p className={styles.servicesLabel}>Profissionais cadastrados: </p>
 
         {loadingProfessionals ? (
           <p className={styles.stepText}>Carregando profissionais...</p>
@@ -173,7 +174,7 @@ export default function StepSchedule() {
           className={styles.primaryBtn}
           onClick={() => setShowModal(true)}
         >
-          Ajustar horários agora
+          Cadastrar profissional
         </button>
 
         <button

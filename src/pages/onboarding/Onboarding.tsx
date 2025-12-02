@@ -7,7 +7,8 @@ import StepServices from "./steps/StepServices";
 import StepSchedule from "./steps/StepSchedule";
 import StepFirstCustomer from "./steps/StepFirstCustomer";
 import StepFirstAppointment from "./steps/StepFirstAppointment";
-import StepFinish from "./steps/StepFinish";
+//import StepFinish from "./steps/StepFinish";
+import StepCongratulations from "./steps/stepCongratulations";
 
 const TOTAL_STEPS = 5; // 0..4, sem contar o finish (99)
 
@@ -28,8 +29,9 @@ export default function Onboarding() {
         return <StepFirstCustomer />;
       case 4:
         return <StepFirstAppointment />;
+
       case 99:
-        return <StepFinish />;
+        return <StepCongratulations />;
       default:
         return <StepWelcome />;
     }
