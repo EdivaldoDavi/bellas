@@ -79,7 +79,7 @@ export default function Onboarding() {
         </header>
 
         {/* BOTÃO VOLTAR */}
-        {step > 0 && step < 99 && (
+        {step > 1 && step < 99 && (
           <button className={styles.backButton} onClick={handleBack}>
             ← Voltar etapa
           </button>
