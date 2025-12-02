@@ -53,7 +53,7 @@ export default function StepServices() {
         Você poderá adicionar quantos quiser depois.
       </p>
 
-      <div className={styles.actions}>
+      <div className={styles.actions}> 
         <button className={styles.primaryBtn} onClick={() => setShowModal(true)}>
           Cadastrar serviço
         </button>
