@@ -67,7 +67,7 @@ const { updateOnboardingStep } = useUserTenant(); // adicionar isso no component
               navigate("/dashboard");
             }}
           >
-            Ir para o painel e começar a usar →
+         Bora começar a usar →
           </button>
 
       </div>
