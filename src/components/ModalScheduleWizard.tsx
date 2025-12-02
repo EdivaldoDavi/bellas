@@ -1,3 +1,4 @@
+// src/components/ModalScheduleWizard.tsx
 import { useEffect, useMemo, useState, useRef } from "react";
 import { toast } from "react-toastify";
 import styles from "../css/AgendaWizard.module.css";
@@ -26,7 +27,7 @@ type Service = { id: string; name: string; duration_min?: number | null };
 interface ModalScheduleWizardProps {
   open: boolean;
   tenantId: string;
- onClose: (reason: "cancel" | "completed") => void;
+  onClose: (reason?: "cancel" | "completed") => void;
   onBooked?: () => void;
 }
 
@@ -36,8 +37,19 @@ export default function ModalScheduleWizard({
   onClose,
   onBooked
 }: ModalScheduleWizardProps) {
-
   const { theme } = useTheme();
+
+  /* ----------------------------------------------------------------------
+     FUNÇÃO BLINDADA PARA GARANTIR COMPATIBILIDADE
+  ---------------------------------------------------------------------- */
+  function safeClose(reason: "cancel" | "completed") {
+    // Se o callback do pai NÃO espera argumentos → chamar sem enviar reason
+    if (onClose.length === 0) {
+      onClose();
+    } else {
+      onClose(reason);
+    }
+  }
 
   /* -------------------------------- STATES -------------------------------- */
   const [step, setStep] = useState(1);
@@ -59,8 +71,6 @@ export default function ModalScheduleWizard({
   const [services, setServices] = useState<Service[]>([]);
   const [serviceId, setServiceId] = useState("");
   const [serviceName, setServiceName] = useState("");
-
-  // Nunca pode ser null
   const [serviceDuration, setServiceDuration] = useState<number>(60);
 
   const [customerId, setCustomerId] = useState("");
@@ -77,7 +87,7 @@ export default function ModalScheduleWizard({
     setProfessionalName("");
     setServiceId("");
     setServiceName("");
-    setServiceDuration(60); // sempre seguro
+    setServiceDuration(60);
 
     setCustomerId("");
     setCustomerName("");
@@ -88,7 +98,7 @@ export default function ModalScheduleWizard({
 
   function handleClose() {
     resetAll();
-   onClose("cancel"); // <<
+    safeClose("cancel");
   }
 
   /* ----------------------------- LOAD INICIAL ----------------------------- */
@@ -138,7 +148,7 @@ export default function ModalScheduleWizard({
   const canNext = useMemo(() => {
     switch (step) {
       case 1: return !!professionalId;
-      case 2: return !!serviceId && !!serviceDuration;
+      case 2: return !!serviceId;
       case 3: return !!customerId;
       case 4: return !!selectedDate;
       case 5: return !!selectedTime;
@@ -148,7 +158,6 @@ export default function ModalScheduleWizard({
     step,
     professionalId,
     serviceId,
-    serviceDuration,
     customerId,
     selectedDate,
     selectedTime
@@ -195,8 +204,11 @@ export default function ModalScheduleWizard({
     }
 
     toast.success("Agendado com sucesso!");
+
     onBooked?.();
-    handleClose();
+
+    resetAll();
+    safeClose("completed");
   }
 
   /* ------------------------------ RENDER JSX ------------------------------ */
@@ -275,7 +287,7 @@ export default function ModalScheduleWizard({
 
         {/* BODY */}
         <div className={styles.body}>
-          {/* STEP 1 */}
+          {/* STEP 1 — PROFISSIONAL */}
           {step === 1 && (
             <div className={styles.step}>
               <h3 className={styles.stepTitle}>Selecione o profissional</h3>
@@ -318,7 +330,7 @@ export default function ModalScheduleWizard({
             </div>
           )}
 
-          {/* STEP 2 */}
+          {/* STEP 2 — SERVIÇO */}
           {step === 2 && (
             <div className={styles.step}>
               <h3 className={styles.stepTitle}>
@@ -354,13 +366,11 @@ export default function ModalScheduleWizard({
                         onClick={() => {
                           setServiceId(s.id);
                           setServiceName(s.name);
-                          setServiceDuration(dur ?? 60);
+                          setServiceDuration(dur);
                         }}
                       >
                         <div className={styles.itemCol}>
-                          <span className={styles.itemTitle}>
-                            {s.name}
-                          </span>
+                          <span className={styles.itemTitle}>{s.name}</span>
                           <span className={styles.badge}>{dur} min</span>
                         </div>
                       </button>
@@ -371,7 +381,7 @@ export default function ModalScheduleWizard({
             </div>
           )}
 
-          {/* STEP 3 */}
+          {/* STEP 3 — CLIENTE */}
           {step === 3 && (
             <div className={styles.step}>
               <h3 className={styles.stepTitle}>Cliente</h3>
@@ -383,21 +393,21 @@ export default function ModalScheduleWizard({
                 + Novo cliente
               </button>
 
-                <SelectClientWhatsApp
-                  ref={clientRef}
-                  tenantId={tenantId}
-                  value={customerId}
-                  hideAddButton={true}   // 🔥 remove o botão interno
-                  onChange={(id, name) => {
-                    setCustomerId(id);
-                    setCustomerName(name);
-                  }}
-                  onAdd={() => setShowNewCustomer(true)}
-                />
+              <SelectClientWhatsApp
+                ref={clientRef}
+                tenantId={tenantId}
+                value={customerId}
+                hideAddButton={true}
+                onChange={(id, name) => {
+                  setCustomerId(id);
+                  setCustomerName(name);
+                }}
+                onAdd={() => setShowNewCustomer(true)}
+              />
             </div>
           )}
 
-          {/* STEP 4 */}
+          {/* STEP 4 — DATA */}
           {step === 4 && (
             <div className={styles.step}>
               <h3 className={styles.stepTitle}>Escolha a data</h3>
@@ -418,9 +428,7 @@ export default function ModalScheduleWizard({
                 <div className={styles.helper}>
                   <CalendarDays size={20} className={styles.helperIcon} />
                   <div className={styles.helperBody}>
-                    <div className={styles.helperLabel}>
-                      Data selecionada
-                    </div>
+                    <div className={styles.helperLabel}>Data selecionada</div>
                     <div className={styles.helperValue}>
                       <strong>{dateBR(selectedDate)}</strong> —{" "}
                       {weekdayName(selectedDate)}
@@ -431,7 +439,7 @@ export default function ModalScheduleWizard({
             </div>
           )}
 
-          {/* STEP 5 */}
+          {/* STEP 5 — HORÁRIO */}
           {step === 5 && (
             <div className={styles.step}>
               <h3 className={styles.stepTitle}>Selecione o horário</h3>
@@ -458,7 +466,7 @@ export default function ModalScheduleWizard({
             </div>
           )}
 
-          {/* STEP 6 */}
+          {/* STEP 6 — REVISÃO */}
           {step === 6 && (
             <div className={styles.step}>
               <h3 className={styles.stepTitle}>Confirme os dados</h3>
@@ -488,9 +496,7 @@ export default function ModalScheduleWizard({
                     <CalendarDays size={18} />
                     <span className={styles.label}>Data</span>
                   </div>
-                  <span className={styles.value}>
-                    {dateBR(selectedDate)}
-                  </span>
+                  <span className={styles.value}>{dateBR(selectedDate)}</span>
                 </div>
 
                 <div className={`${styles.reviewRow} ${styles.timeRow}`}>

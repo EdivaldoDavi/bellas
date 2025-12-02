@@ -29,9 +29,9 @@ export default function Onboarding() {
         return <StepFirstCustomer />;
       case 4:
         return <StepFirstAppointment />;
-
+        
       case 99:
-        return <StepCongratulations />;
+      return <StepCongratulations />;
       default:
         return <StepWelcome />;
     }
