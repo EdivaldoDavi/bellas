@@ -1,3 +1,4 @@
+// src/pages/onboarding/steps/StepFirstAppointment.tsx
 import { useState } from "react";
 import { useUserTenant } from "../../../context/UserTenantProvider";
 import styles from "../Onboarding.module.css";
@@ -5,20 +6,18 @@ import ModalScheduleWizard from "../../../components/ModalScheduleWizard";
 
 export default function StepFirstAppointment() {
   const { tenant, updateOnboardingStep } = useUserTenant();
-
   const [showFirstAppointment, setShowFirstAppointment] = useState(false);
 
-  function handleBack() {
-    updateOnboardingStep(4); // ← volta para etapa anterior (horários)
+  function goBack() {
+    updateOnboardingStep(4); // volta para StepFirstCustomer
   }
 
   function finishStep() {
-    updateOnboardingStep(99);
+    updateOnboardingStep(99); // finaliza onboarding
   }
 
   return (
     <div className={styles.stepContainer}>
-      {/* TÍTULO */}
       <h2 className={styles.stepTitle}>Crie seu primeiro agendamento</h2>
 
       <p className={styles.stepText}>
@@ -26,8 +25,11 @@ export default function StepFirstAppointment() {
         Depois você pode cancelar ou manter normalmente.
       </p>
 
-      {/* LISTA DE BOTÕES */}
       <div className={styles.actions}>
+        <button className={styles.tertiaryBtn} onClick={goBack}>
+          ← Voltar etapa
+        </button>
+
         <button
           className={styles.primaryBtn}
           onClick={() => setShowFirstAppointment(true)}
@@ -37,27 +39,20 @@ export default function StepFirstAppointment() {
 
         <button
           className={styles.secondaryBtn}
-          onClick={() => finishStep()}
+          onClick={finishStep}
         >
           Pular, já fiz um agendamento
         </button>
-
-        {/* 🔙 BOTÃO VOLTAR ETAPA */}
-        <button
-          className={styles.backButton}
-          onClick={handleBack}
-        >
-          ← Voltar etapa
-        </button>
       </div>
 
-      {/* MODAL */}
+      {/* MODAL DO AGENDAMENTO */}
       {tenant?.id && (
         <ModalScheduleWizard
           open={showFirstAppointment}
           tenantId={tenant.id}
           onClose={(reason) => {
             if (reason === "completed") {
+              setShowFirstAppointment(false);
               finishStep();
             } else {
               setShowFirstAppointment(false);
