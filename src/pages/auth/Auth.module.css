@@ -134,7 +134,7 @@
   border: none;
   cursor: pointer;
 
-  color: #6b6b6b;
+  color:  var(--color-primary);
   width: 26px;
   height: 26px;
 
@@ -144,7 +144,7 @@
 }
 
 .eyeButton:hover {
-  color: #333;
+  color: var(--color-primary);
 }
 
 /* ===========================
