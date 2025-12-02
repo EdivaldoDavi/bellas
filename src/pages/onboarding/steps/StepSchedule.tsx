@@ -1,9 +1,16 @@
+// src/pages/onboarding/steps/StepSchedule.tsx
 import { useState, useEffect } from "react";
 import { useUserTenant } from "../../../context/UserTenantProvider";
 import { supabase } from "../../../lib/supabaseCleint";
 import { toast } from "react-toastify";
 import styles from "../Onboarding.module.css";
 import ProfessionalsPage from "../../ProfessionalsPage";
+
+type Professional = {
+  id: string;
+  name: string;
+  is_active: boolean;
+};
 
 export default function StepSchedule() {
   const { tenant, profile, updateOnboardingStep } = useUserTenant();
@@ -12,14 +19,17 @@ export default function StepSchedule() {
 
   const [showModal, setShowModal] = useState(false);
   const [loadingCheck, setLoadingCheck] = useState(false);
-  const [professionals, setProfessionals] = useState<any[]>([]);
-  const [loadingProfs, setLoadingProfs] = useState(true);
 
-  /* ============================================
-     🔥 Carrega profissionais cadastrados
-  ============================================ */
+  const [professionals, setProfessionals] = useState<Professional[]>([]);
+  const [loadingProfessionals, setLoadingProfessionals] = useState(true);
+
+  /* ============================================================
+     🔥 CARREGAR PROFISSIONAIS
+  ============================================================ */
   async function loadProfessionals() {
     if (!tenantId) return;
+
+    setLoadingProfessionals(true);
 
     const { data, error } = await supabase
       .from("professionals")
@@ -28,38 +38,47 @@ export default function StepSchedule() {
       .order("name");
 
     if (error) {
-      console.error(error);
+      console.error("Erro ao carregar profissionais:", error);
       toast.error("Erro ao carregar profissionais.");
+      setLoadingProfessionals(false);
       return;
     }
 
-    setProfessionals(data || []);
-    setLoadingProfs(false);
+    setProfessionals((data || []) as Professional[]);
+    setLoadingProfessionals(false);
   }
 
   useEffect(() => {
     loadProfessionals();
   }, [tenantId]);
 
-  /* ============================================
-     🔥 Valida e avança
-  ============================================ */
+  /* ============================================================
+     🔙 VOLTAR ETAPA
+  ============================================================ */
+  function goBack() {
+    updateOnboardingStep(2); // volta para StepServices
+  }
+
+  /* ============================================================
+     ✅ VALIDAR E CONTINUAR
+  ============================================================ */
   async function validateAndContinue() {
     if (!tenantId || !userId) return;
 
     setLoadingCheck(true);
 
     try {
-      // 1️⃣ Pega o profissional do usuário
+      // 1️⃣ Profissional vinculado ao usuário
       const { data: prof } = await supabase
         .from("professionals")
         .select("id")
         .eq("tenant_id", tenantId)
         .eq("user_id", userId)
-        .maybeSingle();
+        .single();
 
       if (!prof) {
         toast.error("Profissional não encontrado.");
+        setLoadingCheck(false);
         return;
       }
 
@@ -72,8 +91,11 @@ export default function StepSchedule() {
         .eq("tenant_id", tenantId)
         .eq("professional_id", professionalId);
 
-      if (!serviceCount) {
-        toast.warn("Vincule ao menos 1 serviço ao profissional.");
+      if (!serviceCount || serviceCount === 0) {
+        toast.warn(
+          "Você deve vincular ao menos 1 serviço ao profissional selecionado."
+        );
+        setLoadingCheck(false);
         return;
       }
 
@@ -84,13 +106,16 @@ export default function StepSchedule() {
         .eq("tenant_id", tenantId)
         .eq("professional_id", professionalId);
 
-      if (!scheduleCount) {
-        toast.warn("Defina ao menos 1 horário.");
+      if (!scheduleCount || scheduleCount === 0) {
+        toast.warn(
+          "Você deve definir ao menos 1 horário para o profissional selecionado."
+        );
+        setLoadingCheck(false);
         return;
       }
 
+      // Tudo certo → próximo step
       updateOnboardingStep(4);
-
     } catch (err) {
       console.error(err);
       toast.error("Erro ao validar dados.");
@@ -99,28 +124,25 @@ export default function StepSchedule() {
     setLoadingCheck(false);
   }
 
-  /* ============================================
-     🔙 VOLTAR ETAPA
-  ============================================ */
-  function goBack() {
-    updateOnboardingStep(2); // volta para step Services
-  }
-
+  /* ============================================================
+     RENDER
+  ============================================================ */
   return (
     <div className={styles.stepContainer}>
-      
       <h2 className={styles.stepTitle}>Escolha o(s) profissionais que irão atender</h2>
 
       <p className={styles.stepText}>
-        Aqui você pode ajustar os horários dos profissionais do Studio. 
-        Por padrão, você já foi cadastrado como profissional com horários automáticos.
+        Aqui você pode ajustar os horários dos profissionais do Studio. Por
+        padrão, você já foi cadastrado como profissional com horários de
+        09:00 às 18:00 todos os dias. Se quiser ajustar agora, clique em{" "}
+        <strong>Ajustar horários agora</strong>.
       </p>
 
-      {/* 🔥 Lista de profissionais */}
-      <h3 className={styles.sectionTitle}>Profissionais cadastrados:</h3>
-
+      {/* PROFISSIONAIS CADASTRADOS */}
       <div className={styles.servicesListWrapper}>
-        {loadingProfs ? (
+        <h3 className={styles.listTitle}>Profissionais cadastrados:</h3>
+
+        {loadingProfessionals ? (
           <p className={styles.stepText}>Carregando profissionais...</p>
         ) : professionals.length === 0 ? (
           <p className={styles.emptyText}>Nenhum profissional cadastrado ainda.</p>
@@ -136,22 +158,19 @@ export default function StepSchedule() {
         )}
       </div>
 
-      {/* ======================================================
-          🔘 BOTÕES: Voltar — Ajustar horários — Continuar
-      ======================================================= */}
+      {/* BOTÕES DE AÇÃO */}
       <div className={styles.actions}>
-        
-        {/* 🔙 VOLTAR ETAPA */}
         <button className={styles.tertiaryBtn} onClick={goBack}>
-          ← Voltar
+          ← Voltar etapa
         </button>
 
-        {/* Ajustar horários */}
-        <button className={styles.primaryBtn} onClick={() => setShowModal(true)}>
+        <button
+          className={styles.primaryBtn}
+          onClick={() => setShowModal(true)}
+        >
           Ajustar horários agora
         </button>
 
-        {/* Continuar */}
         <button
           className={styles.secondaryBtn}
           disabled={loadingCheck}
@@ -159,15 +178,16 @@ export default function StepSchedule() {
         >
           {loadingCheck ? "Validando..." : "Continuar"}
         </button>
-
       </div>
 
-      {/* Modal */}
+      {/* MODAL DE PROFISSIONAIS / HORÁRIOS */}
       {tenantId && showModal && (
-        <ProfessionalsPage onClose={() => {
-          setShowModal(false);
-          loadProfessionals();
-        }} />
+        <ProfessionalsPage
+          onClose={() => {
+            setShowModal(false);
+            loadProfessionals(); // recarrega lista ao sair
+          }}
+        />
       )}
     </div>
   );

@@ -1,5 +1,4 @@
 // src/pages/onboarding/steps/StepServices.tsx
-
 import { useState, useEffect } from "react";
 import { supabase } from "../../../lib/supabaseCleint";
 import { useUserTenant } from "../../../context/UserTenantProvider";
@@ -9,11 +8,17 @@ import styles from "../Onboarding.module.css";
 import ModalNewService from "../../../components/ModalNewService";
 import { formatCentsToBRL } from "../../../utils/currencyUtils";
 
+type Service = {
+  id: string;
+  name: string;
+  duration_min: number | null;
+  price_cents: number | null;
+};
+
 export default function StepServices() {
   const { updateOnboardingStep, tenant } = useUserTenant();
-
   const [showModal, setShowModal] = useState(false);
-  const [services, setServices] = useState<any[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(true);
 
   /* ============================================================
@@ -33,10 +38,11 @@ export default function StepServices() {
     if (error) {
       console.error("Erro ao carregar serviços:", error);
       toast.error("Erro ao carregar serviços.");
+      setLoadingServices(false);
       return;
     }
 
-    setServices(data || []);
+    setServices((data || []) as Service[]);
     setLoadingServices(false);
   }
 
@@ -45,7 +51,7 @@ export default function StepServices() {
   }, [tenant?.id]);
 
   /* ============================================================
-     🔥 VALIDAR CONTINUAÇÃO
+     🔥 VERIFICAR SE EXISTE SERVIÇO PARA CONTINUAR
   ============================================================ */
   async function checkIfHasServices() {
     return services.length > 0;
@@ -57,11 +63,11 @@ export default function StepServices() {
       return;
     }
 
-    updateOnboardingStep(2); // próximo step é Horários
+    updateOnboardingStep(2); // próximo step = Horários
   };
 
   /* ============================================================
-     🔥 RENDERIZAÇÃO
+     🔥 RENDER
   ============================================================ */
   return (
     <div className={styles.stepContainer}>
@@ -72,11 +78,10 @@ export default function StepServices() {
         pedicure, gel, unhas decoradas, alongamentos ou qualquer outro.
       </p>
 
-      {/* LABEL DOS SERVIÇOS */}
-      <h4 className={styles.sectionLabel}>Serviços cadastrados:</h4>
-
-      {/* LISTA DE SERVIÇOS */}
+      {/* LISTA DE SERVIÇOS CADASTRADOS */}
       <div className={styles.servicesListWrapper}>
+        <h3 className={styles.listTitle}>Serviços cadastrados:</h3>
+
         {loadingServices ? (
           <p className={styles.stepText}>Carregando serviços...</p>
         ) : services.length === 0 ? (
@@ -85,17 +90,18 @@ export default function StepServices() {
           <ul className={styles.servicesList}>
             {services.map((s) => (
               <li key={s.id} className={styles.serviceItem}>
-                <div className={styles.serviceName}>{s.name}</div>
-                <div className={styles.serviceMeta}>
-                  {s.duration_min} min • {formatCentsToBRL(s.price_cents)}
-                </div>
+                <strong>{s.name}</strong>
+                <span>
+                  {s.duration_min ?? 0} min —{" "}
+                  {formatCentsToBRL(s.price_cents ?? 0)}
+                </span>
               </li>
             ))}
           </ul>
         )}
       </div>
 
-      {/* BOTÕES DE AÇÃO */}
+      {/* BOTÕES AÇÕES */}
       <div className={styles.actions}>
         <button
           className={styles.primaryBtn}
@@ -118,7 +124,7 @@ export default function StepServices() {
           onClose={() => setShowModal(false)}
           onSuccess={() => {
             setShowModal(false);
-            loadServices(); // recarrega lista após cadastrar
+            loadServices(); // Recarrega lista depois de salvar
           }}
         />
       )}
