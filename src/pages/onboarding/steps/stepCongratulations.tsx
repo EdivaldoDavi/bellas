@@ -3,10 +3,11 @@ import { useNavigate } from "react-router-dom";
 import styles from "../Onboarding.module.css";
 import { PartyPopper, Trophy, CheckCircle2 } from "lucide-react";
 import confetti from "canvas-confetti";
+import { useUserTenant } from "../../../context/UserTenantProvider";
 
 export default function StepCongratulations() {
   const navigate = useNavigate();
-
+const { updateOnboardingStep } = useUserTenant(); // adicionar isso no componente
   // 🎉 Efeito de confete na entrada
   useEffect(() => {
     const duration = 2000;
@@ -58,13 +59,17 @@ export default function StepCongratulations() {
       </div>
 
       <div className={styles.actions} style={{ marginTop: "30px" }}>
-        <button
-          className={styles.primaryBtn}
-          style={{ fontSize: "1.05rem" }}
-          onClick={() => navigate("/dashboard")}
-        >
-          Ir para o painel e começar a usar →
-        </button>
+                <button
+            className={styles.primaryBtn}
+            style={{ fontSize: "1.05rem" }}
+            onClick={async () => {
+              await updateOnboardingStep(99);  // <-- FINALIZA SETUP
+              navigate("/dashboard");
+            }}
+          >
+            Ir para o painel e começar a usar →
+          </button>
+
       </div>
 
       <div
