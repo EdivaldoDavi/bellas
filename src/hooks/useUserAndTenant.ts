@@ -24,7 +24,7 @@ export type Tenant = {
   setup_complete: boolean;
   plan_id: string | null;
   whatsapp_number: string | null;
-   onboarding_step: number; 
+  onboarding_step: number;
 };
 
 /* ============================================================
@@ -64,7 +64,39 @@ export function useUserAndTenant() {
   }, []);
 
   /* ============================================================
-     🔥 Recarregar Profile + Tenant
+     🔥 Recarregar SOMENTE o Tenant
+  ============================================================ */
+  const refreshTenant = useCallback(async () => {
+    if (!profile?.tenant_id) {
+      setTenant(null);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from("tenants")
+        .select("*")
+        .eq("id", profile.tenant_id)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Erro ao recarregar tenant:", error);
+        return;
+      }
+
+      if (data) {
+        setTenant((prev) => {
+          const equal = JSON.stringify(prev) === JSON.stringify(data);
+          return equal ? prev : data;
+        });
+      }
+    } catch (e) {
+      console.error("refreshTenant ERROR:", e);
+    }
+  }, [profile?.tenant_id]);
+
+  /* ============================================================
+     🔥 Recarregar Profile + Tenant + Permissions + Subscriptions
   ============================================================ */
   const refreshProfile = useCallback(async () => {
     console.log("useUserAndTenant: [refreshProfile] Função chamada.");
@@ -76,14 +108,11 @@ export function useUserAndTenant() {
       const currentUser = authUser;
 
       if (!currentUser) {
-        console.log("Nenhum usuário autenticado → limpando tudo");
         clearAll();
         return;
       }
 
-      console.log("Usuário atual:", currentUser.id);
-
-      /* ================ PROFILE ================ */
+      /* PROFILE */
       const { data: pData, error: pErr } = await supabase
         .from("profiles")
         .select("user_id, tenant_id, role, full_name, avatar_url")
@@ -92,7 +121,6 @@ export function useUserAndTenant() {
 
       if (pErr) throw pErr;
       if (!pData) {
-        console.log("Perfil não encontrado → limpando");
         clearAll();
         return;
       }
@@ -108,29 +136,24 @@ export function useUserAndTenant() {
 
       setProfile((prev) => {
         const equal = JSON.stringify(prev) === JSON.stringify(baseProfile);
-        if (equal) return prev;
-        return baseProfile;
+        return equal ? prev : baseProfile;
       });
 
-      /* ================ PROFESSIONAL_ID ================ */
+      /* PROFESSIONAL_ID */
       if (baseProfile.role === "professional" && baseProfile.tenant_id) {
-        const { data: professionalEntry, error: profErr } = await supabase
+        const { data: professionalEntry } = await supabase
           .from("professionals")
           .select("id")
           .eq("user_id", currentUser.id)
           .eq("tenant_id", baseProfile.tenant_id)
           .maybeSingle();
 
-        if (profErr) {
-          console.error("Erro ao buscar professional_id:", profErr);
-        }
-
         setInternalProfessionalId(professionalEntry?.id ?? null);
       } else {
         setInternalProfessionalId(null);
       }
 
-      /* ================ SEM TENANT ================ */
+      /* SEM TENANT */
       if (!baseProfile.tenant_id) {
         setTenant(null);
         setSubscription(null);
@@ -140,7 +163,7 @@ export function useUserAndTenant() {
         return;
       }
 
-      /* ================ TENANT ================ */
+      /* TENANT */
       const { data: tData, error: tErr } = await supabase
         .from("tenants")
         .select("*")
@@ -149,33 +172,19 @@ export function useUserAndTenant() {
 
       if (tErr) throw tErr;
 
-      if (!tData) {
-        console.warn("Tenant não encontrado → limpando tenant");
-        setTenant(null);
-        return;
-      }
+      setTenant(tData ?? null);
 
-      setTenant((prevTenant) => {
-        const equal = JSON.stringify(prevTenant) === JSON.stringify(tData);
-        return equal ? prevTenant : tData;
-      });
+      /* SUBSCRIPTION */
+      const { data: subs } = await supabase
+        .from("subscriptions")
+        .select("*")
+        .eq("tenant_id", tData.id)
+        .order("created_at", { ascending: false })
+        .limit(1);
 
-      /* ================ SUBSCRIPTION ================ */
-      /* ================ SUBSCRIPTIONS (CORRETO) ================ */
-          const { data: subs, error: subErr } = await supabase
-            .from("subscriptions")
-            .select("*")
-            .eq("tenant_id", tData.id)
-            .order("created_at", { ascending: false })
-            .limit(1);
+      setSubscription(subs?.[0] ?? null);
 
-          if (subErr) console.error("Erro ao buscar assinatura:", subErr);
-
-          const latestSub = subs?.[0] ?? null;
-          setSubscription(latestSub);
-
-
-      /* ================ PLAN + FEATURES ================ */
+      /* PLAN + FEATURES */
       if (tData.plan_id) {
         const { data: planData } = await supabase
           .from("plans")
@@ -190,26 +199,25 @@ export function useUserAndTenant() {
           .select("feature_key, enabled")
           .eq("plan_id", tData.plan_id);
 
-        const enabledFeatures =
-          feats?.filter((f) => f.enabled).map((f) => f.feature_key) ?? [];
-
-        setFeatures(enabledFeatures);
+        setFeatures(
+          feats?.filter((f) => f.enabled).map((f) => f.feature_key) ?? []
+        );
       } else {
         setPlan(null);
         setFeatures([]);
       }
 
-      /* ================ PERMISSIONS ================ */
+      /* PERMISSIONS */
       const { data: perms } = await supabase
         .from("permissions")
         .select("permission_key, allowed")
         .eq("tenant_id", baseProfile.tenant_id)
         .eq("user_id", currentUser.id);
 
-      const allowedPermissions =
-        perms?.filter((p) => p.allowed).map((p) => p.permission_key) ?? [];
+      setPermissions(
+        perms?.filter((p) => p.allowed).map((p) => p.permission_key) ?? []
+      );
 
-      setPermissions(allowedPermissions);
     } catch (err: any) {
       console.error("useUserAndTenant: erro ao carregar", err);
       setError(err.message ?? "Erro ao carregar dados.");
@@ -234,9 +242,7 @@ export function useUserAndTenant() {
     authUser &&
     profile &&
     !tenant &&
-    (profile.role === "owner" ||
-      profile.role === "manager" ||
-      profile.role === "professional") &&
+    ["owner", "manager", "professional"].includes(profile.role || "") &&
     window.location.pathname !== "/force-reset";
 
   /* ============================================================
@@ -247,6 +253,17 @@ export function useUserAndTenant() {
     return { ...profile, professional_id: internalProfessionalId };
   }, [profile, internalProfessionalId]);
 
+  /* ============================================================
+     🔄 reloadAll (Profile + Tenant)
+  ============================================================ */
+  const reloadAll = useCallback(async () => {
+    await refreshProfile();
+    await refreshTenant();
+  }, [refreshProfile, refreshTenant]);
+
+  /* ============================================================
+     📦 Retorno FINAL do Hook
+  ============================================================ */
   return {
     loading,
     error,
@@ -259,7 +276,7 @@ export function useUserAndTenant() {
     permissions,
     needsSetup,
     refreshProfile,
-    refreshTenant: refreshProfile,
-    reloadAll: refreshProfile,
+    refreshTenant,
+    reloadAll,
   };
 }

@@ -5,6 +5,7 @@ import {
   useMemo,
   useState,
   useEffect,
+  useCallback,
 } from "react";
 
 import {
@@ -21,7 +22,7 @@ import { supabase } from "../lib/supabaseCleint";
 export interface UserTenantContextType {
   user: any;
   profile: Profile | null;
-  tenant: Tenant | null;   // ← Agora vem do tenantState
+  tenant: Tenant | null;
   subscription: any;
   plan: any;
   features: string[];
@@ -56,86 +57,76 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
     loading,
     needsSetup,
     refreshProfile,
+    refreshTenant: refreshTenantFromHook,
   } = useUserAndTenant();
 
   /* ============================================================
-     🔥 Estado REAL do Tenant (corrige o loop)
+     🔥 Estado REAL do tenant (evita piscar/loop)
   ============================================================ */
   const [tenantState, setTenantState] = useState<Tenant | null>(tenant);
 
-  // Mantém tenantState sincronizado com o hook inicial
   useEffect(() => {
     setTenantState(tenant);
   }, [tenant]);
 
   /* ============================================================
-     🔄 Recarregar apenas o tenant
+     🔄 Recarregar APENAS o tenant
+     (corrigido — agora usa refreshTenantFromHook)
   ============================================================ */
-  const refreshTenant = async () => {
-    if (!profile?.tenant_id) {
-      setTenantState(null);
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from("tenants")
-      .select("*")
-      .eq("id", profile.tenant_id)
-      .maybeSingle();
-
-    if (error) {
-      console.error("Erro ao recarregar tenant:", error);
-      return;
-    }
-
-    setTenantState(data);
-  };
+  const refreshTenant = useCallback(async () => {
+    await refreshTenantFromHook(); // ← Hook já faz tudo corretamente
+  }, [refreshTenantFromHook]);
 
   /* ============================================================
-     🧭 Atualizar onboarding_step
+     ✔ Atualizar onboarding_step de forma segura
   ============================================================ */
-  const updateOnboardingStep = async (step: number) => {
-    if (!tenantState?.id) return;
+  const updateOnboardingStep = useCallback(
+    async (step: number) => {
+      if (!tenantState?.id) return;
 
-    const { error } = await supabase
-      .from("tenants")
-      .update({ onboarding_step: step })
-      .eq("id", tenantState.id);
+      const { error } = await supabase
+        .from("tenants")
+        .update({ onboarding_step: step })
+        .eq("id", tenantState.id);
 
-    if (!error) {
+      if (error) {
+        console.error("Erro ao atualizar onboarding_step:", error);
+        return;
+      }
+
+      // Recarrega tenant após atualizar
       await refreshTenant();
-    } else {
-      console.error("Erro ao atualizar onboarding_step:", error);
-    }
-  };
+    },
+    [tenantState?.id, refreshTenant]
+  );
 
   /* ============================================================
-     🔄 Recarrega tudo
+     🔄 Recarregar TUDO (Profile + Tenant)
   ============================================================ */
-  const reloadAll = async () => {
+  const reloadAll = useCallback(async () => {
     await refreshProfile();
     await refreshTenant();
-  };
+  }, [refreshProfile, refreshTenant]);
 
   /* ============================================================
-     📦 Memoização
+     📦 Memoização dos valores expostos
   ============================================================ */
   const value = useMemo<UserTenantContextType>(
     () => ({
       user,
       profile,
-      tenant: tenantState, // ← Agora usa o estado REAL
+      tenant: tenantState, // sempre estável
       subscription,
       plan,
       features,
       permissions,
       loading,
-
       needsSetup,
 
       refreshProfile,
       refreshTenant,
       reloadAll,
+
       updateOnboardingStep,
     }),
     [
@@ -148,6 +139,10 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
       permissions,
       loading,
       needsSetup,
+      refreshProfile,
+      refreshTenant,
+      reloadAll,
+      updateOnboardingStep,
     ]
   );
 
@@ -159,12 +154,14 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
 }
 
 /* ============================================================
-   📌 Hook de Acesso ao Contexto
+   📌 Hook de acesso
 ============================================================ */
 export function useUserTenant() {
   const ctx = useContext(UserTenantContext);
   if (!ctx) {
-    throw new Error("useUserTenant deve ser usado dentro de <UserTenantProvider>");
+    throw new Error(
+      "useUserTenant deve ser usado dentro de <UserTenantProvider>"
+    );
   }
   return ctx;
 }
