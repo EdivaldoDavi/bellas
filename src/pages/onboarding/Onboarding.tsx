@@ -78,12 +78,7 @@ export default function Onboarding() {
           </div>
         </header>
 
-        {/* BOTÃO VOLTAR */}
-        {step > 1 && step < 99 && (
-          <button className={styles.backButton} onClick={handleBack}>
-            ← Voltar etapa
-          </button>
-        )}
+      
 
         <div className={styles.body}>{renderStep()}</div>
       </div>
