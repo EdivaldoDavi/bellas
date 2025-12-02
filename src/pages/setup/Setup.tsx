@@ -1,15 +1,12 @@
 // src/pages/setup/Setup.tsx
-import { useEffect, useState, useCallback } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseCleint";
 import { toast } from "react-toastify";
 
 import { useUserTenant } from "../../context/UserTenantProvider";
-//import { useTheme } from "../../hooks/useTheme";
-
 import styles from "./Setup.module.css";
 import LoadingSpinner from "../../components/LoadingSpinner";
-import ConnectWhatsAppPage from "../ConnectWhatsAppPage";
 
 import {
   maskedToDbPhone,
@@ -21,20 +18,6 @@ export default function Setup() {
   const { loading: userTenantLoading, profile, tenant, reloadAll } =
     useUserTenant();
   const navigate = useNavigate();
-//  const { theme, toggleTheme } = useTheme();
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  /* ============================================================
-     STEPS (URL ?step=1|2)
-  ============================================================ */
-  const currentStep = Number(searchParams.get("step")) || 1;
-
-  const setStep = useCallback(
-    (stepNumber: 1 | 2) => {
-      setSearchParams({ step: String(stepNumber) });
-    },
-    [setSearchParams]
-  );
 
   /* ============================================================
      FORM STATE
@@ -61,7 +44,7 @@ export default function Setup() {
 
     setName(tenant.name || "");
     setPrimary(tenant.primary_color || "#8343A2");
-    setSecondary(tenant.secondary_color || "rgba(217, 179, 236, 1)");
+    setSecondary(tenant.secondary_color || "#ffffff");
     setVariant((tenant.theme_variant as "light" | "dark") || "light");
   }, [tenant]);
 
@@ -90,26 +73,10 @@ export default function Setup() {
   }
 
   /* ============================================================
-     THEME HANDLERS
-  ============================================================ 
-  function selectLight() {
-    setVariant("light");
-    if (theme !== "light") toggleTheme();
-  }
-
-  function selectDark() {
-    setVariant("dark");
-    if (theme !== "dark") toggleTheme();
-  }
-*/
-  /* ============================================================
-     STEP 1 — CREATE/UPDATE TENANT + PROFESSIONAL
+     SALVAR SETUP (SOMENTE ETAPA ÚNICA)
   ============================================================ */
-  async function saveStep1() {
-    if (!name.trim()) {
-      toast.error("Digite um nome válido.");
-      return;
-    }
+  async function saveSetup() {
+    if (!name.trim()) return toast.error("Digite um nome válido.");
 
     if (!isValidMaskedPhone(phone)) {
       toast.error("Informe um telefone válido.");
@@ -117,15 +84,9 @@ export default function Setup() {
     }
 
     const dbPhone = maskedToDbPhone(phone);
-    if (!dbPhone) {
-      toast.error("Telefone inválido.");
-      return;
-    }
+    if (!dbPhone) return toast.error("Telefone inválido.");
 
-    if (!profile) {
-      toast.error("Perfil não encontrado.");
-      return;
-    }
+    if (!profile) return toast.error("Perfil não encontrado.");
 
     setSaving(true);
 
@@ -134,8 +95,8 @@ export default function Setup() {
       let currentTenantId = tenant?.id ?? null;
 
       /* ============================================================
-         1) CRIAR TENANT SE NÃO EXISTIR
-      ============================================================= */
+         1) CRIAR TENANT CASO NÃO EXISTA
+      ============================================================ */
       if (!currentTenantId) {
         const generatedId = crypto.randomUUID();
 
@@ -157,34 +118,28 @@ export default function Setup() {
 
         currentTenantId = newTenant.id;
 
-        // Atualiza perfil com tenant_id e promove para manager se necessário
+        // Atualizar o profile com tenant_id
         const updateProfile: any = { tenant_id: currentTenantId };
 
         if (profile.role !== "owner" && profile.role !== "manager") {
           updateProfile.role = "manager";
         }
 
-        const { error: errProfile } = await supabase
+        await supabase
           .from("profiles")
           .update(updateProfile)
           .eq("user_id", currentUserId);
-
-        if (errProfile) throw errProfile;
 
         await supabase.auth.refreshSession();
         await reloadAll();
       } else {
         /* ============================================================
            2) ATUALIZAR TENANT EXISTENTE
-        ============================================================= */
-        const canUpdateTenant =
+        ============================================================ */
+        const allowed =
           profile.role === "owner" || profile.role === "manager";
-
-        if (!canUpdateTenant) {
-          toast.error("Você não pode alterar estes dados.");
-          setSaving(false);
-          return;
-        }
+        if (!allowed)
+          return toast.error("Você não pode alterar estes dados.");
 
         const { error: errUpdate } = await supabase
           .from("tenants")
@@ -202,23 +157,18 @@ export default function Setup() {
 
       /* ============================================================
          3) CRIAR/ATUALIZAR PROFESSIONAL
-      ============================================================= */
-
-      const { data: existingProfessional, error: profSelectErr } =
-        await supabase
-          .from("professionals")
-          .select("*")
-          .eq("tenant_id", currentTenantId)
-          .eq("user_id", profile.user_id)
-          .maybeSingle();
-
-      if (profSelectErr) throw profSelectErr;
+      ============================================================ */
+      const { data: existingProfessional } = await supabase
+        .from("professionals")
+        .select("*")
+        .eq("tenant_id", currentTenantId)
+        .eq("user_id", profile.user_id)
+        .maybeSingle();
 
       let professionalId = existingProfessional?.id ?? null;
 
       if (!professionalId) {
-        // Criar novo profissional
-        const { data: newProfessional, error: profInsertErr } = await supabase
+        const { data: newProfessional, error: profErr } = await supabase
           .from("professionals")
           .insert({
             tenant_id: currentTenantId,
@@ -231,90 +181,63 @@ export default function Setup() {
           .select("*")
           .single();
 
-        if (profInsertErr) throw profInsertErr;
+        if (profErr) throw profErr;
 
         professionalId = newProfessional.id;
       } else {
-        // Atualizar telefone
-        const { error: updatePhoneErr } = await supabase
+        await supabase
           .from("professionals")
           .update({ phone: dbPhone })
-          .eq("tenant_id", currentTenantId)
-          .eq("id", professionalId);
-
-        if (updatePhoneErr) throw updatePhoneErr;
+          .eq("id", professionalId)
+          .eq("tenant_id", currentTenantId);
       }
 
       /* ============================================================
-         4) INSERIR HORÁRIOS PADRÃO 09h–18h
-      ============================================================= */
+         4) INSERIR HORÁRIOS PADRÃO
+      ============================================================ */
       if (professionalId) {
-        // Remove horários antigos
         await supabase
           .from("professional_schedules")
           .delete()
           .eq("tenant_id", currentTenantId)
           .eq("professional_id", professionalId);
 
-        // Insere padrão
-        const scheduleRows = Array.from({ length: 7 }).map((_, i) => ({
-          tenant_id: currentTenantId!,
+        const rows = Array.from({ length: 7 }).map((_, idx) => ({
+          tenant_id: currentTenantId,
           professional_id: professionalId!,
-          weekday: i + 1,
+          weekday: idx + 1,
           start_time: "09:00",
           end_time: "18:00",
           break_start_time: "00:00",
           break_end_time: "00:00",
         }));
 
-        const { error: scheduleErr } = await supabase
-          .from("professional_schedules")
-          .insert(scheduleRows);
-
-        if (scheduleErr) throw scheduleErr;
+        await supabase.from("professional_schedules").insert(rows);
       }
 
       await reloadAll();
-      setStep(2);
+
+      // FINAL -> vai para onboarding!
+      navigate("/onboarding", { replace: true });
+
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || "Erro ao salvar configurações.");
+      toast.error(err.message || "Erro ao salvar setup.");
     } finally {
       setSaving(false);
     }
   }
 
   /* ============================================================
-     STEP 2 — FINALIZAR APÓS CONECTAR WHATSAPP
+     RENDER
   ============================================================ */
-  async function finishAfterWhatsApp() {
-    try {
-      if (tenant?.id) {
-        await supabase
-          .from("tenants")
-          .update({ setup_complete: true })
-          .eq("id", tenant.id);
-      }
-
-      await reloadAll();
-      navigate("/dashboard", { replace: true });
-    } catch (err) {
-      console.error(err);
-      toast.error("Erro ao finalizar configuração.");
-    }
-  }
-
-  /* ============================================================
-     RENDER STEP 1
-  ============================================================ */
-  function renderStep1() {
-    return (
-      <>
+  return (
+    <div className={styles.setupContainer}>
+      <div className={styles.setupCard}>
         <h2 className={styles.title}>Vamos começar criando sua empresa ✨</h2>
 
         <p className={styles.subtitle}>
-          Antes de usar o sistema, vamos configurar sua marca e identidade
-          visual.
+          Antes de usar o sistema, vamos configurar sua marca e identidade visual.
         </p>
 
         {/* NOME */}
@@ -334,140 +257,40 @@ export default function Setup() {
           placeholder="(11) 98765-4321"
           onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
         />
-{/*
-        <p className={styles.infoMessage}>
-          Você será cadastrado como profissional automaticamente com horário
-          padrão de <b>09h às 18h</b>.  
-          Você poderá alterar seu horário depois em “Configurações”.
-        </p>
-  */}
+
         {/* CORES */}
         <div className={styles.colorsSection}>
           <h4 className={styles.sectionTitle}>
             Personalize o visual da sua marca 🎨
           </h4>
 
-          <p className={styles.sectionDescription}>
-            Essas cores serão usadas no tema, botões e destaques do sistema.
-          </p>
-
           <div className={styles.colorsRow}>
             <div className={styles.colorItem}>
-              <label className={styles.colorLabel}>
-                Cor primária
-                <span className={styles.colorHint}>
-                  Usada em botões e destaques principais.
-                </span>
-              </label>
-
+              <label className={styles.colorLabel}>Cor primária</label>
               <input
                 type="color"
                 className={styles.colorInput}
                 value={primary}
                 onChange={(e) => setPrimary(e.target.value)}
               />
-
-              <p className={styles.colorExample}>Ex.: rosa, azul, roxo…</p>
             </div>
 
             <div className={styles.colorItem}>
-              <label className={styles.colorLabel}>
-                Cor secundária
-                <span className={styles.colorHint}>
-                  Usada em fundos e detalhes.
-                </span>
-              </label>
-
+              <label className={styles.colorLabel}>Cor secundária</label>
               <input
                 type="color"
                 className={styles.colorInput}
                 value={secondary}
                 onChange={(e) => setSecondary(e.target.value)}
               />
-
-              <p className={styles.colorExample}>
-                Geralmente uma cor mais clara.
-              </p>
             </div>
           </div>
         </div>
 
-        {/* TEMA 
-        <div className={styles.themeRow}>
-          <button
-            className={`${styles.themeBtn} ${
-              variant === "light" ? styles.themeSelected : ""
-            }`}
-            onClick={selectLight}
-          >
-            🌞 Claro
-          </button>
-
-          <button
-            className={`${styles.themeBtn} ${
-              variant === "dark" ? styles.themeSelected : ""
-            }`}
-            onClick={selectDark}
-          >
-            🌙 Escuro
-          </button>
-        </div>
-*/}
-        <button
-          className={styles.saveButton}
-          disabled={saving}
-          onClick={saveStep1}
-        >
+        {/* BOTÃO SALVAR */}
+        <button className={styles.saveButton} disabled={saving} onClick={saveSetup}>
           {saving ? "Salvando..." : "Salvar e continuar"}
         </button>
-      </>
-    );
-  }
-
-  /* ============================================================
-     RENDER STEP 2
-  ============================================================ */
-  function renderStep2() {
-    return (
-      <>
-        <h2 className={styles.title}>Conectar WhatsApp 📲</h2>
-
-        <p className={styles.subtitle}>
-          Conecte o WhatsApp do seu Studio para habilitar lembretes automáticos,
-          confirmações e atendimento inteligente, se preferir  clique em finalizar configuração  e você pode conectar depois, através da opção whatsapp no menu do seu app.
-        </p>
-
-        <div style={{ marginTop: "24px" }}>
-          <ConnectWhatsAppPage />
-        </div>
-
-        <button
-          className={styles.saveButton}
-          style={{ marginTop: "24px" }}
-          onClick={finishAfterWhatsApp}
-        >
-          Finalizar configuração
-        </button>
-      </>
-    );
-  }
-
-  /* ============================================================
-     MAIN RENDER
-  ============================================================ */
-  return (
-    <div className={styles.setupContainer}>
-      <div className={styles.setupCard}>
-        <div className={styles.stepsIndicator}>
-          <span className={currentStep === 1 ? styles.activeStep : ""}>
-            1. Empresa
-          </span>
-          <span className={currentStep === 2 ? styles.activeStep : ""}>
-            2. WhatsApp
-          </span>
-        </div>
-
-        {currentStep === 1 ? renderStep1() : renderStep2()}
       </div>
     </div>
   );
