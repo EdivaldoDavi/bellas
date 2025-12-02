@@ -5,7 +5,7 @@ import { supabase } from "../../lib/supabaseCleint";
 import { toast } from "react-toastify";
 
 import { useUserTenant } from "../../context/UserTenantProvider";
-import { useTheme } from "../../hooks/useTheme";
+//import { useTheme } from "../../hooks/useTheme";
 
 import styles from "./Setup.module.css";
 import LoadingSpinner from "../../components/LoadingSpinner";
@@ -21,7 +21,7 @@ export default function Setup() {
   const { loading: userTenantLoading, profile, tenant, reloadAll } =
     useUserTenant();
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
+//  const { theme, toggleTheme } = useTheme();
   const [searchParams, setSearchParams] = useSearchParams();
 
   /* ============================================================
@@ -91,7 +91,7 @@ export default function Setup() {
 
   /* ============================================================
      THEME HANDLERS
-  ============================================================ */
+  ============================================================ 
   function selectLight() {
     setVariant("light");
     if (theme !== "light") toggleTheme();
@@ -101,7 +101,7 @@ export default function Setup() {
     setVariant("dark");
     if (theme !== "dark") toggleTheme();
   }
-
+*/
   /* ============================================================
      STEP 1 — CREATE/UPDATE TENANT + PROFESSIONAL
   ============================================================ */
