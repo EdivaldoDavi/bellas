@@ -18,6 +18,15 @@
   margin-bottom: 1rem;
   font-weight: bold;
 }
+/* ===========================
+   LOGO NO LOGIN
+=========================== */
+.logo {
+  width: 160px;          /* ajuste conforme necessário */
+  margin: 0 auto 12px;   /* centraliza */
+  display: block;
+  object-fit: contain;
+}
 
 form {
   display: flex;

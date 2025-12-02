@@ -9,6 +9,7 @@ import { useTheme } from "../../hooks/useTheme";
 import styles from "./Auth.module.css";
 import { toast } from "react-toastify";
 import { Eye, EyeOff } from "lucide-react";
+import logoBellas from "../../assets/bellaslogotransp.png";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -88,6 +89,8 @@ export default function Login() {
   return (
     <div className={`${styles.wrap} ${theme === "dark" ? styles.dark : ""}`}>
       <div className={styles.card}>
+        <img src={logoBellas} alt="Bellas Logo" className={styles.logo} />
+
         <h2 className={styles.loginTitle}>LOGIN</h2>
           {/* MENSAGEM AMIGÁVEL (pré-onboarding) */}
           <div className={styles.welcomeBox}>

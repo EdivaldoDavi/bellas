@@ -2,7 +2,7 @@
    TEMA BASE (modo claro)
 =========================== */
 :root {
---color-primary: var(--tenant-primary, #ff1493);
+ --color-primary: #7e2fa4 !important; /* roxo do logo */
 --color-primary-rgb: 255, 20, 147; /* Default RGB for #ff1493 */
 --color-secondary: var(--tenant-secondary, #ffffff);
 

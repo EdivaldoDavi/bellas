@@ -134,7 +134,7 @@ export default function Register() {
       </div>
 
         {message && <p className={styles.message}>{message}</p>}
-        <label className={styles.label}>Nome</label>
+      
         <input
           type="text"
           placeholder="Seu nome"
@@ -143,7 +143,7 @@ export default function Register() {
           onChange={(e) => setFullName(e.target.value)}
           disabled={loading}
         />
-         <label className={styles.label}>Email</label>
+        
         <input
           type="email"
           placeholder="E-mail"
