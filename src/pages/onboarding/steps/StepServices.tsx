@@ -9,8 +9,6 @@ import ModalNewService from "../../../components/ModalNewService";
 
 export default function StepServices() {
   const { updateOnboardingStep, tenant } = useUserTenant();
-  
-  // 🔥 Agora começa fechado (antes começava true)
   const [showModal, setShowModal] = useState(false);
 
   async function checkIfHasServices() {
@@ -35,15 +33,15 @@ export default function StepServices() {
     const hasServices = await checkIfHasServices();
 
     if (!hasServices) {
-      toast.warn("Por favor, cadastre pelo menos um serviço.");
+      toast.warn("Cadastre pelo menos um serviço antes de continuar.");
       return;
     }
 
-    updateOnboardingStep(3);
+    updateOnboardingStep(2); // agora step 2 é Horários
   };
 
   return (
-    <div>
+    <div className={styles.stepContainer}>
       <h2 className={styles.stepTitle}>Cadastre seus serviços principais</h2>
 
       <p className={styles.stepText}>
@@ -51,17 +49,12 @@ export default function StepServices() {
         pedicure, gel, unhas decoradas, alongamentos ou qualquer outro.
       </p>
 
-      <p className={styles.stepText}>
-        Você poderá adicionar quantos quiser depois, mas para seguir, precisa ter
-        ao menos <strong>um serviço</strong> cadastrado.
+      <p className={styles.stepSubText}>
+        Você poderá adicionar quantos quiser depois.
       </p>
 
       <div className={styles.actions}>
-        {/* 🔥 Agora o modal só abre quando o usuário pede */}
-        <button
-          className={styles.primaryBtn}
-          onClick={() => setShowModal(true)}
-        >
+        <button className={styles.primaryBtn} onClick={() => setShowModal(true)}>
           Cadastrar serviço
         </button>
 
