@@ -19,11 +19,7 @@ export default function Onboarding() {
   /* ============================================================
      🔙 Botão VOLTAR (aparece apenas se step > 0 e step < 99)
   ============================================================ */
-  const handleBack = async () => {
-    if (step > 0 && step < 99) {
-      await updateOnboardingStep(step - 1);
-    }
-  };
+  
 
   /* ============================================================
      RENDERIZAÇÃO DOS STEPS
