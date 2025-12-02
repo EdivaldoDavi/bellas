@@ -1,5 +1,5 @@
 /* ===========================
-   PAGE LAYOUT + BACKGROUND
+   PAGE LAYOUT (Clean)
 =========================== */
 .pageWrapper {
   min-height: 100vh;
@@ -7,49 +7,31 @@
   align-items: center;
   justify-content: center;
 
-  /* 🔥 Gradient Premium */
-  background: linear-gradient(
-    135deg,
-    #7e2fa4 0%,
-    #9b4dba 30%,
-    #c48cf2 70%,
-    #ffffff 100%
-  );
-
-  background-size: 200% 200%;
-  animation: gradientShift 8s ease infinite;
-
+  background: #f7f7fb; /* fundo SUAVE sem gradient */
   padding: 20px;
 }
 
-/* Animação do gradient */
-@keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-
 /* ===========================
-   LOGIN CARD (SaaS Modern)
+   LOGIN CARD
 =========================== */
 .loginCard {
   width: 100%;
   max-width: 420px;
-  background: #ffffff;  /* 🔥 sólido, moderno */
-  border-radius: 20px;
+
+  background: #ffffff; /* fundo suave e sólido */
+  border-radius: 28px;
 
   padding: 48px 40px;
 
+  /* sombra suave e elegante */
   box-shadow:
-    0px 12px 32px rgba(0, 0, 0, 0.12),
-    0px 3px 6px rgba(0, 0, 0, 0.08);
+    0px 14px 35px rgba(0, 0, 0, 0.06),
+    0px 2px 8px rgba(0, 0, 0, 0.04);
 
-  animation: fadeIn 0.4s ease-out;
+  animation: fadeIn 0.35s ease-out;
   text-align: center;
 }
 
-/* Fade-in do card */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -61,23 +43,19 @@
 .logoWrapper {
   display: flex;
   justify-content: center;
-  margin-bottom: 12px;
+  margin-bottom: 20px;
 }
 
 .logo {
-  width: 150px;
+  width: 165px;
   object-fit: contain;
 
-  /* animação premium */
-  transition: transform 0.35s cubic-bezier(.22,1,.36,1),
-              filter 0.35s ease;
+  transition: transform 0.35s ease;
 }
 
 .logo:hover {
-  transform: scale(1.08);
-  filter: drop-shadow(0px 4px 12px rgba(0,0,0,0.25));
+  transform: scale(1.06);
 }
-
 
 /* ===========================
    TITLES
@@ -85,13 +63,13 @@
 .title {
   font-size: 1.45rem;
   font-weight: 700;
+  color: #242424;
   margin-bottom: 4px;
-  color: #222;
 }
 
 .subtitle {
   font-size: 0.9rem;
-  color: #555;
+  color: #6b6b6b;
   margin-bottom: 32px;
 }
 
@@ -101,109 +79,105 @@
 =========================== */
 .form {
   text-align: left;
+  width: 100%;
 }
 
 .label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #555;
+  color: #4a4a4a;
   margin-bottom: 6px;
   display: block;
 }
 
+/* INPUT EYESAFE FIX */
+.passwordWrapper {
+  position: relative;
+}
+
 
 /* ===========================
-   INPUTS MODERNOS
+   INPUT (estilo iOS suave)
 =========================== */
 .input {
   width: 100%;
   padding: 12px 14px;
-  padding-right: 44px; /* 🔥 evita sobrepor com o botão olho */
+  padding-right: 44px; /* espaço para o olho */
 
+  background: #f5f5f7; /* fundo suave */
+  border: 1px solid #e5e5e5;
   border-radius: 12px;
-  border: 1px solid #ddd;
-  background: #f7f7f7;
-  color: #222;
+
+  color: #242424;
   font-size: 0.95rem;
 
   margin-bottom: 14px;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .input:focus {
   outline: none;
   border-color: var(--color-primary);
-  background: #fff;
+  background: #ffffff;
 }
 
 /* ===========================
-   PASSWORD FIELD
+   BOTÃO OLHO (correto)
 =========================== */
-.passwordWrapper {
-  position: relative;
-  width: 100%;
-}
-
 .eyeButton {
   position: absolute;
   top: 50%;
-  right: 12px;
+  right: 14px;
   transform: translateY(-50%);
 
   background: none;
   border: none;
   cursor: pointer;
 
-  color: #777;
+  color: #6b6b6b;
   width: 26px;
   height: 26px;
 
   display: flex;
   align-items: center;
   justify-content: center;
-
-  transition: color 0.2s ease;
 }
 
 .eyeButton:hover {
-  color: #222;
+  color: #333;
 }
 
-
 /* ===========================
-   ESQUECEU A SENHA
+   FORGOT PASSWORD
 =========================== */
 .forgot {
-  margin-top: -4px;
-  margin-bottom: 18px;
-
   background: none;
   border: none;
   color: var(--color-primary);
-
   cursor: pointer;
   text-decoration: underline;
+
   font-size: 0.85rem;
-  padding: 0;
+  margin-top: -4px;
+  margin-bottom: 20px;
 }
 
-
 /* ===========================
-   BOTÃO PRINCIPAL
+   SUBMIT BUTTON (roxo forte)
 =========================== */
 .submit {
   width: 100%;
-  padding: 12px 16px;
+  padding: 14px 16px;
+  border-radius: 12px;
 
-  border-radius: 14px;
-  border: none;
   background: var(--color-primary);
-  color: #fff;
+  border: none;
 
+  color: white;
   font-size: 1rem;
   font-weight: 600;
-  cursor: pointer;
 
+  cursor: pointer;
   transition: transform 0.15s ease, opacity 0.2s ease;
 }
 
@@ -214,12 +188,6 @@
 .submit:active {
   transform: scale(0.97);
 }
-
-.submit:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 
 /* ===========================
    REGISTER LINK
@@ -233,5 +201,4 @@
 .link {
   color: var(--color-primary);
   font-weight: 600;
-  margin-left: 4px;
 }
