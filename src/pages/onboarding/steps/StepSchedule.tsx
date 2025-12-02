@@ -4,7 +4,7 @@ import { supabase } from "../../../lib/supabaseCleint";
 import { useUserTenant } from "../../../context/UserTenantProvider";
 import { toast } from "react-toastify";
 
-import { Pencil } from "lucide-react";
+//import { Pencil } from "lucide-react";
 import styles from "../Onboarding.module.css";
 
 import ProfessionalsPage from "../../ProfessionalsPage";
