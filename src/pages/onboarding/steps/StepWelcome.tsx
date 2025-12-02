@@ -5,9 +5,12 @@ import styles from "../Onboarding.module.css";
 export default function StepWelcome() {
   const { updateOnboardingStep, tenant } = useUserTenant();
 
-  function start() {
-    updateOnboardingStep(1); // ← isso agora vai funcionar
+function start() {
+  if (tenant?.onboarding_step === 0) {
+    updateOnboardingStep(1);
   }
+}
+
 
   return (
     <div className={styles.stepContainer}>
