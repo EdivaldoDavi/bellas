@@ -7,7 +7,7 @@
   align-items: center;
   justify-content: center;
 
-  background:#e8d6fa;  /* fundo SUAVE sem gradient */
+  background:hwb(269 74% 5%);  /* fundo SUAVE sem gradient */
   padding: 20px;
 }
 
@@ -18,7 +18,7 @@
   width: 100%;
   max-width: 420px;
 
-  background: #dac3f1;  /* fundo suave e sólido */
+  background: hsl(270, 55%, 87%);  /* fundo suave e sólido */
   border-radius: 28px;
 
   padding: 48px 40px;
