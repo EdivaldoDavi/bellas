@@ -250,6 +250,44 @@
 }
 
 /* ===========================================================
+   PÁGINA DE PARABÉNS / FINALIZAÇÃO
+=========================================================== */
+
+.congratsWrapper {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding-top: 10px;
+}
+
+.congratsIcon {
+  width: 72px;
+  height: 72px;
+  color: var(--color-primary);
+  animation: popIn 0.4s ease-out forwards;
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.3); opacity: 0; }
+  80% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.congratsCard {
+  background: var(--card-bg);
+  padding: 18px 20px;
+  border-radius: 16px;
+  max-width: 500px;
+  font-size: 1rem;
+  color: var(--text);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  line-height: 1.5;
+}
+
+
+/* ===========================================================
    RESPONSIVO
 =========================================================== */
 @media (max-width: 640px) {
