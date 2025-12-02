@@ -90,13 +90,12 @@
 }
 
 /* ===========================================================
-   BOTÕES — PADRÃO GERAL ENTRE TODOS STEPS
+   BOTÕES — PADRÃO GERAL
 =========================================================== */
 .actions {
   margin-top: 28px;
   display: flex;
   gap: 16px;
-  flex-wrap: wrap;
   justify-content: center;
   align-items: center;
 }
@@ -164,18 +163,18 @@
   color: #ffffff;
 }
 
-/* BOTÃO CONTINUAR (StepFirstCustomer e outros) */
+/* BOTÃO CONTINUAR */
 .footerActions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 12px;
+  margin-top: 24px;
 }
 
 .continueBtn {
   border: 2px solid var(--color-primary);
   background: #ffffff;
   color: var(--color-primary);
-  padding: 12px 22px;
+  padding: 12px 24px;
   border-radius: 999px;
   font-size: 1rem;
   font-weight: 600;
@@ -194,89 +193,70 @@
 }
 
 /* ===========================================================
-   LISTAS — USADO EM SERVICES, PROFESSIONALS, CUSTOMERS
+   LISTAS — PADRÃO GLOBAL PARA SERVICES / PROFESSIONALS / CUSTOMERS
 =========================================================== */
+
 .listContainer {
-  margin-top: 14px;
+  margin-top: 18px;
   background: var(--card-bg);
   border-radius: 16px;
-  padding: 16px;
+  padding: 20px;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
-}
-
-.emptyText {
-  text-align: center;
-  font-size: 0.95rem;
-  color: #7a7a7a;
-  padding: 8px 0;
 }
 
 .itemsList {
   list-style: none;
-  margin: 0;
   padding: 0;
+  margin: 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
+/* CADA LINHA DA LISTA */
 .itemRow {
   background: var(--card-alt-bg);
   padding: 16px 18px;
   border-radius: 14px;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start; /* crucial p/ listas com tag */
+  align-items: center;
+  border: 1px solid rgba(0,0,0,0.05);
   transition: 0.2s ease;
-  border: 1px solid rgba(0,0,0,0.04);
 }
 
 .itemRow:hover {
   background: rgba(0, 0, 0, 0.04);
 }
 
-.itemInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 6px; /* AFASTAMENTO entre nome e telefone/status */
-}
-
-.itemTitle {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.itemSub {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-}
-
-/* TAG PARA PROFISSIONAL ATIVO */
-.itemTagActive {
-  background: rgba(34, 197, 94, 0.18);
-  color: #15803d;
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 3px 8px;
-  width: fit-content;
-  border-radius: 8px;
-}
+/* linha horizontal contendo:
+   título — sub1 — sub2 — status */
 .itemLine {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 8px;
-}
-
-.itemTitle {
+  gap: 12px;
   font-size: 1rem;
-  font-weight: 600;
 }
 
+/* título da linha */
+.itemTitle {
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* sub-informações */
 .itemSub {
-  font-size: 0.9rem;
   color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+/* tag Ativo para profissionais */
+.itemTagActive {
+  background: rgba(34,197,94,0.15);
+  color: #15803d;
+  font-size: 0.8rem;
+  padding: 3px 8px;
+  border-radius: 6px;
 }
 
 /* ===========================================================
