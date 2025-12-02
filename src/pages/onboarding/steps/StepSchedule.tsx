@@ -1,9 +1,12 @@
-import { useState  } from "react";
-import { useUserTenant } from "../../../context/UserTenantProvider";
+// src/pages/onboarding/steps/StepSchedule.tsx
+import { useState, useEffect } from "react";
 import { supabase } from "../../../lib/supabaseCleint";
+import { useUserTenant } from "../../../context/UserTenantProvider";
 import { toast } from "react-toastify";
+
+import { Pencil } from "lucide-react";
 import styles from "../Onboarding.module.css";
-import {  Pencil } from "lucide-react";
+
 import ProfessionalsPage from "../../ProfessionalsPage";
 
 export default function StepSchedule() {
@@ -14,13 +17,47 @@ export default function StepSchedule() {
   const [showModal, setShowModal] = useState(false);
   const [loadingCheck, setLoadingCheck] = useState(false);
 
+  const [professionals, setProfessionals] = useState<any[]>([]);
+  const [loadingPros, setLoadingPros] = useState(true);
+
+  /* ============================================================
+     🔥 CARREGAR PROFISSIONAIS EXISTENTES
+  ============================================================ */
+  async function loadProfessionals() {
+    if (!tenantId) return;
+
+    setLoadingPros(true);
+
+    const { data, error } = await supabase
+      .from("professionals")
+      .select("id, name, is_active")
+      .eq("tenant_id", tenantId)
+      .order("name");
+
+    if (error) {
+      console.error("Erro ao carregar profissionais:", error);
+      toast.error("Erro ao carregar profissionais.");
+      return;
+    }
+
+    setProfessionals(data || []);
+    setLoadingPros(false);
+  }
+
+  useEffect(() => {
+    loadProfessionals();
+  }, [tenantId]);
+
+  /* ============================================================
+     🔥 VALIDAR HORÁRIOS, PROFISSIONAL E SERVIÇOS
+  ============================================================ */
   async function validateAndContinue() {
     if (!tenantId || !userId) return;
 
     setLoadingCheck(true);
 
     try {
-      // 1️⃣ Verifica se o usuário tem profissional
+      // 1️⃣ Profissional cadastrado para o user atual
       const { data: prof } = await supabase
         .from("professionals")
         .select("id")
@@ -30,13 +67,12 @@ export default function StepSchedule() {
 
       if (!prof) {
         toast.error("Profissional não encontrado.");
-        setLoadingCheck(false);
-        return;
+        return setLoadingCheck(false);
       }
 
       const professionalId = prof.id;
 
-      // 2️⃣ Verifica serviços
+      // 2️⃣ Serviços vinculados
       const { count: serviceCount } = await supabase
         .from("professional_services")
         .select("id", { count: "exact", head: true })
@@ -44,12 +80,11 @@ export default function StepSchedule() {
         .eq("professional_id", professionalId);
 
       if (!serviceCount || serviceCount === 0) {
-        toast.warn("Você deve selecionar ao menos 1 serviço ao profissional selecionado.");
-        setLoadingCheck(false);
-        return;
+        toast.warn("Você deve vincular ao menos 1 serviço ao profissional.");
+        return setLoadingCheck(false);
       }
 
-      // 3️⃣ Verifica horários
+      // 3️⃣ Horários vinculados
       const { count: scheduleCount } = await supabase
         .from("professional_schedules")
         .select("id", { count: "exact", head: true })
@@ -57,9 +92,8 @@ export default function StepSchedule() {
         .eq("professional_id", professionalId);
 
       if (!scheduleCount || scheduleCount === 0) {
-        toast.warn("Você deve definir ao menos 1 horário para o profissional selecionado.");
-        setLoadingCheck(false);
-        return;
+        toast.warn("Você deve definir pelo menos 1 horário para o profissional.");
+        return setLoadingCheck(false);
       }
 
       // Tudo certo → avança
@@ -73,17 +107,56 @@ export default function StepSchedule() {
     setLoadingCheck(false);
   }
 
+  /* ============================================================
+     🔥 RENDER
+  ============================================================ */
   return (
-    <div>
-      <h2 className={styles.stepTitle}>Escolha o(s) profissionais que irão atender .</h2>
+    <div className={styles.stepContainer}>
+      
+      {/* 🔙 BOTÃO VOLTAR */}
+      <button
+        className={styles.backBtn}
+        onClick={() => updateOnboardingStep(1)}
+      >
+        ← Voltar etapa
+      </button>
+
+      <h2 className={styles.stepTitle}>Escolha o(s) profissionais que irão atender</h2>
 
       <p className={styles.stepText}>
-        Agora vamos configurar os profissionais que irão atender e os horários de atendimento, por padrão o sistema inseriu você como profissional e cadastrou automaticamente o horário de atendimento Segunda
-         à Domingo das 09:00 ás 18:00hs sem horário de almoço, mas você poderá editar agora clicando no botão ajustar horários agora e em seguida no ícone    <Pencil size={18} /> ou
-        pode editar mais tarde se preferir, se for este seu caso basta clicar em <strong>continuar</strong>, se precisar cadastrar mais profissionais clique também no botão ajsutar horarios agora, e em seguida
-        no botão + novo profissional!  
+        Aqui você pode ajustar os horários dos profissionais do Studio. 
+        Por padrão, você já foi cadastrado como profissional com horários 
+        de 09:00 às 18:00 todos os dias. Se quiser ajustar agora, clique em 
+        <strong> Ajustar horários agora</strong>.
       </p>
 
+      {/* ============================================================
+          LISTA DE PROFISSIONAIS
+      ============================================================ */}
+      <div className={styles.servicesListWrapper}>
+        <h4 className={styles.servicesLabel}>Profissionais cadastrados:</h4>
+
+        {loadingPros ? (
+          <p className={styles.stepText}>Carregando profissionais...</p>
+        ) : professionals.length === 0 ? (
+          <p className={styles.emptyText}>Nenhum profissional cadastrado ainda.</p>
+        ) : (
+          <ul className={styles.servicesList}>
+            {professionals.map((p) => (
+              <li key={p.id} className={styles.serviceItem}>
+                <strong>{p.name}</strong>
+                <span className={styles.profStatus}>
+                  {p.is_active ? "Ativo" : "Inativo"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* ============================================================
+          AÇÕES
+      ============================================================ */}
       <div className={styles.actions}>
         <button
           className={styles.primaryBtn}
@@ -101,8 +174,12 @@ export default function StepSchedule() {
         </button>
       </div>
 
+      {/* MODAL */}
       {tenantId && showModal && (
-        <ProfessionalsPage onClose={() => setShowModal(false)} />
+        <ProfessionalsPage onClose={() => {
+          setShowModal(false);
+          loadProfessionals(); // recarregar lista
+        }} />
       )}
     </div>
   );
