@@ -9,11 +9,12 @@ export default function StepFirstAppointment() {
   const [showFirstAppointment, setShowFirstAppointment] = useState(false);
 
   function goBack() {
-    updateOnboardingStep(4); // volta para StepFirstCustomer
+    // volta para StepFirstCustomer (3)
+    updateOnboardingStep(3);
   }
 
   function finishStep() {
-    updateOnboardingStep(99); // finaliza onboarding
+    updateOnboardingStep(99);
   }
 
   return (
@@ -26,7 +27,7 @@ export default function StepFirstAppointment() {
       </p>
 
       <div className={styles.actions}>
-        <button className={styles.tertiaryBtn} onClick={goBack}>
+        <button className={styles.backButton} onClick={goBack}>
           ← Voltar etapa
         </button>
 
@@ -45,14 +46,12 @@ export default function StepFirstAppointment() {
         </button>
       </div>
 
-      {/* MODAL DO AGENDAMENTO */}
       {tenant?.id && (
         <ModalScheduleWizard
           open={showFirstAppointment}
           tenantId={tenant.id}
           onClose={(reason) => {
             if (reason === "completed") {
-              setShowFirstAppointment(false);
               finishStep();
             } else {
               setShowFirstAppointment(false);

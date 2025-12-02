@@ -9,21 +9,13 @@ import StepFirstCustomer from "./steps/StepFirstCustomer";
 import StepFirstAppointment from "./steps/StepFirstAppointment";
 import StepFinish from "./steps/StepFinish";
 
-const TOTAL_STEPS = 5; // Agora sem o StepReviewProfile
+const TOTAL_STEPS = 5; // 0..4, sem contar o finish (99)
 
 export default function Onboarding() {
   const { tenant } = useUserTenant();
 
   const step = tenant?.onboarding_step ?? 0;
 
-  /* ============================================================
-     🔙 Botão VOLTAR (aparece apenas se step > 0 e step < 99)
-  ============================================================ */
-  
-
-  /* ============================================================
-     RENDERIZAÇÃO DOS STEPS
-  ============================================================ */
   const renderStep = () => {
     switch (step) {
       case 0:
@@ -43,9 +35,6 @@ export default function Onboarding() {
     }
   };
 
-  /* ============================================================
-     PROGRESSO
-  ============================================================ */
   const progress =
     step >= 99 ? 100 : Math.min(100, ((step + 1) / TOTAL_STEPS) * 100);
 
@@ -60,7 +49,6 @@ export default function Onboarding() {
             </p>
           </div>
 
-          {/* PROGRESSO */}
           <div className={styles.progressWrapper}>
             <div className={styles.progressBar}>
               <div
@@ -73,8 +61,6 @@ export default function Onboarding() {
             </span>
           </div>
         </header>
-
-      
 
         <div className={styles.body}>{renderStep()}</div>
       </div>

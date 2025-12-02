@@ -8,22 +8,12 @@ import styles from "../Onboarding.module.css";
 import ModalNewService from "../../../components/ModalNewService";
 import { formatCentsToBRL } from "../../../utils/currencyUtils";
 
-type Service = {
-  id: string;
-  name: string;
-  duration_min: number | null;
-  price_cents: number | null;
-};
-
 export default function StepServices() {
   const { updateOnboardingStep, tenant } = useUserTenant();
   const [showModal, setShowModal] = useState(false);
-  const [services, setServices] = useState<Service[]>([]);
+  const [services, setServices] = useState<any[]>([]);
   const [loadingServices, setLoadingServices] = useState(true);
 
-  /* ============================================================
-     🔥 CARREGAR SERVIÇOS EXISTENTES
-  ============================================================ */
   async function loadServices() {
     if (!tenant?.id) return;
 
@@ -38,11 +28,10 @@ export default function StepServices() {
     if (error) {
       console.error("Erro ao carregar serviços:", error);
       toast.error("Erro ao carregar serviços.");
-      setLoadingServices(false);
       return;
     }
 
-    setServices((data || []) as Service[]);
+    setServices(data || []);
     setLoadingServices(false);
   }
 
@@ -50,9 +39,6 @@ export default function StepServices() {
     loadServices();
   }, [tenant?.id]);
 
-  /* ============================================================
-     🔥 VERIFICAR SE EXISTE SERVIÇO PARA CONTINUAR
-  ============================================================ */
   async function checkIfHasServices() {
     return services.length > 0;
   }
@@ -63,12 +49,9 @@ export default function StepServices() {
       return;
     }
 
-    updateOnboardingStep(2); // próximo step = Horários
+    updateOnboardingStep(2); // próximo step = StepSchedule
   };
 
-  /* ============================================================
-     🔥 RENDER
-  ============================================================ */
   return (
     <div className={styles.stepContainer}>
       <h2 className={styles.stepTitle}>Cadastre seus serviços principais</h2>
@@ -78,22 +61,22 @@ export default function StepServices() {
         pedicure, gel, unhas decoradas, alongamentos ou qualquer outro.
       </p>
 
-      {/* LISTA DE SERVIÇOS CADASTRADOS */}
       <div className={styles.servicesListWrapper}>
-        <h3 className={styles.listTitle}>Serviços cadastrados:</h3>
+        <h4 className={styles.stepTitle}>Serviços cadastrados:</h4>
 
         {loadingServices ? (
           <p className={styles.stepText}>Carregando serviços...</p>
         ) : services.length === 0 ? (
-          <p className={styles.emptyText}>Nenhum serviço cadastrado ainda.</p>
+          <p className={styles.emptyText}>
+            Nenhum serviço cadastrado ainda.
+          </p>
         ) : (
           <ul className={styles.servicesList}>
             {services.map((s) => (
               <li key={s.id} className={styles.serviceItem}>
                 <strong>{s.name}</strong>
                 <span>
-                  {s.duration_min ?? 0} min —{" "}
-                  {formatCentsToBRL(s.price_cents ?? 0)}
+                  {s.duration_min} min — {formatCentsToBRL(s.price_cents)}
                 </span>
               </li>
             ))}
@@ -101,7 +84,6 @@ export default function StepServices() {
         )}
       </div>
 
-      {/* BOTÕES AÇÕES */}
       <div className={styles.actions}>
         <button
           className={styles.primaryBtn}
@@ -115,7 +97,6 @@ export default function StepServices() {
         </button>
       </div>
 
-      {/* MODAL */}
       {tenant?.id && (
         <ModalNewService
           tenantId={tenant.id}
@@ -124,7 +105,7 @@ export default function StepServices() {
           onClose={() => setShowModal(false)}
           onSuccess={() => {
             setShowModal(false);
-            loadServices(); // Recarrega lista depois de salvar
+            loadServices();
           }}
         />
       )}
