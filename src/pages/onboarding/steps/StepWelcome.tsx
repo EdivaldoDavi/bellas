@@ -7,7 +7,7 @@ export default function StepWelcome() {
 
 function start() {
   if (tenant?.onboarding_step === 0) {
-    updateOnboardingStep(1);
+    updateOnboardingStep(0);
   }
 }
 
