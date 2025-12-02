@@ -121,20 +121,20 @@ export default function Register() {
     <div className={`${styles.wrap} ${theme === "dark" ? styles.dark : ""}`}>
       <div className={styles.card}>
 
-        <h2 className={styles.title}>Criar Conta</h2>
+        <h2 className={styles.title}>Cadastre-se</h2>
 {/* PRÉ-ONBOARDING — Mensagem amigável na tela de registro */}
       <div className={styles.welcomeBox}>
         <p className={styles.welcomeText}>
           ✨ <strong>Vamos criar seu Studio!</strong><br/>
-          Preencha as informações abaixo e criaremos automaticamente seu ambiente,
+          {/*Preencha as informações abaixo e criaremos automaticamente seu ambiente,
           seu primeiro profissional e seu painel de controle.  
           Depois é só seguir o passo a passo guiado para configurar serviços,
-          horários e começar a agendar.
+          horários e começar a agendar.*/}
         </p>
       </div>
 
         {message && <p className={styles.message}>{message}</p>}
-
+        <label className={styles.label}>Nome</label>
         <input
           type="text"
           placeholder="Seu nome"
@@ -143,7 +143,7 @@ export default function Register() {
           onChange={(e) => setFullName(e.target.value)}
           disabled={loading}
         />
-
+         <label className={styles.label}>Email</label>
         <input
           type="email"
           placeholder="E-mail"
@@ -160,19 +160,20 @@ export default function Register() {
           onClick={handleRegister}
           className={styles.button}
         >
-          {loading ? "Registrando..." : "Criar conta"}
+          {loading ? "Registrando..." : "Cadastre-se"}
         </button>
 
         <p className={styles.linkText}>
-          Já possui conta? <Link to="/login">Entrar</Link>
+          Já é cadastrado? <Link to="/login">Entre</Link>
         </p>
 
-        {/* Botão de alternar tema */}
+        {/* Botão de alternar tema 
         <div className={styles.themeToggleWrapper}>
           <button className={styles.themeToggle} onClick={toggleTheme}>
             {theme === "light" ? "🌙 Dark Mode" : "🌞 Light Mode"}
           </button>
         </div>
+        */}
       </div>
     </div>
   );

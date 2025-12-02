@@ -92,8 +92,8 @@ export default function Login() {
           {/* MENSAGEM AMIGÁVEL (pré-onboarding) */}
           <div className={styles.welcomeBox}>
             <p className={styles.welcomeText}>
-              👋 <strong>Bem-vindo!</strong>  
-              Se ainda não tem uma conta, clique em <strong>Registrar</strong> para começar a usar o sistema e configurar seu Studio em poucos minutos.
+              👋 <strong>Bem-vindo!&nbsp;&nbsp;</strong>  
+              Se ainda não tem uma conta, clique em <strong>Cadastre-se</strong> para começar a usar o sistema e configurar seu Studio em poucos minutos.
             </p>
           </div>
 
@@ -147,15 +147,16 @@ export default function Login() {
 
         {/* CADASTRE-SE */}
         <p className={styles.linkText}>
-          Ainda não tem conta? <Link to="/register">Registrar</Link>
+          Ainda não tem conta? <Link to="/register">Cadastre-se</Link>
         </p>
 
-        {/* THEME BUTTON */}
+        {/* THEME BUTTON 
         <div className={styles.themeToggleWrapper}>
           <button className={styles.themeToggle} onClick={toggleTheme}>
             {theme === "light" ? "🌙 Dark Mode" : "🌞 Light Mode"}
           </button>
         </div>
+        */}
       </div>
     </div>
   );
