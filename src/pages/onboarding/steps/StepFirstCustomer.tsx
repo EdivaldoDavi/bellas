@@ -33,7 +33,7 @@ export default function StepFirstCustomer() {
 
   function goNext() {
     if (!canContinue) return;
-    updateOnboardingStep(99);
+    updateOnboardingStep(4);
   }
 
   async function fetchCustomers() {
