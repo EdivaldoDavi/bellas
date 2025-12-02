@@ -6,16 +6,19 @@ import ModalScheduleWizard from "../../../components/ModalScheduleWizard";
 export default function StepFirstAppointment() {
   const { tenant, updateOnboardingStep } = useUserTenant();
 
-  // Controla o modal (Estado CORRETO)
   const [showFirstAppointment, setShowFirstAppointment] = useState(false);
 
-  // Finalizar esse passo do onboarding
+  function handleBack() {
+    updateOnboardingStep(4); // ← volta para etapa anterior (horários)
+  }
+
   function finishStep() {
-    updateOnboardingStep(99); // próxima etapa / finaliza onboarding
+    updateOnboardingStep(99);
   }
 
   return (
-    <div>
+    <div className={styles.stepContainer}>
+      {/* TÍTULO */}
       <h2 className={styles.stepTitle}>Crie seu primeiro agendamento</h2>
 
       <p className={styles.stepText}>
@@ -23,6 +26,7 @@ export default function StepFirstAppointment() {
         Depois você pode cancelar ou manter normalmente.
       </p>
 
+      {/* LISTA DE BOTÕES */}
       <div className={styles.actions}>
         <button
           className={styles.primaryBtn}
@@ -33,23 +37,29 @@ export default function StepFirstAppointment() {
 
         <button
           className={styles.secondaryBtn}
-          onClick={() => updateOnboardingStep(99)}
+          onClick={() => finishStep()}
         >
           Pular, já fiz um agendamento
         </button>
+
+        {/* 🔙 BOTÃO VOLTAR ETAPA */}
+        <button
+          className={styles.backButton}
+          onClick={handleBack}
+        >
+          ← Voltar etapa
+        </button>
       </div>
 
-      {/* MODAL DO AGENDAMENTO */}
+      {/* MODAL */}
       {tenant?.id && (
         <ModalScheduleWizard
           open={showFirstAppointment}
           tenantId={tenant.id}
           onClose={(reason) => {
             if (reason === "completed") {
-              // Usuário concluiu o agendamento → avança onboarding
               finishStep();
             } else {
-              // Apenas fechou o modal → não encerra onboarding
               setShowFirstAppointment(false);
             }
           }}

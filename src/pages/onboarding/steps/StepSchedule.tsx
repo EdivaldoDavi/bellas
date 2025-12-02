@@ -143,7 +143,7 @@ export default function StepSchedule() {
         
         {/* 🔙 VOLTAR ETAPA */}
         <button className={styles.tertiaryBtn} onClick={goBack}>
-          ← Voltar etapa
+          ← Voltar
         </button>
 
         {/* Ajustar horários */}
