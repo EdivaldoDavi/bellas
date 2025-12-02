@@ -102,8 +102,9 @@
 =========================== */
 .input {
   width: 100%;
+
   padding: 12px 14px;
-  padding-right: 58px !important; /* 🔥 espaço forte para nunca colidir */
+  padding-right: 60px !important; /* MUITO espaço para nunca colidir */
 
   background: #f5f5f7;
   border: 1px solid #e5e5e5;
@@ -111,14 +112,19 @@
 
   color: #242424;
   font-size: 0.95rem;
-
   margin-bottom: 14px;
-  transition: all 0.2s ease;
 
-  display: block !important;  /* impede layouts quebrados */
+  /* 🚨 BLOQUEIA QUALQUER CSS GLOBAL QUE QUEBRA O INPUT */
+  display: block !important;
+  flex: none !important;
+  align-items: initial !important;
+  justify-content: initial !important;
+  line-height: normal !important;
+
   position: relative;
   z-index: 1;
 }
+
 
 
 /* ===========================
@@ -135,18 +141,15 @@
   cursor: pointer;
 
   color: #5e1b88;
-  z-index: 2;
+  z-index: 10;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding: 0;
 }
 
 .eyeButton svg {
-  width: 26px !important;
-  height: 26px !important;
+  width: 26px;
+  height: 26px;
 }
-
 
 
 
@@ -204,4 +207,9 @@
 .link {
   color: var(--color-primary);
   font-weight: 600;
+}
+input[type="password"],
+input[type="text"],
+input {
+  box-sizing: border-box !important;
 }
