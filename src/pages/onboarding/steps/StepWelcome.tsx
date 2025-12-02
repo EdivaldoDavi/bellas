@@ -20,7 +20,7 @@ export default function StepWelcome() {
           className={styles.primaryBtn}
           onClick={() => updateOnboardingStep(1)}
         >
-          Vamos Começar!
+          Bora Começar!
         </button>
 {/*
         <button
