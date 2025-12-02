@@ -19,7 +19,7 @@ export default function Login() {
   const navigate = useNavigate();
   const { signIn, user, loading } = useAuth();
 
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   // const { brandColor } = useBrandColor(); // REMOVED
 
   /* ============================================================

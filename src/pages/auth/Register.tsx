@@ -29,7 +29,7 @@ export default function Register() {
   const [message, setMessage] = useState("");
 
   // 🎨 Tema global
-  const { theme, toggleTheme } = useTheme();
+  const { theme  } = useTheme();
 
   // const { brandColor } = useBrandColor(); // REMOVED
 
