@@ -1,8 +1,6 @@
-/* src/pages/onboarding/Onboarding.module.css */
-
-/* ===========================
+/* ===========================================================
    LAYOUT GERAL
-=========================== */
+=========================================================== */
 .page {
   min-height: 100vh;
   display: flex;
@@ -17,34 +15,34 @@
   max-width: 760px;
   background: var(--modal-bg, #ffffff);
   border-radius: 24px;
-  padding: 24px 24px 28px;
+  padding: 28px 28px 36px;
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
 .header {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .title {
-  font-size: 1.6rem;
+  font-size: 1.7rem;
   font-weight: 700;
   margin: 0;
 }
 
 .subtitle {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: #6b7280;
 }
 
-/* ===========================
+/* ===========================================================
    PROGRESSO
-=========================== */
+=========================================================== */
 .progressWrapper {
   margin-top: 4px;
 }
@@ -65,47 +63,42 @@
 }
 
 .progressText {
-  display: block;
   margin-top: 4px;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: #6b7280;
 }
 
-.body {
-  margin-top: 10px;
-}
-
-/* ===========================
+/* ===========================================================
    CONTEÚDO DOS STEPS
-=========================== */
+=========================================================== */
 .stepContainer {
   display: flex;
   flex-direction: column;
+  gap: 14px;
 }
 
 .stepTitle {
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   font-weight: 600;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .stepText {
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: #6b7280;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
-/* ===========================
-   BOTÕES (actions)
-=========================== */
-
+/* ===========================================================
+   BOTÕES
+=========================================================== */
 .actions {
-  margin-top: 32px;
+  margin-top: 28px;
   display: flex;
   gap: 16px;
-  align-items: center;
   flex-wrap: wrap;
   justify-content: center;
+  align-items: center;
 }
 
 .actions button {
@@ -114,22 +107,21 @@
   max-width: 260px;
 }
 
-/* Botão primário – sempre var(--color-primary) */
+/* PRIMÁRIO */
 .primaryBtn {
   border: none;
   background: var(--color-primary);
   color: #ffffff;
-  padding: 10px 18px;
+  padding: 12px 20px;
   border-radius: 999px;
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 1rem;
   cursor: pointer;
   transition: transform 0.15s ease, opacity 0.2s ease, box-shadow 0.2s ease;
-  text-align: center;
 }
 
 .primaryBtn:hover {
-  opacity: 0.95;
+  opacity: 0.92;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
 }
 
@@ -137,36 +129,34 @@
   transform: scale(0.97);
 }
 
-/* Botão secundário – borda neutra */
+/* SECUNDÁRIO */
 .secondaryBtn {
   border: 1px solid rgba(148, 163, 184, 0.7);
   background: #ffffff;
   color: #374151;
-  padding: 10px 18px;
+  padding: 12px 20px;
   border-radius: 999px;
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 1rem;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-  text-align: center;
+  transition: 0.2s ease;
 }
 
 .secondaryBtn:hover {
-  background: rgba(148, 163, 184, 0.06);
+  background: rgba(148, 163, 184, 0.08);
 }
 
-/* Botão "Voltar etapa" para usar dentro do step */
+/* VOLTAR */
 .backButton {
   border: 2px solid var(--color-primary);
   background: #ffffff;
   color: var(--color-primary);
-  padding: 10px 18px;
+  padding: 12px 20px;
   border-radius: 999px;
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 1rem;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
-  text-align: center;
+  transition: 0.2s ease;
 }
 
 .backButton:hover {
@@ -174,80 +164,140 @@
   color: #ffffff;
 }
 
+/* PULAR */
 .skipBtn {
   margin-top: 8px;
   background: none;
   border: none;
   color: #9ca3af;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   cursor: pointer;
   text-decoration: underline;
 }
 
-/* ===========================
-   LISTA DE SERVIÇOS
-=========================== */
-
-.servicesListWrapper {
-  margin: 20px 0;
+/* ===============================================
+   BOTÃO CONTINUAR (StepFirstCustomer)
+=============================================== */
+.footerActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 
-.servicesLabel {
-  font-size: 0.95rem;
+.continueBtn {
+  background: var(--color-primary);
+  color: #ffffff;
+  padding: 12px 26px;
+  border-radius: 12px;
+  border: none;
+  font-size: 1.05rem;
   font-weight: 600;
-  margin-bottom: 8px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.continueBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.continueBtn:not(:disabled):hover {
+  opacity: 0.92;
+}
+
+/* ===========================================================
+   LISTA PADRÃO (usada em services, professionals, customers)
+=========================================================== */
+.listContainer {
+  margin-top: 14px;
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
 }
 
 .emptyText {
-  color: #777777;
-  font-size: 0.9rem;
-  margin-bottom: 12px;
+  text-align: center;
+  font-size: 0.95rem;
+  color: #7a7a7a;
+  padding: 8px 0;
 }
 
-.servicesList {
+/* Lista vertical */
+.itemsList {
   list-style: none;
   padding: 0;
-  margin: 0 0 20px 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.serviceItem {
-  padding: 12px 16px;
-  border: 1px solid #ececec;
-  border-radius: 12px;
-  margin-bottom: 10px;
-  background: #fafafa;
+/* Item da lista */
+.itemRow {
+  background: var(--card-alt-bg);
+  padding: 14px 16px;
+  border-radius: 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.95rem;
+  transition: 0.2s ease;
+  border: 1px solid rgba(0,0,0,0.04);
 }
 
-/* ===========================
+.itemRow:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* Conteúdo interno */
+.itemInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.itemTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.itemSub {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* ===========================================================
    RESPONSIVO
-=========================== */
+=========================================================== */
 @media (max-width: 640px) {
   .card {
-    padding: 18px 16px 20px;
-    border-radius: 18px;
+    padding: 20px 18px 24px;
+    border-radius: 20px;
   }
 
   .title {
-    font-size: 1.35rem;
+    font-size: 1.45rem;
   }
 
   .stepTitle {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
   }
 
   .actions {
     flex-direction: column;
-    align-items: center;
   }
 
   .actions button {
     width: 100%;
     max-width: none;
-    font-size: 1rem;
-    padding: 11px 18px;
+    padding: 14px 20px;
+    font-size: 1.05rem;
+  }
+
+  .continueBtn {
+    width: 100%;
+    padding: 14px;
+    font-size: 1.1rem;
   }
 }

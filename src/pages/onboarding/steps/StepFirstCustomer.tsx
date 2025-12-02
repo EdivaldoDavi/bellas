@@ -5,7 +5,6 @@ import { useUserTenant } from "../../../context/UserTenantProvider";
 import styles from "../Onboarding.module.css";
 
 import ModalNewCustomer from "../../../components/ModalNewCustomer";
-import { Pencil, Plus } from "lucide-react";
 
 type Customer = {
   id: string;
@@ -15,20 +14,27 @@ type Customer = {
 
 export default function StepFirstCustomer() {
   const { tenant, updateOnboardingStep } = useUserTenant();
+
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [showModal, setShowModal] = useState(false);
+  const [createdAtLeastOne, setCreatedAtLeastOne] = useState(false);
 
   const handleClose = () => setShowModal(false);
 
   const handleSuccess = async () => {
     await fetchCustomers();
-    updateOnboardingStep(4); // próxima etapa
+    setCreatedAtLeastOne(true); // cliente criado → libera botão continuar
   };
 
   function goBack() {
-    updateOnboardingStep(2); // volta etapa
+    updateOnboardingStep(2);
+  }
+
+  function goNext() {
+    if (customers.length === 0) return;
+    updateOnboardingStep(4);
   }
 
   /* ============================================================
@@ -38,7 +44,6 @@ export default function StepFirstCustomer() {
     if (!tenant?.id) return;
 
     setLoading(true);
-
     const { data, error } = await supabase
       .from("customers")
       .select("id, full_name, customer_phone")
@@ -47,6 +52,7 @@ export default function StepFirstCustomer() {
 
     if (!error && data) {
       setCustomers(data);
+      if (data.length > 0) setCreatedAtLeastOne(true);
     }
 
     setLoading(false);
@@ -59,6 +65,7 @@ export default function StepFirstCustomer() {
   return (
     <div className={styles.stepContainer}>
       <h2 className={styles.stepTitle}>Cadastre um cliente</h2>
+
       <p className={styles.stepText}>
         Opcional, mas recomendado: cadastre um cliente (pode ser você mesmo) só
         para testar o fluxo de agendamento.
@@ -71,9 +78,7 @@ export default function StepFirstCustomer() {
         {loading && <p>Carregando clientes...</p>}
 
         {!loading && customers.length === 0 && (
-          <p className={styles.emptyText}>
-            Nenhum cliente cadastrado ainda.
-          </p>
+          <p className={styles.emptyText}>Nenhum cliente cadastrado ainda.</p>
         )}
 
         {!loading && customers.length > 0 && (
@@ -81,14 +86,11 @@ export default function StepFirstCustomer() {
             {customers.map((c) => (
               <li key={c.id} className={styles.itemRow}>
                 <div className={styles.itemInfo}>
-                  <strong>{c.full_name}</strong>
+                  <strong className={styles.itemTitle}>{c.full_name}</strong>
                   {c.customer_phone && (
-                    <span className={styles.itemSub}>
-                      {c.customer_phone}
-                    </span>
+                    <span className={styles.itemSub}>{c.customer_phone}</span>
                   )}
                 </div>
-                <Pencil size={18} className={styles.itemIcon} />
               </li>
             ))}
           </ul>
@@ -107,12 +109,25 @@ export default function StepFirstCustomer() {
           className={styles.primaryBtn}
           onClick={() => setShowModal(true)}
         >
-          <Plus size={18} /> Cadastrar cliente de teste
+          Cadastrar cliente de teste
         </button>
       </div>
 
       {/* ============================
-          MODAL DE NOVO CLIENTE
+          BOTÃO CONTINUAR
+      ============================= */}
+      <div className={styles.footerActions}>
+        <button
+          className={styles.continueBtn}
+          disabled={!createdAtLeastOne}
+          onClick={goNext}
+        >
+          Continuar →
+        </button>
+      </div>
+
+      {/* ============================
+          MODAL
       ============================= */}
       {tenant?.id && (
         <ModalNewCustomer
@@ -120,7 +135,7 @@ export default function StepFirstCustomer() {
           tenantId={tenant.id}
           show={showModal}
           onClose={handleClose}
-          onSuccess={handleSuccess}
+          onSuccess={handleSuccess} // NÃO avança mais automaticamente
         />
       )}
     </div>
