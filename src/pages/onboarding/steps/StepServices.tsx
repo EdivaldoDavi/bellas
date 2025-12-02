@@ -24,7 +24,7 @@ export default function StepServices() {
 
     const { data, error } = await supabase
       .from("services")
-      .select("id, name, duration_min, price")
+      .select("id, name, duration_min, price_cents")
       .eq("tenant_id", tenant.id)
       .order("name", { ascending: true });
 
@@ -84,7 +84,7 @@ export default function StepServices() {
               <li key={s.id} className={styles.serviceItem}>
                 <strong>{s.name}</strong>
                 <span>
-                  {s.duration_min} min — R$ {Number(s.price).toFixed(2)}
+                  {s.duration_min} min — R$ {Number(s.price_cents).toFixed(2)}
                 </span>
               </li>
             ))}
