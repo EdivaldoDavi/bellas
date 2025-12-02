@@ -7,9 +7,11 @@ import { toast } from "react-toastify";
 
 import styles from "../Onboarding.module.css";
 import ModalNewService from "../../../components/ModalNewService";
+import { formatCentsToBRL } from "../../../utils/currencyUtils";
 
 export default function StepServices() {
   const { updateOnboardingStep, tenant } = useUserTenant();
+
   const [showModal, setShowModal] = useState(false);
   const [services, setServices] = useState<any[]>([]);
   const [loadingServices, setLoadingServices] = useState(true);
@@ -43,7 +45,7 @@ export default function StepServices() {
   }, [tenant?.id]);
 
   /* ============================================================
-     🔥 VERIFICAR SE EXISTE SERVIÇO PARA CONTINUAR
+     🔥 VALIDAR CONTINUAÇÃO
   ============================================================ */
   async function checkIfHasServices() {
     return services.length > 0;
@@ -70,31 +72,35 @@ export default function StepServices() {
         pedicure, gel, unhas decoradas, alongamentos ou qualquer outro.
       </p>
 
-      {/* LISTA DE SERVIÇOS CADASTRADOS */}
+      {/* LABEL DOS SERVIÇOS */}
+      <h4 className={styles.sectionLabel}>Serviços cadastrados:</h4>
+
+      {/* LISTA DE SERVIÇOS */}
       <div className={styles.servicesListWrapper}>
         {loadingServices ? (
           <p className={styles.stepText}>Carregando serviços...</p>
         ) : services.length === 0 ? (
-          <p className={styles.emptyText}>
-            Nenhum serviço cadastrado ainda.
-          </p>
+          <p className={styles.emptyText}>Nenhum serviço cadastrado ainda.</p>
         ) : (
           <ul className={styles.servicesList}>
             {services.map((s) => (
               <li key={s.id} className={styles.serviceItem}>
-                <strong>{s.name}</strong>
-                <span>
-                  {s.duration_min} min — R$ {Number(s.price_cents).toFixed(2)}
-                </span>
+                <div className={styles.serviceName}>{s.name}</div>
+                <div className={styles.serviceMeta}>
+                  {s.duration_min} min • {formatCentsToBRL(s.price_cents)}
+                </div>
               </li>
             ))}
           </ul>
         )}
       </div>
 
-      {/* BOTÕES AÇÕES */}
+      {/* BOTÕES DE AÇÃO */}
       <div className={styles.actions}>
-        <button className={styles.primaryBtn} onClick={() => setShowModal(true)}>
+        <button
+          className={styles.primaryBtn}
+          onClick={() => setShowModal(true)}
+        >
           Cadastrar serviço
         </button>
 
@@ -112,7 +118,7 @@ export default function StepServices() {
           onClose={() => setShowModal(false)}
           onSuccess={() => {
             setShowModal(false);
-            loadServices(); // 🔥 Recarregar lista quando cadastrar novo
+            loadServices(); // recarrega lista após cadastrar
           }}
         />
       )}
