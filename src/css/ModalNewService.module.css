@@ -134,6 +134,27 @@
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent);
 }
 
+/* NOVO: Wrapper para input com unidade */
+.inputWithUnit {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Espaçamento entre input e label */
+  margin-bottom: 12px; /* Mantém o espaçamento inferior */
+}
+
+.inputWithUnit .input {
+  margin-bottom: 0; /* Remove margin-bottom do input dentro do wrapper */
+  flex-grow: 1; /* Permite que o input ocupe o espaço disponível */
+}
+
+.unitLabel {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  white-space: nowrap; /* Evita quebra de linha */
+  flex-shrink: 0; /* Impede que o label encolha */
+}
+
+
 /* =====================================
    PROFESSIONAL LIST
 ===================================== */

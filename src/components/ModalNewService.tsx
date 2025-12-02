@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { X } from "lucide-react";
 
 import styles from "../css/ModalNewService.module.css";
+import { formatCentsToBRL, parseBRLToCents, formatPriceInput } from "../utils/currencyUtils"; // Importar novas funções
 
 type ServiceRow = {
   id: string;
@@ -22,10 +23,10 @@ type ProfessionalRow = {
 interface ModalNewServiceProps {
   tenantId?: string;
   show: boolean;
- mode?: "agenda" | "edit" | "cadastro";
+  mode?: "agenda" | "edit" | "cadastro";
   service?: ServiceRow;
   onClose: () => void;
-onSuccess?: (id: string, name: string, duration: number) => void;
+  onSuccess?: (id: string, name: string, duration: number) => void;
 }
 
 export default function ModalNewService({
@@ -41,7 +42,7 @@ export default function ModalNewService({
   // campos do serviço
   const [name, setName] = useState("");
   const [duration, setDuration] = useState<string>("60");
-  const [price, setPrice] = useState<string>("0");
+  const [price, setPrice] = useState<string>(formatCentsToBRL(0)); // Agora armazena a string formatada
   const [isActive, setIsActive] = useState(true);
 
   // profissionais
@@ -81,7 +82,7 @@ export default function ModalNewService({
         if (isEditing && service) {
           setName(service.name);
           setDuration(String(service.duration_min ?? 60));
-          setPrice(String((service.price_cents ?? 0) / 100));
+          setPrice(formatCentsToBRL(service.price_cents)); // Formata para exibição
           setIsActive(service.is_active);
 
           // vínculos service -> professionals
@@ -100,7 +101,7 @@ export default function ModalNewService({
           // novo serviço
           setName("");
           setDuration("60");
-          setPrice("0");
+          setPrice(formatCentsToBRL(0)); // Inicia com R$ 0,00
           setIsActive(true);
           setSelectedProfessionalIds([]);
         }
@@ -122,143 +123,143 @@ export default function ModalNewService({
     );
   }
 
-async function handleSave() {
-  if (!tenantId) {
-    toast.error("Tenant inválido.");
-    return;
-  }
+  async function handleSave() {
+    if (!tenantId) {
+      toast.error("Tenant inválido.");
+      return;
+    }
 
-  const trimmedName = name.trim();
-  if (!trimmedName) {
-    toast.warn("Informe o nome do serviço.");
-    return;
-  }
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      toast.warn("Informe o nome do serviço.");
+      return;
+    }
 
-  const durationNumber = Number(duration) || 0;
-  const priceNumber = Number(price.replace(",", ".")) || 0;
+    const durationNumber = Number(duration) || 0;
+    const priceCents = parseBRLToCents(price); // Converte a string formatada para centavos
 
-  setLoading(true);
+    setLoading(true);
 
-  try {
-    let serviceFinal: {
-      id: string;
-      name: string;
-      duration_min: number;
-    } | null = null;
+    try {
+      let serviceFinal: {
+        id: string;
+        name: string;
+        duration_min: number;
+      } | null = null;
 
-    /* ===========================================================
-       1) INSERT OU UPDATE DO SERVICE
-    ============================================================ */
+      /* ===========================================================
+         1) INSERT OU UPDATE DO SERVICE
+      ============================================================ */
 
-    if (!isEditing) {
-      // INSERT
-      const { data, error } = await supabase
-        .from("services")
-        .insert([
-          {
-            tenant_id: tenantId,
+      if (!isEditing) {
+        // INSERT
+        const { data, error } = await supabase
+          .from("services")
+          .insert([
+            {
+              tenant_id: tenantId,
+              name: trimmedName,
+              duration_min: durationNumber,
+              price_cents: priceCents,
+              is_active: true,
+            },
+          ])
+          .select()
+          .single();
+
+        if (error || !data) throw error || new Error("Falha ao criar serviço.");
+
+        serviceFinal = {
+          id: data.id,
+          name: data.name,
+          duration_min: data.duration_min,
+        };
+      } else {
+        // UPDATE
+        if (!service?.id) throw new Error("ID de serviço inválido para edição.");
+
+        const { error } = await supabase
+          .from("services")
+          .update({
             name: trimmedName,
             duration_min: durationNumber,
-            price_cents: Math.round(priceNumber * 100),
-            is_active: true,
-          },
-        ])
-        .select()
-        .single();
+            price_cents: priceCents,
+            is_active: isActive,
+          })
+          .eq("tenant_id", tenantId)
+          .eq("id", service.id);
 
-      if (error || !data) throw error || new Error("Falha ao criar serviço.");
+        if (error) throw error;
 
-      serviceFinal = {
-        id: data.id,
-        name: data.name,
-        duration_min: data.duration_min,
-      };
-    } else {
-      // UPDATE
-      if (!service?.id) throw new Error("ID de serviço inválido para edição.");
+        // O update não retorna o registro por padrão → buscar o atualizado
+        const { data, error: fetchErr } = await supabase
+          .from("services")
+          .select("id, name, duration_min")
+          .eq("tenant_id", tenantId)
+          .eq("id", service.id)
+          .single();
 
-      const { error } = await supabase
-        .from("services")
-        .update({
-          name: trimmedName,
-          duration_min: durationNumber,
-          price_cents: Math.round(priceNumber * 100),
-          is_active: isActive,
-        })
-        .eq("tenant_id", tenantId)
-        .eq("id", service.id);
+        if (fetchErr || !data)
+          throw fetchErr || new Error("Erro ao buscar serviço atualizado.");
 
-      if (error) throw error;
+        serviceFinal = data;
+      }
 
-      // O update não retorna o registro por padrão → buscar o atualizado
-      const { data, error: fetchErr } = await supabase
-        .from("services")
-        .select("id, name, duration_min")
-        .eq("tenant_id", tenantId)
-        .eq("id", service.id)
-        .single();
+      if (!serviceFinal) throw new Error("Falha inesperada: serviceFinal nulo.");
 
-      if (fetchErr || !data)
-        throw fetchErr || new Error("Erro ao buscar serviço atualizado.");
+      const serviceId = serviceFinal.id;
 
-      serviceFinal = data;
-    }
+      /* ===========================================================
+         2) ATUALIZAR VÍNCULOS EM professional_services
+      ============================================================ */
 
-    if (!serviceFinal) throw new Error("Falha inesperada: serviceFinal nulo.");
-
-    const serviceId = serviceFinal.id;
-
-    /* ===========================================================
-       2) ATUALIZAR VÍNCULOS EM professional_services
-    ============================================================ */
-
-    const { error: delErr } = await supabase
-      .from("professional_services")
-      .delete()
-      .eq("tenant_id", tenantId)
-      .eq("service_id", serviceId);
-
-    if (delErr) throw delErr;
-
-    if (selectedProfessionalIds.length > 0) {
-      const rows = selectedProfessionalIds.map((profId) => ({
-        tenant_id: tenantId,
-        professional_id: profId,
-        service_id: serviceId,
-      }));
-
-      const { error: insErr } = await supabase
+      const { error: delErr } = await supabase
         .from("professional_services")
-        .insert(rows);
+        .delete()
+        .eq("tenant_id", tenantId)
+        .eq("service_id", serviceId);
 
-      if (insErr) throw insErr;
+      if (delErr) throw delErr;
+
+      if (selectedProfessionalIds.length > 0) {
+        const rows = selectedProfessionalIds.map((profId) => ({
+          tenant_id: tenantId,
+          professional_id: profId,
+          service_id: serviceId,
+        }));
+
+        const { error: insErr } = await supabase
+          .from("professional_services")
+          .insert(rows);
+
+        if (insErr) throw insErr;
+      }
+
+      /* ===========================================================
+         3) SUCESSO
+      ============================================================ */
+
+      toast.success(
+        isEditing
+          ? "Serviço atualizado com sucesso!"
+          : "Serviço cadastrado com sucesso!"
+      );
+
+      // AGORA VAI PERFEITAMENTE!  100% seguro e definido
+      onSuccess?.(
+        serviceFinal.id,
+        serviceFinal.name,
+        serviceFinal.duration_min
+      );
+
+      onClose();
+    } catch (err) {
+      console.error("[ModalNewService] Erro ao salvar:", err);
+      toast.error("Erro ao salvar serviço.");
+    } finally {
+      setLoading(false);
     }
-
-    /* ===========================================================
-       3) SUCESSO
-    ============================================================ */
-
-    toast.success(
-      isEditing
-        ? "Serviço atualizado com sucesso!"
-        : "Serviço cadastrado com sucesso!"
-    );
-
-    // AGORA VAI PERFEITAMENTE!  100% seguro e definido
-    onSuccess?.(
-      serviceFinal.id,
-      serviceFinal.name,
-      serviceFinal.duration_min
-    );
-
-    onClose();
-  } catch (err) {
-    console.error("[ModalNewService] Erro ao salvar:", err);
-    toast.error("Erro ao salvar serviço.");
-  } finally {
-    setLoading(false);
   }
-}
 
   if (!show) return null;
 
@@ -285,20 +286,24 @@ async function handleSave() {
               onChange={(e) => setName(e.target.value)}
             />
 
-            <input
-              className={styles.input}
-              placeholder="Duração em minutos"
-              value={duration}
-              onChange={(e) => setDuration(e.target.value)}
-              type="number"
-              min={0}
-            />
+            <div className={styles.inputWithUnit}> {/* Novo wrapper para duração */}
+              <input
+                className={styles.input}
+                placeholder="Duração"
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+                type="number"
+                min={0}
+              />
+              <span className={styles.unitLabel}>minutos</span>
+            </div>
 
             <input
               className={styles.input}
               placeholder="Preço (R$)"
               value={price}
-              onChange={(e) => setPrice(e.target.value)}
+              onChange={(e) => setPrice(formatPriceInput(e.target.value))}
+              type="text" // Alterado para text para permitir a máscara
             />
 
             {isEditing && (
@@ -313,39 +318,40 @@ async function handleSave() {
             )}
 
             {/* PROFISSIONAIS */}
-<h3 className={styles.sectionTitle}>Profissionais</h3><h6>Selecione os profissionais que prestam esse serviço</h6>
+            <h3 className={styles.sectionTitle}>Profissionais</h3>
+            <h6>Selecione os profissionais que prestam esse serviço</h6>
 
-{professionals.length === 0 ? (
-  <p className={styles.smallMuted}>
-    Nenhum profissional cadastrado ainda.
-  </p>
-) : (
-  <div className={styles.checkList}>
-    {professionals.map((prof) => {
-      const checked = selectedProfessionalIds.includes(prof.id);
+            {professionals.length === 0 ? (
+              <p className={styles.smallMuted}>
+                Nenhum profissional cadastrado ainda.
+              </p>
+            ) : (
+              <div className={styles.checkList}>
+                {professionals.map((prof) => {
+                  const checked = selectedProfessionalIds.includes(prof.id);
 
-      return (
-        <label
-          key={prof.id}
-          className={styles.checkItem}
-          onClick={(e) => {
-            // Evita toggle duplo quando clicado diretamente no input
-            if ((e.target as HTMLElement).tagName !== "INPUT") {
-              toggleProfessional(prof.id);
-            }
-          }}
-        >
-          <input
-            type="checkbox"
-            checked={checked}
-            onChange={() => toggleProfessional(prof.id)}
-          />
-          <p className={styles.profName}>{prof.name}</p>
-        </label>
-      );
-    })}
-  </div>
-)}
+                  return (
+                    <label
+                      key={prof.id}
+                      className={styles.checkItem}
+                      onClick={(e) => {
+                        // Evita toggle duplo quando clicado diretamente no input
+                        if ((e.target as HTMLElement).tagName !== "INPUT") {
+                          toggleProfessional(prof.id);
+                        }
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleProfessional(prof.id)}
+                      />
+                      <p className={styles.profName}>{prof.name}</p>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
 
             <button
               className={styles.saveBtn}
@@ -360,7 +366,6 @@ async function handleSave() {
             </button>
           </>
         )}
-        
       </div>
     </div>
   );
