@@ -8,13 +8,13 @@ export default function StepFirstAppointment() {
   const { tenant, updateOnboardingStep } = useUserTenant();
   const [showFirstAppointment, setShowFirstAppointment] = useState(false);
 
-  function goBack() {
-    // volta para StepFirstCustomer (3)
-    updateOnboardingStep(3);
-  }
-
   function finishStep() {
     updateOnboardingStep(99);
+  }
+
+  function goBack() {
+    // Volta para StepFirstCustomer (3)
+    updateOnboardingStep(3);
   }
 
   return (

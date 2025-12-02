@@ -4,7 +4,6 @@ import { useUserTenant } from "../../../context/UserTenantProvider";
 import { supabase } from "../../../lib/supabaseCleint";
 import { toast } from "react-toastify";
 import styles from "../Onboarding.module.css";
-
 import ProfessionalsPage from "../../ProfessionalsPage";
 
 type Professional = {
@@ -21,35 +20,46 @@ export default function StepSchedule() {
   const [showModal, setShowModal] = useState(false);
   const [loadingCheck, setLoadingCheck] = useState(false);
   const [professionals, setProfessionals] = useState<Professional[]>([]);
+  const [loadingProfessionals, setLoadingProfessionals] = useState(true);
 
-  // 🔥 Carregar profissionais
-  useEffect(() => {
-    async function loadProfessionals() {
-      if (!tenantId) return;
+  /* ============================================================
+     🔥 CARREGAR PROFISSIONAIS
+  ============================================================ */
+  async function loadProfessionals() {
+    if (!tenantId) return;
+    setLoadingProfessionals(true);
 
-      const { data, error } = await supabase
-        .from("professionals")
-        .select("id, name, is_active")
-        .eq("tenant_id", tenantId)
-        .order("name");
+    const { data, error } = await supabase
+      .from("professionals")
+      .select("id,name,is_active")
+      .eq("tenant_id", tenantId)
+      .order("name", { ascending: true });
 
-      if (error) {
-        console.error(error);
-        toast.error("Erro ao carregar profissionais.");
-        return;
-      }
-
-      setProfessionals((data || []) as Professional[]);
+    if (error) {
+      console.error("Erro ao carregar profissionais:", error);
+      toast.error("Erro ao carregar profissionais.");
+      setLoadingProfessionals(false);
+      return;
     }
 
+    setProfessionals((data || []) as Professional[]);
+    setLoadingProfessionals(false);
+  }
+
+  useEffect(() => {
     loadProfessionals();
   }, [tenantId]);
 
+  /* ============================================================
+     🔙 VOLTAR PARA STEP DE SERVIÇOS (1)
+  ============================================================ */
   function goBack() {
-    // ← volta para StepServices (1)
     updateOnboardingStep(1);
   }
 
+  /* ============================================================
+     ✅ VALIDAR E CONTINUAR
+  ============================================================ */
   async function validateAndContinue() {
     if (!tenantId || !userId) return;
 
@@ -61,7 +71,7 @@ export default function StepSchedule() {
         .select("id")
         .eq("tenant_id", tenantId)
         .eq("user_id", userId)
-        .maybeSingle();
+        .single();
 
       if (!prof) {
         toast.error("Profissional não encontrado.");
@@ -79,7 +89,7 @@ export default function StepSchedule() {
 
       if (!serviceCount || serviceCount === 0) {
         toast.warn(
-          "Você deve selecionar ao menos 1 serviço para o profissional."
+          "Você deve selecionar ao menos 1 serviço para o profissional selecionado."
         );
         setLoadingCheck(false);
         return;
@@ -93,13 +103,13 @@ export default function StepSchedule() {
 
       if (!scheduleCount || scheduleCount === 0) {
         toast.warn(
-          "Você deve definir ao menos 1 horário para o profissional."
+          "Você deve definir ao menos 1 horário para o profissional selecionado."
         );
         setLoadingCheck(false);
         return;
       }
 
-      // tudo certo → próximo step (3 = StepFirstCustomer)
+      // Tudo certo → próximo step (3) = StepFirstCustomer
       updateOnboardingStep(3);
     } catch (err) {
       console.error(err);
@@ -109,29 +119,51 @@ export default function StepSchedule() {
     setLoadingCheck(false);
   }
 
+  /* ============================================================
+     RENDER
+  ============================================================ */
   return (
     <div className={styles.stepContainer}>
-      <h2 className={styles.stepTitle}>Escolha o(s) profissionais que irão atender</h2>
+      <h2 className={styles.stepTitle}>
+        Escolha o(s) profissionais que irão atender
+      </h2>
 
       <p className={styles.stepText}>
-        Aqui você pode ajustar os horários dos profissionais do Studio. Por padrão,
-        você já foi cadastrado como profissional com horários de 09:00 às 18:00.
+        Aqui você pode ajustar os horários dos profissionais do Studio. Por
+        padrão, você já foi cadastrado como profissional com horários de
+        09:00 às 18:00 todos os dias. Se quiser ajustar agora, clique em{" "}
+        <strong>Ajustar horários agora</strong>.
       </p>
 
-      <h4 className={styles.stepTitle}>Profissionais cadastrados:</h4>
-      {professionals.length === 0 ? (
-        <p className={styles.emptyText}>Nenhum profissional cadastrado ainda.</p>
-      ) : (
-        <ul className={styles.servicesList}>
-          {professionals.map((p) => (
-            <li key={p.id} className={styles.serviceItem}>
-              <strong>{p.name}</strong>
-              <span>{p.is_active ? "Ativo" : "Inativo"}</span>
-            </li>
-          ))}
-        </ul>
-      )}
+      {/* LISTA DE PROFISSIONAIS */}
+      <div className={styles.professionalsListWrapper}>
+        <p className={styles.servicesLabel}>Profissionais cadastrados:</p>
 
+        {loadingProfessionals ? (
+          <p className={styles.stepText}>Carregando profissionais...</p>
+        ) : professionals.length === 0 ? (
+          <p className={styles.emptyText}>Nenhum profissional cadastrado.</p>
+        ) : (
+          <ul className={styles.professionalsList}>
+            {professionals.map((p) => (
+              <li key={p.id} className={styles.professionalItem}>
+                <span>{p.name}</span>
+                <span
+                  className={
+                    p.is_active
+                      ? styles.statusBadgeActive
+                      : styles.statusBadgeInactive
+                  }
+                >
+                  {p.is_active ? "Ativo" : "Inativo"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* BOTÕES */}
       <div className={styles.actions}>
         <button className={styles.backButton} onClick={goBack}>
           ← Voltar etapa
