@@ -1,0 +1,91 @@
+/* src/css/OnboardingFixedNavigation.module.css */
+
+.navigationBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: var(--card-bg); /* Use theme variable */
+  border-top: 1px solid var(--separator); /* Use theme variable */
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1);
+  z-index: 9001; /* Above other content, below modals */
+}
+
+.navButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 999px; /* Pill shape */
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1; /* Distribute space */
+  justify-content: center; /* Center content */
+}
+
+.navButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Back button style */
+.navButton:not(.nextButton) {
+  background: var(--bg); /* Use theme variable */
+  border: 1px solid var(--separator); /* Use theme variable */
+  color: var(--text-muted); /* Use theme variable */
+}
+
+.navButton:not(.nextButton):hover:not(:disabled) {
+  background: var(--separator); /* Darker on hover */
+  color: var(--text); /* Darker text */
+}
+
+/* Next/Finish button style */
+.nextButton {
+  background: var(--color-primary); /* Use theme variable */
+  border: none;
+  color: #fff;
+  margin-left: 16px; /* Space between buttons */
+}
+
+.nextButton:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.buttonLabel {
+  white-space: nowrap; /* Prevent text wrapping */
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .navigationBar {
+    padding: 12px 16px;
+    gap: 12px;
+  }
+
+  .navButton {
+    padding: 10px 14px;
+    font-size: 0.9rem;
+    gap: 6px;
+  }
+
+  .nextButton {
+    margin-left: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .buttonLabel {
+    display: none; /* Hide text on very small screens, keep icons */
+  }
+  .navButton {
+    padding: 10px; /* Smaller padding when text is hidden */
+  }
+}
