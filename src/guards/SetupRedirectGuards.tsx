@@ -7,8 +7,16 @@ interface Props {
   children: React.ReactNode;
 }
 
+/**
+ * Guard responsável APENAS por:
+ *  - Levar o usuário para /setup quando ele PRECISA configurar um salão
+ *  - Não interferir em:
+ *    - /force-reset
+ *    - /setup (wizard em andamento)
+ *    - fluxo de convite (profile.invited)
+ */
 export function SetupRedirectGuards({ children }: Props) {
-  const { tenant, profile, loading } = useUserTenant();
+  const { needsSetup, loading, profile } = useUserTenant();
   const { loading: authLoading } = useAuth();
   const location = useLocation();
 
@@ -16,25 +24,33 @@ export function SetupRedirectGuards({ children }: Props) {
   const isSetupRoute = path.startsWith("/setup");
   const isForceReset = path === "/force-reset";
 
-  // 1. Nunca bloquear force-reset
-  if (isForceReset) return <>{children}</>;
+  // 1) Nunca bloquear tela de force-reset
+  if (isForceReset) {
+    return <>{children}</>;
+  }
 
-  // 2. Convites não fazem setup
-  if ((profile as any)?.invited) return <>{children}</>;
+  // 2) Convite não entra em fluxo de setup obrigatório
+  if ((profile as any)?.invited) {
+    return <>{children}</>;
+  }
 
-  // 3. Aguardando dados carregarem
-  if (loading || authLoading) return <>{children}</>;
+  // 3) Enquanto auth / contexto estiver carregando, não decide nada
+  if (loading || authLoading) {
+    return <>{children}</>;
+  }
 
-  // 4. Se setup AINDA NÃO está completo → redirecionar para /setup
-  if (tenant && tenant.setup_complete === false && !isSetupRoute) {
+  // 4) Se já está em /setup, NUNCA redireciona
+  //    (deixa o wizard controlar os steps internos, ex.: Empresa / WhatsApp)
+  if (isSetupRoute) {
+    return <>{children}</>;
+  }
+
+  // 5) Fora do /setup:
+  //    Se precisa de setup, manda para /setup
+  if (needsSetup) {
     return <Navigate to="/setup" replace />;
   }
 
-  // 5. Se setup JÁ está completo e o usuário tenta acessar /setup → redirecionar para dashboard
-  if (tenant && tenant.setup_complete === true && isSetupRoute) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  // 6. Fluxo normal
+  // 6) Caso normal → só renderiza
   return <>{children}</>;
 }
