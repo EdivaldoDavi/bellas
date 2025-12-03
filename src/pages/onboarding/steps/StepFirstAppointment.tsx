@@ -1,3 +1,5 @@
+// src/pages/onboarding/steps/StepFirstAppointment.tsx
+
 import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabaseCleint";
 import { useUserTenant } from "../../../context/UserTenantProvider";
@@ -17,41 +19,75 @@ export default function StepFirstAppointment() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // GATILHO PARA FORÇAR RELOAD
+  // força recarregar lista sempre que um agendamento for criado
   const [reloadFlag, setReloadFlag] = useState(0);
 
+  /* ==========================
+     VOLTAR PARA STEP 3
+  ============================ */
   function goBack() {
     updateOnboardingStep(3);
   }
 
+  /* ==========================
+     CONTINUAR (IR PARA STEP 5)
+  ============================ */
   function goNext() {
     if (appointments.length === 0) {
-      toast.error("Por favor, crie pelo menos um agendamento.");
+      toast.error("Você precisa criar pelo menos um agendamento de teste.");
       return;
     }
-    updateOnboardingStep(5); // <-- AJUSTE O STEP DO CONGRATULATIONS AQUI!
+
+    updateOnboardingStep(5); // ✔ Vai para StepCongratulations
   }
 
+  /* ==========================
+     FECHAR MODAL DO WIZARD
+  ============================ */
+  function handleWizardClose(reason?: "cancel" | "completed") {
+    setShowWizard(false);
+
+    if (reason === "completed") {
+      // Recarrega lista de agendamentos
+      setReloadFlag((v) => v + 1);
+
+      toast.success("Agendamento criado com sucesso!");
+
+      // ✔ Agora avançamos para o Step 5 AUTOMATICAMENTE
+      updateOnboardingStep(5);
+    }
+  }
+
+  /* ==========================
+     CARREGAR AGENDAMENTOS
+  ============================ */
   async function fetchAppointments() {
     if (!tenant?.id) return;
 
     setLoading(true);
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("appointments")
       .select("id, created_at")
       .eq("tenant_id", tenant.id)
       .order("created_at", { ascending: false });
 
-    if (data) setAppointments(data);
+    if (error) {
+      console.error(error);
+      toast.error("Erro ao carregar agendamentos.");
+    }
 
+    setAppointments(data || []);
     setLoading(false);
   }
 
   useEffect(() => {
     fetchAppointments();
-  }, [tenant?.id, reloadFlag]); // <-- atualiza sempre
+  }, [tenant?.id, reloadFlag]);
 
+  /* ==========================
+     UTIL FORMATAR DATA
+  ============================ */
   function formatDateTime(iso: string) {
     const d = new Date(iso);
     return d.toLocaleString("pt-BR", {
@@ -63,19 +99,23 @@ export default function StepFirstAppointment() {
     });
   }
 
+  /* ==========================
+     RENDER
+  ============================ */
   return (
     <div className={styles.stepContainer}>
       <h2 className={styles.stepTitle}>Crie seu primeiro agendamento</h2>
 
       <p className={styles.stepText}>
-        Vamos criar um agendamento de teste para você ver a agenda funcionando.
+        Vamos criar um agendamento de teste para você ver como a agenda funciona
+        na prática.
       </p>
 
       <div className={styles.listContainer}>
         {loading && <p>Carregando agendamentos...</p>}
 
         {!loading && appointments.length === 0 && (
-          <p>Nenhum agendamento cadastrado ainda.</p>
+          <p>Nenhum agendamento criado ainda.</p>
         )}
 
         {!loading && appointments.length > 0 && (
@@ -86,7 +126,7 @@ export default function StepFirstAppointment() {
                   <span className={styles.itemTitle}>
                     {formatDateTime(a.created_at)}
                   </span>
-                  <span className={styles.itemSub}>— Agendamento criado</span>
+                  <span className={styles.itemSub}> — Agendamento criado</span>
                 </div>
               </li>
             ))}
@@ -99,7 +139,10 @@ export default function StepFirstAppointment() {
           Voltar
         </button>
 
-        <button className={styles.primaryBtn} onClick={() => setShowWizard(true)}>
+        <button
+          className={styles.primaryBtn}
+          onClick={() => setShowWizard(true)}
+        >
           Criar agendamento de teste
         </button>
 
@@ -112,18 +155,14 @@ export default function StepFirstAppointment() {
         </button>
       </div>
 
+      {/* ==========================
+         MODAL DO WIZARD
+      ============================ */}
       {tenant?.id && (
         <ModalScheduleWizard
           open={showWizard}
           tenantId={tenant.id}
-          onClose={(reason) => {
-            setShowWizard(false);
-            setReloadFlag((v) => v + 1); // força reload da lista
-
-            if (reason === "completed") {
-              toast.success("Agendamento criado com sucesso!");
-            }
-          }}
+          onClose={handleWizardClose}
         />
       )}
     </div>
