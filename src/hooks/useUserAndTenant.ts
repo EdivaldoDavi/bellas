@@ -97,7 +97,8 @@ export function useUserAndTenant() {
         return;
       }
 
-      const baseProfile: Omit<Profile, "professional_id"> = {
+      // Construct the new profile object
+      const newProfile: Omit<Profile, "professional_id"> = {
         user_id: currentUser.id,
         email: currentUser.email, // Sempre pega o email do authUser
         role: pData.role,
@@ -106,32 +107,26 @@ export function useUserAndTenant() {
         tenant_id: pData.tenant_id,
       };
 
+      // Always set a new profile object if the content is different
       setProfile((prev) => {
-        // Comparação mais robusta para garantir que o React detecte a mudança
-        const isSameContent = prev?.user_id === baseProfile.user_id &&
-                              prev?.full_name === baseProfile.full_name &&
-                              prev?.avatar_url === baseProfile.avatar_url &&
-                              prev?.tenant_id === baseProfile.tenant_id &&
-                              prev?.role === baseProfile.role &&
-                              prev?.email === baseProfile.email;
-
-        if (!isSameContent) {
-          console.log("useUserAndTenant: Profile updated to", baseProfile);
-          return baseProfile;
+        // Deep comparison to avoid unnecessary re-renders if content is truly identical
+        if (JSON.stringify(prev) === JSON.stringify(newProfile)) {
+          return prev;
         }
-        return prev; // Nenhuma mudança relevante no conteúdo, retorna o estado anterior
+        console.log("useUserAndTenant: Profile updated to", newProfile);
+        return newProfile;
       });
 
       /* ================ PROFESSIONAL_ID ================ */
       let currentProfessionalId: string | null = null;
       // Sempre tenta buscar o professional_id se houver um tenant_id,
       // pois o manager/owner também pode ser um profissional.
-      if (baseProfile.tenant_id) { 
+      if (newProfile.tenant_id) { 
         const { data: professionalEntry, error: profErr } = await supabase
           .from("professionals")
           .select("id")
           .eq("user_id", currentUser.id)
-          .eq("tenant_id", baseProfile.tenant_id)
+          .eq("tenant_id", newProfile.tenant_id)
           .maybeSingle();
 
         if (profErr) {
@@ -146,7 +141,7 @@ export function useUserAndTenant() {
       }
 
       /* ================ SEM TENANT ================ */
-      if (!baseProfile.tenant_id) {
+      if (!newProfile.tenant_id) {
         setTenant(null);
         setSubscription(null);
         setPlan(null);
@@ -160,7 +155,7 @@ export function useUserAndTenant() {
       const { data: tData, error: tErr } = await supabase
         .from("tenants")
         .select("*")
-        .eq("id", baseProfile.tenant_id)
+        .eq("id", newProfile.tenant_id)
         .maybeSingle();
 
       if (tErr) throw tErr;
@@ -221,7 +216,7 @@ export function useUserAndTenant() {
       const { data: perms } = await supabase
         .from("permissions")
         .select("permission_key, allowed") 
-        .eq("tenant_id", baseProfile.tenant_id)
+        .eq("tenant_id", newProfile.tenant_id)
         .eq("user_id", currentUser.id);
 
       const allowedPermissions =
