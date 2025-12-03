@@ -15,7 +15,7 @@ import OnboardingFixedNavigation from "../../components/OnboardingFixedNavigatio
 const TOTAL_STEPS = 6; // Total steps including congratulations
 
 export default function Onboarding() {
-  const { tenant, updateOnboardingStep, loading: userTenantLoading } = useUserTenant();
+  const { tenant, profile, updateOnboardingStep, loading: userTenantLoading } = useUserTenant();
   const step = tenant?.onboarding_step ?? 0;
 
   // Local states for step-specific validation
@@ -24,12 +24,17 @@ export default function Onboarding() {
   const [hasCustomer, setHasCustomer] = useState(false);
   const [hasAppointment, setHasAppointment] = useState(false);
 
-  // Força o tema 'light' para o onboarding
+  // Força o tema 'light' e as cores padrão para o onboarding
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", "light");
+    // Força as cores padrão do onboarding
+    document.documentElement.style.setProperty("--color-primary", "#8343A2");
+    document.documentElement.style.setProperty("--color-secondary", "#e0b6f5");
+    document.documentElement.style.setProperty("--color-primary-rgb", "131, 67, 162"); // RGB para a cor padrão
+
     return () => {
-      // O tema será redefinido pelo useTheme no Layout ou em outros componentes
-      // ao sair do onboarding, então não precisamos reverter aqui explicitamente.
+      // Ao sair do onboarding, o tema será redefinido pelo useTheme no Layout
+      // ou em outros componentes, então não precisamos reverter aqui explicitamente.
     };
   }, []);
 

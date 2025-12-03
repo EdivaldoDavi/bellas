@@ -207,14 +207,14 @@ export default function Setup() {
 
       /* ============================================================
          5) RECARREGAR TENANT + APLICAR TEMA IMEDIATAMENTE
+         REMOVIDO: applyTenantTheme({
+           primary_color: primary,
+           secondary_color: secondary,
+           theme_variant: "light", // 🚨 Passa 'light' explicitamente
+         });
       ============================================================ */
       await reloadAll(); // AGORA ESPERA AQUI!
 
-      applyTenantTheme({
-        primary_color: primary,
-        secondary_color: secondary,
-        theme_variant: "light", // 🚨 Passa 'light' explicitamente
-      });
 
       /* ============================================================
          6) IR PARA ONBOARDING
