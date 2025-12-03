@@ -25,33 +25,46 @@ export default function StepServices() {
      🔥 CARREGAR SERVIÇOS EXISTENTES
   ============================================================ */
   async function loadServices() {
-    if (!tenant?.id) return;
+    setLoadingServices(true); // Sempre inicia o carregamento
 
-    setLoadingServices(true);
-
-    const { data, error } = await supabase
-      .from("services")
-      .select("id, name, duration_min, price_cents")
-      .eq("tenant_id", tenant.id)
-      .order("name", { ascending: true });
-
-    if (error) {
-      console.error("Erro ao carregar serviços:", error);
-      toast.error("Erro ao carregar serviços.");
-      setServices([]);
-    } else {
-      setServices((data || []) as Service[]);
+    if (!tenant?.id) {
+      console.log("loadServices: tenant.id é nulo, pulando busca de serviços.");
+      setServices([]); // Limpa os serviços se não houver tenant
+      setLoadingServices(false); // Garante que o loading seja false
+      return;
     }
 
-    setLoadingServices(false);
+    try {
+      const { data, error } = await supabase
+        .from("services")
+        .select("id, name, duration_min, price_cents")
+        .eq("tenant_id", tenant.id)
+        .order("name", { ascending: true });
+
+      if (error) {
+        console.error("Erro ao carregar serviços:", error);
+        toast.error("Erro ao carregar serviços.");
+        setServices([]);
+      } else {
+        setServices((data || []) as Service[]);
+      }
+    } catch (err) {
+      console.error("Erro inesperado em loadServices:", err);
+      toast.error("Erro inesperado ao carregar serviços.");
+      setServices([]);
+    } finally {
+      setLoadingServices(false); // Sempre finaliza o carregamento
+    }
   }
 
   useEffect(() => {
-    console.log("StepServices useEffect: tenant.id=", tenant?.id, "profile.professional_id=", profile?.professional_id, "userTenantLoading=", userTenantLoading);
-    if (tenant?.id && profile?.professional_id) {
+    console.log("StepServices useEffect triggered. tenant.id:", tenant?.id, "profile.professional_id:", profile?.professional_id, "userTenantLoading:", userTenantLoading);
+    // A condição para chamar loadServices deve depender principalmente de tenant.id e do estado de carregamento do contexto.
+    // profile.professional_id é relevante para habilitar o botão 'Cadastrar serviço', não para carregar os serviços existentes.
+    if (!userTenantLoading) { // Só executa se o contexto de usuário/tenant terminou de carregar
       loadServices();
     }
-  }, [tenant?.id, profile?.professional_id, userTenantLoading]); // Adicionado profile?.professional_id e userTenantLoading como dependências
+  }, [tenant?.id, userTenantLoading]); // Removido profile?.professional_id das dependências para loadServices
 
   /* ============================================================
      🔥 VERIFICAR SE EXISTE SERVIÇO PARA CONTINUAR
@@ -66,7 +79,7 @@ export default function StepServices() {
       return;
     }
 
-    console.log("StepServices: Continuing to step 2 (Schedule). Current tenant onboarding_step:", tenant?.onboarding_step);
+    console.log("StepServices: Continuando para o step 2 (Schedule). Current tenant onboarding_step:", tenant?.onboarding_step);
     // Próximo step = Horários (index 2)
     updateOnboardingStep(2);
   };

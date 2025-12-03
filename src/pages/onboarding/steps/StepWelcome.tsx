@@ -1,10 +1,15 @@
 // src/pages/onboarding/steps/StepWelcome.tsx
+import { useEffect } from "react";
 import { useUserTenant } from "../../../context/UserTenantProvider";
 import styles from "../Onboarding.module.css";
 import LoadingSpinner from "../../../components/LoadingSpinner"; // Importar o LoadingSpinner
 
 export default function StepWelcome() {
-  const { updateOnboardingStep, tenant, loading } = useUserTenant(); // Adicionado 'loading'
+  const { updateOnboardingStep, tenant, loading, profile } = useUserTenant(); // Adicionado 'profile'
+
+  useEffect(() => {
+    console.log("StepWelcome useEffect: tenant=", tenant, "profile=", profile, "loading=", loading);
+  }, [tenant, profile, loading]);
 
   async function start() {
     if (!tenant?.id) {
