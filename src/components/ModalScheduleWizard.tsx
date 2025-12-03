@@ -10,7 +10,7 @@ import ModalNewCustomer from "../components/ModalNewCustomer";
 import ModalNewService from "../components/ModalNewService";
 import ModalNewProfessional from "../components/ModalNewProfessional";
 
-import { CalendarDays, Clock, User, Scissors, Users } from "lucide-react"; // Adicionado User, Scissors, Users
+import { CalendarDays, Clock, User, Scissors } from "lucide-react"; // Adicionado User, Scissors, Users
 import { useTheme } from "../hooks/useTheme";
 
 import {
