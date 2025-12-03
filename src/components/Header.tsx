@@ -5,7 +5,7 @@ import styles from "../css/header.module.css";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 import { useTheme } from "../hooks/useTheme";
 import BrandColorMenu from "./BrandColorMenu";
-import { useState, useEffect, useRef, useMemo } from "react";
+import {  useEffect, useRef, useMemo } from "react";
 import { logout } from "../lib/supabaseCleint";
 import "../index.css";
 import { useIsMobile } from "../hooks/useIsMobile";
