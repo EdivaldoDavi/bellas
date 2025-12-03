@@ -1,3 +1,4 @@
+"use client";
 
 import { Menu, Sun, Moon, LogOut } from "lucide-react";
 import styles from "../css/header.module.css";
@@ -16,6 +17,9 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [greeting, setGreeting] = useState("");
+
+  // Debug log para verificar o perfil recebido
+  console.log("Header.tsx: Profile received from useUserAndTenant", profile);
 
   // ============================================
   // ⚠ EVITA LOOP → Skeleton até profile carregar
