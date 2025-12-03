@@ -15,16 +15,14 @@ export default function Onboarding() {
   const { tenant } = useUserTenant();
   const step = tenant?.onboarding_step ?? 0;
 
-  console.log("🔷 Renderizando Onboarding — step:", step);
-
   const renderStep = () => {
     switch (step) {
-      case 0:  return <StepWelcome />;
-      case 1:  return <StepServices />;
-      case 2:  return <StepSchedule />;
-      case 3:  return <StepFirstCustomer />;
-      case 4:  return <StepFirstAppointment />;
-      case 5:  return <StepCongratulations />;
+      case 0: return <StepWelcome />;
+      case 1: return <StepServices />;
+      case 2: return <StepSchedule />;
+      case 3: return <StepFirstCustomer />;
+      case 4: return <StepFirstAppointment />;
+      case 5: return <StepCongratulations />;
       default: return <StepWelcome />;
     }
   };
@@ -36,7 +34,7 @@ export default function Onboarding() {
     <div className={styles.page}>
       <div className={styles.card}>
 
-        {/* Só a barra de progresso fica aqui */}
+        {/* ✔ A barra de progresso fica sozinha no topo */}
         <div className={styles.progressWrapper}>
           <div className={styles.progressBar}>
             <div
@@ -49,6 +47,7 @@ export default function Onboarding() {
           </span>
         </div>
 
+        {/* ✔ Somente o step atual é renderizado */}
         <div className={styles.body}>
           {renderStep()}
         </div>
