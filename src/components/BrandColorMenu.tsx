@@ -15,7 +15,7 @@ const COLORS = [
 ];
 
 export default function BrandColorMenu() {
-  const { tenant, refreshTenant } = useUserTenant();
+  const { tenant, refreshProfile } = useUserTenant(); // <-- CORRIGIDO AQUI
   const [open, setOpen] = useState(false);
 
   // Use tenant.primary_color directly for display and comparison
@@ -36,7 +36,7 @@ export default function BrandColorMenu() {
     }
 
     // 2️⃣ Atualiza contexto global, que por sua vez acionará useApplyTenantTheme
-    await refreshTenant();
+    await refreshProfile(); // <-- CORRIGIDO AQUI
 
     // 3️⃣ Fecha o menu
     setOpen(false);
