@@ -24,7 +24,7 @@ import { dbPhoneToMasked } from "../utils/phoneUtils"; // Importar dbPhoneToMask
 
 type Professional = { id: string; name: string; phone: string | null }; // Adicionado phone
 type Service = { id: string; name: string; duration_min?: number | null };
-type Customer = { id: string; full_name: string; customer_phone: string | null }; // Adicionado customer_phone
+//type Customer = { id: string; full_name: string; customer_phone: string | null }; // Adicionado customer_phone
 
 interface ModalScheduleWizardProps {
   open: boolean;
@@ -77,7 +77,7 @@ export default function ModalScheduleWizard({
 
   const [customerId, setCustomerId] = useState("");
   const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState<string | null>(null); // Adicionado para exibir no resumo
+  const [, setCustomerPhone] = useState<string | null>(null); // Adicionado para exibir no resumo
 
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
