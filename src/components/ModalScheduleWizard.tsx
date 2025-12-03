@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { toast } from "react-toastify";
 import styles from "../css/AgendaWizard.module.css";
 import { supabase } from "../lib/supabaseCleint";
+import ReactDOM from "react-dom"; // Importar ReactDOM para usar createPortal
 
 import DatePickerModal from "../components/DatePickerModal";
 import SelectClientWhatsApp from "../components/SelectClientWhatsapp";
@@ -235,7 +236,7 @@ export default function ModalScheduleWizard({
   const stepPct =
     totalSteps > 1 ? ((step - 1) / (totalSteps - 1)) * 100 : 0;
 
-  return (
+  return ReactDOM.createPortal(
     <div
       className={`${styles.overlay} ${
         theme === "dark" ? styles.dark : ""
@@ -609,6 +610,7 @@ export default function ModalScheduleWizard({
           }}
         />
       )}
-    </div>
+    </div>,
+    document.body // Renderiza o modal diretamente no body
   );
 }
