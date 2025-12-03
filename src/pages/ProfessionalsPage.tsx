@@ -3,12 +3,11 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
-import { X, Plus, Pencil } from "lucide-react";
+import { X, Plus, Pencil, MessageCircle, Phone } from "lucide-react"; // Adicionado MessageCircle e Phone
 import { toast } from "react-toastify";
 
 import ModalNewProfessional from "../components/ModalNewProfessional";
-import CopyButton from "../components/CopyButton";
-
+// import CopyButton from "../components/CopyButton"; // REMOVIDO
 import { dbPhoneToMasked, onlyDigits } from "../utils/phoneUtils";
 import styles from "../css/ProfessionalsPage.module.css";
 
@@ -227,10 +226,35 @@ export default function ProfessionalsPage({ onClose }: ProfessionalsPageProps) {
                       </span>
                     </div>
 
-                    {/* TELEFONE COM COPY */}
+                    {/* TELEFONE COM WHATSAPP E LIGAÇÃO */}
                     <div className={styles.phoneWrapper}>
                       <span>📞 {dbPhoneToMasked(p.phone ?? "")}</span>
-                      <CopyButton value={onlyDigits(p.phone ?? "")} />
+                      <div className={styles.actionIcons}>
+                        {p.phone && (
+                          <>
+                            <button
+                              className={styles.iconButton}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.open(`https://wa.me/55${onlyDigits(p.phone || '')}`, '_blank');
+                              }}
+                              title="Enviar mensagem WhatsApp"
+                            >
+                              <MessageCircle size={18} />
+                            </button>
+                            <button
+                              className={styles.iconButton}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.location.href = `tel:${onlyDigits(p.phone || '')}`;
+                              }}
+                              title="Ligar para o profissional"
+                            >
+                              <Phone size={18} />
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
 
