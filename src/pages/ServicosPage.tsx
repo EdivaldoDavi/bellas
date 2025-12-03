@@ -290,6 +290,7 @@ export default function ServicosPage() {
           setEditingService(null);
           load(); // recarrega lista após salvar
         }}
+        // isFromOnboarding não é passado aqui, mantendo o comportamento padrão
       />
     </>
   );

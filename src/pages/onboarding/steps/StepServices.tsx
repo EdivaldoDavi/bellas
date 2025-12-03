@@ -135,6 +135,7 @@ export default function StepServices() {
           tenantId={tenant.id}
           show={showModal}
           mode="cadastro"
+          isFromOnboarding={true} // Passa a nova prop aqui
           onClose={() => setShowModal(false)}
           onSuccess={() => {
             setShowModal(false);

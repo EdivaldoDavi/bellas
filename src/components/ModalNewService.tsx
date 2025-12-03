@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 
 import styles from "../css/ModalNewService.module.css";
 import { formatCentsToBRL, parseBRLToCents, formatPriceInput } from "../utils/currencyUtils"; // Importar novas funções
+import { useUserTenant } from "../context/UserTenantProvider"; // Importar useUserTenant
 
 type ServiceRow = {
   id: string;
@@ -27,6 +28,7 @@ interface ModalNewServiceProps {
   service?: ServiceRow;
   onClose: () => void;
   onSuccess?: (id: string, name: string, duration: number) => void;
+  isFromOnboarding?: boolean; // Nova prop para controlar o comportamento no onboarding
 }
 
 export default function ModalNewService({
@@ -36,8 +38,10 @@ export default function ModalNewService({
   service,
   onClose,
   onSuccess,
+  isFromOnboarding = false, // Default para false
 }: ModalNewServiceProps) {
   const isEditing = mode === "edit" && !!service;
+  const { profile } = useUserTenant(); // Obter o perfil do usuário logado
 
   // campos do serviço
   const [name, setName] = useState("");
@@ -67,16 +71,19 @@ export default function ModalNewService({
       try {
         setInitialLoading(true);
 
-        // 1) Carrega profissionais
-        const { data: profs, error: profErr } = await supabase
-          .from("professionals")
-          .select("id,name,is_active")
-          .eq("tenant_id", tenantId)
-          .order("name");
+        // 1) Carrega profissionais (apenas se não for do onboarding ou se for edição)
+        if (!isFromOnboarding || isEditing) {
+          const { data: profs, error: profErr } = await supabase
+            .from("professionals")
+            .select("id,name,is_active")
+            .eq("tenant_id", tenantId)
+            .order("name");
 
-        if (profErr) throw profErr;
-
-        setProfessionals((profs || []) as ProfessionalRow[]);
+          if (profErr) throw profErr;
+          setProfessionals((profs || []) as ProfessionalRow[]);
+        } else {
+          setProfessionals([]); // Limpa a lista se for onboarding e novo serviço
+        }
 
         // 2) Se edição, carrega dados do serviço + vínculos
         if (isEditing && service) {
@@ -103,7 +110,13 @@ export default function ModalNewService({
           setDuration("60");
           setPrice(formatCentsToBRL(0)); // Inicia com R$ 0,00
           setIsActive(true);
-          setSelectedProfessionalIds([]);
+          
+          // 🔥 NOVO: Se for do onboarding, pré-seleciona o profissional do usuário logado
+          if (isFromOnboarding && profile?.professional_id) {
+            setSelectedProfessionalIds([profile.professional_id]);
+          } else {
+            setSelectedProfessionalIds([]);
+          }
         }
       } catch (err) {
         console.error("[ModalNewService] Erro ao carregar:", err);
@@ -112,7 +125,7 @@ export default function ModalNewService({
         setInitialLoading(false);
       }
     })();
-  }, [show, tenantId, isEditing, service]);
+  }, [show, tenantId, isEditing, service, isFromOnboarding, profile?.professional_id]);
 
   // -------------------------------------------
   // HANDLERS
@@ -212,6 +225,11 @@ export default function ModalNewService({
       /* ===========================================================
          2) ATUALIZAR VÍNCULOS EM professional_services
       ============================================================ */
+      // Determina quais IDs de profissional usar
+      let finalProfessionalIds = selectedProfessionalIds;
+      if (isFromOnboarding && profile?.professional_id) {
+        finalProfessionalIds = [profile.professional_id];
+      }
 
       const { error: delErr } = await supabase
         .from("professional_services")
@@ -221,8 +239,8 @@ export default function ModalNewService({
 
       if (delErr) throw delErr;
 
-      if (selectedProfessionalIds.length > 0) {
-        const rows = selectedProfessionalIds.map((profId) => ({
+      if (finalProfessionalIds.length > 0) {
+        const rows = finalProfessionalIds.map((profId) => ({
           tenant_id: tenantId,
           professional_id: profId,
           service_id: serviceId,
@@ -317,40 +335,44 @@ export default function ModalNewService({
               </label>
             )}
 
-            {/* PROFISSIONAIS */}
-            <h3 className={styles.sectionTitle}>Profissionais</h3>
-            <h6>Selecione os profissionais que prestam esse serviço</h6>
+            {/* PROFISSIONAIS - Condicionalmente renderizado */}
+            {!isFromOnboarding && (
+              <>
+                <h3 className={styles.sectionTitle}>Profissionais</h3>
+                <h6>Selecione os profissionais que prestam esse serviço</h6>
 
-            {professionals.length === 0 ? (
-              <p className={styles.smallMuted}>
-                Nenhum profissional cadastrado ainda.
-              </p>
-            ) : (
-              <div className={styles.checkList}>
-                {professionals.map((prof) => {
-                  const checked = selectedProfessionalIds.includes(prof.id);
+                {professionals.length === 0 ? (
+                  <p className={styles.smallMuted}>
+                    Nenhum profissional cadastrado ainda.
+                  </p>
+                ) : (
+                  <div className={styles.checkList}>
+                    {professionals.map((prof) => {
+                      const checked = selectedProfessionalIds.includes(prof.id);
 
-                  return (
-                    <label
-                      key={prof.id}
-                      className={styles.checkItem}
-                      onClick={(e) => {
-                        // Evita toggle duplo quando clicado diretamente no input
-                        if ((e.target as HTMLElement).tagName !== "INPUT") {
-                          toggleProfessional(prof.id);
-                        }
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => toggleProfessional(prof.id)}
-                      />
-                      <p className={styles.profName}>{prof.name}</p>
-                    </label>
-                  );
-                })}
-              </div>
+                      return (
+                        <label
+                          key={prof.id}
+                          className={styles.checkItem}
+                          onClick={(e) => {
+                            // Evita toggle duplo quando clicado diretamente no input
+                            if ((e.target as HTMLElement).tagName !== "INPUT") {
+                              toggleProfessional(prof.id);
+                            }
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => toggleProfessional(prof.id)}
+                          />
+                          <p className={styles.profName}>{prof.name}</p>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
             )}
 
             <button
