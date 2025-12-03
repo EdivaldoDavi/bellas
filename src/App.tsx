@@ -1,5 +1,5 @@
 // src/App.tsx
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import {  type ReactNode } from "react";
 
 import { useUserTenant } from "./context/UserTenantProvider";
@@ -39,6 +39,8 @@ import { OnboardingGuard } from "./guards/OnBoardingGuard";
 import { SetupRedirectGuards } from "./guards/SetupRedirectGuards";
 import { useApplyTenantTheme } from "./hooks/useApplyTenantTheme";
  
+console.log("App.tsx rendered"); // Adicionado para depuração
+
 // =============================
 // 🔹 TELA DE LOADING GLOBAL
 // ============================= 
@@ -122,7 +124,7 @@ export default function App() {
   useApplyTenantTheme();
 
   return (
-    <BrowserRouter>
+    <> {/* Fragmento adicionado aqui */}
       <Routes>
 
         {/* ROOT */}
@@ -203,6 +205,6 @@ export default function App() {
       </Routes>
 
       <ToastContainer position="top-right" autoClose={3000}   closeButton={false} />
-    </BrowserRouter>
+    </>
   );
 }
