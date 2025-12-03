@@ -210,12 +210,12 @@ export function useUserAndTenant() {
       /* ================ PERMISSIONS ================ */
       const { data: perms } = await supabase
         .from("permissions")
-        .select("feature_key, allowed") // <-- CORRIGIDO AQUI
+        .select("permission_key, allowed") // <-- CORRIGIDO AQUI
         .eq("tenant_id", baseProfile.tenant_id)
         .eq("user_id", currentUser.id);
 
       const allowedPermissions =
-        perms?.filter((p) => p.allowed).map((p) => p.feature_key) ?? [];
+        perms?.filter((p) => p.allowed).map((p) => p.permission_key) ?? []; // Corrigido para permission_key
 
       setPermissions(allowedPermissions);
     } catch (err: any) {
