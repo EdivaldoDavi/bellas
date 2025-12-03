@@ -3,16 +3,13 @@ import { useUserTenant } from "../../../context/UserTenantProvider";
 import styles from "../Onboarding.module.css";
 
 export default function StepWelcome() {
-  const { updateOnboardingStep, refreshTenant, tenant } = useUserTenant();
+  const { updateOnboardingStep, tenant } = useUserTenant(); // `refreshTenant` removido daqui
 
   async function start() {
     if (!tenant?.id) return;
 
     // Avança para o step 1
-    await updateOnboardingStep(1);
-
-    // 🔥 FORÇA RECARREGAR O TENANT IMEDIATAMENTE
-    await refreshTenant();
+    await updateOnboardingStep(1); // Esta função já cuida de recarregar o tenant no contexto
   }
 
   return (

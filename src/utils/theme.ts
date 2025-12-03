@@ -21,51 +21,37 @@ export function applyTenantTheme(tenant?: Partial<Tenant> | null) {
 
   const root = document.documentElement;
 
-  const primary = tenant.primary_color ?? "#ff1493";
-  const secondary = tenant.secondary_color ?? "#ffffff";
-  const variant = (tenant.theme_variant as "light" | "dark") ?? "light"; // Usa o variant passado ou 'light' como fallback
+  const primary = tenant.primary_color ?? "#8343A2"; // Default if not provided
+  const secondary = tenant.secondary_color ?? "#e0b6f5"; // Default if not provided
+  const variant = (tenant.theme_variant as "light" | "dark") ?? "light"; // Always 'light' now
 
-  // Cores principais
+  // Set the data-theme attribute
+  root.dataset.theme = variant; // This will be 'light'
+
+  // Apply base light theme variables (matching index.css and other modules)
+  root.style.setProperty("--bg", "#ffffff");
+  root.style.setProperty("--text", "#111111");
+  root.style.setProperty("--text-muted", "#666666");
+  root.style.setProperty("--separator", "#e5e5e5");
+  root.style.setProperty("--card-bg", "#ffffff");
+  root.style.setProperty("--card-alt-bg", "#f9f9fa");
+  root.style.setProperty("--sidebar-bg", "#ffffff");
+  root.style.setProperty("--header-bg", "#ffffff");
+
+  // Override with user-chosen primary and secondary colors
   root.style.setProperty("--color-primary", primary);
   root.style.setProperty("--color-primary-rgb", hexToRgb(primary));
   root.style.setProperty("--color-secondary", secondary);
 
-  // Variant global
-  root.dataset.theme = variant;
+  // Other specific variables that might be used
+  root.style.setProperty("--color-success", "#2ecc71");
+  root.style.setProperty("--color-warning", "#ffb300");
+  root.style.setProperty("--color-danger", "#ff5a5f");
+  root.style.setProperty("--theme-invert", "0"); // Always 0 for light theme
 
-  // Texto
-  root.style.setProperty(
-    "--text-color",
-    variant === "dark" ? "#f5f5f5" : "#222222"
-  );
-  root.style.setProperty(
-    "--text-muted",
-    variant === "dark" ? "#bfbfbf" : "#555555"
-  );
-
-  // Superfícies
-  root.style.setProperty(
-    "--surface",
-    variant === "dark" ? "#121212" : "#ffffff"
-  );
-  root.style.setProperty(
-    "--surface-alt",
-    variant === "dark" ? "#1f1f1f" : "#f6f6f6"
-  );
-
-  // Inputs
-  root.style.setProperty(
-    "--input-bg",
-    variant === "dark" ? "#1a1a1a" : "#ffffff"
-  );
-  root.style.setProperty(
-    "--input-border",
-    variant === "dark" ? "#444444" : "#cccccc"
-  );
-
-  // Sombra
-  root.style.setProperty(
-    "--shadow-color",
-    variant === "dark" ? "rgba(0,0,0,0.7)" : "rgba(0,0,0,0.15)"
-  );
+  // Ensure modal/input specific variables are also set for light theme
+  root.style.setProperty("--modal-bg", "#ffffff");
+  root.style.setProperty("--input-bg", "#f5f5f7");
+  root.style.setProperty("--input-border", "#e5e5e5"); // Assuming this is the light theme default
+  root.style.setProperty("--border", "#e5e5e5"); // Assuming this is the light theme default
 }
