@@ -1,4 +1,3 @@
-// src/components/ModalScheduleWizard.tsx
 import { useEffect, useMemo, useState, useRef } from "react";
 import { toast } from "react-toastify";
 import styles from "../css/AgendaWizard.module.css";
@@ -11,7 +10,7 @@ import ModalNewCustomer from "../components/ModalNewCustomer";
 import ModalNewService from "../components/ModalNewService";
 import ModalNewProfessional from "../components/ModalNewProfessional";
 
-import { CalendarDays, Clock } from "lucide-react";
+import { CalendarDays, Clock, User, Scissors, Users } from "lucide-react"; // Adicionado User, Scissors, Users
 import { useTheme } from "../hooks/useTheme";
 
 import {
@@ -21,9 +20,11 @@ import {
 } from "../utils/date";
 
 import { getAvailableTimeSlots } from "../utils/schedule";
+import { dbPhoneToMasked } from "../utils/phoneUtils"; // Importar dbPhoneToMasked
 
-type Professional = { id: string; name: string };
+type Professional = { id: string; name: string; phone: string | null }; // Adicionado phone
 type Service = { id: string; name: string; duration_min?: number | null };
+type Customer = { id: string; full_name: string; customer_phone: string | null }; // Adicionado customer_phone
 
 interface ModalScheduleWizardProps {
   open: boolean;
@@ -76,6 +77,7 @@ export default function ModalScheduleWizard({
 
   const [customerId, setCustomerId] = useState("");
   const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState<string | null>(null); // Adicionado para exibir no resumo
 
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
@@ -92,6 +94,7 @@ export default function ModalScheduleWizard({
 
     setCustomerId("");
     setCustomerName("");
+    setCustomerPhone(null);
     setSelectedDate("");
     setSelectedTime("");
     setAvailableTimes([]);
@@ -113,7 +116,7 @@ export default function ModalScheduleWizard({
   async function loadProfessionals() {
     const { data } = await supabase
       .from("professionals")
-      .select("id,name")
+      .select("id,name,phone") // Incluído phone
       .order("name");
 
     setProfessionals(data || []);
@@ -291,14 +294,10 @@ export default function ModalScheduleWizard({
           {/* STEP 1 — PROFISSIONAL */}
           {step === 1 && (
             <div className={styles.step}>
-              <h3 className={styles.stepTitle}>Selecione o profissional</h3>
-
-              <button
-                className={styles.addButton}
-                onClick={() => setShowNewProfessional(true)}
-              >
-                + Novo profissional
-              </button>
+              <h3 className={styles.stepTitle}>Quem vai atender?</h3>
+              <p className={styles.stepDescription}>
+                Selecione o profissional que realizará o serviço.
+              </p>
 
               <input
                 type="text"
@@ -323,27 +322,39 @@ export default function ModalScheduleWizard({
                         await loadServices(p.id);
                       }}
                     >
-                      <span className={styles.itemTitle}>{p.name}</span>
+                      <User size={20} className={styles.itemIcon} />
+                      <div className={styles.itemContent}>
+                        <span className={styles.itemTitle}>{p.name}</span>
+                        {p.phone && (
+                          <span className={styles.itemSub}>
+                            {dbPhoneToMasked(p.phone)}
+                          </span>
+                        )}
+                      </div>
                     </button>
                   </li>
                 ))}
               </ul>
+
+              <p className={styles.stepDescription}>
+                Se for preciso, cadastre um novo:
+              </p>
+              <button
+                className={styles.primaryActionButton} // Novo estilo para o botão de adicionar
+                onClick={() => setShowNewProfessional(true)}
+              >
+                + Novo profissional
+              </button>
             </div>
           )}
 
           {/* STEP 2 — SERVIÇO */}
           {step === 2 && (
             <div className={styles.step}>
-              <h3 className={styles.stepTitle}>
-                Serviços de {professionalName}
-              </h3>
-
-              <button
-                className={styles.addButton}
-                onClick={() => setShowNewService(true)}
-              >
-                + Novo serviço
-              </button>
+              <h3 className={styles.stepTitle}>Qual serviço será realizado?</h3>
+              <p className={styles.stepDescription}>
+                Escolha o serviço que {professionalName} irá oferecer.
+              </p>
 
               <input
                 type="text"
@@ -370,38 +381,52 @@ export default function ModalScheduleWizard({
                           setServiceDuration(dur);
                         }}
                       >
-                        <div className={styles.itemCol}>
+                        <Scissors size={20} className={styles.itemIcon} />
+                        <div className={styles.itemContent}>
                           <span className={styles.itemTitle}>{s.name}</span>
-                          <span className={styles.badge}>{dur} min</span>
+                          <span className={styles.itemSub}>{dur} min</span>
                         </div>
                       </button>
                     </li>
                   );
                 })}
               </ul>
+
+              <p className={styles.stepDescription}>
+                Se for preciso, cadastre um novo:
+              </p>
+              <button
+                className={styles.primaryActionButton} // Novo estilo para o botão de adicionar
+                onClick={() => setShowNewService(true)}
+              >
+                + Novo serviço
+              </button>
             </div>
           )}
 
           {/* STEP 3 — CLIENTE */}
           {step === 3 && (
             <div className={styles.step}>
-              <h3 className={styles.stepTitle}>Cliente</h3>
-
-              <button
-                className={styles.addButton}
-                onClick={() => setShowNewCustomer(true)}
-              >
-                + Novo cliente
-              </button>
+              <h3 className={styles.stepTitle}>Quem é o cliente?</h3>
+              <p className={styles.stepDescription}>
+                Selecione o cliente para este agendamento.
+              </p>
 
               <SelectClientWhatsApp
                 ref={clientRef}
                 tenantId={tenantId}
                 value={customerId}
-                hideAddButton={true}
-                onChange={(id, name) => {
+                hideAddButton={false} // Garante que o botão interno do SelectClientWhatsApp seja visível
+                onChange={async (id, name) => { // Adicionado 'async' aqui
                   setCustomerId(id);
                   setCustomerName(name);
+                  // Opcional: buscar o telefone do cliente para exibir no resumo
+                  try {
+                    const { data } = await supabase.from('customers').select('customer_phone').eq('id', id).single();
+                    setCustomerPhone(data?.customer_phone || null);
+                  } catch (error) {
+                    console.error("Error fetching customer phone:", error);
+                  }
                 }}
                 onAdd={() => setShowNewCustomer(true)}
               />
@@ -412,6 +437,9 @@ export default function ModalScheduleWizard({
           {step === 4 && (
             <div className={styles.step}>
               <h3 className={styles.stepTitle}>Escolha a data</h3>
+              <p className={styles.stepDescription}>
+                Selecione o dia em que o serviço será realizado.
+              </p>
 
               <DatePickerModal
                 tenantId={tenantId}
@@ -444,9 +472,12 @@ export default function ModalScheduleWizard({
           {step === 5 && (
             <div className={styles.step}>
               <h3 className={styles.stepTitle}>Selecione o horário</h3>
+              <p className={styles.stepDescription}>
+                Escolha um horário disponível para o serviço.
+              </p>
 
               {availableTimes.length === 0 && (
-                <p style={{ color: "#f0ad4e", fontSize: "0.9rem" }}>
+                <p className={styles.emptyText}>
                   Nenhum horário disponível nesta data.
                 </p>
               )}
@@ -471,6 +502,9 @@ export default function ModalScheduleWizard({
           {step === 6 && (
             <div className={styles.step}>
               <h3 className={styles.stepTitle}>Confirme os dados</h3>
+              <p className={styles.stepDescription}>
+                Revise todas as informações antes de finalizar o agendamento.
+              </p>
 
               <div className={styles.reviewCard}>
                 <div className={styles.reviewRow}>
@@ -562,11 +596,11 @@ export default function ModalScheduleWizard({
 
             const { data } = await supabase
               .from("professionals")
-              .select("id,name")
+              .select("id,name,phone") // Incluído phone
               .order("name");
 
             const ordered = [
-              { id, name },
+              { id, name, phone: null }, // phone pode ser null ao criar
               ...(data || []).filter((p) => p.id !== id)
             ];
 

@@ -5,7 +5,7 @@ import {
   useImperativeHandle,
 } from "react";
 import { supabase } from "../lib/supabaseCleint";
-import { Plus, MessageCircle, Phone } from "lucide-react"; // Adicionado MessageCircle e Phone
+import { Plus, MessageCircle, Phone, User } from "lucide-react"; // Adicionado User
 import styles from "../css/SelectClientWhatsapp.module.css";
 import { dbPhoneToMasked, onlyDigits } from "../utils/phoneUtils"; // Importar dbPhoneToMasked e onlyDigits
 
@@ -18,7 +18,7 @@ interface Client {
 interface Props {
   tenantId: string;
   value: string;
-  onChange: (id: string, name: string) => void;
+  onChange: (id: string, name: string) => void | Promise<void>; // <--- CORRIGIDO AQUI
   onAdd: () => void;
   newClientId?: string | null;
   hideAddButton?: boolean; // 🔥 permite esconder o botão interno
@@ -129,13 +129,9 @@ function SelectClientComponent(
             }`}
             onClick={() => onChange(c.id, c.full_name)}
           >
-            <img
-              src={`https://api.dicebear.com/8.x/avataaars/svg?seed=${encodeURIComponent(
-                c.full_name
-              )}`}
-              className={styles.avatar}
-              alt={`Avatar de ${c.full_name}`}
-            />
+            <div className={styles.avatarIcon}> {/* Usar uma div para o ícone */}
+              <User size={24} />
+            </div>
 
             <div className={styles.info}>
               <div className={styles.name}>{c.full_name}</div>

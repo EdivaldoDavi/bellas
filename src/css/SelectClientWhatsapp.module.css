@@ -76,12 +76,23 @@
   border-color: var(--color-primary); /* Garante que a borda seja primária */
 }
 
-.avatar {
+/* NOVO: Estilo para o ícone de avatar */
+.avatarIcon {
   width: 38px;
   height: 38px;
   border-radius: 50%;
   margin-right: 10px;
   flex-shrink: 0;
+  background: color-mix(in srgb, var(--color-primary) 20%, transparent); /* Fundo suave com a cor primária */
+  color: var(--color-primary); /* Cor do ícone */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.info {
+  flex-grow: 1; /* Permite que o info ocupe o espaço restante */
+  text-align: left; /* Alinha o texto à esquerda */
 }
 
 .name {

@@ -14,7 +14,7 @@ interface Props {
   professionalId: string;
   serviceDuration: number;
   value?: string; // YYYY-MM-DD
-  onSelect: (date: string) => void;
+  onSelect: (date: string) => void | Promise<void>; // <--- CORRIGIDO AQUI
 }
 
 /* ============================================================
@@ -118,7 +118,7 @@ export default function DatePickerModal({
   /* ============================================================
      SELEÇÃO DE DATA
   ============================================================ */
-  function confirmPick(iso?: string) {
+  async function confirmPick(iso?: string) { // Adicionado async aqui
     if (!iso) return;
 
     if (!available.has(iso)) {
@@ -131,7 +131,7 @@ export default function DatePickerModal({
       return;
     }
 
-    onSelect(iso);
+    await onSelect(iso); // Aguarda a função onSelect
     setOpen(false);
   }
 
