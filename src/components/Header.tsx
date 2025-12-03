@@ -5,18 +5,28 @@ import styles from "../css/header.module.css";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 import { useTheme } from "../hooks/useTheme";
 import BrandColorMenu from "./BrandColorMenu";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react"; // Adicionado useMemo
 import { logout } from "../lib/supabaseCleint";
 import "../index.css";
+import { useIsMobile } from "../hooks/useIsMobile"; // Importado useIsMobile
 
 export default function Header({ toggleSidebar }: { toggleSidebar: () => void }) {
   const { profile,  loading: profileLoading } = useUserAndTenant();
   const { theme, toggleTheme } = useTheme();
+  const isMobile = useIsMobile(1024); // Usando o hook useIsMobile
 
-  const headerElementRef = useRef<HTMLDivElement>(null); // Renomeado para clareza
+  const headerElementRef = useRef<HTMLDivElement>(null);
 
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
-  const [greeting, setGreeting] = useState("");
+  // REMOVIDO: const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+  // REMOVIDO: const [greeting, setGreeting] = useState("");
+
+  // Calcula a saudação baseada na hora atual
+  const timeBasedGreeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Bom dia";
+    if (hour < 18) return "Boa tarde";
+    return "Boa noite";
+  }, []); // Array de dependências vazio: calcula apenas uma vez na montagem
 
   // Debug log para verificar o perfil recebido
   console.log("Header.tsx: Profile received from useUserAndTenant", profile);
@@ -58,7 +68,8 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
     };
   }, [isMobile, profileLoading, profile?.full_name]); // Dependências adicionadas: re-medir se o estado mobile ou dados do perfil mudarem
 
-  // Saudação + mobile resize
+  // REMOVIDO: useEffect para definir greeting e isMobile, agora tratados por useMemo e useIsMobile
+  /*
   useEffect(() => {
     const hour = new Date().getHours();
     setGreeting(hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite");
@@ -67,6 +78,7 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+  */
 
   const handleLogout = async () => {
     await logout();
@@ -79,7 +91,7 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
       <div className={styles.leftSection}>
         {!isLoadingProfile ? (
           <div className={styles.greeting}>
-            {greeting}, {userName}!
+            {timeBasedGreeting}, {userName}! {/* Usando timeBasedGreeting e userName */}
           </div>
         ) : (
           <div className={styles.greetingSkeleton}></div>
