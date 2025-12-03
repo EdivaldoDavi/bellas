@@ -273,13 +273,14 @@ export function useUserAndTenant() {
   loading,
   error,
   user: authUser,
-  profile: memoizedProfile,
+  profile: memoizedProfile, // <-- Adicionado aqui
   tenant,
   subscription,
   plan,
   features,
   permissions,
   needsSetup,
+  memoizedProfile, // <-- Adicionado aqui para ser retornado pelo hook
 
   refreshProfile,
   reloadAll: refreshProfile // reloadAll now just calls refreshProfile

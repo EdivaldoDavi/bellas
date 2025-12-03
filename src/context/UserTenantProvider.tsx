@@ -44,7 +44,7 @@ const UserTenantContext = createContext<UserTenantContextType | null>(null);
 export function UserTenantProvider({ children }: { children: ReactNode }) {
   const {
     user,
-    profile: rawProfile, // Renomeado para evitar conflito com memoizedProfile
+    // rawProfile, // <-- Removido daqui
     tenant: tenantFromHook,
     subscription,
     plan,
@@ -53,7 +53,7 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
     loading,
     needsSetup,
     refreshProfile,
-    memoizedProfile, // Adicionado para usar o perfil já memoizado
+    memoizedProfile, 
   } = useUserAndTenant();
 
   /* ============================================================
