@@ -111,9 +111,10 @@ export function useUserAndTenant() {
       setProfile((prev) => {
         // Deep comparison to avoid unnecessary re-renders if content is truly identical
         if (JSON.stringify(prev) === JSON.stringify(newProfile)) {
+          console.log("useUserAndTenant: setProfile - Profile content is identical, skipping update.");
           return prev;
         }
-        console.log("useUserAndTenant: Profile updated to", newProfile);
+        console.log("useUserAndTenant: setProfile - Profile updated to", newProfile);
         return newProfile;
       });
 

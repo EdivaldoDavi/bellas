@@ -119,6 +119,8 @@ const { profile, refreshProfile } = useUserAndTenant(); // Added tenant
 
     toast.success("Avatar atualizado com sucesso!");
    refreshProfile();
+   console.log("PerfilPage: Avatar updated, refreshProfile called. Current profile in context:", profile);
+
 
   } catch (err: any) {
     console.error("Erro ao enviar avatar:", err);
@@ -152,7 +154,9 @@ const { profile, refreshProfile } = useUserAndTenant(); // Added tenant
       if (upd2) throw upd2;
 
       toast.success("Perfil atualizado com sucesso!");
-    refreshProfile();
+    await refreshProfile();
+    console.log("PerfilPage: Profile updated, refreshProfile called. Current profile in context:", profile);
+
 
     } catch (err: any) {
       toast.error("Erro ao salvar: " + err.message);

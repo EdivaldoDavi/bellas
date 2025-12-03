@@ -24,6 +24,7 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
 
   // Efeito para atualizar os estados locais quando o perfil do contexto muda
   useEffect(() => {
+    console.log("Header.tsx useEffect: profile changed!", profile); // DEBUG LOG
     if (!profileLoading && profile) {
       setDisplayUserName(profile.full_name.split(" ")[0]);
       setDisplayUserRole(profile.role || "");
