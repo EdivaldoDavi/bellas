@@ -1,4 +1,5 @@
 // src/pages/onboarding/Onboarding.tsx
+import { useEffect } from "react";
 import { useUserTenant } from "../../context/UserTenantProvider";
 import styles from "./Onboarding.module.css";
 
@@ -14,6 +15,15 @@ const TOTAL_STEPS = 6;
 export default function Onboarding() {
   const { tenant } = useUserTenant();
   const step = tenant?.onboarding_step ?? 0;
+
+  // Força o tema 'light' para o onboarding
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", "light");
+    return () => {
+      // O tema será redefinido pelo useTheme no Layout ou em outros componentes
+      // ao sair do onboarding, então não precisamos reverter aqui explicitamente.
+    };
+  }, []);
 
   const renderStep = () => {
     switch (step) {

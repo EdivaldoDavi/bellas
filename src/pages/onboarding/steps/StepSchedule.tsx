@@ -61,37 +61,45 @@ export default function StepSchedule() {
      ✅ VALIDAR E CONTINUAR
   ============================================================ */
   async function validateAndContinue() {
+    console.log("--- StepSchedule: Iniciando validação ---");
+    console.log("Tenant ID:", tenantId);
+    console.log("User ID:", userId);
+    console.log("Profile:", profile);
+
     if (!tenantId || !userId) {
       console.warn("StepSchedule validateAndContinue: Missing tenantId or userId.");
+      toast.error("Erro: Informações do Studio ou usuário ausentes.");
       return;
     }
 
     setLoadingCheck(true);
 
     try {
+      // 1. Buscar o professional_id associado ao usuário logado
       const { data: prof, error: profFetchError } = await supabase
         .from("professionals")
         .select("id")
         .eq("tenant_id", tenantId)
         .eq("user_id", userId)
-        .single(); // This assumes a professional entry exists for the user
+        .single();
 
       if (profFetchError) {
-        console.error("StepSchedule validateAndContinue: Error fetching professional:", profFetchError);
-        toast.error("Erro ao buscar profissional.");
+        console.error("StepSchedule validateAndContinue: Erro ao buscar profissional:", profFetchError);
+        toast.error("Erro ao buscar profissional associado ao seu usuário.");
         setLoadingCheck(false);
         return;
       }
       if (!prof) {
-        console.error("StepSchedule validateAndContinue: Professional not found for user_id:", userId);
-        toast.error("Profissional não encontrado.");
+        console.error("StepSchedule validateAndContinue: Profissional não encontrado para user_id:", userId);
+        toast.error("Seu usuário não está associado a um profissional. Por favor, cadastre-se como profissional ou entre em contato com o suporte.");
         setLoadingCheck(false);
         return;
       }
 
       const professionalId = prof.id;
-      console.log("StepSchedule validateAndContinue: Found professionalId=", professionalId, "for userId=", userId);
+      console.log("StepSchedule validateAndContinue: Professional ID encontrado:", professionalId);
 
+      // 2. Verificar se o profissional tem serviços associados
       const { count: serviceCount, error: serviceCountError } = await supabase
         .from("professional_services")
         .select("id", { count: "exact", head: true })
@@ -99,21 +107,22 @@ export default function StepSchedule() {
         .eq("professional_id", professionalId);
 
       if (serviceCountError) {
-        console.error("StepSchedule validateAndContinue: Error fetching service count:", serviceCountError);
+        console.error("StepSchedule validateAndContinue: Erro ao verificar contagem de serviços:", serviceCountError);
         toast.error("Erro ao verificar serviços do profissional.");
         setLoadingCheck(false);
         return;
       }
 
-      console.log("StepSchedule validateAndContinue: Service count for professionalId=", professionalId, "is", serviceCount);
+      console.log("StepSchedule validateAndContinue: Contagem de serviços para o profissional:", serviceCount);
       if (!serviceCount || serviceCount === 0) {
         toast.warn(
-          "Você deve selecionar ao menos 1 serviço para o profissional selecionado."
+          "Você deve associar ao menos 1 serviço ao profissional cadastrado."
         );
         setLoadingCheck(false);
         return;
       }
 
+      // 3. Verificar se o profissional tem horários definidos
       const { count: scheduleCount, error: scheduleCountError } = await supabase
         .from("professional_schedules")
         .select("id", { count: "exact", head: true })
@@ -121,30 +130,31 @@ export default function StepSchedule() {
         .eq("professional_id", professionalId);
 
       if (scheduleCountError) {
-        console.error("StepSchedule validateAndContinue: Error fetching schedule count:", scheduleCountError);
+        console.error("StepSchedule validateAndContinue: Erro ao verificar contagem de horários:", scheduleCountError);
         toast.error("Erro ao verificar horários do profissional.");
         setLoadingCheck(false);
         return;
       }
 
-      console.log("StepSchedule validateAndContinue: Schedule count for professionalId=", professionalId, "is", scheduleCount);
+      console.log("StepSchedule validateAndContinue: Contagem de horários para o profissional:", scheduleCount);
       if (!scheduleCount || scheduleCount === 0) {
         toast.warn(
-          "Você deve definir ao menos 1 horário para o profissional selecionado."
+          "Você deve definir ao menos 1 horário de trabalho para o profissional cadastrado."
         );
         setLoadingCheck(false);
         return;
       }
 
       // Tudo certo → próximo step (3) = StepFirstCustomer
-      console.log("StepSchedule validateAndContinue: Validation successful, updating onboarding step to 3.");
+      console.log("StepSchedule validateAndContinue: Validação bem-sucedida, atualizando onboarding step para 3.");
       updateOnboardingStep(3);
     } catch (err) {
-      console.error("StepSchedule validateAndContinue: General error:", err);
-      toast.error("Erro ao validar dados.");
+      console.error("StepSchedule validateAndContinue: Erro geral na validação:", err);
+      toast.error("Erro ao validar dados do profissional.");
     }
 
     setLoadingCheck(false);
+    console.log("--- StepSchedule: Validação finalizada ---");
   }
 
   /* ============================================================
