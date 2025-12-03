@@ -3,8 +3,6 @@ import {
   useContext,
   type ReactNode,
   useMemo,
-  useState,
-  useEffect,
 } from "react";
 
 import {
@@ -30,7 +28,6 @@ export interface UserTenantContextType {
   needsSetup: boolean | null;
 
   refreshProfile: () => Promise<void>;
-  refreshTenant: () => Promise<void>;
   reloadAll: () => Promise<void>;
 
   updateOnboardingStep: (step: number) => Promise<void>;
@@ -48,7 +45,7 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
   const {
     user,
     profile,
-    tenant,
+    tenant: tenantFromHook, // Renamed to avoid conflict
     subscription,
     plan,
     features,
@@ -59,48 +56,15 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
   } = useUserAndTenant();
 
   /* ============================================================
-     🔥 tenantState — Estado REAL e sempre atualizado
-  ============================================================ */
-  const [tenantState, setTenantState] = useState<Tenant | null>(tenant);
-
-  useEffect(() => {
-    // Sempre sincroniza quando o hook carregar o tenant inicialmente
-    setTenantState(tenant);
-  }, [tenant]);
-
-  /* ============================================================
-     🔁 RECARREGAR TENANT (Centralizado no Provider)
-  ============================================================ */
-  const refreshTenant = async () => {
-    if (!profile?.tenant_id) {
-      setTenantState(null);
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from("tenants")
-      .select("*")
-      .eq("id", profile.tenant_id)
-      .maybeSingle();
-
-    if (error) {
-      console.error("Erro ao recarregar tenant:", error);
-      return;
-    }
-
-    setTenantState(data);
-  };
-
-  /* ============================================================
      🎯 Atualizar onboarding_step (agora funciona SEM refresh manual)
   ============================================================ */
   const updateOnboardingStep = async (step: number) => {
-    if (!tenantState?.id) return;
+    if (!tenantFromHook?.id) return; // Use tenantFromHook
 
     const { error } = await supabase
       .from("tenants")
       .update({ onboarding_step: step })
-      .eq("id", tenantState.id);
+      .eq("id", tenantFromHook.id); // Use tenantFromHook
 
     if (error) {
       console.error("Erro ao atualizar onboarding_step:", error);
@@ -108,7 +72,7 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
     }
 
     // 🔥 ESSENCIAL: recarregar tenant após update
-    await refreshTenant();
+    await refreshProfile(); // Call refreshProfile directly
   };
 
   /* ============================================================
@@ -116,7 +80,6 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
   ============================================================ */
   const reloadAll = async () => {
     await refreshProfile();
-    await refreshTenant();
   };
 
   /* ============================================================
@@ -126,7 +89,7 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
     () => ({
       user,
       profile,
-      tenant: tenantState,
+      tenant: tenantFromHook, // Use tenantFromHook directly
       subscription,
       plan,
       features,
@@ -135,20 +98,22 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
       needsSetup,
 
       refreshProfile,
-      refreshTenant,
       reloadAll,
       updateOnboardingStep,
     }),
     [
       user,
       profile,
-      tenantState,
+      tenantFromHook, // Use tenantFromHook directly
       subscription,
       plan,
       features,
       permissions,
       loading,
       needsSetup,
+      refreshProfile, // Add refreshProfile to dependencies
+      reloadAll, // Add reloadAll to dependencies
+      updateOnboardingStep, // Add updateOnboardingStep to dependencies
     ]
   );
 

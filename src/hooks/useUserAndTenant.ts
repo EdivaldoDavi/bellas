@@ -64,11 +64,11 @@ export function useUserAndTenant() {
   }, []);
 
   /* ============================================================
-     🔥 Recarregar Profile + Tenant
+     🔥 Recarregar Profile + Tenant (agora é a única função de recarga)
   ============================================================ */
   const refreshProfile = useCallback(async () => {
     console.log("useUserAndTenant: [refreshProfile] Função chamada.");
-    setLoading(true);
+    setLoading(true); // Set loading true at the very beginning
     setError(null);
     setInternalProfessionalId(null);
 
@@ -161,18 +161,17 @@ export function useUserAndTenant() {
       });
 
       /* ================ SUBSCRIPTION ================ */
-      /* ================ SUBSCRIPTIONS (CORRETO) ================ */
-          const { data: subs, error: subErr } = await supabase
-            .from("subscriptions")
-            .select("*")
-            .eq("tenant_id", tData.id)
-            .order("created_at", { ascending: false })
-            .limit(1);
+      const { data: subs, error: subErr } = await supabase
+        .from("subscriptions")
+        .select("*")
+        .eq("tenant_id", tData.id)
+        .order("created_at", { ascending: false })
+        .limit(1);
 
-          if (subErr) console.error("Erro ao buscar assinatura:", subErr);
+      if (subErr) console.error("Erro ao buscar assinatura:", subErr);
 
-          const latestSub = subs?.[0] ?? null;
-          setSubscription(latestSub);
+      const latestSub = subs?.[0] ?? null;
+      setSubscription(latestSub);
 
 
       /* ================ PLAN + FEATURES ================ */
@@ -215,7 +214,7 @@ export function useUserAndTenant() {
       setError(err.message ?? "Erro ao carregar dados.");
       clearAll();
     } finally {
-      setLoading(false);
+      setLoading(false); // Set loading false at the very end
     }
   }, [authUser, clearAll]);
 
@@ -260,9 +259,6 @@ export function useUserAndTenant() {
   needsSetup,
 
   refreshProfile,
-  refreshTenant: refreshProfile,  // <-- remove o refreshTenant duplicado
-  reloadAll: async () => {
-    await refreshProfile(); // Simplificado para chamar refreshProfile apenas uma vez
-  }
+  reloadAll: refreshProfile // reloadAll now just calls refreshProfile
 };
-};
+}
