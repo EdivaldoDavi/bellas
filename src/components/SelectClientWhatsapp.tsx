@@ -7,6 +7,7 @@ import {
 import { supabase } from "../lib/supabaseCleint";
 import { Plus } from "lucide-react";
 import styles from "../css/SelectClientWhatsapp.module.css";
+import { dbPhoneToMasked } from "../utils/phoneUtils"; // Importar dbPhoneToMasked
 
 interface Client {
   id: string;
@@ -105,7 +106,7 @@ function SelectClientComponent(
     <div className={styles.wrap}>
       {/* 🔍 Busca */}
       <input
-        className={styles.search}
+        className={styles.searchInput}
         placeholder="Digite nome ou telefone..."
         value={search}
         onChange={(e) => handleSearch(e.target.value)}
@@ -138,7 +139,7 @@ function SelectClientComponent(
             <div className={styles.info}>
               <div className={styles.name}>{c.full_name}</div>
               <div className={styles.phone}>
-                {c.customer_phone || "Sem telefone"}
+                {dbPhoneToMasked(c.customer_phone || "") || "Sem telefone"}
               </div>
             </div>
           </div>
