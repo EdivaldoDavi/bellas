@@ -96,6 +96,7 @@ export function useUserAndTenant() {
         clearAll();
         return;
       }
+      console.log("useUserAndTenant: pData from Supabase:", pData); // ADDED LOG
 
       // Construct the new profile object
       const newProfile: Omit<Profile, "professional_id"> = {
@@ -107,15 +108,15 @@ export function useUserAndTenant() {
         tenant_id: pData.tenant_id,
       };
 
-      // Always set a new profile object if the content is different
+      // Simplify setProfile logic: always update if full_name is different, or if object reference is different
       setProfile((prev) => {
-        // Deep comparison to avoid unnecessary re-renders if content is truly identical
-        if (JSON.stringify(prev) === JSON.stringify(newProfile)) {
-          console.log("useUserAndTenant: setProfile - Profile content is identical, skipping update.");
-          return prev;
+        // Se não há perfil anterior, ou se o nome completo mudou, ou o avatar, ou o papel, ou o tenant_id
+        if (!prev || prev.full_name !== newProfile.full_name || prev.avatar_url !== newProfile.avatar_url || prev.role !== newProfile.role || prev.tenant_id !== newProfile.tenant_id) {
+          console.log("useUserAndTenant: setProfile - Profile content is different, updating.");
+          return newProfile; // Retorna o novo objeto para forçar a atualização da referência
         }
-        console.log("useUserAndTenant: setProfile - Profile updated to", newProfile);
-        return newProfile;
+        console.log("useUserAndTenant: setProfile - Profile content is identical, skipping update.");
+        return prev; // Retorna o objeto anterior para evitar re-render desnecessário
       });
 
       /* ================ PROFESSIONAL_ID ================ */
