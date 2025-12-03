@@ -53,7 +53,7 @@ export function useUserAndTenant() {
      🧹 Limpa tudo
   ============================================================ */
   const clearAll = useCallback(() => {
-    console.log("useUserAndTenant: [clearAll] Limpando todos os estados.");
+    console.log("useUserAndTenant: clearAll called.");
     setProfile(null);
     setTenant(null);
     setSubscription(null);
@@ -67,7 +67,7 @@ export function useUserAndTenant() {
      🔥 Recarregar Profile + Tenant (agora é a única função de recarga)
   ============================================================ */
   const refreshProfile = useCallback(async () => {
-    console.log("useUserAndTenant: [refreshProfile] Função chamada.");
+    console.log("useUserAndTenant: refreshProfile started.");
     setLoading(true); // Set loading true at the very beginning
     setError(null);
     setInternalProfessionalId(null); // Limpa antes de tentar buscar novamente
@@ -76,30 +76,24 @@ export function useUserAndTenant() {
       const currentUser = authUser;
 
       if (!currentUser) {
-        console.log("useUserAndTenant: Nenhum usuário autenticado → limpando tudo");
+        console.log("useUserAndTenant: No current user, clearing all.");
         clearAll();
         return;
       }
 
-      console.log("useUserAndTenant: Usuário atual:", currentUser.id);
-
-      // Removendo o delay, vamos confiar que o Supabase retorna o dado atualizado
-      // await new Promise(resolve => setTimeout(resolve, 100)); 
-
       /* ================ PROFILE ================ */
       const { data: pData, error: pErr } = await supabase
         .from("profiles")
-        .select("user_id, tenant_id, role, full_name, avatar_url", { head: false }) // Adicionado head: false para garantir dados completos
+        .select("user_id, tenant_id, role, full_name, avatar_url", { head: false })
         .eq("user_id", currentUser.id)
         .maybeSingle();
 
       if (pErr) throw pErr;
       if (!pData) {
-        console.log("useUserAndTenant: Perfil não encontrado → limpando");
+        console.log("useUserAndTenant: No profile data found, clearing all.");
         clearAll();
         return;
       }
-      console.log("useUserAndTenant: pData from Supabase:", pData); // ADDED LOG
 
       // Construct the new profile object
       const newProfile: Omit<Profile, "professional_id"> = {
@@ -111,16 +105,10 @@ export function useUserAndTenant() {
         tenant_id: pData.tenant_id,
       };
 
-      // Simplify setProfile logic: always update if full_name is different, or if object reference is different
-      setProfile((prev) => {
-        // Se não há perfil anterior, ou se o nome completo mudou, ou o avatar, ou o papel, ou o tenant_id
-        if (!prev || prev.full_name !== newProfile.full_name || prev.avatar_url !== newProfile.avatar_url || prev.role !== newProfile.role || prev.tenant_id !== newProfile.tenant_id) {
-          console.log("useUserAndTenant: setProfile - Profile content is different, updating.");
-          return newProfile; // Retorna o novo objeto para forçar a atualização da referência
-        }
-        console.log("useUserAndTenant: setProfile - Profile content is identical, skipping update.");
-        return prev; // Retorna o objeto anterior para evitar re-render desnecessário
-      });
+      // Simplificado: sempre define o novo objeto de perfil para garantir a atualização da referência
+      setProfile(newProfile);
+      console.log("useUserAndTenant: Profile updated:", newProfile);
+
 
       /* ================ PROFESSIONAL_ID ================ */
       let currentProfessionalId: string | null = null;
@@ -139,20 +127,20 @@ export function useUserAndTenant() {
         }
         currentProfessionalId = professionalEntry?.id ?? null;
         setInternalProfessionalId(currentProfessionalId);
-        console.log("useUserAndTenant: Professional ID set to:", currentProfessionalId);
+        console.log("useUserAndTenant: Professional ID updated:", currentProfessionalId);
       } else {
         setInternalProfessionalId(null);
-        console.log("useUserAndTenant: No tenant, professional_id set to null.");
+        console.log("useUserAndTenant: No tenant_id, professional ID cleared.");
       }
 
       /* ================ SEM TENANT ================ */
       if (!newProfile.tenant_id) {
+        console.log("useUserAndTenant: No tenant_id in profile, clearing tenant related states.");
         setTenant(null);
         setSubscription(null);
         setPlan(null);
         setFeatures([]);
         setPermissions([]);
-        console.log("useUserAndTenant: No tenant_id found for profile.");
         return;
       }
 
@@ -166,18 +154,15 @@ export function useUserAndTenant() {
       if (tErr) throw tErr;
 
       if (!tData) {
-        console.warn("useUserAndTenant: Tenant não encontrado → limpando tenant");
+        console.log("useUserAndTenant: No tenant data found.");
         setTenant(null);
         return;
       }
 
-      setTenant((prevTenant) => {
-        const equal = JSON.stringify(prevTenant) === JSON.stringify(tData);
-        if (!equal) {
-          console.log("useUserAndTenant: Tenant updated to", tData);
-        }
-        return equal ? prevTenant : tData;
-      });
+      // 🔥 REMOVIDA A OTIMIZAÇÃO: SEMPRE DEFINE UMA NOVA REFERÊNCIA
+      setTenant(tData);
+      console.log("useUserAndTenant: Tenant updated:", tData);
+
 
       /* ================ SUBSCRIPTION ================ */
       const { data: subs, error: subErr } = await supabase
@@ -191,6 +176,7 @@ export function useUserAndTenant() {
 
       const latestSub = subs?.[0] ?? null;
       setSubscription(latestSub);
+      console.log("useUserAndTenant: Subscription updated:", latestSub);
 
 
       /* ================ PLAN + FEATURES ================ */
@@ -202,6 +188,8 @@ export function useUserAndTenant() {
           .maybeSingle();
 
         setPlan(planData ?? null);
+        console.log("useUserAndTenant: Plan updated:", planData);
+
 
         const { data: feats } = await supabase
           .from("plan_features")
@@ -212,9 +200,12 @@ export function useUserAndTenant() {
           feats?.filter((f) => f.enabled).map((f) => f.feature_key) ?? [];
 
         setFeatures(enabledFeatures);
+        console.log("useUserAndTenant: Features updated:", enabledFeatures);
+
       } else {
         setPlan(null);
         setFeatures([]);
+        console.log("useUserAndTenant: No plan_id, plan and features cleared.");
       }
 
       /* ================ PERMISSIONS ================ */
@@ -225,16 +216,18 @@ export function useUserAndTenant() {
         .eq("user_id", currentUser.id);
 
       const allowedPermissions =
-        perms?.filter((p) => p.allowed).map((p) => p.permission_key) ?? []; 
+        perms?.filter((p) => p.allowed).map((p) => p.permission_key) ?? []; // <-- CORRIGIDO AQUI: de feature_key para permission_key
 
       setPermissions(allowedPermissions);
+      console.log("useUserAndTenant: Permissions updated:", allowedPermissions);
+
     } catch (err: any) {
       console.error("useUserAndTenant: erro ao carregar", err);
       setError(err.message ?? "Erro ao carregar dados.");
       clearAll();
     } finally {
       setLoading(false);
-      console.log("useUserAndTenant: [refreshProfile] Finalizado. Loading =", false);
+      console.log("useUserAndTenant: refreshProfile finished. Loading set to false.");
     }
   }, [authUser, clearAll]);
 
@@ -242,8 +235,10 @@ export function useUserAndTenant() {
      🔄 Load inicial
   ============================================================ */
   useEffect(() => {
-    console.log("useUserAndTenant: useEffect for initial load triggered. authUser =", authUser?.id, "authLoading =", authLoading);
-    if (!authLoading) refreshProfile();
+    if (!authLoading) {
+      console.log("useUserAndTenant: Initial load effect triggered (authLoading is false).");
+      refreshProfile();
+    }
   }, [authUser, authLoading, refreshProfile]);
 
   /* ============================================================
@@ -265,7 +260,7 @@ export function useUserAndTenant() {
   const memoizedProfile = useMemo(() => {
     if (!profile) return null;
     const fullProfile = { ...profile, professional_id: internalProfessionalId };
-    console.log("useUserAndTenant: Memoized Profile (with professional_id) =", fullProfile);
+    console.log("useUserAndTenant: memoizedProfile recomputed.");
     return fullProfile;
   }, [profile, internalProfessionalId]);
 
@@ -273,16 +268,16 @@ export function useUserAndTenant() {
   loading,
   error,
   user: authUser,
-  profile: memoizedProfile, // <-- Adicionado aqui
+  profile: memoizedProfile,
   tenant,
   subscription,
   plan,
   features,
   permissions,
   needsSetup,
-  memoizedProfile, // <-- Adicionado aqui para ser retornado pelo hook
+  memoizedProfile,
 
   refreshProfile,
-  reloadAll: refreshProfile // reloadAll now just calls refreshProfile
+  reloadAll: refreshProfile
 };
 }
