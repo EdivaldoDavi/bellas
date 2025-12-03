@@ -5,9 +5,9 @@ import {
   useImperativeHandle,
 } from "react";
 import { supabase } from "../lib/supabaseCleint";
-import { Plus } from "lucide-react";
+import { Plus, MessageCircle, Phone } from "lucide-react"; // Adicionado MessageCircle e Phone
 import styles from "../css/SelectClientWhatsapp.module.css";
-import { dbPhoneToMasked } from "../utils/phoneUtils"; // Importar dbPhoneToMasked
+import { dbPhoneToMasked, onlyDigits } from "../utils/phoneUtils"; // Importar dbPhoneToMasked e onlyDigits
 
 interface Client {
   id: string;
@@ -134,12 +134,41 @@ function SelectClientComponent(
                 c.full_name
               )}`}
               className={styles.avatar}
+              alt={`Avatar de ${c.full_name}`}
             />
 
             <div className={styles.info}>
               <div className={styles.name}>{c.full_name}</div>
-              <div className={styles.phone}>
-                {dbPhoneToMasked(c.customer_phone || "") || "Sem telefone"}
+              <div className={styles.phoneRow}> {/* Novo wrapper para telefone e ícones */}
+                <div className={styles.phone}>
+                  📞 {dbPhoneToMasked(c.customer_phone || "") || "Sem telefone"}
+                </div>
+                <div className={styles.actionIcons}> {/* Container para os novos ícones */}
+                  {c.customer_phone && (
+                    <>
+                      <button
+                        className={styles.iconButton}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Evita que o clique selecione o item da lista
+                          window.open(`https://wa.me/55${onlyDigits(c.customer_phone)}`, '_blank');
+                        }}
+                        title="Enviar mensagem WhatsApp"
+                      >
+                        <MessageCircle size={18} />
+                      </button>
+                      <button
+                        className={styles.iconButton}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Evita que o clique selecione o item da lista
+                          window.location.href = `tel:${onlyDigits(c.customer_phone)}`;
+                        }}
+                        title="Ligar para o cliente"
+                      >
+                        <Phone size={18} />
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
