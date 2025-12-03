@@ -1,10 +1,9 @@
-import React from 'react';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import styles from '../css/OnboardingFixedNavigation.module.css';
 
 interface OnboardingFixedNavigationProps {
   currentStep: number;
-  totalSteps: number;
+  // totalSteps: number; // Removido
   onBack: () => void;
   onNext: () => void;
   canGoNext: boolean;
@@ -13,7 +12,7 @@ interface OnboardingFixedNavigationProps {
 
 export default function OnboardingFixedNavigation({
   currentStep,
-  totalSteps,
+  // totalSteps, // Removido
   onBack,
   onNext,
   canGoNext,

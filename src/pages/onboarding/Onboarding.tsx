@@ -15,7 +15,7 @@ import OnboardingFixedNavigation from "../../components/OnboardingFixedNavigatio
 const TOTAL_STEPS = 6; // Total steps including congratulations
 
 export default function Onboarding() {
-  const { tenant,  updateOnboardingStep, loading: userTenantLoading } = useUserTenant();
+  const { tenant, profile, updateOnboardingStep, loading: userTenantLoading } = useUserTenant();
   const step = tenant?.onboarding_step ?? 0;
 
   // Local states for step-specific validation
@@ -161,7 +161,7 @@ export default function Onboarding() {
       {/* Fixed Navigation Bar */}
       <OnboardingFixedNavigation
         currentStep={step}
-        totalSteps={TOTAL_STEPS}
+        // totalSteps={TOTAL_STEPS} // Removido
         onBack={handleBack}
         onNext={handleNext}
         canGoNext={canGoNext}

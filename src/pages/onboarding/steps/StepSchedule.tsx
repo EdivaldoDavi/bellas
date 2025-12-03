@@ -17,12 +17,12 @@ interface StepScheduleProps {
 }
 
 export default function StepSchedule({ onScheduleValidated }: StepScheduleProps) {
-  const { tenant, profile, updateOnboardingStep } = useUserTenant();
+  const { tenant, profile /*, updateOnboardingStep */ } = useUserTenant(); // Removido updateOnboardingStep
   const tenantId = tenant?.id;
   const userId = profile?.user_id;
 
   const [showModal, setShowModal] = useState(false);
-  const [loadingCheck, setLoadingCheck] = useState(false); // Keep this for internal validation feedback
+  // const [loadingCheck, setLoadingCheck] = useState(false); // Removido loadingCheck e setLoadingCheck
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [loadingProfessionals, setLoadingProfessionals] = useState(true);
 
@@ -52,7 +52,7 @@ export default function StepSchedule({ onScheduleValidated }: StepScheduleProps)
     } else {
       setProfessionals((data || []) as Professional[]);
       // Perform validation immediately after loading professionals
-      await validateProfessionalData((data || []) as Professional[]);
+      await validateProfessionalData(); // currentProfessionals agora é passado como argumento
     }
 
     setLoadingProfessionals(false);
@@ -65,7 +65,7 @@ export default function StepSchedule({ onScheduleValidated }: StepScheduleProps)
   /* ============================================================
      ✅ VALIDAR DADOS DO PROFISSIONAL (para habilitar o 'Continuar')
   ============================================================ */
-  const validateProfessionalData = useCallback(async (currentProfessionals: Professional[]) => {
+  const validateProfessionalData = useCallback(async () => { // Removido currentProfessionals do argumento
     console.log("--- StepSchedule: Iniciando validação interna ---");
     console.log("Tenant ID:", tenantId);
     console.log("User ID:", userId);
@@ -151,7 +151,7 @@ export default function StepSchedule({ onScheduleValidated }: StepScheduleProps)
 
   useEffect(() => {
     if (!loadingProfessionals && professionals.length > 0) {
-      validateProfessionalData(professionals);
+      validateProfessionalData();
     } else if (!loadingProfessionals && professionals.length === 0) {
       onScheduleValidated(false);
     }

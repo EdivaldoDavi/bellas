@@ -17,7 +17,7 @@ interface StepFirstAppointmentProps {
 }
 
 export default function StepFirstAppointment({ onAppointmentValidated }: StepFirstAppointmentProps) {
-  const { tenant, updateOnboardingStep } = useUserTenant();
+  const { tenant /*, updateOnboardingStep */ } = useUserTenant(); // Removido updateOnboardingStep
 
   const [showWizard, setShowWizard] = useState(false);
   const [appointments, setAppointments] = useState<Appointment[]>([]);

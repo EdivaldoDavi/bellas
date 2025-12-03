@@ -16,7 +16,7 @@ interface StepFirstCustomerProps {
 }
 
 export default function StepFirstCustomer({ onCustomerValidated }: StepFirstCustomerProps) {
-  const { tenant, updateOnboardingStep } = useUserTenant();
+  const { tenant /*, updateOnboardingStep */ } = useUserTenant(); // Removido updateOnboardingStep
 
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
