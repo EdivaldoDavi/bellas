@@ -5,12 +5,10 @@ import styles from "../Onboarding.module.css";
 export default function StepWelcome() {
   const { updateOnboardingStep, tenant } = useUserTenant();
 
-function start() {
-  if (tenant?.onboarding_step === 0) {
+  function start() {
+    // Aqui podemos simplesmente mandar para o step 1
     updateOnboardingStep(1);
   }
-}
-
 
   return (
     <div className={styles.stepContainer}>
