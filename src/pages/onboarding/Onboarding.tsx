@@ -7,38 +7,63 @@ import StepServices from "./steps/StepServices";
 import StepSchedule from "./steps/StepSchedule";
 import StepFirstCustomer from "./steps/StepFirstCustomer";
 import StepFirstAppointment from "./steps/StepFirstAppointment";
-//import StepFinish from "./steps/StepFinish";
 import StepCongratulations from "./steps/stepCongratulations";
 
-const TOTAL_STEPS = 5; // 0..4, sem contar o finish (99)
+// ✔ CORRETO: 6 steps (0..5)
+const TOTAL_STEPS = 6;
 
 export default function Onboarding() {
   const { tenant } = useUserTenant();
 
+  // ---------- LOG 1: Tenant recebido ----------
+  console.log("🟦 ONBOARDING — tenant recebido:", tenant);
+
   const step = tenant?.onboarding_step ?? 0;
 
+  // ---------- LOG 2: Step interpretado ----------
+  console.log("🟩 ONBOARDING — step atual:", step);
+
   const renderStep = () => {
+    console.log("🟨 renderStep() chamado, step =", step);
+
     switch (step) {
       case 0:
+        console.log("➡️ Renderizando StepWelcome");
         return <StepWelcome />;
+
       case 1:
+        console.log("➡️ Renderizando StepServices");
         return <StepServices />;
+
       case 2:
+        console.log("➡️ Renderizando StepSchedule");
         return <StepSchedule />;
+
       case 3:
+        console.log("➡️ Renderizando StepFirstCustomer");
         return <StepFirstCustomer />;
+
       case 4:
+        console.log("➡️ Renderizando StepFirstAppointment");
         return <StepFirstAppointment />;
-        
+
       case 5:
-      return <StepCongratulations />;
+        console.log("🎉 Renderizando StepCongratulations!");
+        return <StepCongratulations />;
+
       default:
+        console.log("⚠️ Step inesperado, renderizando StepWelcome");
         return <StepWelcome />;
     }
   };
 
   const progress =
     step >= 99 ? 100 : Math.min(100, ((step + 1) / TOTAL_STEPS) * 100);
+
+  // ---------- LOG 3: Progresso ----------
+  console.log(
+    `📊 Progresso calculado: step=${step}, progress=${progress}%`
+  );
 
   return (
     <div className={styles.page}>
