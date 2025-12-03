@@ -1,10 +1,9 @@
-// src/pages/setup/Setup.tsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseCleint";
 import { toast } from "react-toastify";
 
-import { applyTenantTheme } from "../../utils/theme"; // ← TEMA AQUI!!
+import { applyTenantTheme } from "../../utils/theme";
 import { useUserTenant } from "../../context/UserTenantProvider";
 
 import styles from "./Setup.module.css";
@@ -36,9 +35,10 @@ export default function Setup() {
   const [secondary, setSecondary] = useState(
     tenant?.secondary_color || "#e0b6f5"
   );
-  const [variant, setVariant] = useState<"light" | "dark">(
-    tenant?.theme_variant || "light"
-  );
+  // 🚨 Removido o estado de `variant` dinâmico, agora é fixo para 'light'
+  // const [variant, setVariant] = useState<"light" | "dark">(
+  //   tenant?.theme_variant || "light"
+  // );
 
   const [saving, setSaving] = useState(false);
 
@@ -52,7 +52,7 @@ export default function Setup() {
     setStudioPhone(tenant.whatsapp_number || "");
     setPrimary(tenant.primary_color || "#8343A2");
     setSecondary(tenant.secondary_color || "#e0b6f5");
-    setVariant(tenant.theme_variant || "light");
+    // setVariant(tenant.theme_variant || "light"); // Removido
   }, [tenant]);
 
   /* ============================================================
@@ -114,7 +114,7 @@ export default function Setup() {
           whatsapp_number: dbStudio,
           primary_color: primary,
           secondary_color: secondary,
-          theme_variant: variant,
+          theme_variant: "light", // 🚨 Fixo para 'light'
           onboarding_step: 0,
           setup_complete: false,
           created_by: userId,
@@ -145,7 +145,7 @@ export default function Setup() {
             whatsapp_number: dbStudio,
             primary_color: primary,
             secondary_color: secondary,
-            theme_variant: variant,
+            theme_variant: "light", // 🚨 Fixo para 'light'
             setup_complete: false,
           })
           .eq("id", tenantId);
@@ -213,7 +213,7 @@ export default function Setup() {
       applyTenantTheme({
         primary_color: primary,
         secondary_color: secondary,
-        
+        theme_variant: "light", // 🚨 Passa 'light' explicitamente
       });
 
       /* ============================================================

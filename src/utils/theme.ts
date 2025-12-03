@@ -23,7 +23,7 @@ export function applyTenantTheme(tenant?: Partial<Tenant> | null) {
 
   const primary = tenant.primary_color ?? "#ff1493";
   const secondary = tenant.secondary_color ?? "#ffffff";
-  const variant = (tenant.theme_variant as "light" | "dark") ?? "light";
+  const variant = (tenant.theme_variant as "light" | "dark") ?? "light"; // Usa o variant passado ou 'light' como fallback
 
   // Cores principais
   root.style.setProperty("--color-primary", primary);
