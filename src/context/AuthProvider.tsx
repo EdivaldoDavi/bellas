@@ -5,8 +5,9 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { supabase } from "../lib/supabaseCleint";
+import { supabase, logout } from "../lib/supabaseCleint"; // Importar logout
 import type { Session, User } from "@supabase/supabase-js";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 type AuthContextType = {
   user: User | null;
@@ -27,20 +28,20 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate(); // Initialize useNavigate
 
   /* ============================================================
      Função segura para atualizar sessão/usuário
      ============================================================ */
   const applySession = (newSession: Session | null) => {
-    // NEW LOGIC: Só atualiza se o access_token ou o user.id realmente mudaram.
-    // Isso evita re-renderizações desnecessárias se o Supabase enviar uma nova
-    // referência de objeto de sessão, mas os dados subjacentes forem os mesmos.
     if (
       session?.access_token === newSession?.access_token &&
       session?.user?.id === newSession?.user?.id
     ) {
-      return; // Nenhuma mudança real na sessão ou usuário, então não faz nada.
+      console.log("AuthProvider: applySession - Session content identical, skipping update.");
+      return;
     }
+    console.log("AuthProvider: applySession - Updating session and user.");
     setSession(newSession);
     setUser(newSession?.user ?? null);
   };
@@ -50,15 +51,21 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
      ============================================================ */
   useEffect(() => {
     let active = true;
+    console.log("AuthProvider: Initial load useEffect triggered.");
 
     const load = async () => {
+      console.log("AuthProvider: Calling supabase.auth.getSession().");
       const { data, error } = await supabase.auth.getSession();
 
-      if (!active) return;
-      if (error) console.error("Erro getSession:", error);
+      if (!active) {
+        console.log("AuthProvider: Initial load cancelled (component unmounted).");
+        return;
+      }
+      if (error) console.error("AuthProvider: Erro getSession:", error);
 
       applySession(data.session ?? null);
       setLoading(false);
+      console.log("AuthProvider: Initial load complete. Loading set to false. User:", data.session?.user?.id);
     };
 
     load();
@@ -69,51 +76,52 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
   /* ============================================================
      Listener de mudanças de autenticação
-     (com correção do bug de reload ao trocar de aba)
      ============================================================ */
-
-  // Evita múltiplos eventos simultâneos
   let lastAuthEvent = 0;
 
   useEffect(() => {
+    console.log("AuthProvider: onAuthStateChange useEffect triggered.");
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, newSession) => {
-      console.log("Auth event:", event);
+      console.log("AuthProvider: Auth event:", event, "New Session User:", newSession?.user?.id);
 
-      // 1) Ignora triggers quando o usuário apenas voltou da aba
       if (document.visibilityState === "hidden") {
+        console.log("AuthProvider: Ignoring auth event (document hidden).");
         return;
       }
 
-      // 2) Debounce: evita múltiplos SIGNED_IN seguidos
       const now = Date.now();
       if (event === "SIGNED_IN" && now - lastAuthEvent < 1200) {
+        console.log("AuthProvider: Debouncing SIGNED_IN event.");
         return;
       }
       lastAuthEvent = now;
 
       /* ===== EVENTOS ===== */
-
-      // Logout real
       if (event === "SIGNED_OUT") {
+        console.log("AuthProvider: SIGNED_OUT event detected. Navigating to /login.");
         applySession(null);
+        navigate("/login?logged_out=1", { replace: true }); // Client-side navigation
         return;
       }
 
-      // Aplica a sessão, deixando applySession decidir se é uma atualização redundante.
       applySession(newSession);
     });
 
-    /* Listener manual de logout forçado */
-    const handler = () => applySession(null);
-    window.addEventListener("supabase-signout", handler);
+    // REMOVIDO: Listener manual de logout forçado, pois não será mais disparado pelo supabaseClient.ts
+    // const handler = () => {
+    //   console.log("AuthProvider: supabase-signout event received.");
+    //   applySession(null);
+    // };
+    // window.addEventListener("supabase-signout", handler);
 
     return () => {
+      console.log("AuthProvider: Cleaning up onAuthStateChange subscription.");
       subscription.unsubscribe();
-      window.removeEventListener("supabase-signout", handler);
+      // REMOVIDO: window.removeEventListener("supabase-signout", handler);
     };
-  }, [session?.access_token, session?.user?.id]); // Adiciona dependências para re-executar o efeito se a sessão mudar
+  }, [navigate]); // Add navigate to dependencies
 
   /* ============================================================
      MÉTODOS DE AUTENTICAÇÃO
@@ -121,6 +129,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     setLoading(true);
+    console.log("AuthProvider: signIn called. Setting loading to true.");
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -128,6 +137,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     setLoading(false);
+    console.log("AuthProvider: signIn complete. Setting loading to false.");
     if (error) throw error;
   };
 
@@ -137,6 +147,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     meta?: Record<string, any>
   ) => {
     setLoading(true);
+    console.log("AuthProvider: signUp called. Setting loading to true.");
 
     const { error } = await supabase.auth.signUp({
       email,
@@ -148,19 +159,23 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     setLoading(false);
+    console.log("AuthProvider: signUp complete. Setting loading to false.");
     if (error) throw error;
   };
 
   const signOut = async () => {
     setLoading(true);
+    console.log("AuthProvider: signOut called. Setting loading to true.");
 
-    const { error } = await supabase.auth.signOut({ scope: "local" });
+    // Agora, o signOut do AuthProvider chama o logout do supabaseClient.ts
+    // que já não faz o window.location.replace.
+    // A navegação será tratada pelo onAuthStateChange.
+    await logout(); // Call the modified logout from supabaseClient.ts
 
     setLoading(false);
-    if (error) throw error;
-
-    // Notifica listeners
-    window.dispatchEvent(new Event("supabase-signout"));
+    console.log("AuthProvider: signOut complete. Setting loading to false.");
+    // No need to dispatch event here, as logout() already handles the Supabase signOut.
+    // The onAuthStateChange listener will catch the SIGNED_OUT event.
   };
 
   /* ============================================================
