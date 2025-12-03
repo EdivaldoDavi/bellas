@@ -82,6 +82,7 @@ const { profile, refreshProfile } = useUserAndTenant(); // Added tenant
   }
 
   setUploading(true);
+  console.log("handleUploadAvatar: Iniciando upload de avatar.");
 
   try {
     const fileExt = avatarFile.name.split(".").pop();
@@ -91,6 +92,7 @@ const { profile, refreshProfile } = useUserAndTenant(); // Added tenant
     const filePath = `${profile.user_id}/${fileName}`;
 
     // 1) Upload no Storage
+    console.log("handleUploadAvatar: Fazendo upload para o Storage.");
     const { error: uploadError } = await supabase.storage
       .from("avatars")
       .upload(filePath, avatarFile, {
@@ -99,8 +101,10 @@ const { profile, refreshProfile } = useUserAndTenant(); // Added tenant
       });
 
     if (uploadError) throw uploadError;
+    console.log("handleUploadAvatar: Upload para o Storage concluído.");
 
     // 2) Obter URL pública
+    console.log("handleUploadAvatar: Obtendo URL pública do avatar.");
     const { data: publicData } = supabase.storage
       .from("avatars")
       .getPublicUrl(filePath);
@@ -108,27 +112,32 @@ const { profile, refreshProfile } = useUserAndTenant(); // Added tenant
     if (!publicData?.publicUrl) {
       throw new Error("Não foi possível gerar a URL pública do avatar.");
     }
+    console.log("handleUploadAvatar: URL pública obtida:", publicData.publicUrl);
 
     // 3) Atualiza no perfil
+    console.log("handleUploadAvatar: Atualizando URL do avatar no perfil.");
     const { error: updateError } = await supabase
       .from("profiles")
       .update({ avatar_url: publicData.publicUrl })
       .eq("user_id", profile.user_id);
 
     if (updateError) throw updateError;
+    console.log("handleUploadAvatar: Perfil atualizado com sucesso no banco.");
 
     toast.success("Avatar atualizado com sucesso!");
-   refreshProfile();
-   console.log("PerfilPage: Avatar updated, refreshProfile called. Current profile in context:", profile);
+    console.log("handleUploadAvatar: Chamando refreshProfile.");
+    await refreshProfile();
+    console.log("handleUploadAvatar: refreshProfile concluído.");
 
 
   } catch (err: any) {
-    console.error("Erro ao enviar avatar:", err);
+    console.error("handleUploadAvatar: Erro ao enviar avatar:", err);
     toast.error("Erro ao atualizar avatar: " + err.message);
   } finally {
     setUploading(false);
     setAvatarFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
+    console.log("handleUploadAvatar: Finalizando upload de avatar.");
   }
 };
 
@@ -136,37 +145,43 @@ const { profile, refreshProfile } = useUserAndTenant(); // Added tenant
         SALVAR PERFIL
   ================================ */
   const handleSalvarPerfil = async () => {
+    console.log("handleSalvarPerfil: Iniciando save profile.");
     setLoading(true);
     try {
       const { data: { user }, error } = await supabase.auth.getUser();
       if (error) throw error;
 
-      console.log("PerfilPage: handleSalvarPerfil - Nome a ser salvo:", nome); // ADDED LOG
-
       // 1. Atualiza o user_metadata no auth.users
+      console.log("handleSalvarPerfil: Atualizando user metadata.");
       const { error: upd1 } = await supabase.auth.updateUser({
         data: { full_name: nome },
       });
       if (upd1) throw upd1;
+      console.log("handleSalvarPerfil: User metadata atualizado.");
 
       // 2. Atualiza a tabela profiles
+      console.log("handleSalvarPerfil: Atualizando tabela profiles.");
       const { error: upd2 } = await supabase
         .from("profiles")
         .update({ full_name: nome })
         .eq("user_id", user?.id);
 
       if (upd2) throw upd2;
+      console.log("handleSalvarPerfil: Tabela profiles atualizada.");
 
       toast.success("Perfil atualizado com sucesso!");
       // 3. Chama refreshProfile APÓS as atualizações serem enviadas
+      console.log("handleSalvarPerfil: Chamando refreshProfile.");
       await refreshProfile();
-      console.log("PerfilPage: Profile updated, refreshProfile called. Current profile in context:", profile);
+      console.log("handleSalvarPerfil: refreshProfile concluído.");
 
 
     } catch (err: any) {
       toast.error("Erro ao salvar: " + err.message);
+      console.error("handleSalvarPerfil: Erro durante save:", err);
     } finally {
       setLoading(false);
+      console.log("handleSalvarPerfil: Finalizando save profile.");
     }
   };
 
@@ -174,6 +189,7 @@ const { profile, refreshProfile } = useUserAndTenant(); // Added tenant
         ALTERAR SENHA
   ================================ */
   const handleAlterarSenha = async () => {
+    console.log("handleAlterarSenha: Iniciando change password.");
     if (!novaSenha || !confirmarSenha) {
       toast.warning("Preencha a nova senha e a confirmação.");
       return;
@@ -192,19 +208,23 @@ const { profile, refreshProfile } = useUserAndTenant(); // Added tenant
 
     setLoading(true);
 
+    console.log("handleAlterarSenha: Atualizando user password.");
     const { error } = await supabase.auth.updateUser({
       password: novaSenha,
     });
 
     if (error) {
       toast.error(error.message);
+      console.error("handleAlterarSenha: Erro ao alterar senha:", error);
     } else {
       toast.success("Senha alterada com sucesso!");
       setNovaSenha("");
       setConfirmarSenha("");
+      console.log("handleAlterarSenha: Senha alterada com sucesso.");
     }
 
     setLoading(false);
+    console.log("handleAlterarSenha: Finalizando change password.");
   };
 
   return (
