@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
-import { X, Plus, Pencil } from "lucide-react";
+import { X, Plus, Pencil, MessageCircle, Phone } from "lucide-react"; // Adicionado MessageCircle e Phone
 import { toast } from "react-toastify";
 
 import ModalNewCustomer from "../components/ModalNewCustomer";
@@ -190,9 +190,37 @@ export default function ClientesPage() {
                   <div className={styles.title}>{c.full_name}</div>
 
                   <div className={styles.meta}>
-                    <div className={styles.phoneWrapper}>
-                      📞 {dbPhoneToMasked(c.customer_phone ?? "")}
-                      <CopyButton value={onlyDigits(c.customer_phone ?? "")} />
+                    <div className={styles.phoneRow}> {/* Usar phoneRow aqui */}
+                      <div className={styles.phone}>
+                        📞 {dbPhoneToMasked(c.customer_phone ?? "")}
+                      </div>
+                      <div className={styles.actionIcons}>
+                        {c.customer_phone && (
+                          <>
+                            <CopyButton value={onlyDigits(c.customer_phone ?? "")} />
+                            <button
+                              className={styles.iconButton}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.open(`https://wa.me/55${onlyDigits(c.customer_phone)}`, '_blank');
+                              }}
+                              title="Enviar mensagem WhatsApp"
+                            >
+                              <MessageCircle size={18} />
+                            </button>
+                            <button
+                              className={styles.iconButton}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.location.href = `tel:${onlyDigits(c.customer_phone)}`;
+                              }}
+                              title="Ligar para o cliente"
+                            >
+                              <Phone size={18} />
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
 
                     <span
