@@ -15,8 +15,12 @@ type Service = {
   price_cents: number | null;
 };
 
-export default function StepServices() {
-  const { updateOnboardingStep, tenant, profile, loading: userTenantLoading, reloadAll } = useUserTenant();
+interface StepServicesProps {
+  onServicesValidated: (isValid: boolean) => void;
+}
+
+export default function StepServices({ onServicesValidated }: StepServicesProps) {
+  const { tenant, profile, loading: userTenantLoading, reloadAll } = useUserTenant();
   const [showModal, setShowModal] = useState(false);
   const [services, setServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(true);
@@ -34,6 +38,7 @@ export default function StepServices() {
       console.log("loadServices: tenant.id é nulo ou indefinido. Definindo services como vazio e loading como false.");
       setServices([]);
       setLoadingServices(false);
+      onServicesValidated(false); // Update validation state
       return;
     }
 
@@ -49,14 +54,17 @@ export default function StepServices() {
         console.error("loadServices: Erro ao carregar serviços:", error);
         toast.error("Erro ao carregar serviços.");
         setServices([]);
+        onServicesValidated(false); // Update validation state
       } else {
         console.log("loadServices: Serviços carregados:", data);
         setServices((data || []) as Service[]);
+        onServicesValidated((data || []).length > 0); // Update validation state
       }
     } catch (err) {
       console.error("loadServices: Erro inesperado em loadServices:", err);
       toast.error("Erro inesperado ao carregar serviços.");
       setServices([]);
+      onServicesValidated(false); // Update validation state
     } finally {
       console.log("loadServices: Finalizando carregamento de serviços. Setting loadingServices to false.");
       setLoadingServices(false);
@@ -72,34 +80,9 @@ export default function StepServices() {
       // Se o contexto carregou mas não há tenant.id, garante que o loadingServices seja false
       setLoadingServices(false);
       setServices([]);
+      onServicesValidated(false); // Update validation state
     }
-  }, [tenant?.id, userTenantLoading]);
-
-  /* ============================================================
-     🔥 VERIFICAR SE EXISTE SERVIÇO PARA CONTINUAR
-  ============================================================ */
-  async function checkIfHasServices() {
-    return services.length > 0;
-  }
-
-  const handleContinue = async () => {
-    console.log("handleContinue: profile?.professional_id =", profile?.professional_id);
-    if (!(await checkIfHasServices())) {
-      toast.warn("Cadastre pelo menos um serviço antes de continuar.");
-      return;
-    }
-
-    console.log("StepServices: Continuing to step 2 (Schedule). Current tenant onboarding_step:", tenant?.onboarding_step);
-    // Próximo step = Horários (index 2)
-    updateOnboardingStep(2);
-  };
-
-  /* ============================================================
-     🔙 VOLTAR (para o step 0 – boas-vindas)
-  ============================================================ */
-  function goBack() {
-    updateOnboardingStep(0);
-  }
+  }, [tenant?.id, userTenantLoading, onServicesValidated]); // Add onServicesValidated to dependencies
 
   /* ============================================================
      🔥 RENDERIZAÇÃO
@@ -139,23 +122,13 @@ export default function StepServices() {
       </div>
 
       {/* BOTÕES AÇÕES */}
-      <div className={styles.actions}>
-        <button className={styles.backButton} onClick={goBack}>
-          Voltar
-        </button>
-
-        <button
-          className={styles.primaryBtn}
-          onClick={() => setShowModal(true)}
-          // O botão não será desabilitado aqui, a lógica de associação é no modal
-        >
-          Cadastrar serviço
-        </button>
-
-        <button className={styles.secondaryBtn} onClick={handleContinue}>
-          Continuar
-        </button>
-      </div>
+      {/* The navigation buttons are now handled by OnboardingFixedNavigation */}
+      <button
+        className={styles.stepActionButton} // Apply new style
+        onClick={() => setShowModal(true)}
+      >
+        Cadastrar serviço
+      </button>
 
       {/* MODAL */}
       {tenant?.id && (

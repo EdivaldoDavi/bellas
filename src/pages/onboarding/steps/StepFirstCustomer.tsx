@@ -1,5 +1,5 @@
 // src/pages/onboarding/steps/StepFirstCustomer.tsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../../../lib/supabaseCleint";
 import { useUserTenant } from "../../../context/UserTenantProvider";
 import styles from "../Onboarding.module.css";
@@ -11,33 +11,32 @@ type Customer = {
   customer_phone: string | null;
 };
 
-export default function StepFirstCustomer() {
+interface StepFirstCustomerProps {
+  onCustomerValidated: (isValid: boolean) => void;
+}
+
+export default function StepFirstCustomer({ onCustomerValidated }: StepFirstCustomerProps) {
   const { tenant, updateOnboardingStep } = useUserTenant();
 
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [showModal, setShowModal] = useState(false);
-  const [canContinue, setCanContinue] = useState(false);
+  // const [canContinue, setCanContinue] = useState(false); // No longer needed here, managed by parent
 
   const handleClose = () => setShowModal(false);
 
-  const handleSuccess = async () => {
+  const handleSuccess = useCallback(async () => {
     await fetchCustomers();
-    setCanContinue(true);
-  };
-
-  function goBack() {
-    updateOnboardingStep(2);
-  }
-
-  function goNext() {
-    if (!canContinue) return;
-    updateOnboardingStep(4);
-  }
+    // setCanContinue(true); // No longer needed here
+  }, []); // Add fetchCustomers to dependencies if it's not stable
 
   async function fetchCustomers() {
-    if (!tenant?.id) return;
+    if (!tenant?.id) {
+      setCustomers([]);
+      onCustomerValidated(false); // Update validation state
+      return;
+    }
 
     setLoading(true);
 
@@ -49,7 +48,9 @@ export default function StepFirstCustomer() {
 
     if (!error && data) {
       setCustomers(data);
-      if (data.length > 0) setCanContinue(true);
+      onCustomerValidated(data.length > 0); // Update validation state
+    } else {
+      onCustomerValidated(false); // Update validation state
     }
 
     setLoading(false);
@@ -57,7 +58,7 @@ export default function StepFirstCustomer() {
 
   useEffect(() => {
     fetchCustomers();
-  }, [tenant?.id]);
+  }, [tenant?.id, onCustomerValidated]); // Add onCustomerValidated to dependencies
 
   return (
     <div className={styles.stepContainer}>
@@ -95,26 +96,13 @@ export default function StepFirstCustomer() {
       </div>
 
       {/* BOTÕES NA MESMA LINHA (PADRÃO) */}
-      <div className={styles.actions}>
-        <button className={styles.backButton} onClick={goBack}>
-          Voltar
-        </button>
-
-        <button
-          className={styles.primaryBtn}
-          onClick={() => setShowModal(true)}
-        >
-          Cadastrar cliente
-        </button>
-
-        <button
-          className={styles.secondaryBtn}
-          disabled={!canContinue}
-          onClick={goNext}
-        >
-          Continuar →
-        </button>
-      </div>
+      {/* The navigation buttons are now handled by OnboardingFixedNavigation */}
+      <button
+        className={styles.stepActionButton} // Apply new style
+        onClick={() => setShowModal(true)}
+      >
+        Cadastrar cliente
+      </button>
 
       {tenant?.id && (
         <ModalNewCustomer

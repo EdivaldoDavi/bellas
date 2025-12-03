@@ -1,6 +1,6 @@
 // src/pages/onboarding/steps/StepFirstAppointment.tsx
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../../../lib/supabaseCleint";
 import { useUserTenant } from "../../../context/UserTenantProvider";
 import styles from "../Onboarding.module.css";
@@ -12,7 +12,11 @@ type Appointment = {
   created_at: string;
 };
 
-export default function StepFirstAppointment() {
+interface StepFirstAppointmentProps {
+  onAppointmentValidated: (isValid: boolean) => void;
+}
+
+export default function StepFirstAppointment({ onAppointmentValidated }: StepFirstAppointmentProps) {
   const { tenant, updateOnboardingStep } = useUserTenant();
 
   const [showWizard, setShowWizard] = useState(false);
@@ -23,47 +27,32 @@ export default function StepFirstAppointment() {
   const [reloadFlag, setReloadFlag] = useState(0);
 
   /* ==========================
-     VOLTAR PARA STEP 3
-  ============================ */
-  function goBack() {
-    updateOnboardingStep(3);
-  }
-
-  /* ==========================
-     CONTINUAR (IR PARA STEP 5)
-  ============================ */
-  function goNext() {
-    if (appointments.length === 0) {
-      toast.error("Você precisa criar pelo menos um agendamento de teste.");
-      return;
-    }
-
-    updateOnboardingStep(5); // ✔ Vai para StepCongratulations
-  }
-
-  /* ==========================
      FECHAR MODAL DO WIZARD
   ============================ */
-  function handleWizardClose(reason?: "cancel" | "completed") {
-  setShowWizard(false);
+  const handleWizardClose = useCallback((reason?: "cancel" | "completed") => {
+    setShowWizard(false);
 
-  if (reason === "completed") {
-    // Recarrega lista de agendamentos
-    setReloadFlag((v) => v + 1);
+    if (reason === "completed") {
+      // Recarrega lista de agendamentos
+      setReloadFlag((v) => v + 1);
 
-    toast.success("Agendamento criado com sucesso!");
+      toast.success("Agendamento criado com sucesso!");
 
-    // ✅ NÃO AVANÇA AUTOMATICAMENTE
-    // Apenas recarrega a lista e deixa o botão "Continuar →" habilitar o próximo passo
-  }
-}
+      // ✅ NÃO AVANÇA AUTOMATICAMENTE
+      // Apenas recarrega a lista e deixa o botão "Continuar →" habilitar o próximo passo
+    }
+  }, []);
 
 
   /* ==========================
      CARREGAR AGENDAMENTOS
   ============================ */
   async function fetchAppointments() {
-    if (!tenant?.id) return;
+    if (!tenant?.id) {
+      setAppointments([]);
+      onAppointmentValidated(false); // Update validation state
+      return;
+    }
 
     setLoading(true);
 
@@ -76,15 +65,19 @@ export default function StepFirstAppointment() {
     if (error) {
       console.error(error);
       toast.error("Erro ao carregar agendamentos.");
+      setAppointments([]);
+      onAppointmentValidated(false); // Update validation state
+    } else {
+      setAppointments(data || []);
+      onAppointmentValidated((data || []).length > 0); // Update validation state
     }
 
-    setAppointments(data || []);
     setLoading(false);
   }
 
   useEffect(() => {
     fetchAppointments();
-  }, [tenant?.id, reloadFlag]);
+  }, [tenant?.id, reloadFlag, onAppointmentValidated]); // Add onAppointmentValidated to dependencies
 
   /* ==========================
      UTIL FORMATAR DATA
@@ -135,26 +128,14 @@ export default function StepFirstAppointment() {
         )}
       </div>
 
-      <div className={styles.actions}>
-        <button className={styles.backButton} onClick={goBack}>
-          Voltar
-        </button>
-
-        <button
-          className={styles.primaryBtn}
-          onClick={() => setShowWizard(true)}
-        >
-          Criar agendamento de teste
-        </button>
-
-        <button
-          className={styles.secondaryBtn}
-          onClick={goNext}
-          disabled={appointments.length === 0}
-        >
-          Continuar →
-        </button>
-      </div>
+      {/* BOTÕES */}
+      {/* The navigation buttons are now handled by OnboardingFixedNavigation */}
+      <button
+        className={styles.stepActionButton} // Apply new style
+        onClick={() => setShowWizard(true)}
+      >
+        Criar agendamento de teste
+      </button>
 
       {/* ==========================
          MODAL DO WIZARD
