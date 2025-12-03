@@ -1,7 +1,6 @@
-
 .container {
   padding: 0 1.5rem 1.5rem; /* Ajusta para que o layout principal controle o padding-top */
-  max-width: 600px;
+  /* REMOVIDO: max-width: 600px; */ /* Removido para permitir que o container use mais largura no mobile */
   margin: 0 auto; /* Centraliza o conteúdo */
   color: var(--text);
 }
@@ -18,13 +17,7 @@
   color: var(--text-muted);
 }
 
-.card {
-  background: var(--card-bg, #fff);
-  padding: 1.5rem;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  border: 1px solid var(--separator);
-}
+/* REMOVIDO: .card - esta classe não é mais necessária aqui */
 
 .hint {
   margin-top: 0.75rem;

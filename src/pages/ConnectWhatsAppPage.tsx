@@ -2,6 +2,7 @@ import { useUserAndTenant } from "../hooks/useUserAndTenant";
 import { useEvolutionConnection } from "../hooks/useEvolutionConnection";
 import QRCodeDisplay from "./QRCodeDisplay";
 import N8nPauseButton from "../components/N8nPauseButton";
+import styles from "../css/ConnectWhatsApp.module.css"; // Importar o CSS
 
 export default function ConnectWhatsAppPage() {
   const { tenant, subscription, loading } = useUserAndTenant();
@@ -49,66 +50,47 @@ console.log("TENANT:", tenant);
 console.log("SUBSCRIPTION:", subscription);
 
   return (
-    <div style={{ padding: "1.5rem", maxWidth: 600 }}>
-      <h2>Integração WhatsApp</h2>
+    <div className={styles.container}> {/* Usando a classe CSS aqui */}
+      <h2 className={styles.title}>Integração WhatsApp</h2>
 
-      <p>
+      <p className={styles.description}>
         Conecte o WhatsApp para habilitar automações, confirmações e mensagens
         inteligentes via IA.
       </p>
 
-      <div
-        style={{
-          background: "var(--card-bg, #fff)",
-          padding: "1.5rem",
-          borderRadius: "16px",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-        }}
-      >
-        {/* 🔵 QRCode agora recebe status e handlers do HOOK ÚNICO */}
-        <QRCodeDisplay
-          instanceId={instanceId}
-          status={status}
-          qr={qrBase64}
-          loading={evoLoading}
-          autoStart={false}
-          onStart={start}
-          onRefresh={refresh}
-          onLogout={logout}
+      {/* O QRCodeDisplay agora é o card principal da página */}
+      <QRCodeDisplay
+        instanceId={instanceId}
+        status={status}
+        qr={qrBase64}
+        loading={evoLoading}
+        autoStart={false}
+        onStart={start}
+        onRefresh={refresh}
+        onLogout={logout}
+      />
+
+      <div style={{ height: "1rem" }} />
+
+      {/* 🔵 Botão Pausar/Retomar Atendimento */}
+      {shouldShowPauseButton ? (
+        <N8nPauseButton
+          subscriptionId={subscription!.id}
+          initialState={subscription!.n8n_pause}
         />
-
-        <div style={{ height: "1rem" }} />
-
-        {/* 🔵 Botão Pausar/Retomar Atendimento */}
-        {shouldShowPauseButton ? (
-          <N8nPauseButton
-            subscriptionId={subscription!.id}
-            initialState={subscription!.n8n_pause}
-          />
-        ) : subscription ? (
-          <div
-            style={{
-              marginTop: "0.75rem",
-              opacity: 0.7,
-              fontSize: "0.9rem",
-              textAlign: "center",
-            }}
-          >
-            Conecte o WhatsApp para habilitar o controle de atendimento.
-          </div>
-        ) : (
-          <div
-            style={{
-              marginTop: "0.75rem",
-              opacity: 0.7,
-              fontSize: "0.9rem",
-              textAlign: "center",
-            }}
-          >
-            Associe um plano de assinatura para ativar o controle de atendimento.
-          </div>
-        )}
-      </div>
+      ) : subscription ? (
+        <div
+          className={styles.hint} // Usando a classe CSS aqui
+        >
+          Conecte o WhatsApp para habilitar o controle de atendimento.
+        </div>
+      ) : (
+        <div
+          className={styles.hint} // Usando a classe CSS aqui
+        >
+          Associe um plano de assinatura para ativar o controle de atendimento.
+        </div>
+      )}
     </div>
   );
 }

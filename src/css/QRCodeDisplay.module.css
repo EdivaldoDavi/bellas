@@ -4,13 +4,14 @@
 .container {
   display: flex;
   justify-content: center;
-  padding: 2rem;
+  padding: 0; /* Removido padding excessivo aqui */
 }
 
 .card {
   background: var(--bg, #121212);
-  padding: 2rem;
-  width: 420px;
+  padding: 1.5rem; /* Reduzido o padding para ser mais responsivo */
+  width: 100%; /* Alterado para 100% */
+  max-width: 420px; /* Adicionado max-width */
   border-radius: 20px;
   box-shadow: 0 0 30px rgba(0,0,0,.35);
   animation: fadeIn .4s ease;
@@ -62,8 +63,9 @@
 }
 
 .qr {
-  width: 260px;
-  height: 260px;
+  width: 100%; /* Agora ocupa 100% da largura do pai */
+  max-width: 260px; /* Mantém um tamanho máximo para não ficar gigante em desktop */
+  height: auto; /* Altura automática para manter proporção */
   border-radius: 16px;
   padding: 12px;
   background: var(--card-bg, #fff); /* Use CSS variable */
@@ -218,23 +220,26 @@
 
 /* Tablet */
 @media (max-width: 992px) {
-  .card { width: 100%; padding: 1.8rem; }
-  .qr { width: 230px; height: 230px; }
+  .card {
+    padding: 1.8rem;
+    max-width: 100%; /* Permite que o card ocupe 100% da largura em tablets */
+  }
+  .qr { width: 100%; max-width: 230px; } /* QR code também responsivo */
   .connectedIllustration img { width: 80px; height: 80px; }
 }
 
 /* Mobile */
 @media (max-width: 768px) {
-  .container { padding: 1rem; }
-  .card { padding: 1.5rem; border-radius: 16px; }
+  .container { padding: 0.5rem; } /* Reduzido padding do container principal */
+  .card { padding: 1rem; border-radius: 16px; } /* Reduzido padding do card interno */
   .title { font-size: 1.45rem; }
-  .qr { width: 200px; height: 200px; }
+  .qr { width: 100%; max-width: 200px; } /* QR code também responsivo */
   .connectedIllustration img { width: 70px; height: 70px; }
 }
 
 /* Mobile pequeno */
 @media (max-width: 480px) {
   .title { font-size: 1.3rem; }
-  .qr { width: 170px; height: 170px; }
+  .qr { width: 100%; max-width: 170px; } /* QR code também responsivo */
   .connectedIllustration img { width: 60px; height: 60px; }
 }
