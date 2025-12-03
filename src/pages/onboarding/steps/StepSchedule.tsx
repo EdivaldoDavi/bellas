@@ -17,62 +17,21 @@ interface StepScheduleProps {
 }
 
 export default function StepSchedule({ onScheduleValidated }: StepScheduleProps) {
-  const { tenant, profile /*, updateOnboardingStep */ } = useUserTenant(); // Removido updateOnboardingStep
+  const { tenant, profile } = useUserTenant();
   const tenantId = tenant?.id;
   const userId = profile?.user_id;
 
   const [showModal, setShowModal] = useState(false);
-  // const [loadingCheck, setLoadingCheck] = useState(false); // Removido loadingCheck e setLoadingCheck
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [loadingProfessionals, setLoadingProfessionals] = useState(true);
 
   /* ============================================================
-     🔥 CARREGAR PROFISSIONAIS
-  ============================================================ */
-  async function loadProfessionals() {
-    if (!tenantId) {
-      setProfessionals([]);
-      setLoadingProfessionals(false);
-      onScheduleValidated(false); // Update validation state
-      return;
-    }
-    setLoadingProfessionals(true);
-
-    const { data, error } = await supabase
-      .from("professionals")
-      .select("id,name,is_active")
-      .eq("tenant_id", tenantId)
-      .order("name", { ascending: true });
-
-    if (error) {
-      console.error("Erro ao carregar profissionais:", error);
-      toast.error("Erro ao carregar profissionais.");
-      setProfessionals([]);
-      onScheduleValidated(false); // Update validation state
-    } else {
-      setProfessionals((data || []) as Professional[]);
-      // Perform validation immediately after loading professionals
-      await validateProfessionalData(); // currentProfessionals agora é passado como argumento
-    }
-
-    setLoadingProfessionals(false);
-  }
-
-  useEffect(() => {
-    loadProfessionals();
-  }, [tenantId]);
-
-  /* ============================================================
      ✅ VALIDAR DADOS DO PROFISSIONAL (para habilitar o 'Continuar')
   ============================================================ */
-  const validateProfessionalData = useCallback(async () => { // Removido currentProfessionals do argumento
-    console.log("--- StepSchedule: Iniciando validação interna ---");
-    console.log("Tenant ID:", tenantId);
-    console.log("User ID:", userId);
-    console.log("Profile:", profile);
-
+  const validateProfessionalData = useCallback(async () => {
+    console.log("StepSchedule: validateProfessionalData called.");
     if (!tenantId || !userId) {
-      console.warn("StepSchedule validateProfessionalData: Missing tenantId or userId.");
+      console.warn("StepSchedule: validateProfessionalData - Missing tenantId or userId. Validation failed.");
       onScheduleValidated(false);
       return false;
     }
@@ -84,21 +43,21 @@ export default function StepSchedule({ onScheduleValidated }: StepScheduleProps)
         .select("id")
         .eq("tenant_id", tenantId)
         .eq("user_id", userId)
-        .single();
+        .maybeSingle(); // Use maybeSingle to avoid throwing if not found
 
       if (profFetchError) {
-        console.error("StepSchedule validateProfessionalData: Erro ao buscar profissional:", profFetchError);
+        console.error("StepSchedule: validateProfessionalData - Erro ao buscar profissional:", profFetchError);
         onScheduleValidated(false);
         return false;
       }
       if (!prof) {
-        console.error("StepSchedule validateProfessionalData: Profissional não encontrado para user_id:", userId);
+        console.warn("StepSchedule: validateProfessionalData - Profissional não encontrado para user_id:", userId);
         onScheduleValidated(false);
         return false;
       }
 
       const professionalId = prof.id;
-      console.log("StepSchedule validateProfessionalData: Professional ID encontrado:", professionalId);
+      console.log("StepSchedule: validateProfessionalData - Professional ID encontrado:", professionalId);
 
       // 2. Verificar se o profissional tem serviços associados
       const { count: serviceCount, error: serviceCountError } = await supabase
@@ -108,13 +67,14 @@ export default function StepSchedule({ onScheduleValidated }: StepScheduleProps)
         .eq("professional_id", professionalId);
 
       if (serviceCountError) {
-        console.error("StepSchedule validateProfessionalData: Erro ao verificar contagem de serviços:", serviceCountError);
+        console.error("StepSchedule: validateProfessionalData - Erro ao verificar contagem de serviços:", serviceCountError);
         onScheduleValidated(false);
         return false;
       }
 
-      console.log("StepSchedule validateProfessionalData: Contagem de serviços para o profissional:", serviceCount);
+      console.log("StepSchedule: validateProfessionalData - Contagem de serviços para o profissional:", serviceCount);
       if (!serviceCount || serviceCount === 0) {
+        console.warn("StepSchedule: validateProfessionalData - Nenhum serviço associado ao profissional.");
         onScheduleValidated(false);
         return false;
       }
@@ -127,35 +87,67 @@ export default function StepSchedule({ onScheduleValidated }: StepScheduleProps)
         .eq("professional_id", professionalId);
 
       if (scheduleCountError) {
-        console.error("StepSchedule validateProfessionalData: Erro ao verificar contagem de horários:", scheduleCountError);
+        console.error("StepSchedule: validateProfessionalData - Erro ao verificar contagem de horários:", scheduleCountError);
         onScheduleValidated(false);
         return false;
       }
 
-      console.log("StepSchedule validateProfessionalData: Contagem de horários para o profissional:", scheduleCount);
+      console.log("StepSchedule: validateProfessionalData - Contagem de horários para o profissional:", scheduleCount);
       if (!scheduleCount || scheduleCount === 0) {
+        console.warn("StepSchedule: validateProfessionalData - Nenhum horário definido para o profissional.");
         onScheduleValidated(false);
         return false;
       }
 
       // Tudo certo
-      console.log("StepSchedule validateProfessionalData: Validação bem-sucedida.");
+      console.log("StepSchedule: validateProfessionalData - Validação bem-sucedida. onScheduleValidated(true) called.");
       onScheduleValidated(true);
       return true;
     } catch (err) {
-      console.error("StepSchedule validateProfessionalData: Erro geral na validação:", err);
+      console.error("StepSchedule: validateProfessionalData - Erro geral na validação:", err);
       onScheduleValidated(false);
       return false;
     }
-  }, [tenantId, userId, profile, onScheduleValidated]);
+  }, [tenantId, userId, onScheduleValidated]); // Removed `profile` from dependencies as `userId` is sufficient and more stable.
+
+  /* ============================================================
+     🔥 CARREGAR PROFISSIONAIS
+  ============================================================ */
+  const loadProfessionals = useCallback(async () => {
+    console.log("StepSchedule: loadProfessionals called.");
+    if (!tenantId) {
+      console.log("StepSchedule: loadProfessionals - No tenantId, skipping fetch.");
+      setProfessionals([]);
+      setLoadingProfessionals(false);
+      onScheduleValidated(false);
+      return;
+    }
+    setLoadingProfessionals(true);
+
+    const { data, error } = await supabase
+      .from("professionals")
+      .select("id,name,is_active")
+      .eq("tenant_id", tenantId)
+      .order("name", { ascending: true });
+
+    if (error) {
+      console.error("StepSchedule: Erro ao carregar profissionais:", error);
+      toast.error("Erro ao carregar profissionais.");
+      setProfessionals([]);
+      onScheduleValidated(false);
+    } else {
+      console.log("StepSchedule: Profissionais carregados:", data);
+      setProfessionals((data || []) as Professional[]);
+      // Call validation after professionals are loaded
+      await validateProfessionalData();
+    }
+    setLoadingProfessionals(false);
+    console.log("StepSchedule: loadProfessionals finished.");
+  }, [tenantId, onScheduleValidated, validateProfessionalData]); // Added validateProfessionalData to dependencies
 
   useEffect(() => {
-    if (!loadingProfessionals && professionals.length > 0) {
-      validateProfessionalData();
-    } else if (!loadingProfessionals && professionals.length === 0) {
-      onScheduleValidated(false);
-    }
-  }, [loadingProfessionals, professionals, validateProfessionalData, onScheduleValidated]);
+    loadProfessionals();
+  }, [loadProfessionals]); // Depend on the memoized loadProfessionals
 
 
   /* ============================================================
@@ -187,16 +179,18 @@ export default function StepSchedule({ onScheduleValidated }: StepScheduleProps)
           <ul className={styles.professionalsList}>
             {professionals.map((p) => (
               <li key={p.id} className={styles.professionalItem}>
-                <span>{p.name}</span>
-                <span
-                  className={
-                    p.is_active
-                      ? styles.statusBadgeActive
-                      : styles.statusBadgeInactive
-                  }
-                >
-                  {p.is_active ? "Ativo" : "Inativo"}
-                </span>
+                <div className={styles.professionalNameAndStatus}> {/* Novo wrapper */}
+                  <span>{p.name}</span>
+                  <span
+                    className={
+                      p.is_active
+                        ? styles.statusBadgeActive
+                        : styles.statusBadgeInactive
+                    }
+                  >
+                    {p.is_active ? "Ativo" : "Inativo"}
+                  </span>
+                </div>
               </li>
             ))}
           </ul>

@@ -10,7 +10,7 @@ import { toast } from "react-toastify";
 import ModalNewCustomer from "../components/ModalNewCustomer";
 import styles from "../css/ClientesPage.module.css";
 
-import CopyButton from "../components/CopyButton";
+// import CopyButton from "../components/CopyButton"; // REMOVIDO
 import { dbPhoneToMasked, onlyDigits } from "../utils/phoneUtils";
 
 type Customer = {
@@ -197,7 +197,7 @@ export default function ClientesPage() {
                       <div className={styles.actionIcons}>
                         {c.customer_phone && (
                           <>
-                            <CopyButton value={onlyDigits(c.customer_phone ?? "")} />
+                            {/* <CopyButton value={onlyDigits(c.customer_phone ?? "")} /> */} {/* REMOVIDO */}
                             <button
                               className={styles.iconButton}
                               onClick={(e) => {

@@ -322,3 +322,106 @@
     font-size: 1.05rem;
   }
 }
+
+/* ===========================================================
+   NOVOS ESTILOS PARA LISTA DE PROFISSIONAIS (StepSchedule)
+=========================================================== */
+.professionalsListWrapper {
+  margin-top: 18px;
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+.professionalsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.professionalItem {
+  background: var(--card-alt-bg);
+  padding: 16px 18px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid rgba(0,0,0,0.05);
+  transition: 0.2s ease;
+}
+
+.professionalItem:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.professionalNameAndStatus { /* NOVO: Wrapper para nome e status */
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Espaçamento entre nome e status */
+}
+
+.statusBadgeActive {
+  background: rgba(34,197,94,0.15); /* Verde claro */
+  color: #15803d; /* Verde escuro */
+  font-size: 0.8rem;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.statusBadgeInactive {
+  background: rgba(220,53,69,0.15); /* Vermelho claro */
+  color: #dc3545; /* Vermelho escuro */
+  font-size: 0.8rem;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.servicesLabel {
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 10px;
+  display: block;
+}
+
+.emptyText {
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 10px 0;
+  text-align: center;
+}
+
+.stepActionButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+
+  padding: 10px 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+
+  cursor: pointer;
+  width: auto;
+  max-width: max-content;
+  flex-shrink: 0;
+  
+  box-shadow: 0 3px 12px color-mix(in srgb, var(--color-primary) 35%, transparent);
+  transition: all 0.25s ease;
+  margin-top: 1rem; /* Adicionado para separar do conteúdo acima */
+}
+
+.stepActionButton:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+}
