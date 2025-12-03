@@ -257,13 +257,7 @@ navigate("/dashboard", { replace: true });
             {saving ? "Salvando..." : "Salvar nova senha"}
           </button>
 
-          <button
-            type="button"
-            className={styles.secondaryButton}
-            onClick={() => setShowPassword((v) => !v)}
-          >
-            {showPassword ? "Ocultar senha" : "Ver senha digitada"}
-          </button>
+       
         </form>
       </div>
     </div>

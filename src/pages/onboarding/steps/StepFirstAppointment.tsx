@@ -45,18 +45,19 @@ export default function StepFirstAppointment() {
      FECHAR MODAL DO WIZARD
   ============================ */
   function handleWizardClose(reason?: "cancel" | "completed") {
-    setShowWizard(false);
+  setShowWizard(false);
 
-    if (reason === "completed") {
-      // Recarrega lista de agendamentos
-      setReloadFlag((v) => v + 1);
+  if (reason === "completed") {
+    // Recarrega lista de agendamentos
+    setReloadFlag((v) => v + 1);
 
-      toast.success("Agendamento criado com sucesso!");
+    toast.success("Agendamento criado com sucesso!");
 
-      // ✔ Agora avançamos para o Step 5 AUTOMATICAMENTE
-      updateOnboardingStep(5);
-    }
+    // ✅ NÃO AVANÇA AUTOMATICAMENTE
+    // Apenas recarrega a lista e deixa o botão "Continuar →" habilitar o próximo passo
   }
+}
+
 
   /* ==========================
      CARREGAR AGENDAMENTOS
