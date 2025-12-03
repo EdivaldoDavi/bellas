@@ -17,26 +17,6 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
 
   const headerElementRef = useRef<HTMLDivElement>(null);
 
-  // Novos estados locais para exibição
-  const [displayUserName, setDisplayUserName] = useState("");
-  const [displayUserRole, setDisplayUserRole] = useState("");
-  const [displayAvatarUrl, setDisplayAvatarUrl] = useState("");
-
-  // Efeito para atualizar os estados locais quando o perfil do contexto muda
-  useEffect(() => {
-    console.log("Header.tsx useEffect: profile changed!", profile); // DEBUG LOG
-    if (!profileLoading && profile) {
-      setDisplayUserName(profile.full_name.split(" ")[0]);
-      setDisplayUserRole(profile.role || "");
-      setDisplayAvatarUrl(profile.avatar_url || "https://i.pravatar.cc/40");
-    } else if (!profileLoading && !profile) {
-      // Limpa os estados se o perfil se tornar nulo (ex: logout)
-      setDisplayUserName("");
-      setDisplayUserRole("");
-      setDisplayAvatarUrl("");
-    }
-  }, [profile, profileLoading]);
-
   // Calcula a saudação baseada na hora atual (memoizado para eficiência)
   const timeBasedGreeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -65,8 +45,13 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
     await logout();
   };
 
-  // Usa os estados locais para a verificação de carregamento
-  const isLoadingDisplay = profileLoading || !displayUserName;
+  // Derivar diretamente do profile
+  const userName = profile?.full_name?.split(" ")[0] || "";
+  const userRole = profile?.role || "";
+  const avatarUrl = profile?.avatar_url || "https://i.pravatar.cc/40";
+
+  // A lógica de carregamento agora é mais simples
+  const isLoadingDisplay = profileLoading || !profile;
 
   return (
     <header ref={headerElementRef} className={styles.header}>
@@ -74,7 +59,7 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
       <div className={styles.leftSection}>
         {!isLoadingDisplay ? (
           <div className={styles.greeting}>
-            {timeBasedGreeting}, {displayUserName}!
+            {timeBasedGreeting}, {userName}!
           </div>
         ) : (
           <div className={styles.greetingSkeleton}></div>
@@ -112,10 +97,10 @@ export default function Header({ toggleSidebar }: { toggleSidebar: () => void })
             </div>
           ) : (
             <>
-              <img src={displayAvatarUrl} className={styles.avatar} alt="Avatar do usuário" />
+              <img src={avatarUrl} className={styles.avatar} alt="Avatar do usuário" />
               <div className={styles.userInfo}>
-                <div className={styles.userName}>{displayUserName}</div>
-                <div className={styles.userRole}>{displayUserRole}</div>
+                <div className={styles.userName}>{userName}</div>
+                <div className={styles.userRole}>{userRole}</div>
               </div>
             </>
           )}
