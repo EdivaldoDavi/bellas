@@ -5,9 +5,23 @@ import styles from "../Onboarding.module.css";
 export default function StepWelcome() {
   const { updateOnboardingStep, tenant } = useUserTenant();
 
-  function start() {
-    // Aqui podemos simplesmente mandar para o step 1
-    updateOnboardingStep(1);
+  console.log("🟦 StepWelcome — tenant recebido:", tenant);
+  console.log("🟩 StepWelcome — tenant.id:", tenant?.id);
+  console.log("🟧 StepWelcome — onboarding_step atual:", tenant?.onboarding_step);
+
+  async function start() {
+    console.log("▶️ Clicou em Bora Começar!!!");
+
+    if (!tenant?.id) {
+      console.log("❌ ERRO: tenant.id está indefinido.");
+      return;
+    }
+
+    console.log("🔼 Atualizando onboarding_step para 1...");
+
+    await updateOnboardingStep(1);
+
+    console.log("✅ updateOnboardingStep(1) chamado com sucesso!");
   }
 
   return (
