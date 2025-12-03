@@ -8,15 +8,20 @@ interface Props {
 }
 
 /**
- * Guard responsável APENAS por:
- *  - Levar o usuário para /setup quando ele PRECISA configurar um salão
- *  - Não interferir em:
- *    - /force-reset
- *    - /setup (wizard em andamento)
- *    - fluxo de convite (profile.invited)
+ * 🚦 SetupRedirectGuard (versão corrigida)
+ *
+ * Regras:
+ * - Se o usuário ainda está no onboarding (onboarding_step < 5):
+ *     → Sempre mandar para /setup
+ *
+ * - EXCEÇÕES (não redireciona):
+ *     → /force-reset
+ *     → convites
+ *     → carregamento
+ *     → /setup (já está dentro do wizard)
  */
 export function SetupRedirectGuards({ children }: Props) {
-  const { needsSetup, loading, profile } = useUserTenant();
+  const { tenant, profile, loading } = useUserTenant();
   const { loading: authLoading } = useAuth();
   const location = useLocation();
 
@@ -24,33 +29,50 @@ export function SetupRedirectGuards({ children }: Props) {
   const isSetupRoute = path.startsWith("/setup");
   const isForceReset = path === "/force-reset";
 
-  // 1) Nunca bloquear tela de force-reset
+  // --------------------------
+  // ⛔ 1. Nunca interceptar /force-reset
+  // --------------------------
   if (isForceReset) {
     return <>{children}</>;
   }
 
-  // 2) Convite não entra em fluxo de setup obrigatório
+  // --------------------------
+  // ⛔ 2. Usuário convidado não faz setup
+  // --------------------------
   if ((profile as any)?.invited) {
     return <>{children}</>;
   }
 
-  // 3) Enquanto auth / contexto estiver carregando, não decide nada
+  // --------------------------
+  // ⏳ 3. Enquanto carregando, não decide
+  // --------------------------
   if (loading || authLoading) {
     return <>{children}</>;
   }
 
-  // 4) Se já está em /setup, NUNCA redireciona
-  //    (deixa o wizard controlar os steps internos, ex.: Empresa / WhatsApp)
+  // --------------------------
+  // ✔ 4. Está dentro do /setup? Permite continuar
+  // --------------------------
   if (isSetupRoute) {
     return <>{children}</>;
   }
 
-  // 5) Fora do /setup:
-  //    Se precisa de setup, manda para /setup
-  if (needsSetup) {
-    return <Navigate to="/setup" replace />;
+  // --------------------------
+  // 🎯 5. Regra REAL do fluxo de setup:
+  // Se o tenant existe e não terminou onboarding (step < 5)
+  // → Redirecionar para /setup
+  // --------------------------
+  if (tenant && typeof tenant.onboarding_step === "number") {
+    if (tenant.onboarding_step < 5) {
+      console.log(
+        "➡️ SetupRedirectGuard: Usuário ainda no onboarding. Redirecionando para /setup"
+      );
+      return <Navigate to="/setup" replace />;
+    }
   }
 
-  // 6) Caso normal → só renderiza
+  // --------------------------
+  // ✔ 6. Caso normal → segue fluxo
+  // --------------------------
   return <>{children}</>;
 }
