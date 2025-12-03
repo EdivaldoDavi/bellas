@@ -5,7 +5,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: var(--bg, #f5f5f5);
+  background: var(--bg, #f5f5f5de);
   padding: 1.5rem;
 }
 
