@@ -246,25 +246,6 @@ export function useUserAndTenant() {
     if (!profile) return null;
     return { ...profile, professional_id: internalProfessionalId };
   }, [profile, internalProfessionalId]);
-const refreshTenant = useCallback(async () => {
-  if (!profile?.tenant_id) {
-    setTenant(null);
-    return;
-  }
-
-  const { data, error } = await supabase
-    .from("tenants")
-    .select("*")
-    .eq("id", profile.tenant_id)
-    .maybeSingle();
-
-  if (error) {
-    console.error("Erro ao carregar tenant:", error);
-    return;
-  }
-
-  setTenant(data);
-}, [profile?.tenant_id]);
 
   return {
   loading,
@@ -279,10 +260,9 @@ const refreshTenant = useCallback(async () => {
   needsSetup,
 
   refreshProfile,
-  refreshTenant,  // CORRETO
+  refreshTenant: refreshProfile,  // <-- remove o refreshTenant duplicado
   reloadAll: async () => {
     await refreshProfile();
-    await refreshTenant();
   }
 };
 };
