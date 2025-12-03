@@ -3,24 +3,29 @@
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,.6);
-  /* Removido display: flex, justify-content, align-items */
+  display: flex; /* Adicionado: Torna o overlay um contêiner flexível */
+  justify-content: center; /* Adicionado: Centraliza horizontalmente */
+  align-items: center; /* Adicionado: Centraliza verticalmente */
   z-index: 9999; /* Aumentado para ficar acima da navegação fixa do onboarding */
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
 
-/* Modal ocupa toda a tela (mobile-first) */
+/* Modal (o card real que será centralizado) */
 .modal {
-  position: fixed; /* Make it fixed to the viewport */
-  inset: 0; /* Cover the entire viewport */
-  width: 100%;
-  height: 100%;
+  /* REMOVIDO: position: fixed; inset: 0; width: 100%; height: 100%; */
+  width: 95%; /* Largura responsiva */
+  max-width: 520px; /* Largura máxima para desktop */
+  max-height: 90vh; /* Altura máxima para desktop */
+  overflow-y: auto; /* Permite rolagem se o conteúdo exceder */
   background: var(--bg);
   color: var(--text);
   display: flex;
   flex-direction: column;
-  z-index: 10000; /* Ensure it's above the overlay */
-  animation: fadeIn .2s ease; /* Keep existing animation */
+  border-radius: 16px; /* Cantos arredondados para o card */
+  box-shadow: 0 12px 40px rgba(0,0,0,.35); /* Sombra para o card */
+  animation: fadeIn .2s ease; /* Mantém a animação existente */
+  z-index: 10000; /* Garante que fique acima do overlay */
 }
 
 /* Header */
@@ -619,10 +624,11 @@
 
 /* Responsivo */
 @media (min-width: 768px) {
+  /* No desktop, o modal é um card centralizado */
   .modal {
-    height: 90%;
+    height: auto; /* Altura se ajusta ao conteúdo */
     max-width: 520px;
-    border-radius: 16px 16px 0 0;
+    border-radius: 16px; /* Mantém o border-radius de card */
   }
   .reviewCard {
     padding: 16px;
@@ -654,4 +660,15 @@
   }
   .helperLabel { font-size: .74rem; }
   .helperValue { font-size: .95rem; }
+}
+
+/* Para mobile, o modal volta a ser tela cheia */
+@media (max-width: 767px) {
+  .modal {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    border-radius: 0; /* Remove border-radius para tela cheia */
+  }
 }
