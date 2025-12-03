@@ -62,6 +62,9 @@ export default function ModalNewService({
   useEffect(() => {
     if (!show) return;
 
+    console.log("ModalNewService useEffect: show=", show, "isFromOnboarding=", isFromOnboarding, "profile.professional_id=", profile?.professional_id);
+
+
     if (!tenantId) {
       toast.error("Tenant inválido.");
       return;
@@ -113,8 +116,10 @@ export default function ModalNewService({
           
           // 🔥 NOVO: Se for do onboarding, pré-seleciona o profissional do usuário logado
           if (isFromOnboarding && profile?.professional_id) {
+            console.log("ModalNewService: Setting selectedProfessionalIds to", [profile.professional_id]);
             setSelectedProfessionalIds([profile.professional_id]);
           } else {
+            console.log("ModalNewService: Not setting professional_id automatically (isFromOnboarding:", isFromOnboarding, "profile.professional_id:", profile?.professional_id, ")");
             setSelectedProfessionalIds([]);
           }
         }
@@ -229,7 +234,11 @@ export default function ModalNewService({
       let finalProfessionalIds = selectedProfessionalIds;
       if (isFromOnboarding && profile?.professional_id) {
         finalProfessionalIds = [profile.professional_id];
+        console.log("ModalNewService handleSave: Overriding finalProfessionalIds for onboarding to", finalProfessionalIds);
+      } else {
+        console.log("ModalNewService handleSave: Using selectedProfessionalIds (from checkboxes)=", selectedProfessionalIds);
       }
+
 
       const { error: delErr } = await supabase
         .from("professional_services")
@@ -251,6 +260,10 @@ export default function ModalNewService({
           .insert(rows);
 
         if (insErr) throw insErr;
+        console.log("ModalNewService handleSave: Successfully inserted professional_services for serviceId=", serviceId, "and professionalIds=", finalProfessionalIds);
+
+      } else {
+        console.warn("ModalNewService handleSave: No professional IDs to insert for serviceId=", serviceId);
       }
 
       /* ===========================================================

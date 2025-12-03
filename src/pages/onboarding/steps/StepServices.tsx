@@ -16,7 +16,7 @@ type Service = {
 };
 
 export default function StepServices() {
-  const { updateOnboardingStep, tenant } = useUserTenant();
+  const { updateOnboardingStep, tenant, profile, loading: userTenantLoading } = useUserTenant();
   const [showModal, setShowModal] = useState(false);
   const [services, setServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(true);
@@ -38,17 +38,20 @@ export default function StepServices() {
     if (error) {
       console.error("Erro ao carregar serviços:", error);
       toast.error("Erro ao carregar serviços.");
-      setLoadingServices(false);
-      return;
+      setServices([]);
+    } else {
+      setServices((data || []) as Service[]);
     }
 
-    setServices((data || []) as Service[]);
     setLoadingServices(false);
   }
 
   useEffect(() => {
-    loadServices();
-  }, [tenant?.id]);
+    console.log("StepServices useEffect: tenant.id=", tenant?.id, "profile.professional_id=", profile?.professional_id, "userTenantLoading=", userTenantLoading);
+    if (tenant?.id && profile?.professional_id) {
+      loadServices();
+    }
+  }, [tenant?.id, profile?.professional_id, userTenantLoading]); // Adicionado profile?.professional_id e userTenantLoading como dependências
 
   /* ============================================================
      🔥 VERIFICAR SE EXISTE SERVIÇO PARA CONTINUAR
@@ -63,6 +66,7 @@ export default function StepServices() {
       return;
     }
 
+    console.log("StepServices: Continuing to step 2 (Schedule). Current tenant onboarding_step:", tenant?.onboarding_step);
     // Próximo step = Horários (index 2)
     updateOnboardingStep(2);
   };
@@ -77,6 +81,9 @@ export default function StepServices() {
   /* ============================================================
      🔥 RENDERIZAÇÃO
   ============================================================ */
+  const canAddService = !userTenantLoading && !!profile?.professional_id;
+  console.log("StepServices: canAddService=", canAddService);
+
   return (
     <div className={styles.stepContainer}>
       <h2 className={styles.stepTitle}>Cadastre seus serviços principais</h2>
@@ -120,6 +127,7 @@ export default function StepServices() {
         <button
           className={styles.primaryBtn}
           onClick={() => setShowModal(true)}
+          disabled={!canAddService} // Desabilita se não puder adicionar serviço
         >
           Cadastrar serviço
         </button>
@@ -140,6 +148,7 @@ export default function StepServices() {
           onSuccess={() => {
             setShowModal(false);
             loadServices(); // 🔥 Recarrega lista
+            console.log("StepServices: ModalNewService closed, reloading services.");
           }}
         />
       )}

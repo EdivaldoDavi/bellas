@@ -61,32 +61,51 @@ export default function StepSchedule() {
      ✅ VALIDAR E CONTINUAR
   ============================================================ */
   async function validateAndContinue() {
-    if (!tenantId || !userId) return;
+    if (!tenantId || !userId) {
+      console.warn("StepSchedule validateAndContinue: Missing tenantId or userId.");
+      return;
+    }
 
     setLoadingCheck(true);
 
     try {
-      const { data: prof } = await supabase
+      const { data: prof, error: profFetchError } = await supabase
         .from("professionals")
         .select("id")
         .eq("tenant_id", tenantId)
         .eq("user_id", userId)
-        .single();
+        .single(); // This assumes a professional entry exists for the user
 
+      if (profFetchError) {
+        console.error("StepSchedule validateAndContinue: Error fetching professional:", profFetchError);
+        toast.error("Erro ao buscar profissional.");
+        setLoadingCheck(false);
+        return;
+      }
       if (!prof) {
+        console.error("StepSchedule validateAndContinue: Professional not found for user_id:", userId);
         toast.error("Profissional não encontrado.");
         setLoadingCheck(false);
         return;
       }
 
       const professionalId = prof.id;
+      console.log("StepSchedule validateAndContinue: Found professionalId=", professionalId, "for userId=", userId);
 
-      const { count: serviceCount } = await supabase
+      const { count: serviceCount, error: serviceCountError } = await supabase
         .from("professional_services")
         .select("id", { count: "exact", head: true })
         .eq("tenant_id", tenantId)
         .eq("professional_id", professionalId);
 
+      if (serviceCountError) {
+        console.error("StepSchedule validateAndContinue: Error fetching service count:", serviceCountError);
+        toast.error("Erro ao verificar serviços do profissional.");
+        setLoadingCheck(false);
+        return;
+      }
+
+      console.log("StepSchedule validateAndContinue: Service count for professionalId=", professionalId, "is", serviceCount);
       if (!serviceCount || serviceCount === 0) {
         toast.warn(
           "Você deve selecionar ao menos 1 serviço para o profissional selecionado."
@@ -95,12 +114,20 @@ export default function StepSchedule() {
         return;
       }
 
-      const { count: scheduleCount } = await supabase
+      const { count: scheduleCount, error: scheduleCountError } = await supabase
         .from("professional_schedules")
         .select("id", { count: "exact", head: true })
         .eq("tenant_id", tenantId)
         .eq("professional_id", professionalId);
 
+      if (scheduleCountError) {
+        console.error("StepSchedule validateAndContinue: Error fetching schedule count:", scheduleCountError);
+        toast.error("Erro ao verificar horários do profissional.");
+        setLoadingCheck(false);
+        return;
+      }
+
+      console.log("StepSchedule validateAndContinue: Schedule count for professionalId=", professionalId, "is", scheduleCount);
       if (!scheduleCount || scheduleCount === 0) {
         toast.warn(
           "Você deve definir ao menos 1 horário para o profissional selecionado."
@@ -110,9 +137,10 @@ export default function StepSchedule() {
       }
 
       // Tudo certo → próximo step (3) = StepFirstCustomer
+      console.log("StepSchedule validateAndContinue: Validation successful, updating onboarding step to 3.");
       updateOnboardingStep(3);
     } catch (err) {
-      console.error(err);
+      console.error("StepSchedule validateAndContinue: General error:", err);
       toast.error("Erro ao validar dados.");
     }
 
