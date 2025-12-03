@@ -1,3 +1,4 @@
+// src/context/UserTenantProvider.tsx
 import {
   createContext,
   useContext,
@@ -21,12 +22,13 @@ import { supabase } from "../lib/supabaseCleint";
 export interface UserTenantContextType {
   user: any;
   profile: Profile | null;
-  tenant: Tenant | null;   // ← Agora vem do tenantState
+  tenant: Tenant | null;
   subscription: any;
   plan: any;
   features: string[];
   permissions: string[];
   loading: boolean;
+
   needsSetup: boolean | null;
 
   refreshProfile: () => Promise<void>;
@@ -59,20 +61,22 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
   } = useUserAndTenant();
 
   /* ============================================================
-     🔥 Estado REAL do Tenant (corrige o loop)
-  ============================================================ */
-  const [tenantState, setTenantState] = useState<Tenant | null>(tenant);
+     🔥 tenantState — Estado REAL do tenant
+     (evita loops e garante reatividade)
+  ============================================================= */
+  const [tenantState, setTenantState] = useState<Tenant | null>(null);
 
-  // Mantém tenantState sincronizado com o hook inicial
+  // Sempre que o hook principal mudar, sincronizamos o estado interno
   useEffect(() => {
-    setTenantState(tenant);
+    if (tenant) setTenantState(tenant);
   }, [tenant]);
 
   /* ============================================================
      🔄 Recarregar apenas o tenant
-  ============================================================ */
+  ============================================================= */
   const refreshTenant = async () => {
-    if (!profile?.tenant_id) {
+    const tenantId = profile?.tenant_id;
+    if (!tenantId) {
       setTenantState(null);
       return;
     }
@@ -80,7 +84,7 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
     const { data, error } = await supabase
       .from("tenants")
       .select("*")
-      .eq("id", profile.tenant_id)
+      .eq("id", tenantId)
       .maybeSingle();
 
     if (error) {
@@ -93,7 +97,8 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
 
   /* ============================================================
      🧭 Atualizar onboarding_step
-  ============================================================ */
+     — CORRIGIDO para re-renderizar imediatamente
+============================================================ */
   const updateOnboardingStep = async (step: number) => {
     if (!tenantState?.id) return;
 
@@ -102,29 +107,31 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
       .update({ onboarding_step: step })
       .eq("id", tenantState.id);
 
-    if (!error) {
-      await refreshTenant();
-    } else {
+    if (error) {
       console.error("Erro ao atualizar onboarding_step:", error);
+      return;
     }
+
+    // 🔥 ESSENCIAL: refazer o fetch após update
+    await refreshTenant();
   };
 
   /* ============================================================
-     🔄 Recarrega tudo
-  ============================================================ */
+     🔄 Recarrega tudo (profile + tenant)
+============================================================ */
   const reloadAll = async () => {
     await refreshProfile();
     await refreshTenant();
   };
 
   /* ============================================================
-     📦 Memoização
-  ============================================================ */
+     📦 Memoização — Contexto Final
+============================================================ */
   const value = useMemo<UserTenantContextType>(
     () => ({
       user,
       profile,
-      tenant: tenantState, // ← Agora usa o estado REAL
+      tenant: tenantState, // ← Agora REAL, atualizado
       subscription,
       plan,
       features,
