@@ -208,7 +208,7 @@ export default function Setup() {
       /* ============================================================
          5) RECARREGAR TENANT + APLICAR TEMA IMEDIATAMENTE
       ============================================================ */
-      await reloadAll();
+      await reloadAll(); // AGORA ESPERA AQUI!
 
       applyTenantTheme({
         primary_color: primary,

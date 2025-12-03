@@ -17,14 +17,11 @@ function hexToRgb(hex: string): string {
 export function applyTenantTheme(tenant?: Partial<Tenant> | null) {
   const root = document.documentElement;
 
-  // Sempre define o tema como 'light' e suas variáveis padrão primeiro
+  // Sempre define as variáveis CSS para o tema light padrão
+  // O atributo data-theme é gerenciado pelo useTheme, não por esta função.
   const defaultPrimary = "#8343A2"; // Cor primária padrão
   const defaultSecondary = "#e0b6f5"; // Cor secundária padrão
-  const defaultVariant = "light";
 
-  root.dataset.theme = defaultVariant;
-
-  // Define todas as variáveis CSS para o tema light padrão
   root.style.setProperty("--bg", "#ffffff");
   root.style.setProperty("--text", "#111111");
   root.style.setProperty("--text-muted", "#666666");
@@ -48,7 +45,6 @@ export function applyTenantTheme(tenant?: Partial<Tenant> | null) {
   if (tenant && tenant.primary_color && tenant.secondary_color) {
     const primary = tenant.primary_color;
     const secondary = tenant.secondary_color;
-    // A variante já está definida como 'light' por padrão, então não precisamos sobrescrever aqui.
 
     root.style.setProperty("--color-primary", primary);
     root.style.setProperty("--color-primary-rgb", hexToRgb(primary));
