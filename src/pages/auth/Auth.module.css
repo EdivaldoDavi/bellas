@@ -7,8 +7,7 @@
   align-items: center;
   justify-content: center;
 
-/* Transiciona de cima (roxo claro) para baixo (branco quase cinza) */
-background: linear-gradient(180deg, hwb(269 74% 5%), hwb(250 85% 10%));
+  background:hwb(269 74% 5%);  /* fundo SUAVE sem gradient */
   padding: 20px;
 }
 
