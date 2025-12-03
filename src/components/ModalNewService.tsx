@@ -56,13 +56,16 @@ export default function ModalNewService({
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(false);
 
+  console.log("ModalNewService Render: isFromOnboarding =", isFromOnboarding, "profile?.professional_id =", profile?.professional_id);
+
+
   // -------------------------------------------
   // RESET / CARREGAR DADOS AO ABRIR
   // -------------------------------------------
   useEffect(() => {
     if (!show) return;
 
-    console.log("ModalNewService useEffect: show=", show, "isFromOnboarding=", isFromOnboarding, "profile.professional_id=", profile?.professional_id);
+    console.log("ModalNewService useEffect (on show): show=", show, "isFromOnboarding=", isFromOnboarding, "profile.professional_id=", profile?.professional_id);
 
 
     if (!tenantId) {
@@ -116,10 +119,10 @@ export default function ModalNewService({
           
           // 🔥 NOVO: Se for do onboarding, pré-seleciona o profissional do usuário logado
           if (isFromOnboarding && profile?.professional_id) {
-            console.log("ModalNewService: Setting selectedProfessionalIds to", [profile.professional_id]);
+            console.log("ModalNewService useEffect: Setting selectedProfessionalIds to", [profile.professional_id], "for onboarding.");
             setSelectedProfessionalIds([profile.professional_id]);
           } else {
-            console.log("ModalNewService: Not setting professional_id automatically (isFromOnboarding:", isFromOnboarding, "profile.professional_id:", profile?.professional_id, ")");
+            console.log("ModalNewService useEffect: Not setting professional_id automatically (isFromOnboarding:", isFromOnboarding, "profile.professional_id:", profile?.professional_id, ").");
             setSelectedProfessionalIds([]);
           }
         }
@@ -142,6 +145,8 @@ export default function ModalNewService({
   }
 
   async function handleSave() {
+    console.log("handleSave: Called. isFromOnboarding =", isFromOnboarding, "profile?.professional_id =", profile?.professional_id);
+
     if (!tenantId) {
       toast.error("Tenant inválido.");
       return;

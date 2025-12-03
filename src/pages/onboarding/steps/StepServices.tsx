@@ -16,22 +16,24 @@ type Service = {
 };
 
 export default function StepServices() {
-  const { updateOnboardingStep, tenant, profile, loading: userTenantLoading, reloadAll } = useUserTenant(); // Adicionado reloadAll
+  const { updateOnboardingStep, tenant, profile, loading: userTenantLoading, reloadAll } = useUserTenant();
   const [showModal, setShowModal] = useState(false);
   const [services, setServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(true);
+
+  console.log("StepServices Component Render: profile?.professional_id =", profile?.professional_id, "tenant?.id =", tenant?.id, "userTenantLoading =", userTenantLoading);
 
   /* ============================================================
      🔥 CARREGAR SERVIÇOS EXISTENTES
   ============================================================ */
   async function loadServices() {
-    console.log("loadServices: Called. Current tenant.id:", tenant?.id, "loadingServices state:", loadingServices);
-    setLoadingServices(true); // Sempre inicia o carregamento
+    console.log("loadServices: Called. Current tenant.id:", tenant?.id, "profile.professional_id:", profile?.professional_id);
+    setLoadingServices(true);
 
     if (!tenant?.id) {
       console.log("loadServices: tenant.id é nulo ou indefinido. Definindo services como vazio e loading como false.");
-      setServices([]); // Limpa os serviços se não houver tenant
-      setLoadingServices(false); // Garante que o loading seja false
+      setServices([]);
+      setLoadingServices(false);
       return;
     }
 
@@ -57,22 +59,21 @@ export default function StepServices() {
       setServices([]);
     } finally {
       console.log("loadServices: Finalizando carregamento de serviços. Setting loadingServices to false.");
-      setLoadingServices(false); // Sempre finaliza o carregamento
+      setLoadingServices(false);
     }
   }
 
   useEffect(() => {
-    console.log("StepServices useEffect triggered. tenant.id:", tenant?.id, "profile.professional_id:", profile?.professional_id, "userTenantLoading:", userTenantLoading);
-    // A condição para chamar loadServices deve depender principalmente de tenant.id e do estado de carregamento do contexto.
-    // profile.professional_id é relevante para habilitar o botão 'Cadastrar serviço', não para carregar os serviços existentes.
-    if (!userTenantLoading && tenant?.id) { // Só executa se o contexto de usuário/tenant terminou de carregar E o tenant.id está disponível
+    console.log("StepServices useEffect for loadServices triggered. tenant.id:", tenant?.id, "profile?.professional_id:", profile?.professional_id, "userTenantLoading:", userTenantLoading);
+    // Chamar loadServices apenas quando o tenant.id estiver disponível e o carregamento do contexto tiver terminado
+    if (!userTenantLoading && tenant?.id) {
       loadServices();
     } else if (!userTenantLoading && !tenant?.id) {
       // Se o contexto carregou mas não há tenant.id, garante que o loadingServices seja false
       setLoadingServices(false);
       setServices([]);
     }
-  }, [tenant?.id, userTenantLoading]); // Removido profile?.professional_id das dependências para loadServices
+  }, [tenant?.id, userTenantLoading]);
 
   /* ============================================================
      🔥 VERIFICAR SE EXISTE SERVIÇO PARA CONTINUAR
@@ -82,12 +83,13 @@ export default function StepServices() {
   }
 
   const handleContinue = async () => {
+    console.log("handleContinue: profile?.professional_id =", profile?.professional_id);
     if (!(await checkIfHasServices())) {
       toast.warn("Cadastre pelo menos um serviço antes de continuar.");
       return;
     }
 
-    console.log("StepServices: Continuando para o step 2 (Schedule). Current tenant onboarding_step:", tenant?.onboarding_step);
+    console.log("StepServices: Continuing to step 2 (Schedule). Current tenant onboarding_step:", tenant?.onboarding_step);
     // Próximo step = Horários (index 2)
     updateOnboardingStep(2);
   };
@@ -102,10 +104,6 @@ export default function StepServices() {
   /* ============================================================
      🔥 RENDERIZAÇÃO
   ============================================================ */
-  // O botão "Cadastrar serviço" não precisa ser desabilitado, pois o ModalNewService já lida com a associação
-  // const canAddService = !userTenantLoading && !!profile?.professional_id;
-  // console.log("StepServices: canAddService=", canAddService);
-
   return (
     <div className={styles.stepContainer}>
       <h2 className={styles.stepTitle}>Cadastre seus serviços principais</h2>
@@ -149,7 +147,7 @@ export default function StepServices() {
         <button
           className={styles.primaryBtn}
           onClick={() => setShowModal(true)}
-          // disabled={!canAddService} // Removido o disabled para permitir adicionar múltiplos serviços
+          // O botão não será desabilitado aqui, a lógica de associação é no modal
         >
           Cadastrar serviço
         </button>
@@ -165,12 +163,12 @@ export default function StepServices() {
           tenantId={tenant.id}
           show={showModal}
           mode="cadastro"
-          isFromOnboarding={true} // Passa a nova prop aqui
+          isFromOnboarding={true}
           onClose={() => setShowModal(false)}
-          onSuccess={async () => { // Adicionado async aqui
+          onSuccess={async () => {
             setShowModal(false);
-            await loadServices(); // 🔥 Recarrega lista
-            await reloadAll(); // 🔥 Força o recarregamento completo do contexto
+            await loadServices(); // Recarrega lista de serviços
+            await reloadAll(); // Força o recarregamento completo do contexto para atualizar professional_id
             console.log("StepServices: ModalNewService closed, reloading services and full context.");
           }}
         />

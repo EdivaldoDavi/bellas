@@ -70,18 +70,18 @@ export function useUserAndTenant() {
     console.log("useUserAndTenant: [refreshProfile] Função chamada.");
     setLoading(true); // Set loading true at the very beginning
     setError(null);
-    setInternalProfessionalId(null);
+    setInternalProfessionalId(null); // Limpa antes de tentar buscar novamente
 
     try {
       const currentUser = authUser;
 
       if (!currentUser) {
-        console.log("Nenhum usuário autenticado → limpando tudo");
+        console.log("useUserAndTenant: Nenhum usuário autenticado → limpando tudo");
         clearAll();
         return;
       }
 
-      console.log("Usuário atual:", currentUser.id);
+      console.log("useUserAndTenant: Usuário atual:", currentUser.id);
 
       /* ================ PROFILE ================ */
       const { data: pData, error: pErr } = await supabase
@@ -92,7 +92,7 @@ export function useUserAndTenant() {
 
       if (pErr) throw pErr;
       if (!pData) {
-        console.log("Perfil não encontrado → limpando");
+        console.log("useUserAndTenant: Perfil não encontrado → limpando");
         clearAll();
         return;
       }
@@ -108,11 +108,14 @@ export function useUserAndTenant() {
 
       setProfile((prev) => {
         const equal = JSON.stringify(prev) === JSON.stringify(baseProfile);
-        if (equal) return prev;
-        return baseProfile;
+        if (!equal) {
+          console.log("useUserAndTenant: Profile updated to", baseProfile);
+        }
+        return equal ? prev : baseProfile;
       });
 
       /* ================ PROFESSIONAL_ID ================ */
+      let currentProfessionalId: string | null = null;
       if (baseProfile.role === "professional" && baseProfile.tenant_id) {
         const { data: professionalEntry, error: profErr } = await supabase
           .from("professionals")
@@ -122,12 +125,14 @@ export function useUserAndTenant() {
           .maybeSingle();
 
         if (profErr) {
-          console.error("Erro ao buscar professional_id:", profErr);
+          console.error("useUserAndTenant: Erro ao buscar professional_id:", profErr);
         }
-
-        setInternalProfessionalId(professionalEntry?.id ?? null);
+        currentProfessionalId = professionalEntry?.id ?? null;
+        setInternalProfessionalId(currentProfessionalId);
+        console.log("useUserAndTenant: Professional ID set to:", currentProfessionalId);
       } else {
         setInternalProfessionalId(null);
+        console.log("useUserAndTenant: Not a professional or no tenant, professional_id set to null.");
       }
 
       /* ================ SEM TENANT ================ */
@@ -137,6 +142,7 @@ export function useUserAndTenant() {
         setPlan(null);
         setFeatures([]);
         setPermissions([]);
+        console.log("useUserAndTenant: No tenant_id found for profile.");
         return;
       }
 
@@ -150,13 +156,16 @@ export function useUserAndTenant() {
       if (tErr) throw tErr;
 
       if (!tData) {
-        console.warn("Tenant não encontrado → limpando tenant");
+        console.warn("useUserAndTenant: Tenant não encontrado → limpando tenant");
         setTenant(null);
         return;
       }
 
       setTenant((prevTenant) => {
         const equal = JSON.stringify(prevTenant) === JSON.stringify(tData);
+        if (!equal) {
+          console.log("useUserAndTenant: Tenant updated to", tData);
+        }
         return equal ? prevTenant : tData;
       });
 
@@ -168,7 +177,7 @@ export function useUserAndTenant() {
         .order("created_at", { ascending: false })
         .limit(1);
 
-      if (subErr) console.error("Erro ao buscar assinatura:", subErr);
+      if (subErr) console.error("useUserAndTenant: Erro ao buscar assinatura:", subErr);
 
       const latestSub = subs?.[0] ?? null;
       setSubscription(latestSub);
@@ -201,12 +210,12 @@ export function useUserAndTenant() {
       /* ================ PERMISSIONS ================ */
       const { data: perms } = await supabase
         .from("permissions")
-        .select("permission_key, allowed")
+        .select("feature_key, allowed") // <-- CORRIGIDO AQUI
         .eq("tenant_id", baseProfile.tenant_id)
         .eq("user_id", currentUser.id);
 
       const allowedPermissions =
-        perms?.filter((p) => p.allowed).map((p) => p.permission_key) ?? [];
+        perms?.filter((p) => p.allowed).map((p) => p.feature_key) ?? [];
 
       setPermissions(allowedPermissions);
     } catch (err: any) {
@@ -214,7 +223,8 @@ export function useUserAndTenant() {
       setError(err.message ?? "Erro ao carregar dados.");
       clearAll();
     } finally {
-      setLoading(false); // Set loading false at the very end
+      setLoading(false);
+      console.log("useUserAndTenant: [refreshProfile] Finalizado. Loading =", false);
     }
   }, [authUser, clearAll]);
 
@@ -222,6 +232,7 @@ export function useUserAndTenant() {
      🔄 Load inicial
   ============================================================ */
   useEffect(() => {
+    console.log("useUserAndTenant: useEffect for initial load triggered. authUser =", authUser?.id, "authLoading =", authLoading);
     if (!authLoading) refreshProfile();
   }, [authUser, authLoading, refreshProfile]);
 
@@ -243,7 +254,9 @@ export function useUserAndTenant() {
   ============================================================ */
   const memoizedProfile = useMemo(() => {
     if (!profile) return null;
-    return { ...profile, professional_id: internalProfessionalId };
+    const fullProfile = { ...profile, professional_id: internalProfessionalId };
+    console.log("useUserAndTenant: Memoized Profile (with professional_id) =", fullProfile);
+    return fullProfile;
   }, [profile, internalProfessionalId]);
 
   return {
