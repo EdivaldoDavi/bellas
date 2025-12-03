@@ -116,7 +116,9 @@ export function useUserAndTenant() {
 
       /* ================ PROFESSIONAL_ID ================ */
       let currentProfessionalId: string | null = null;
-      if (baseProfile.role === "professional" && baseProfile.tenant_id) {
+      // Sempre tenta buscar o professional_id se houver um tenant_id,
+      // pois o manager/owner também pode ser um profissional.
+      if (baseProfile.tenant_id) { 
         const { data: professionalEntry, error: profErr } = await supabase
           .from("professionals")
           .select("id")
@@ -132,7 +134,7 @@ export function useUserAndTenant() {
         console.log("useUserAndTenant: Professional ID set to:", currentProfessionalId);
       } else {
         setInternalProfessionalId(null);
-        console.log("useUserAndTenant: Not a professional or no tenant, professional_id set to null.");
+        console.log("useUserAndTenant: No tenant, professional_id set to null.");
       }
 
       /* ================ SEM TENANT ================ */
@@ -210,12 +212,12 @@ export function useUserAndTenant() {
       /* ================ PERMISSIONS ================ */
       const { data: perms } = await supabase
         .from("permissions")
-        .select("permission_key, allowed") // <-- CORRIGIDO AQUI
+        .select("permission_key, allowed") 
         .eq("tenant_id", baseProfile.tenant_id)
         .eq("user_id", currentUser.id);
 
       const allowedPermissions =
-        perms?.filter((p) => p.allowed).map((p) => p.permission_key) ?? []; // Corrigido para permission_key
+        perms?.filter((p) => p.allowed).map((p) => p.permission_key) ?? []; 
 
       setPermissions(allowedPermissions);
     } catch (err: any) {
