@@ -44,8 +44,8 @@ const UserTenantContext = createContext<UserTenantContextType | null>(null);
 export function UserTenantProvider({ children }: { children: ReactNode }) {
   const {
     user,
-    profile,
-    tenant: tenantFromHook, // Renamed to avoid conflict
+    profile: rawProfile, // Renomeado para evitar conflito com memoizedProfile
+    tenant: tenantFromHook,
     subscription,
     plan,
     features,
@@ -53,18 +53,19 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
     loading,
     needsSetup,
     refreshProfile,
+    memoizedProfile, // Adicionado para usar o perfil já memoizado
   } = useUserAndTenant();
 
   /* ============================================================
      🎯 Atualizar onboarding_step (agora funciona SEM refresh manual)
   ============================================================ */
   const updateOnboardingStep = async (step: number) => {
-    if (!tenantFromHook?.id) return; // Use tenantFromHook
+    if (!tenantFromHook?.id) return;
 
     const { error } = await supabase
       .from("tenants")
       .update({ onboarding_step: step })
-      .eq("id", tenantFromHook.id); // Use tenantFromHook
+      .eq("id", tenantFromHook.id);
 
     if (error) {
       console.error("Erro ao atualizar onboarding_step:", error);
@@ -72,7 +73,7 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
     }
 
     // 🔥 ESSENCIAL: recarregar tenant após update
-    await refreshProfile(); // Call refreshProfile directly
+    await refreshProfile();
   };
 
   /* ============================================================
@@ -88,8 +89,8 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
   const value = useMemo<UserTenantContextType>(
     () => ({
       user,
-      profile,
-      tenant: tenantFromHook, // Use tenantFromHook directly
+      profile: memoizedProfile, // Usar o perfil já memoizado
+      tenant: tenantFromHook,
       subscription,
       plan,
       features,
@@ -103,17 +104,17 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
     }),
     [
       user,
-      profile,
-      tenantFromHook, // Use tenantFromHook directly
+      memoizedProfile, // Depender diretamente do memoizedProfile
+      tenantFromHook,
       subscription,
       plan,
       features,
       permissions,
       loading,
       needsSetup,
-      refreshProfile, // Add refreshProfile to dependencies
-      reloadAll, // Add reloadAll to dependencies
-      updateOnboardingStep, // Add updateOnboardingStep to dependencies
+      refreshProfile,
+      reloadAll,
+      updateOnboardingStep,
     ]
   );
 

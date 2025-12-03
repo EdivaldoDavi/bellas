@@ -99,7 +99,7 @@ export function useUserAndTenant() {
 
       const baseProfile: Omit<Profile, "professional_id"> = {
         user_id: currentUser.id,
-        email: currentUser.email,
+        email: currentUser.email, // Sempre pega o email do authUser
         role: pData.role,
         full_name: pData.full_name,
         avatar_url: pData.avatar_url,
@@ -107,11 +107,19 @@ export function useUserAndTenant() {
       };
 
       setProfile((prev) => {
-        const equal = JSON.stringify(prev) === JSON.stringify(baseProfile);
-        if (!equal) {
+        // Comparação mais robusta para garantir que o React detecte a mudança
+        const isSameContent = prev?.user_id === baseProfile.user_id &&
+                              prev?.full_name === baseProfile.full_name &&
+                              prev?.avatar_url === baseProfile.avatar_url &&
+                              prev?.tenant_id === baseProfile.tenant_id &&
+                              prev?.role === baseProfile.role &&
+                              prev?.email === baseProfile.email;
+
+        if (!isSameContent) {
           console.log("useUserAndTenant: Profile updated to", baseProfile);
+          return baseProfile;
         }
-        return equal ? prev : baseProfile;
+        return prev; // Nenhuma mudança relevante no conteúdo, retorna o estado anterior
       });
 
       /* ================ PROFESSIONAL_ID ================ */
