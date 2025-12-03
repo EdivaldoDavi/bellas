@@ -18,7 +18,7 @@
   width: 100%;
   max-width: 420px;
 
-  background: hsl(270, 55%, 87%);  /* fundo suave e sólido */
+  background: #e0b6f5;  /* fundo suave e sólido */
   border-radius: 28px;
 
   padding: 48px 40px;
@@ -106,7 +106,7 @@
   padding: 12px 14px;
   padding-right: 100px !important; /* AUMENTADO para garantir espaço */
 
-  background: #f5f5f7;
+  background: #e0b6f5;
   border: 1px solid #e5e5e5;
   border-radius: 12px;
 
