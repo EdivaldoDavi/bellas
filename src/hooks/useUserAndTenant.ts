@@ -262,7 +262,7 @@ export function useUserAndTenant() {
   refreshProfile,
   refreshTenant: refreshProfile,  // <-- remove o refreshTenant duplicado
   reloadAll: async () => {
-    await refreshProfile();
+    await refreshProfile(); // Simplificado para chamar refreshProfile apenas uma vez
   }
 };
 };
