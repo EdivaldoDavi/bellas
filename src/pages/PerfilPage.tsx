@@ -141,11 +141,15 @@ const { profile, refreshProfile } = useUserAndTenant(); // Added tenant
       const { data: { user }, error } = await supabase.auth.getUser();
       if (error) throw error;
 
+      console.log("PerfilPage: handleSalvarPerfil - Nome a ser salvo:", nome); // ADDED LOG
+
+      // 1. Atualiza o user_metadata no auth.users
       const { error: upd1 } = await supabase.auth.updateUser({
         data: { full_name: nome },
       });
       if (upd1) throw upd1;
 
+      // 2. Atualiza a tabela profiles
       const { error: upd2 } = await supabase
         .from("profiles")
         .update({ full_name: nome })
@@ -154,8 +158,9 @@ const { profile, refreshProfile } = useUserAndTenant(); // Added tenant
       if (upd2) throw upd2;
 
       toast.success("Perfil atualizado com sucesso!");
-    await refreshProfile();
-    console.log("PerfilPage: Profile updated, refreshProfile called. Current profile in context:", profile);
+      // 3. Chama refreshProfile APÓS as atualizações serem enviadas
+      await refreshProfile();
+      console.log("PerfilPage: Profile updated, refreshProfile called. Current profile in context:", profile);
 
 
     } catch (err: any) {

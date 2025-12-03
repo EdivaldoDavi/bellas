@@ -83,10 +83,13 @@ export function useUserAndTenant() {
 
       console.log("useUserAndTenant: Usuário atual:", currentUser.id);
 
+      // Removendo o delay, vamos confiar que o Supabase retorna o dado atualizado
+      // await new Promise(resolve => setTimeout(resolve, 100)); 
+
       /* ================ PROFILE ================ */
       const { data: pData, error: pErr } = await supabase
         .from("profiles")
-        .select("user_id, tenant_id, role, full_name, avatar_url")
+        .select("user_id, tenant_id, role, full_name, avatar_url", { head: false }) // Adicionado head: false para garantir dados completos
         .eq("user_id", currentUser.id)
         .maybeSingle();
 
