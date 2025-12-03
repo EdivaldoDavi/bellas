@@ -1,7 +1,7 @@
 // src/utils/theme.ts
 import type { Tenant } from "../hooks/useUserAndTenant";
 
-// Helper function to convert hex to RGB
+// Helper
 function hexToRgb(hex: string): string {
   const bigint = parseInt(hex.slice(1), 16);
   const r = (bigint >> 16) & 255;
@@ -10,16 +10,24 @@ function hexToRgb(hex: string): string {
   return `${r}, ${g}, ${b}`;
 }
 
-export function applyTenantTheme(tenant?: Tenant | null) {
+/**
+ * Agora aceita Tenant PARCIAL:
+ * — primary_color?
+ * — secondary_color?
+ * — theme_variant?
+ */
+export function applyTenantTheme(tenant?: Partial<Tenant> | null) {
+  if (!tenant) return;
+
   const root = document.documentElement;
 
-  const primary = tenant?.primary_color ?? "#ff1493";
-  const secondary = tenant?.secondary_color ?? "#ffffff";
-  const variant = (tenant?.theme_variant as "light" | "dark") ?? "light";
+  const primary = tenant.primary_color ?? "#ff1493";
+  const secondary = tenant.secondary_color ?? "#ffffff";
+  const variant = (tenant.theme_variant as "light" | "dark") ?? "light";
 
   // Cores principais
   root.style.setProperty("--color-primary", primary);
-  root.style.setProperty("--color-primary-rgb", hexToRgb(primary)); // NEW: Set RGB value
+  root.style.setProperty("--color-primary-rgb", hexToRgb(primary));
   root.style.setProperty("--color-secondary", secondary);
 
   // Variant global
