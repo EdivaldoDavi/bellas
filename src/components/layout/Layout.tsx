@@ -1,3 +1,4 @@
+// src/components/layout/Layout.tsx
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -12,22 +13,21 @@ import { useUserAndTenant } from "../../hooks/useUserAndTenant";
 import WhatsAppDisconnectedToast from "../WhatsAppDisconnectedToast";
 
 import styles from "./Layout.module.css";
-import { LayoutContext, type LayoutContextType } from "./LayoutContext"; // Importar o contexto
+import { LayoutContext, type LayoutContextType } from "./LayoutContext";
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const isMobile = useIsMobile(1024);
   const location = useLocation();
-  const navigate = useNavigate(); // Obter a função navigate
+  const navigate = useNavigate();
 
-  const toggleSidebar = () => setSidebarOpen((p) => !p);
+  const toggleSidebar = () => setSidebarOpen(p => !p);
   const closeSidebar = () => setSidebarOpen(false);
 
   const { tenant, profile } = useUserAndTenant();
-
   const instanceId = tenant?.id ?? "";
-  const evoBase =
-    import.meta.env.VITE_EVO_PROXY_URL ?? "http://localhost:3001/api";
+
+  const evoBase = import.meta.env.VITE_EVO_PROXY_URL ?? "http://localhost:3001/api";
 
   const { status } = useEvolutionConnection({
     baseUrl: evoBase,
@@ -39,21 +39,18 @@ export default function Layout() {
     !status ||
     ["DISCONNECTED", "LOGGED_OUT", "ERROR", "UNKNOWN", "IDLE"].includes(status);
 
-  /* =====================================================================
-     🔔 LÓGICA DO TOAST – MUITO MAIS LIMPA E SEGURA
-  ===================================================================== */
+  /* ===========================
+     🔔 Toast de desconexão WhatsApp
+  ============================ */
   useEffect(() => {
     let toastId: number | string | null = null;
-
-    // Apenas owner ou manager devem ver o aviso
     const canShow =
       instanceId &&
       isWhatsDisconnected &&
       (profile?.role === "manager" || profile?.role === "owner");
 
-    const dismissedKey = `whatsapp_alert_dismissed_instance_${instanceId}`;
+    const dismissedKey = `whatsapp_alert_${instanceId}`;
 
-    // Mostrar toast
     if (canShow && !localStorage.getItem(dismissedKey)) {
       toastId = toast(
         () => (
@@ -70,13 +67,10 @@ export default function Layout() {
           autoClose: false,
           closeButton: false,
           hideProgressBar: true,
-          draggable: false,
-          closeOnClick: false,
         }
       );
     }
 
-    // Se reconectar → remover toast e resetar estado
     if (!isWhatsDisconnected && instanceId) {
       toast.dismiss();
       localStorage.removeItem(dismissedKey);
@@ -87,66 +81,60 @@ export default function Layout() {
     };
   }, [isWhatsDisconnected, instanceId, location.pathname, profile?.role]);
 
-  /* =====================================================================
-     📌 FUNÇÃO PARA ABRIR SIDEBAR E NAVEGAR
-  ===================================================================== */
-  const openSidebarAndNavigate = useCallback((path: string) => {
-    setSidebarOpen(true); // Garante que a sidebar esteja aberta
-    navigate(path);       // Navega para o caminho especificado
-    if (isMobile) closeSidebar(); // Fecha a sidebar no mobile após a navegação
-  }, [navigate, isMobile, closeSidebar]);
+  /* ===========================
+     📌 Função universal de navegação
+  ============================ */
+  const openSidebarAndNavigate = useCallback(
+    (path: string) => {
+      setSidebarOpen(true);
+      navigate(path);
+      if (isMobile) closeSidebar();
+    },
+    [navigate, isMobile]
+  );
 
-  const layoutContextValue = useMemo<LayoutContextType>(() => ({
-    openSidebarAndNavigate,
-    toggleSidebar,
-    closeSidebar,
-  }), [openSidebarAndNavigate, toggleSidebar, closeSidebar]);
+  /* ===========================
+     📌 Value do Provider
+  ============================ */
+  const layoutContextValue = useMemo<LayoutContextType>(() => {
+    return {
+      openSidebarAndNavigate,
+      toggleSidebar,
+      closeSidebar,
+    };
+  }, [openSidebarAndNavigate]);
 
-
-  /* =====================================================================
-     📌 CLASSES DE ESTADO DO LAYOUT
-  ===================================================================== */
-  const rootClass = `
+  const wrapperClass = `
     ${styles.layoutWrapper}
     ${!isMobile && !sidebarOpen ? styles.isCollapsed : ""}
     ${isMobile && sidebarOpen ? styles.isMobileSidebarOpen : ""}
   `;
 
-  /* =====================================================================
-     📌 RENDER
-  ===================================================================== */
   return (
-    <div className={rootClass}>
-      {/* SIDEBAR */}
-      <aside
-        className={`${styles.sidebar} ${
-          !isMobile && !sidebarOpen ? styles.collapsed : ""
-        }`}
-      >
-        <Sidebar
-          isOpen={sidebarOpen}
-          toggleSidebar={toggleSidebar}
-          closeSidebar={closeSidebar}
-        />
-      </aside>
+    <LayoutContext.Provider value={layoutContextValue}>
+      <div className={wrapperClass}>
+        <aside className={`${styles.sidebar} ${!isMobile && !sidebarOpen ? styles.collapsed : ""}`}>
+          <Sidebar
+            isOpen={sidebarOpen}
+            toggleSidebar={toggleSidebar}
+            closeSidebar={closeSidebar}
+          />
+        </aside>
 
-      {/* BACKDROP EM MOBILE */}
-      {isMobile && sidebarOpen && (
-        <div className={styles.mobileOverlay} onClick={closeSidebar} />
-      )}
+        {isMobile && sidebarOpen && (
+          <div className={styles.mobileOverlay} onClick={closeSidebar} />
+        )}
 
-      {/* ÁREA PRINCIPAL */}
-      <main className={styles.contentWrapper}>
-        <header className={styles.headerWrapper}>
-          <Header toggleSidebar={toggleSidebar} />
-        </header>
+        <main className={styles.contentWrapper}>
+          <header className={styles.headerWrapper}>
+            <Header toggleSidebar={toggleSidebar} />
+          </header>
 
-        <section className={styles.pageContent}>
-          <LayoutContext.Provider value={layoutContextValue}>
+          <section className={styles.pageContent}>
             <Outlet />
-          </LayoutContext.Provider>
-        </section>
-      </main>
-    </div>
+          </section>
+        </main>
+      </div>
+    </LayoutContext.Provider>
   );
 }

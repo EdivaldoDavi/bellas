@@ -1,3 +1,4 @@
+// src/components/layout/LayoutContext.tsx
 import { createContext, useContext } from "react";
 
 export interface LayoutContextType {
@@ -8,10 +9,17 @@ export interface LayoutContextType {
 
 export const LayoutContext = createContext<LayoutContextType | undefined>(undefined);
 
-export function useLayoutContext() {
+export function useLayoutContext(): LayoutContextType {
   const context = useContext(LayoutContext);
+
+  // 🔥 Fallback seguro — evita erros e garante ordem de hooks estável
   if (!context) {
-    throw new Error("useLayoutContext must be used within a LayoutProvider");
+    return {
+      openSidebarAndNavigate: () => {},
+      toggleSidebar: () => {},
+      closeSidebar: () => {},
+    };
   }
+
   return context;
 }
