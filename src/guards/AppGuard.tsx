@@ -5,8 +5,7 @@ import { useAuth } from "../context/AuthProvider";
 import { useUserTenant } from "../context/UserTenantProvider";
 
 import LoadingSpinner from "../components/LoadingSpinner";
-import SetupLayout from "../layouts/SetupLayout"; // 👈 IMPORTANTE
-
+import SetupLayout from "../components/layout/SetupLayout";
 interface AppGuardProps {
   children: ReactNode;
 }
@@ -15,7 +14,6 @@ export function AppGuard({ children }: AppGuardProps) {
   const { user, loading: authLoading } = useAuth();
   const {
     tenant,
-    profile,
     loading: tenantLoading,
     needsSetup,
   } = useUserTenant();
@@ -23,66 +21,69 @@ export function AppGuard({ children }: AppGuardProps) {
   const location = useLocation();
   const path = location.pathname;
 
+  // Rotas especiais
   const isForceReset = path === "/force-reset";
-  const isSetup = path.startsWith("/setup");
-  const isOnboarding = path.startsWith("/onboarding");
+  const isSetupRoute = path.startsWith("/setup");
+  const isOnboardingRoute = path.startsWith("/onboarding");
 
   /* =======================================================
-     1) Force Reset SEM interferência do Guard
+     1) Permitir acesso total ao Force Reset
   ======================================================= */
-  if (isForceReset) return <>{children}</>;
+  if (isForceReset) {
+    return <>{children}</>;
+  }
 
   /* =======================================================
-     2) Carregamento inicial
+     2) Exibir spinner até carregar usuário + tenant
   ======================================================= */
   if (authLoading || tenantLoading) {
     return <LoadingSpinner message="Carregando informações..." />;
   }
 
   /* =======================================================
-     3) Se não estiver logado → vai para login
+     3) Se não estiver logado → login
   ======================================================= */
   if (!user) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
   /* =======================================================
-     4) SETUP (tenant ainda não criado)
-     - Usuário precisa finalizar o setup antes de acessar a app.
+     4) SETUP — Nenhum tenant ainda
   ======================================================= */
   if (needsSetup) {
-    // Se não está na rota /setup → manda pra lá
-    if (!isSetup) {
+    // Se tentar acessar qualquer página que não seja /setup → redireciona
+    if (!isSetupRoute) {
       return <Navigate to="/setup" replace />;
     }
 
-    // Se está em /setup → isola layout (SEM sidebar/header)
+    // Layout isolado (sem sidebar, sem header)
     return <SetupLayout>{children}</SetupLayout>;
   }
 
   /* =======================================================
-     5) ONBOARDING (tenant existe mas onboarding < 99)
+     5) ONBOARDING — Tenant criado, mas onboarding incompleto
   ======================================================= */
   const onboardingStep = tenant?.onboarding_step ?? 0;
 
   if (onboardingStep < 99) {
-    if (!isOnboarding && !isSetup) {
+    // Se tentar sair do onboarding → força retorno
+    if (!isOnboardingRoute && !isSetupRoute) {
       return <Navigate to="/onboarding" replace />;
     }
 
-    // Isolado igual setup
+    // Onboarding roda isolado também
     return <SetupLayout>{children}</SetupLayout>;
   }
 
   /* =======================================================
-     6) Se onboarding já terminou e está na rota /onboarding → dashboard
+     6) Onboarding finalizado, mas usuário tenta entrar nele
   ======================================================= */
-  if (onboardingStep >= 99 && isOnboarding) {
+  if (onboardingStep >= 99 && isOnboardingRoute) {
     return <Navigate to="/dashboard" replace />;
   }
 
   /* =======================================================
-     7) Tudo ok → renderiza layout normal (sidebar/header)
+     7) Rotas normais — Layout completo com Sidebar/Header
   ======================================================= */
   return <>{children}</>;
 }
