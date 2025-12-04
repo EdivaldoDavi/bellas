@@ -1,4 +1,3 @@
-// src/pages/onboarding/Onboarding.tsx
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useUserTenant } from "../../context/UserTenantProvider";
 import styles from "./Onboarding.module.css";
@@ -15,7 +14,7 @@ import OnboardingFixedNavigation from "../../components/OnboardingFixedNavigatio
 const TOTAL_STEPS = 6; // Total steps including congratulations
 
 export default function Onboarding() {
-  const { tenant,  updateOnboardingStep, loading: userTenantLoading } = useUserTenant();
+  const { tenant, profile, updateOnboardingStep, loading: userTenantLoading } = useUserTenant();
   const step = tenant?.onboarding_step ?? 0;
 
   // Local states for step-specific validation
@@ -163,15 +162,16 @@ export default function Onboarding() {
         </div>
 
       </div>
-      {/* Fixed Navigation Bar */}
-      <OnboardingFixedNavigation
-        currentStep={step}
-        // totalSteps={TOTAL_STEPS} // Removido
-        onBack={handleBack}
-        onNext={handleNext}
-        canGoNext={canGoNext}
-        isLastStep={step === TOTAL_STEPS - 1}
-      />
+      {/* Fixed Navigation Bar - Conditionally render */}
+      {step !== TOTAL_STEPS - 1 && ( // Only show if NOT the last step
+        <OnboardingFixedNavigation
+          currentStep={step}
+          onBack={handleBack}
+          onNext={handleNext}
+          canGoNext={canGoNext}
+          isLastStep={step === TOTAL_STEPS - 1}
+        />
+      )}
     </div>
   );
 }
