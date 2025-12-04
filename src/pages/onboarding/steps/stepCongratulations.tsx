@@ -66,70 +66,56 @@ const { updateOnboardingStep } = useUserTenant(); // <-- se ainda não estiver i
       {/* ======================================================
          📱 MOBILE — botão para mostrar aviso
       ====================================================== */}
-{isMobile && (
-  <>
-    <button
-      className={styles.warningButton}
-      onClick={() => setShowWarning(true)}
-    >
-      <AlertTriangle size={20} color="#b68400" />
-      <span>Aviso importante sobre WhatsApp</span>
-      <ChevronRight size={18} />
-    </button>
-
-    {/* Modal - sempre centralizado */}
-    {showWarning && (
-      <div className={styles.warningModalOverlay}>
-        <div className={styles.warningModal}> {/* REMOVIDO: .warningModalWrapper */}
-
-          {/* === INÍCIO DO CONTEÚDO REFATORADO === */}
-          
-          <div className={styles.warningHeader}>
-            <AlertTriangle size={28} color="#b68400" />
-            
-            {/* Título mais amigável */}
-            <h3 style={{ fontSize: '1.3rem', color: 'var(--text-color, #fff)' }}>
-                Atenção: Você está no celular! 📱
-            </h3>
-          </div>
-
-          <p className={styles.warningText}>
-            Notamos que você está acessando por um celular.
-          </p>
-          
-          {/* Explicação clara e focada na ação */}
-          <p className={styles.warningText}>
-            Para escanear o QR Code e conectar seu WhatsApp, você **precisará de um segundo aparelho**. É fisicamente impossível usar o mesmo celular para exibir e ler o código simultaneamente. 😉
-          </p>
-
-          <p style={{ marginTop: 10, fontWeight: 500 }} className={styles.warningInstruction}>
-            Para seguir com a conexão, utilize:
-          </p>
-
-          <ul className={styles.warningList}>
-            <li>Notebook ou Desktop</li>
-            <li>Tablet</li>
-            <li>Outro celular</li>
-          </ul>
-
-          <p style={{ marginTop: 12, fontSize: '0.9rem' }} className={styles.warningFooter}>
-            *Quando estiver de posse de um dos dispositivos acima, acesse o sistema faça o login e vá para a opção <strong>WhatsApp</strong> no menu do aplicativo para fazer a conexão.😉
-          </p>
-
+ {isMobile && (
+        <>
           <button
-            className={styles.closeWarningButton}
-            onClick={() => setShowWarning(false)}
+            className={styles.warningButton}
+            onClick={() => setShowWarning(true)}
           >
-            Entendi
+            <AlertTriangle size={20} color="#b68400" />
+            <span>Aviso importante sobre WhatsApp</span>
+            <ChevronRight size={18} />
           </button>
-          
-          {/* === FIM DO CONTEÚDO REFATORADO === */}
 
-        </div>
-      </div>
-    )}
-  </>
-)}
+          {/* Modal - sempre centralizado */}
+          {showWarning && (
+            <div className={styles.warningModalOverlay}>
+              <div className={styles.warningModal}> {/* REMOVIDO: .warningModalWrapper */}
+                  <div className={styles.warningHeader}>
+                    <AlertTriangle size={28} color="#b68400" />
+                    <h3>Aviso sobre conexão do WhatsApp</h3>
+                  </div>
+
+                  <p>
+                    Você está acessando pelo <strong>celular</strong>. 
+                    <strong>Para conectar seu WhatsApp e começar a receber agendamentos automáticos pela IA 🤖,
+                       você vai precisar usar outro aparelho para exibir o QR Code — assim você consegue escanear usando o celular que vai receber os agendamentos.</strong>
+                  </p>
+
+                  <p style={{ marginTop: 10 }}>
+                      </p>
+
+                  ✨ Pode ser qualquer um destes:
+                • 💻 Notebook ou computador
+                • 📱 Outro celular
+                • 📟 Tablet
+                  <p style={{ marginTop: 12 }}>
+                  Depois é só fazer login no app ir para a opção WhatsApp do menu lateral, clicar no botão Conectar WhatsApp, pegar o celular oficial dos agendamentos 
+                  e fazer a leitura do QR Code, maiores detalhes de conexão você verá na hora de conectar.
+                    Simples assim — quase mágica! ✨😄
+                  </p>
+
+                  <button
+                    className={styles.closeWarningButton}
+                    onClick={() => setShowWarning(false)}
+                  >
+                    Entendi
+                  </button>
+                </div>
+            </div>
+          )}
+        </>
+      )}
       {/* ======================================================
          🖥 DESKTOP — QR CODE
       ====================================================== */}
