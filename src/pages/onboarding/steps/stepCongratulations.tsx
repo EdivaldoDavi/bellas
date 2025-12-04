@@ -113,7 +113,7 @@ const { updateOnboardingStep } = useUserTenant(); // <-- se ainda não estiver i
           </ul>
 
           <p style={{ marginTop: 12, fontSize: '0.9rem' }} className={styles.warningFooter}>
-            *Quando estiver de posse de um dos dispositivos acima, acesse o sistema faça o login e vá para a opção Whattsapp do aplicativo para fazer a conexão.😉
+            *Quando estiver de posse de um dos dispositivos acima, acesse o sistema faça o login e vá para a opção <strong>WhatsApp</strong> no menu do aplicativo para fazer a conexão.😉
           </p>
 
           <button
