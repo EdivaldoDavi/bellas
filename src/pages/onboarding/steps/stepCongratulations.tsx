@@ -5,6 +5,7 @@ import QRCodeDisplay from "../../QRCodeDisplay";
 import confetti from "canvas-confetti";
 
 import styles from "../Onboarding.module.css";
+import { useNavigate } from "react-router-dom";
 
 import {
   Trophy,
@@ -17,7 +18,8 @@ export default function StepCongratulations() {
   const { tenant } = useUserTenant();
   const [isMobile, setIsMobile] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
-
+const navigate = useNavigate();
+const { updateOnboardingStep } = useUserTenant(); // <-- se ainda não estiver importado
   /* 🎊 Confetti */
   useEffect(() => {
     const duration = 1800;
@@ -138,12 +140,21 @@ export default function StepCongratulations() {
       )}
 
       {/* Botão final */}
-      <button
+     <button
         className={styles.primaryBtn}
-        onClick={() => (window.location.href = "/dashboard")}
+        style={{ marginTop: "30px" }}
+        onClick={async () => {
+          try {
+            await updateOnboardingStep(99); // Marca como concluído
+            navigate("/dashboard");        // Redireciona
+          } catch (err) {
+            console.error("Erro ao finalizar onboarding:", err);
+          }
+        }}
       >
         Bora começar! <CheckCircle2 size={18} />
       </button>
+
     </div>
   );
 }
