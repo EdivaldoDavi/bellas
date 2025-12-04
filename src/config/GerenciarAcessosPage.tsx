@@ -1,12 +1,11 @@
 import ManageRoles from "../components/ManageRoles";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 import styles from "../css/GerenciarAcessosPage.module.css"; // Importar o novo CSS
-import { useLocation, useNavigate } from "react-router-dom"; // Adicionado useLocation e useNavigate
+
 
 export default function GerenciarAcessosPage() {
   const { profile } = useUserAndTenant();
-  const navigate = useNavigate();
-  const location = useLocation(); // Obter o objeto location
+  
 
   // The 'close' function is removed as the page is no longer a modal.
   // Navigation is now handled by the sidebar.
