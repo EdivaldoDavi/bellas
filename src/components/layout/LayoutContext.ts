@@ -1,4 +1,5 @@
 // src/components/layout/LayoutContext.tsx
+
 import { createContext, useContext } from "react";
 
 export interface LayoutContextType {
@@ -12,8 +13,8 @@ export const LayoutContext = createContext<LayoutContextType | undefined>(undefi
 export function useLayoutContext(): LayoutContextType {
   const context = useContext(LayoutContext);
 
-  // 🔥 Fallback seguro — evita erros e garante ordem de hooks estável
   if (!context) {
+    // Fallback seguro e silencioso
     return {
       openSidebarAndNavigate: () => {},
       toggleSidebar: () => {},

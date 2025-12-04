@@ -1,4 +1,5 @@
 // src/components/layout/Layout.tsx
+
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -15,18 +16,38 @@ import WhatsAppDisconnectedToast from "../WhatsAppDisconnectedToast";
 import styles from "./Layout.module.css";
 import { LayoutContext, type LayoutContextType } from "./LayoutContext";
 
+// Layouts especiais
+import SetupLayout from "./SetupLayout";
+
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const isMobile = useIsMobile(1024);
   const location = useLocation();
   const navigate = useNavigate();
 
-  const toggleSidebar = () => setSidebarOpen(p => !p);
+  const { tenant, profile, needsSetup } = useUserAndTenant();
+
+  // Rota e estado do onboarding
+  const isSetupRoute = location.pathname.startsWith("/setup");
+  const isOnboardingRoute = location.pathname.startsWith("/onboarding");
+  const onboardingStep = tenant?.onboarding_step ?? 0;
+
+  /* ======================================================
+     1) 🔒 Layout bloqueado para Setup ou Onboarding
+  ====================================================== */
+  const layoutIsBlocked =
+    needsSetup ||
+    isSetupRoute ||
+    (tenant && onboardingStep < 99) ||
+    isOnboardingRoute;
+
+  const toggleSidebar = () => setSidebarOpen((p) => !p);
   const closeSidebar = () => setSidebarOpen(false);
 
-  const { tenant, profile } = useUserAndTenant();
+  /* ======================================================
+     WhatsApp conexão
+  ====================================================== */
   const instanceId = tenant?.id ?? "";
-
   const evoBase = import.meta.env.VITE_EVO_PROXY_URL ?? "http://localhost:3001/api";
 
   const { status } = useEvolutionConnection({
@@ -39,10 +60,9 @@ export default function Layout() {
     !status ||
     ["DISCONNECTED", "LOGGED_OUT", "ERROR", "UNKNOWN", "IDLE"].includes(status);
 
-  /* ===========================
-     🔔 Toast de desconexão WhatsApp
-  ============================ */
   useEffect(() => {
+    if (layoutIsBlocked) return; // 🔥 Nunca mostrar toast em Setup/Onboarding
+
     let toastId: number | string | null = null;
     const canShow =
       instanceId &&
@@ -79,11 +99,17 @@ export default function Layout() {
     return () => {
       if (toastId !== null) toast.dismiss(toastId);
     };
-  }, [isWhatsDisconnected, instanceId, location.pathname, profile?.role]);
+  }, [
+    isWhatsDisconnected,
+    instanceId,
+    location.pathname,
+    profile?.role,
+    layoutIsBlocked,
+  ]);
 
-  /* ===========================
-     📌 Função universal de navegação
-  ============================ */
+  /* ======================================================
+     Navegação do Sidebar
+  ====================================================== */
   const openSidebarAndNavigate = useCallback(
     (path: string) => {
       setSidebarOpen(true);
@@ -93,9 +119,9 @@ export default function Layout() {
     [navigate, isMobile]
   );
 
-  /* ===========================
-     📌 Value do Provider
-  ============================ */
+  /* ======================================================
+     Provider do Layout
+  ====================================================== */
   const layoutContextValue = useMemo<LayoutContextType>(() => {
     return {
       openSidebarAndNavigate,
@@ -104,16 +130,40 @@ export default function Layout() {
     };
   }, [openSidebarAndNavigate]);
 
+  /* ======================================================
+     🎨 Wrapper classes
+  ====================================================== */
   const wrapperClass = `
     ${styles.layoutWrapper}
     ${!isMobile && !sidebarOpen ? styles.isCollapsed : ""}
     ${isMobile && sidebarOpen ? styles.isMobileSidebarOpen : ""}
   `;
 
+  /* ======================================================
+     🔥 RENDERIZAÇÃO PRINCIPAL
+  ====================================================== */
+
+  // Caso Setup ou Onboarding → usar layout especial bloqueado
+  if (layoutIsBlocked) {
+    return (
+      <LayoutContext.Provider value={layoutContextValue}>
+        <SetupLayout>
+          <Outlet />
+        </SetupLayout>
+      </LayoutContext.Provider>
+    );
+  }
+
+  // Caso normal → layout completo com sidebar e header
   return (
     <LayoutContext.Provider value={layoutContextValue}>
       <div className={wrapperClass}>
-        <aside className={`${styles.sidebar} ${!isMobile && !sidebarOpen ? styles.collapsed : ""}`}>
+        {/* Sidebar */}
+        <aside
+          className={`${styles.sidebar} ${
+            !isMobile && !sidebarOpen ? styles.collapsed : ""
+          }`}
+        >
           <Sidebar
             isOpen={sidebarOpen}
             toggleSidebar={toggleSidebar}
@@ -121,10 +171,12 @@ export default function Layout() {
           />
         </aside>
 
+        {/* Overlay mobile */}
         {isMobile && sidebarOpen && (
           <div className={styles.mobileOverlay} onClick={closeSidebar} />
         )}
 
+        {/* Conteúdo principal */}
         <main className={styles.contentWrapper}>
           <header className={styles.headerWrapper}>
             <Header toggleSidebar={toggleSidebar} />
