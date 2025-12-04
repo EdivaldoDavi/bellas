@@ -110,37 +110,24 @@ export default function ProfessionalsPage({ onClose }: ProfessionalsPageProps) {
             <br />"{p.name}"?
           </p>
 
-          <button
-            onClick={() => {
-              closeToast?.();
-              toggleActive(p);
-            }}
-            style={{
-              marginRight: 10,
-              padding: "6px 12px",
-              borderRadius: 8,
-              background: "var(--color-primary)",
-              color: "#fff",
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
-            Confirmar
-          </button>
+          <div className={styles.toastActions}> {/* Novo wrapper */}
+            <button
+              onClick={() => {
+                closeToast?.();
+                toggleActive(p);
+              }}
+              className={`${styles.toastButton} ${styles.toastConfirmButton}`}
+            >
+              Confirmar
+            </button>
 
-          <button
-            onClick={closeToast}
-            style={{
-              padding: "6px 12px",
-              borderRadius: 8,
-              background: "#2a2833",
-              color: "#fff",
-              border: "1px solid #555",
-              cursor: "pointer",
-            }}
-          >
-            Cancelar
-          </button>
+            <button
+              onClick={closeToast}
+              className={`${styles.toastButton} ${styles.toastCancelButton}`}
+            >
+              Cancelar
+            </button>
+          </div>
         </div>
       ),
       {
@@ -148,7 +135,7 @@ export default function ProfessionalsPage({ onClose }: ProfessionalsPageProps) {
         draggable: false,
         icon: false,
         closeOnClick: false,
-        style: { background: "#1d1b23", color: "#fff" },
+        style: { background: "var(--card-bg)", color: "var(--text)", borderRadius: '12px' }, // Adicionado estilo para o contêiner do toast
       }
     );
   }

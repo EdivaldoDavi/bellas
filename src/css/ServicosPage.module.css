@@ -217,3 +217,43 @@
   --text-muted: #6f6f73;
   --border: #dcdce0;
 }
+
+/* Styles for toast buttons */
+.toastActions {
+  display: flex;
+  justify-content: center;
+  gap: 10px; /* Space between buttons */
+  margin-top: 15px; /* Space above buttons */
+  flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+}
+
+.toastButton {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1; /* Allow buttons to grow and shrink */
+  min-width: 120px; /* Minimum width for buttons */
+}
+
+.toastConfirmButton {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+}
+
+.toastConfirmButton:hover {
+  filter: brightness(1.1);
+}
+
+.toastCancelButton {
+  background: var(--bg);
+  color: var(--text-muted);
+  border: 1px solid var(--separator);
+}
+
+.toastCancelButton:hover {
+  background: var(--separator);
+  color: var(--text);
+}

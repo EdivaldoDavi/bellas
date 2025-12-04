@@ -97,39 +97,24 @@ export default function ManageRoles({ tenantId, loggedInUserId }: Props) {
             Deseja realmente alterar a permissão de <b>{user.full_name}</b> para <b>{newRole === 'manager' ? 'Gerente' : 'Profissional'}</b>?
           </p>
 
-          <button
-            onClick={() => {
-              closeToast?.();
-              performRoleUpdate(user.user_id, newRole);
-            }}
-            style={{
-              marginRight: 10,
-              padding: "8px 16px",
-              borderRadius: 8,
-              background: "var(--color-primary)",
-              color: "#fff",
-              border: "none",
-              cursor: "pointer",
-              fontWeight: 600
-            }}
-          >
-            Confirmar
-          </button>
+          <div className={styles.toastActions}> {/* Novo wrapper */}
+            <button
+              onClick={() => {
+                closeToast?.();
+                performRoleUpdate(user.user_id, newRole);
+              }}
+              className={`${styles.toastButton} ${styles.toastConfirmButton}`}
+            >
+              Confirmar
+            </button>
 
-          <button
-            onClick={closeToast}
-            style={{
-              padding: "8px 16px",
-              borderRadius: 8,
-              background: "var(--separator)",
-              color: "var(--text)",
-              border: "1px solid var(--separator)",
-              cursor: "pointer",
-              fontWeight: 600
-            }}
-          >
-            Cancelar
-          </button>
+            <button
+              onClick={closeToast}
+              className={`${styles.toastButton} ${styles.toastCancelButton}`}
+            >
+              Cancelar
+            </button>
+          </div>
         </div>
       ),
       {

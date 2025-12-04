@@ -8,10 +8,9 @@ import { X, Plus, Pencil, MessageCircle, Phone } from "lucide-react"; // Adicion
 import { toast } from "react-toastify";
 
 import ModalNewCustomer from "../components/ModalNewCustomer";
-import styles from "../css/ClientesPage.module.css";
-
 // import CopyButton from "../components/CopyButton"; // REMOVIDO
 import { dbPhoneToMasked, onlyDigits } from "../utils/phoneUtils";
+import styles from "../css/ClientesPage.module.css";
 
 type Customer = {
   id: string;
@@ -87,38 +86,29 @@ export default function ClientesPage() {
             <br />"{customer.full_name}"?
           </p>
 
-          <button
-            onClick={() => {
-              closeToast?.();
-              toggleActive(customer);
-            }}
-            style={{
-              marginRight: 10,
-              padding: "6px 12px",
-              borderRadius: 8,
-              background: "var(--color-primary)",
-              color: "#fff",
-              border: "none",
-            }}
-          >
-            Confirmar
-          </button>
+          <div className={styles.toastActions}> {/* Novo wrapper */}
+            <button
+              onClick={() => {
+                closeToast?.();
+                toggleActive(customer);
+              }}
+              className={`${styles.toastButton} ${styles.toastConfirmButton}`}
+            >
+              Confirmar
+            </button>
 
-          <button
-            onClick={closeToast}
-            style={{
-              padding: "6px 12px",
-              borderRadius: 8,
-              background: "#2a2833",
-              color: "#fff",
-              border: "1px solid #555",
-            }}
-          >
-            Cancelar
-          </button>
+            <button
+              onClick={closeToast}
+              className={`${styles.toastButton} ${styles.toastCancelButton}`}
+            >
+              Cancelar
+            </button>
+          </div>
         </div>
       ),
-      { autoClose: false, draggable: false, icon: false, closeOnClick: false }
+      { autoClose: false, draggable: false, icon: false, closeOnClick: false,
+        style: { background: "var(--card-bg)", color: "var(--text)", borderRadius: '12px' } // Adicionado estilo para o contêiner do toast
+      }
     );
   }
 
