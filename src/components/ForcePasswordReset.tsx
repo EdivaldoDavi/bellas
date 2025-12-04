@@ -46,7 +46,6 @@ export default function ForcePasswordReset() {
   // 1️⃣ Validar hash + setSession
   useEffect(() => {
     async function run() {
-      // 🔥 NOVO LOG: O que o componente vê no hash da URL
       console.log("ForcePasswordReset: START useEffect. Current window.location.hash:", window.location.hash);
 
       const hash = window.location.hash;
@@ -54,9 +53,9 @@ export default function ForcePasswordReset() {
 
       if (!hash.includes("access_token")) {
         toast.error("Link inválido ou expirado: token de acesso não encontrado.");
-        console.error("ForcePasswordReset: Hash does not contain access_token. Navigating to /login."); // 🔥 NOVO LOG
+        console.error("ForcePasswordReset: Hash does not contain access_token. Navigating to /login.");
         navigate("/login", { replace: true });
-        setLoading(false); // Ensure loading is false
+        setLoading(false);
         return;
       }
 
@@ -67,9 +66,9 @@ export default function ForcePasswordReset() {
 
       if (!access_token || !refresh_token) {
         toast.error("Token inválido: access_token ou refresh_token ausentes.");
-        console.error("ForcePasswordReset: Missing access_token or refresh_token. Navigating to /login."); // 🔥 NOVO LOG
+        console.error("ForcePasswordReset: Missing access_token or refresh_token. Navigating to /login.");
         navigate("/login", { replace: true });
-        setLoading(false); // Ensure loading is false
+        setLoading(false);
         return;
       }
 
@@ -91,7 +90,7 @@ export default function ForcePasswordReset() {
       
       if (!data.session) {
         toast.error("Erro ao autenticar link de redefinição: sessão não retornada.");
-        console.error("ForcePasswordReset: setSession succeeded but data.session is null. Navigating to /login."); // 🔥 NOVO LOG
+        console.error("ForcePasswordReset: setSession succeeded but data.session is null. Navigating to /login.");
         await supabase.auth.signOut();
         navigate("/login", { replace: true });
         setLoading(false);
@@ -99,8 +98,8 @@ export default function ForcePasswordReset() {
       }
 
       console.log("ForcePasswordReset: Session successfully set. User ID:", data.session.user.id);
-      // 🔥 COMENTADO TEMPORARIAMENTE: Limpa hash feio da URL
-      // window.history.replaceState({}, "", "/force-reset");
+      // 🔥 RE-HABILITADO E MOVIDO PARA AQUI: Limpa hash feio da URL IMEDIATAMENTE APÓS SUCESSO
+      window.history.replaceState({}, "", "/force-reset");
       setLoading(false);
     }
 

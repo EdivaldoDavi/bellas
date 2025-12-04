@@ -7,7 +7,7 @@ import {
 } from "react";
 import { supabase, logout } from "../lib/supabaseCleint"; // Importar logout
 import type { Session, User } from "@supabase/supabase-js";
-import { useNavigate }  from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 type AuthContextType = {
   user: User | null;
@@ -34,18 +34,18 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
      Função segura para atualizar sessão/usuário
      ============================================================ */
   const applySession = (newSession: Session | null) => {
-    // 🔥 SIMPLIFICADO: Sempre atualiza se a nova sessão for diferente da atual
-    // A comparação de tokens pode ser muito estrita ou falhar em casos de objetos diferentes mas conteúdo igual.
-    // Se a nova sessão é null e a antiga não, ou vice-versa, ou se os IDs de usuário são diferentes, atualiza.
-    if (
-      (session === null && newSession !== null) ||
-      (session !== null && newSession === null) ||
-      (session?.user?.id !== newSession?.user?.id)
-    ) {
+    // Compara se a nova sessão é *realmente* diferente da atual.
+    // Compara IDs de usuário e tokens de acesso para robustez.
+    const currentUserId = session?.user?.id;
+    const newUserId = newSession?.user?.id;
+    const currentAccessToken = session?.access_token;
+    const newAccessToken = newSession?.access_token;
+
+    if (currentUserId !== newUserId || currentAccessToken !== newAccessToken) {
       console.log("AuthProvider: applySession - Session content changed, updating.");
       setSession(newSession);
       setUser(newSession?.user ?? null);
-      console.log("AuthProvider: applySession - New user state:", newSession?.user?.id ? "Logged In" : "Logged Out");
+      console.log("AuthProvider: applySession - New user state:", newUserId ? "Logged In" : "Logged Out");
     } else {
       console.log("AuthProvider: applySession - Session content identical, skipping update.");
     }

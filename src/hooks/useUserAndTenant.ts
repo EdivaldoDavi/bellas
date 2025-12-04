@@ -248,11 +248,11 @@ export function useUserAndTenant() {
     !loading &&
     authUser &&
     profile &&
-    !tenant &&
+    !tenant && // <--- This is the key condition
     (profile.role === "owner" ||
       profile.role === "manager" ||
-      profile.role === "professional") &&
-    window.location.pathname !== "/force-reset";
+      profile.role === "professional");
+    // 🔥 REMOVIDO: window.location.pathname !== "/force-reset"; // <--- This check is too late
 
   /* ============================================================
      🔁 Memo profile completo
