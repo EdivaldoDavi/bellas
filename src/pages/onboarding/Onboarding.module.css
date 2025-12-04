@@ -4,11 +4,10 @@
 .page {
   min-height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column; /* 👈 Corrigido: evita empurrar card para baixo */
   padding: 24px;
   background: var(--page-bg, #f7f6fb);
-
+  overflow-x: hidden;
 }
 
 .card {
@@ -17,11 +16,13 @@
   background: var(--modal-bg, #ffffff);
   border-radius: 24px;
   padding: 28px 28px 36px;
+  margin: 0 auto; /* 👈 Centraliza apenas horizontal */
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
   display: flex;
   flex-direction: column;
   gap: 24px;
-  
+  position: relative;
+  z-index: 1;
 }
 
 .header {
@@ -73,7 +74,6 @@
 /* ===========================================================
    CONTEÚDO DOS STEPS
 =========================================================== */
-/* Animação para os passos */
 @keyframes fadeInStep {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
@@ -83,7 +83,7 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  animation: fadeInStep 0.3s ease-out forwards; /* Aplica a animação aqui */
+  animation: fadeInStep 0.3s ease-out forwards;
 }
 
 .stepTitle {
@@ -99,7 +99,7 @@
 }
 
 /* ===========================================================
-   BOTÕES — PADRÃO GERAL
+   BOTÕES
 =========================================================== */
 .actions {
   margin-top: 28px;
@@ -115,7 +115,6 @@
   max-width: 260px;
 }
 
-/* BOTÃO PRIMÁRIO */
 .primaryBtn {
   border: none;
   background: var(--color-primary);
@@ -140,10 +139,8 @@
 .primaryBtn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
-  box-shadow: none;
 }
 
-/* BOTÃO SECUNDÁRIO */
 .secondaryBtn {
   border: 2px solid rgba(148, 163, 184, 0.7);
   background: #ffffff;
@@ -165,7 +162,6 @@
   cursor: not-allowed;
 }
 
-/* BOTÃO VOLTAR */
 .backButton {
   border: 2px solid var(--color-primary);
   background: #ffffff;
@@ -189,10 +185,8 @@
 }
 
 /* ===========================================================
-   LISTAS — PADRÃO GLOBAL PARA SERVICES / PROFESSIONALS / CUSTOMERS
+   LISTAS (SERVIÇOS / PROFISSIONAIS / CLIENTES)
 =========================================================== */
-
-/* Card de lista usado no StepFirstCustomer (e se quiser em outros) */
 .listContainer {
   margin-top: 18px;
   background: var(--card-bg);
@@ -224,7 +218,6 @@
   background: rgba(0, 0, 0, 0.04);
 }
 
-/* Linha horizontal com várias infos: título — sub — sub2 */
 .itemLine {
   display: flex;
   flex-direction: row;
@@ -243,7 +236,6 @@
   font-size: 0.95rem;
 }
 
-/* Tag Ativo p/ profissionais, se usar */
 .itemTagActive {
   background: rgba(34,197,94,0.15);
   color: #15803d;
@@ -252,16 +244,9 @@
   border-radius: 6px;
 }
 
-/* ✨ Hack global para corrigir "unha em gel60 min" e "venaAtivo"
-   em ULs simples, sem precisar mexer nos steps antigos */
-.stepContainer ul li > strong {
-  margin-right: 6px;
-}
-
 /* ===========================================================
-   PÁGINA DE PARABÉNS / FINALIZAÇÃO
+   PARABÉNS (FINAL)
 =========================================================== */
-
 .congratsWrapper {
   text-align: center;
   display: flex;
@@ -295,163 +280,9 @@
   line-height: 1.5;
 }
 
-
 /* ===========================================================
-   RESPONSIVO
+   WARNING MOBILE (BOTÃO + MODAL)
 =========================================================== */
-@media (max-width: 640px) {
-  .card {
-    padding: 20px 18px 24px;
-    border-radius: 20px;
-  }
-
-  .title {
-    font-size: 1.45rem;
-  }
-
-  .stepTitle {
-    font-size: 1.2rem;
-  }
-
-  .actions {
-    flex-direction: column;
-  }
-
-  .actions button {
-    width: 100%;
-    max-width: none;
-    padding: 14px 20px;
-    font-size: 1.05rem;
-  }
-}
-
-/* ===========================================================
-   NOVOS ESTILOS PARA LISTA DE PROFISSIONAIS (StepSchedule)
-=========================================================== */
-.professionalsListWrapper {
-  margin-top: 18px;
-  background: var(--card-bg);
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
-}
-
-.professionalsList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.professionalItem {
-  background: var(--card-alt-bg);
-  padding: 16px 18px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border: 1px solid rgba(0,0,0,0.05);
-  transition: 0.2s ease;
-}
-
-.professionalItem:hover {
-  background: rgba(0, 0, 0, 0.04);
-}
-
-.professionalNameAndStatus { /* NOVO: Wrapper para nome e status */
-  display: flex;
-  align-items: center;
-  gap: 8px; /* Espaçamento entre nome e status */
-}
-
-.statusBadgeActive {
-  background: rgba(34,197,94,0.15); /* Verde claro */
-  color: #15803d; /* Verde escuro */
-  font-size: 0.8rem;
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-weight: 600;
-}
-
-.statusBadgeInactive {
-  background: rgba(220,53,69,0.15); /* Vermelho claro */
-  color: #dc3545; /* Vermelho escuro */
-  font-size: 0.8rem;
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-weight: 600;
-}
-
-.servicesLabel {
-  font-weight: 600;
-  color: var(--text);
-  margin-bottom: 10px;
-  display: block;
-}
-
-.emptyText {
-  color: var(--text-muted);
-  font-style: italic;
-  padding: 10px 0;
-  text-align: center;
-}
-
-.stepActionButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-
-  background: var(--color-primary);
-  color: #fff;
-  border: none;
-  border-radius: 12px;
-
-  padding: 10px 16px;
-  font-size: 0.95rem;
-  font-weight: 600;
-
-  cursor: pointer;
-  width: auto;
-  max-width: max-content;
-  flex-shrink: 0;
-  
-  box-shadow: 0 3px 12px color-mix(in srgb, var(--color-primary) 35%, transparent);
-  transition: all 0.25s ease;
-  margin-top: 1rem; /* Adicionado para separar do conteúdo acima */
-}
-
-.stepActionButton:hover {
-  filter: brightness(1.1);
-  transform: translateY(-2px);
-
-}
-.warningBox {
-  background: rgba(255, 193, 7, 0.15);
-  padding: 16px;
-  border-radius: 10px;
-  border-left: 4px solid #ffc107;
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin-top: 20px;
-  font-size: 0.92rem;
-  line-height: 1.4;
-}
-
-.qrBox {
-  margin-top: 20px;
-  text-align: center;
-}
-
-.qrImage {
-  width: 220px;
-  height: 220px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-}
 .mobileWarningToggle {
   margin-top: 20px;
   width: 100%;
@@ -472,10 +303,9 @@
   margin-top: 18px;
 }
 
-/* 🔥 FULLSCREEN MODAL */
 .warningModalOverlay {
   position: fixed !important;
-  top: 0; 
+  top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
@@ -487,7 +317,7 @@
   align-items: center;
   justify-content: center;
 
-  z-index: 999999; /* bem acima de tudo */
+  z-index: 1000000;
   padding: 16px;
 }
 
@@ -528,12 +358,35 @@
 }
 
 @keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===========================================================
+   RESPONSIVO
+=========================================================== */
+@media (max-width: 640px) {
+  .card {
+    padding: 20px 18px 24px;
+    border-radius: 20px;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  .title {
+    font-size: 1.45rem;
+  }
+
+  .stepTitle {
+    font-size: 1.2rem;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .actions button {
+    width: 100%;
+    max-width: none;
+    padding: 14px 20px;
+    font-size: 1.05rem;
   }
 }
