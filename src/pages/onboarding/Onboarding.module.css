@@ -1,44 +1,36 @@
 /* ===========================
    LAYOUT BASE
 =========================== */
+/* ===========================
+   REMOVIDO O CARD DUPLICADO
+=========================== */
+
+/* Agora a página só ocupa o espaço, sem card extra */
 .page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;     /* 🔥 Centraliza vertical */
-  justify-content: center; /* 🔥 Centraliza horizontal */
-  padding: 24px;
-  background: var(--page-bg, #f7f6fb);
-}
-
-
-.card {
   width: 100%;
-  max-width: 760px;
-  background: var(--modal-bg, #ffffff);
-  border-radius: 24px;
-  padding: 28px 28px 36px;
-  margin: 0 auto;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  position: relative;  /* pode manter */
-  /* z-index: 1;  ❌ REMOVER */
+  padding: 0;
+  margin: 0;
+  background: none; /* Nenhuma camada de fundo duplicada */
 }
+
+/* REMOVIDO: NÃO EXISTE MAIS `.card` */
+
 
 
 /* ===========================
    STEP CONTENT
 =========================== */
 .stepContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;   /* 🔥 Centraliza tudo */
-  text-align: center;    /* 🔥 Alinha textos */
-  gap: 16px;
   width: 100%;
-  animation: fadeInStep 0.3s ease-out forwards;
+  max-width: 600px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 22px;
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
 }
+
+
 
 
 @keyframes fadeInStep {
@@ -200,12 +192,22 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+@media (max-width: 480px) {
+  .stepContainer {
+    max-width: 100%;
+    border-radius: 14px;
+    padding: 18px;
+  }
+}
+
 /* ===========================
    RESPONSIVO
 =========================== */
 @media (max-width: 640px) {
-  .card {
-    padding: 22px 18px 26px;
+   .stepContainer {
+    max-width: 100%;
+    border-radius: 14px;
+    padding: 18px;
   }
 
   .stepTitle {
