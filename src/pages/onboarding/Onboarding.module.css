@@ -348,16 +348,6 @@
   overflow-y: auto;
 }
 
-.warningModal h3 {
-  margin: 10px 0 8px;
-  font-size: 1.2rem;
-  font-weight: bold;
-}
-
-.warningModal ul {
-  margin: 10px 0;
-  padding-left: 18px;
-}
 
 .closeWarningButton {
   width: 100%;
