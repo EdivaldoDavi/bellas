@@ -35,10 +35,12 @@ export default function Onboarding() {
   /* =====================================
      🔥 Callbacks dos steps
   ===================================== */
-  const onServicesValidated = useCallback(v => setHasServices(v), []);
-  const onScheduleValidated = useCallback(v => setHasSchedule(v), []);
-  const onCustomerValidated = useCallback(v => setHasCustomer(v), []);
-  const onAppointmentValidated = useCallback(v => setHasAppointment(v), []);
+ type ValidatorFn = (valid: boolean) => void;
+
+const onServicesValidated: ValidatorFn = useCallback(valid => setHasServices(valid), []);
+const onScheduleValidated: ValidatorFn = useCallback(valid => setHasSchedule(valid), []);
+const onCustomerValidated: ValidatorFn = useCallback(valid => setHasCustomer(valid), []);
+const onAppointmentValidated: ValidatorFn = useCallback(valid => setHasAppointment(valid), []);
 
   /* =====================================
      🔥 Navegação
