@@ -1,6 +1,6 @@
 // src/pages/ServicosPage.tsx
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+
 import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
@@ -20,10 +20,10 @@ type Service = {
 };
 
 export default function ServicosPage() {
-  const navigate = useNavigate();
+  
   const { tenant } = useUserAndTenant();
   const tenantId = tenant?.id;
-  const location = useLocation(); // Obter o objeto location
+  
 
   const [services, setServices] = useState<Service[]>([]);
   const [search, setSearch] = useState("");
@@ -33,7 +33,7 @@ export default function ServicosPage() {
   const [openModal, setOpenModal] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
 
-  const { openSidebarAndNavigate } = useLayoutContext(); // Usar o contexto
+
 
   /* ============================================================
      LOAD (busca no Supabase)

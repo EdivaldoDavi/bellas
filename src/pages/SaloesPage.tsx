@@ -17,7 +17,7 @@ export default function SaloesPage() {
   const [saloes, setSaloes] = useState<Salao[]>([]);
   const [loading, setLoading] = useState(true);
   const { tenant } = useUserAndTenant(); // Get tenant to access primary_color
-  const location = useLocation(); // Obter o objeto location
+
 
   // The 'close' function is removed as the page is no longer a modal.
   // Navigation is now handled by the sidebar.

@@ -28,9 +28,7 @@ type ProfessionalsPageProps = {
 export default function ProfessionalsPage({ onClose }: ProfessionalsPageProps) {
   const { tenant } = useUserAndTenant();
   const tenantId = tenant?.id;
-  const navigate = useNavigate();
-  const location = useLocation(); // Obter o objeto location
-
+  
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -38,7 +36,7 @@ export default function ProfessionalsPage({ onClose }: ProfessionalsPageProps) {
   const [openModal, setOpenModal] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
 
-  const { openSidebarAndNavigate } = useLayoutContext(); // Usar o contexto
+ 
 
   // ================================
   // LOAD

@@ -2,14 +2,11 @@ import { useState } from "react";
 import ModalNewUser from "../components/ModalNewUser";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 import styles from "../css/UsuariosPage.module.css"; // Importar o CSS para a página
-import { useLocation, useNavigate } from "react-router-dom"; // Adicionado useLocation e useNavigate
 
 export default function UsuariosPage() {
   const { tenant } = useUserAndTenant();
   const [showNewUserModal, setShowNewUserModal] = useState(false); // Alterado para false
-  const navigate = useNavigate();
-  const location = useLocation(); // Obter o objeto location
-
+  
   // The 'close' function is removed as the page is no longer a modal.
   // Navigation is now handled by the sidebar.
 
