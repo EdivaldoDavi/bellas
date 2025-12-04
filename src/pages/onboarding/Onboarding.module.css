@@ -7,15 +7,16 @@
 ========================= */
 .page {
   width: 100%;
-  min-height: 100vh;          /* 🔥 garante altura total */
+  min-height: 100svh; /* 🔥 usa a altura REAL da tela, sem barra flutuante */
   padding: 40px 20px;
 
   display: flex;
-  flex-direction: column;     /* 🔥 passo essencial */
-  align-items: center;        /* mantém o card centralizado */
+  flex-direction: column;
+  align-items: center;
 
   background: transparent !important;
 }
+
 
 .stepWrapper {
   width: 100%;
@@ -206,15 +207,23 @@
 }
 
 .warningModal {
-  position: relative;
-  width: 95%;
-  max-width: 500px;
-  background: #fff;
-  border-radius: 18px;
+  width: 100%;
+  max-width: 650px;
+  max-height: 90vh;
+  overflow-y: auto;
+
+  background: color-mix(in srgb, var(--color-warning-bg) 92%, transparent);
+  border: 1px solid var(--color-warning-border);
+
   padding: 24px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
-  animation: slideUp 0.25s ease-out;
+  border-radius: 18px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+
+  color: var(--text);
+  animation: slideUp 0.3s ease-out forwards;
+  text-align: left;
 }
+
 
 /* ===========================================================
    RESPONSIVE
