@@ -246,12 +246,20 @@
   .stepTitle {
     font-size: 1.5rem;
   }
+  .warningModal {
+    width: 94%;
+    padding: 18px;
+  }
 }
 
 @media (max-width: 480px) {
   .stepContainer {
     padding: 26px 18px;
     border-radius: 18px;
+  }
+  .warningModal {
+    width: 94%;
+    padding: 18px;
   }
 }
 

@@ -82,7 +82,7 @@ const { updateOnboardingStep } = useUserTenant(); // <-- se ainda não estiver i
             <div className={styles.warningModalOverlay}>
              <div className={styles.warningModal}> 
               <div className={styles.warningHeader}>
-               <span className={styles.warningIcon}>⚠️</span>
+                <AlertTriangle className={styles.warningIcon} size={28} color="#b68400" />
                 <h3>Aviso sobre conexão do WhatsApp</h3>
               </div>
 
