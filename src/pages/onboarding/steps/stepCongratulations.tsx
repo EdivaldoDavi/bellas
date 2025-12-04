@@ -12,14 +12,14 @@ export default function StepCongratulations() {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const mobile = /android|iphone|ipad|mobile/i.test(navigator.userAgent);
+    // 🔥 DETECÇÃO CONFIÁVEL (desktop vs mobile)
+    const mobile = window.matchMedia("(pointer: coarse)").matches;
     setIsMobile(mobile);
   }, []);
 
   const evoBase = import.meta.env.VITE_EVO_PROXY_URL;
   const instanceId = tenant?.id || "";
 
-  // Hook Evolution - mesmo que sua página oficial
   const {
     status,
     qrBase64,
@@ -38,12 +38,12 @@ export default function StepCongratulations() {
       <h2 className={styles.stepTitle}>🎉 Seu Studio está pronto!</h2>
 
       <p className={styles.stepText}>
-        Agora você pode conectar seu WhatsApp para ativar automações,
-        lembretes e confirmações inteligentes.
+        Agora você pode conectar o WhatsApp para habilitar automações,
+        confirmações e lembretes inteligentes.
       </p>
 
       {/* ========================================================
-         🚫 MOBILE → Exibir aviso e NÃO tentar abrir QR Code
+         📱 MOBILE → MOSTRA APENAS O AVISO
       ========================================================== */}
       {isMobile && (
         <div className={styles.warningBox}>
@@ -51,12 +51,11 @@ export default function StepCongratulations() {
           <div>
             <strong>Atenção:</strong> Você está usando um celular.
             <br />
-            O WhatsApp <strong>não permite escanear QR Code</strong> usando o
-            mesmo aparelho onde o app está instalado.
+            O WhatsApp não permite ler o QR Code usando o mesmo aparelho.
             <br /><br />
-            Para conectar, use outro dispositivo (notebook, tablet ou outro celular).
+            Conecte usando um notebook, tablet ou outro celular.
             <br /><br />
-            Ou, se preferir, conecte depois em:
+            Ou conecte depois em:
             <br />
             <strong>Menu → WhatsApp → Conectar WhatsApp</strong>
           </div>
@@ -64,7 +63,7 @@ export default function StepCongratulations() {
       )}
 
       {/* ========================================================
-         🖥️ DESKTOP → Mostrar QR Code direto usando seu componente
+         🖥️ DESKTOP → MOSTRA QR CODE AUTOMATICAMENTE
       ========================================================== */}
       {!isMobile && (
         <div style={{ marginTop: "20px" }}>
@@ -81,9 +80,6 @@ export default function StepCongratulations() {
         </div>
       )}
 
-      {/* ========================================================
-         Botão final
-      ========================================================== */}
       <button
         className={styles.primaryBtn}
         style={{ marginTop: "30px" }}
