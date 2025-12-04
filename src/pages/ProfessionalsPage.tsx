@@ -104,13 +104,13 @@ export default function ProfessionalsPage({ onClose }: ProfessionalsPageProps) {
 
     toast(
       ({ closeToast }) => (
-        <div style={{ textAlign: "center" }}>
+        <div style={{ textAlign: "center", padding: '20px' }}> {/* Adicionado padding aqui */}
           <p style={{ marginBottom: 12 }}>
             Deseja realmente <b>{action}</b> o profissional:
             <br />"{p.name}"?
           </p>
 
-          <div className={styles.toastActions}> {/* Novo wrapper */}
+          <div className={styles.toastActions}>
             <button
               onClick={() => {
                 closeToast?.();
@@ -135,7 +135,7 @@ export default function ProfessionalsPage({ onClose }: ProfessionalsPageProps) {
         draggable: false,
         icon: false,
         closeOnClick: false,
-        style: { background: "var(--card-bg)", color: "var(--text)", borderRadius: '12px' }, // Adicionado estilo para o contêiner do toast
+        style: { background: "var(--card-bg)", color: "var(--text)", borderRadius: '12px' },
       }
     );
   }

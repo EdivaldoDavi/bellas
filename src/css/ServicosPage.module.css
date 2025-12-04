@@ -222,38 +222,43 @@
 .toastActions {
   display: flex;
   justify-content: center;
-  gap: 10px; /* Space between buttons */
-  margin-top: 15px; /* Space above buttons */
-  flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+  gap: 12px; /* Aumentado o gap */
+  margin-top: 20px; /* Aumentado o margin-top */
+  flex-wrap: wrap;
 }
 
 .toastButton {
-  padding: 8px 16px;
-  border-radius: 8px;
+  padding: 10px 18px; /* Aumentado o padding */
+  border-radius: 10px; /* Levemente menos arredondado */
   font-weight: 600;
+  font-size: 0.95rem; /* Tamanho da fonte ajustado */
   cursor: pointer;
   transition: all 0.2s ease;
-  flex: 1; /* Allow buttons to grow and shrink */
-  min-width: 120px; /* Minimum width for buttons */
+  flex: 1;
+  min-width: 130px; /* Aumentado o min-width */
 }
 
 .toastConfirmButton {
   background: var(--color-primary);
   color: #fff;
   border: none;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 35%, transparent); /* Adicionado sombra */
 }
 
 .toastConfirmButton:hover {
   filter: brightness(1.1);
+  transform: translateY(-1px);
 }
 
 .toastCancelButton {
-  background: var(--bg);
-  color: var(--text-muted);
+  background: var(--card-alt-bg); /* Usar card-alt-bg */
+  color: var(--text); /* Usar text */
   border: 1px solid var(--separator);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Sombra sutil */
 }
 
 .toastCancelButton:hover {
   background: var(--separator);
   color: var(--text);
+  transform: translateY(-1px);
 }

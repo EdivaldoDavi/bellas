@@ -92,12 +92,12 @@ export default function ManageRoles({ tenantId, loggedInUserId }: Props) {
 
     toast(
       ({ closeToast }) => (
-        <div style={{ textAlign: "center", padding: '10px' }}>
+        <div style={{ textAlign: "center", padding: '20px' }}> {/* Adicionado padding aqui */}
           <p style={{ marginBottom: 12, fontSize: '0.95rem' }}>
             Deseja realmente alterar a permissão de <b>{user.full_name}</b> para <b>{newRole === 'manager' ? 'Gerente' : 'Profissional'}</b>?
           </p>
 
-          <div className={styles.toastActions}> {/* Novo wrapper */}
+          <div className={styles.toastActions}>
             <button
               onClick={() => {
                 closeToast?.();
