@@ -6,6 +6,7 @@ import { useTheme } from "../hooks/useTheme";
 import { Eye, EyeOff, Check } from "lucide-react";
 import styles from "../css/ForcePasswordReset.module.css";
 import { useUserTenant } from "../context/UserTenantProvider";
+import { useAuth } from "../context/AuthProvider"; // 👈 NOVO
 
 type PasswordStrength = "empty" | "weak" | "medium" | "strong" | "very-strong";
 
@@ -37,36 +38,59 @@ export default function ForcePasswordReset() {
   const strength = getPasswordStrength(newPass);
   const { reloadAll } = useUserTenant();
   const { theme } = useTheme();
+  const { user } = useAuth(); // 👈 saber se já está autenticado
 
   // Tema
   useEffect(() => {
     document.documentElement.setAttribute("data-theme-variant", theme);
   }, [theme]);
 
-  // 1️⃣ Validar hash + setSession
+  // 1️⃣ Validar hash + setSession (somente se tiver token)
   useEffect(() => {
     async function run() {
-      console.log("ForcePasswordReset: START useEffect. Current window.location.hash:", window.location.hash);
+      console.log(
+        "ForcePasswordReset: START useEffect. window.location.hash:",
+        window.location.hash
+      );
 
-      const hash = window.location.hash;
-      console.log("ForcePasswordReset: Current URL hash (after variable assignment):", hash);
+      const hash = window.location.hash || "";
 
+      // ⚠️ CASO 1: Não tem access_token no hash
       if (!hash.includes("access_token")) {
-        toast.error("Link inválido ou expirado: token de acesso não encontrado.");
-        console.error("ForcePasswordReset: Hash does not contain access_token. Navigating to /login.");
-        navigate("/login", { replace: true });
+        // 👉 Se NÃO tiver usuário autenticado: link realmente inválido
+        if (!user) {
+          toast.error("Link inválido ou expirado: token de acesso não encontrado.");
+          console.error(
+            "ForcePasswordReset: Hash sem access_token e nenhum usuário logado. Indo para /login."
+          );
+          navigate("/login", { replace: true });
+        } else {
+          // 👉 Se já tem usuário logado, não trata como erro.
+          console.log(
+            "ForcePasswordReset: Sem access_token no hash, mas usuário já está autenticado. Mantendo na tela de force-reset."
+          );
+        }
+
         setLoading(false);
         return;
       }
 
+      // ⚠️ CASO 2: Tem access_token no hash → seguir fluxo normal
       const params = new URLSearchParams(hash.replace("#", ""));
       const access_token = params.get("access_token");
       const refresh_token = params.get("refresh_token");
-      console.log("ForcePasswordReset: Extracted access_token:", access_token ? "present" : "missing", "refresh_token:", refresh_token ? "present" : "missing");
+      console.log(
+        "ForcePasswordReset: Extracted access_token:",
+        access_token ? "present" : "missing",
+        "refresh_token:",
+        refresh_token ? "present" : "missing"
+      );
 
       if (!access_token || !refresh_token) {
         toast.error("Token inválido: access_token ou refresh_token ausentes.");
-        console.error("ForcePasswordReset: Missing access_token or refresh_token. Navigating to /login.");
+        console.error(
+          "ForcePasswordReset: Missing access_token or refresh_token. Navigating to /login."
+        );
         navigate("/login", { replace: true });
         setLoading(false);
         return;
@@ -77,34 +101,45 @@ export default function ForcePasswordReset() {
         access_token,
         refresh_token,
       });
-      console.log("ForcePasswordReset: setSession response - data:", data, "error:", error);
+      console.log(
+        "ForcePasswordReset: setSession response - data:",
+        data,
+        "error:",
+        error
+      );
 
       if (error) {
         toast.error(`Erro ao autenticar link de redefinição: ${error.message}`);
         console.error("ForcePasswordReset: setSession failed with error:", error);
-        await supabase.auth.signOut(); 
-        navigate("/login", { replace: true });
-        setLoading(false);
-        return;
-      }
-      
-      if (!data.session) {
-        toast.error("Erro ao autenticar link de redefinição: sessão não retornada.");
-        console.error("ForcePasswordReset: setSession succeeded but data.session is null. Navigating to /login.");
         await supabase.auth.signOut();
         navigate("/login", { replace: true });
         setLoading(false);
         return;
       }
 
-      console.log("ForcePasswordReset: Session successfully set. User ID:", data.session.user.id);
-      // 🔥 RE-HABILITADO E MOVIDO PARA AQUI: Limpa hash feio da URL IMEDIATAMENTE APÓS SUCESSO
+      if (!data.session) {
+        toast.error("Erro ao autenticar link de redefinição: sessão não retornada.");
+        console.error(
+          "ForcePasswordReset: setSession succeeded but data.session is null. Navigating to /login."
+        );
+        await supabase.auth.signOut();
+        navigate("/login", { replace: true });
+        setLoading(false);
+        return;
+      }
+
+      console.log(
+        "ForcePasswordReset: Session successfully set. User ID:",
+        data.session.user.id
+      );
+
+      // Limpa hash feio da URL após sucesso
       window.history.replaceState({}, "", "/force-reset");
       setLoading(false);
     }
 
     run();
-  }, [navigate]);
+  }, [navigate, user]); // 👈 depende do user agora
 
   const hasMinLength = newPass.length >= 8;
   const hasUppercase = /[A-Z]/.test(newPass);
@@ -152,7 +187,7 @@ export default function ForcePasswordReset() {
     // 🔥 Recarrega tudo antes de redirecionar
     await reloadAll();
 
-    // Agora o Guard já tem os valores corretos (needsSetup lá dentro será true ou false corretamente)
+    // Agora o AppGuard decide se vai para /setup, /onboarding ou /dashboard
     navigate("/dashboard", { replace: true });
   }
 
@@ -263,8 +298,6 @@ export default function ForcePasswordReset() {
           >
             {saving ? "Salvando..." : "Salvar nova senha"}
           </button>
-
-       
         </form>
       </div>
     </div>
