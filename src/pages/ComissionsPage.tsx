@@ -6,4 +6,4 @@ export default function CommissionsPage() {
   // Navigation is now handled by the sidebar.
 
   return <EmDesenvolvimento />;
-}
+}  
