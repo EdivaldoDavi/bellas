@@ -1,100 +1,54 @@
-/* ===========================================================
-   LAYOUT GERAL
-=========================================================== */
+/* ===========================
+   LAYOUT BASE
+=========================== */
 .page {
   min-height: 100vh;
   display: flex;
-  flex-direction: column;
+  align-items: center;     /* 🔥 Centraliza vertical */
+  justify-content: center; /* 🔥 Centraliza horizontal */
   padding: 24px;
   background: var(--page-bg, #f7f6fb);
-  overflow-x: hidden;
 }
+
 
 .card {
   width: 100%;
   max-width: 760px;
-  margin: 0 auto;
-
   background: var(--modal-bg, #ffffff);
   border-radius: 24px;
   padding: 28px 28px 36px;
-
+  margin: 0 auto;
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
-
   display: flex;
   flex-direction: column;
   gap: 24px;
-
-  /* 🔥 Removido z-index problemático */
-  position: relative;
+  position: relative;  /* pode manter */
+  /* z-index: 1;  ❌ REMOVER */
 }
 
-/* ===========================================================
-   HEADER
-=========================================================== */
-.header {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
 
-.title {
-  font-size: 1.7rem;
-  font-weight: 700;
-  margin: 0;
-}
-
-.subtitle {
-  margin: 0;
-  font-size: 1rem;
-  color: #6b7280;
-}
-
-/* ===========================================================
-   PROGRESSO
-=========================================================== */
-.progressWrapper { margin-top: 4px; }
-
-.progressBar {
-  width: 100%;
-  height: 8px;
-  border-radius: 999px;
-  background: rgba(148, 163, 184, 0.25);
-  overflow: hidden;
-}
-
-.progressFill {
-  height: 100%;
-  border-radius: inherit;
-  background: var(--color-primary);
-  transition: width 0.25s ease-out;
-}
-
-.progressText {
-  margin-top: 4px;
-  font-size: 0.85rem;
-  color: #6b7280;
-}
-
-/* ===========================================================
-   STEPS / CONTEÚDO
-=========================================================== */
-@keyframes fadeInStep {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
+/* ===========================
+   STEP CONTENT
+=========================== */
 .stepContainer {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  align-items: center;   /* 🔥 Centraliza tudo */
+  text-align: center;    /* 🔥 Alinha textos */
+  gap: 16px;
+  width: 100%;
   animation: fadeInStep 0.3s ease-out forwards;
+}
+
+
+@keyframes fadeInStep {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .stepTitle {
   font-size: 1.35rem;
   font-weight: 600;
-  margin-bottom: 4px;
 }
 
 .stepText {
@@ -103,239 +57,129 @@
   line-height: 1.55;
 }
 
-/* ===========================================================
+/* ===========================
+   PARABÉNS FINAL
+=========================== */
+.congratsWrapper {
+  text-align: center;
+}
+
+.congratsIcon {
+  color: var(--color-primary);
+  animation: popIn 0.4s ease-out forwards;
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.3); opacity: 0; }
+  80% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ===========================
    BOTÕES
-=========================================================== */
-.actions {
-  margin-top: 28px;
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  align-items: center;
-}
-
-.actions button {
-  flex: 1;
-  min-width: 180px;
-  max-width: 260px;
-}
-
+=========================== */
 .primaryBtn {
   border: none;
   background: var(--color-primary);
-  color: #ffffff;
-  padding: 12px 20px;
+  color: #fff;
+  padding: 14px 20px;
   border-radius: 999px;
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
-  transition: 0.15s ease;
+  margin-top: 20px;
 }
 
-.primaryBtn:hover {
-  opacity: 0.92;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
-}
-
-.primaryBtn:active { transform: scale(0.97); }
-.primaryBtn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.secondaryBtn {
-  border: 2px solid rgba(148, 163, 184, 0.7);
-  background: #ffffff;
-  color: #374151;
-  padding: 12px 20px;
-  border-radius: 999px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.secondaryBtn:hover {
-  background: rgba(148, 163, 184, 0.08);
-}
-
-.backButton {
-  border: 2px solid var(--color-primary);
-  background: #ffffff;
-  color: var(--color-primary);
-  padding: 12px 20px;
-  border-radius: 999px;
-  font-weight: 600;
-  transition: 0.2s ease;
-}
-
-.backButton:hover {
-  background: var(--color-primary);
-  color: #ffffff;
-}
-
-/* ===========================================================
-   LISTAS
-=========================================================== */
-.listContainer {
-  margin-top: 18px;
-  background: var(--card-bg);
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
-}
-
-.itemsList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.itemRow {
-  background: var(--card-alt-bg);
-  padding: 16px 18px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  border: 1px solid rgba(0,0,0,0.05);
-  transition: 0.2s ease;
-}
-
-.itemRow:hover {
-  background: rgba(0, 0, 0, 0.04);
-}
-
-.itemLine {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.itemTitle { font-weight: 600; color: var(--text); }
-.itemSub { color: var(--text-muted); }
-
-/* ===========================================================
-   PARABÉNS (FINAL)
-=========================================================== */
-.congratsWrapper {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 18px;
-}
-
-.celebrationIcon {
-  display: flex;
-  justify-content: center;
-}
-
-.congratsCard {
-  background: var(--card-bg);
-  padding: 18px 20px;
-  border-radius: 16px;
-  max-width: 500px;
-  line-height: 1.5;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-
-/* ===========================================================
+/* ===========================
    WARNING MOBILE
-=========================================================== */
+=========================== */
 .warningButton {
   width: 100%;
   display: flex;
   align-items: center;
   gap: 12px;
   background: #fff8e1;
+  border: 1px solid #f0dca0;
   color: #8a6800;
   padding: 14px;
-  border-radius: 10px;
+  border-radius: 12px;
   font-weight: 600;
-  border: 1px solid #f0dca0;
   margin-top: 18px;
 }
 
-/* 🔥 OVERLAY 100% real */
+/* Overlay fixado na tela */
 .warningModalOverlay {
   position: fixed !important;
   inset: 0;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(3px);
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  background: rgba(0,0,0,0.55);
-  backdrop-filter: blur(3px);
-
-  z-index: 999999 !important;
   padding: 16px;
+
+  z-index: 999999 !important; /* 🔥 garantir que está no topo */
 }
 
-/* 🔥 wrapper evita corte */
+
+/* Modal */
 .warningModalWrapper {
   max-height: 90vh;
   overflow-y: auto;
 }
 
-/* 🔥 modal como camada isolada (IMPRESCINDÍVEL) */
 .warningModal {
-  width: 90%;
+  width: 100%;
   max-width: 420px;
-
   background: #fffefa;
-  border-radius: 18px;
   padding: 24px;
-
+  border-radius: 18px;
   border-left: 4px solid #b68400;
   box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+}
+.warningHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
 
-  animation: slideUp 0.25s ease-out;
-
-  isolation: isolate; /* 👈 impede qualquer vazamento visual */
-  position: relative;
+.warningList li {
+  margin-bottom: 6px;
 }
 
 .closeWarningButton {
+  margin-top: 16px;
   width: 100%;
   background: #b68400;
-  color: #fff;
-  margin-top: 16px;
+  color: white;
   padding: 12px;
-  border: none;
   border-radius: 10px;
-  font-size: 1rem;
+  border: none;
   font-weight: 600;
 }
 
-/* ===========================================================
-   ANIMAÇÕES
-=========================================================== */
+/* Animação */
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* ===========================================================
+/* ===========================
    RESPONSIVO
-=========================================================== */
+=========================== */
 @media (max-width: 640px) {
   .card {
-    padding: 20px 18px 24px;
-    border-radius: 20px;
+    padding: 22px 18px 26px;
   }
 
-  .title { font-size: 1.45rem; }
-  .stepTitle { font-size: 1.2rem; }
-
-  .actions {
-    flex-direction: column;
+  .stepTitle {
+    font-size: 1.2rem;
   }
 
-  .actions button {
-    width: 100%;
-    max-width: none;
+  .primaryBtn {
+    font-size: 1.05rem;
   }
 }
