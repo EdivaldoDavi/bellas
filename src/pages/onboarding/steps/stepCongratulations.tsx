@@ -66,59 +66,70 @@ const { updateOnboardingStep } = useUserTenant(); // <-- se ainda não estiver i
       {/* ======================================================
          📱 MOBILE — botão para mostrar aviso
       ====================================================== */}
-      {isMobile && (
-        <>
+{isMobile && (
+  <>
+    <button
+      className={styles.warningButton}
+      onClick={() => setShowWarning(true)}
+    >
+      <AlertTriangle size={20} color="#b68400" />
+      <span>Aviso importante sobre WhatsApp</span>
+      <ChevronRight size={18} />
+    </button>
+
+    {/* Modal - sempre centralizado */}
+    {showWarning && (
+      <div className={styles.warningModalOverlay}>
+        <div className={styles.warningModal}> {/* REMOVIDO: .warningModalWrapper */}
+
+          {/* === INÍCIO DO CONTEÚDO REFATORADO === */}
+          
+          <div className={styles.warningHeader}>
+            <AlertTriangle size={28} color="#b68400" />
+            
+            {/* Título mais amigável */}
+            <h3 style={{ fontSize: '1.3rem', color: 'var(--text-color, #fff)' }}>
+                Atenção: Você está no celular! 📱
+            </h3>
+          </div>
+
+          <p className={styles.warningText}>
+            Notamos que você está acessando por um celular.
+          </p>
+          
+          {/* Explicação clara e focada na ação */}
+          <p className={styles.warningText}>
+            Para escanear o QR Code e conectar seu WhatsApp, você **precisará de um segundo aparelho**. É fisicamente impossível usar o mesmo celular para exibir e ler o código simultaneamente. 😉
+          </p>
+
+          <p style={{ marginTop: 10, fontWeight: 500 }} className={styles.warningInstruction}>
+            Para seguir com a conexão, utilize:
+          </p>
+
+          <ul className={styles.warningList}>
+            <li>Notebook ou Desktop</li>
+            <li>Tablet</li>
+            <li>Outro celular</li>
+          </ul>
+
+          <p style={{ marginTop: 12, fontSize: '0.9rem' }} className={styles.warningFooter}>
+            *Quando estiver de posse de um dos dispositivos acima, acesse o sistema faça o login e vá para a opção Whattsapp do aplicativo para fazer a conexão.😉
+          </p>
+
           <button
-            className={styles.warningButton}
-            onClick={() => setShowWarning(true)}
+            className={styles.closeWarningButton}
+            onClick={() => setShowWarning(false)}
           >
-            <AlertTriangle size={20} color="#b68400" />
-            <span>Aviso importante sobre WhatsApp</span>
-            <ChevronRight size={18} />
+            Entendi
           </button>
+          
+          {/* === FIM DO CONTEÚDO REFATORADO === */}
 
-          {/* Modal - sempre centralizado */}
-          {showWarning && (
-            <div className={styles.warningModalOverlay}>
-              <div className={styles.warningModal}> {/* REMOVIDO: .warningModalWrapper */}
-                  <div className={styles.warningHeader}>
-                    <AlertTriangle size={28} color="#b68400" />
-                    <h3>Aviso sobre conexão do WhatsApp</h3>
-                  </div>
-
-                  <p>
-                    Você está usando um <strong>celular</strong>. O WhatsApp{" "}
-                    <strong>não permite escanear um QR Code usando o mesmo
-                    aparelho</strong> que será conectado.
-                  </p>
-
-                  <p style={{ marginTop: 10 }}>
-                    Para conectar seu WhatsApp, utilize:
-                  </p>
-
-                  <ul className={styles.warningList}>
-                    <li>Notebook ou Desktop</li>
-                    <li>Tablet</li>
-                    <li>Outro celular</li>
-                  </ul>
-
-                  <p style={{ marginTop: 12 }}>
-                    Você também pode conectar depois pelo menu{" "}
-                    <strong>WhatsApp</strong> no painel.
-                  </p>
-
-                  <button
-                    className={styles.closeWarningButton}
-                    onClick={() => setShowWarning(false)}
-                  >
-                    Entendi
-                  </button>
-                </div>
-            </div>
-          )}
-        </>
-      )}
-
+        </div>
+      </div>
+    )}
+  </>
+)}
       {/* ======================================================
          🖥 DESKTOP — QR CODE
       ====================================================== */}
