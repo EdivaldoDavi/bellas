@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
-import { X, Plus, Pencil, MessageCircle, Phone } from "lucide-react"; // Adicionado MessageCircle e Phone
+import { Plus, Pencil, MessageCircle, Phone } from "lucide-react"; // Adicionado MessageCircle e Phone
 import { toast } from "react-toastify"; // Corrected import statement
 
 import ModalNewProfessional from "../components/ModalNewProfessional";
