@@ -16,7 +16,7 @@ export function AppGuard({ children }: AppGuardProps) {
   const path = location.pathname;
   const isOnboardingRoute = path.startsWith("/onboarding");
   const isSetupRoute = path.startsWith("/setup");
-  const isForceReset = path === "/force-reset";
+  const isForceResetRoute = path === "/force-reset"; // 🔥 NOVO: Flag para a rota de redefinição de senha
 
   // 1. Lidar com o carregamento inicial de autenticação e dados do usuário/tenant
   if (authLoading || userTenantLoading) {
@@ -24,7 +24,8 @@ export function AppGuard({ children }: AppGuardProps) {
   }
 
   // 2. Permitir acesso à rota de redefinição de senha mesmo sem usuário logado
-  if (isForceReset) {
+  //    (ou com um usuário recém-autenticado via link de reset)
+  if (isForceResetRoute) { // 🔥 Usar a nova flag
     return <>{children}</>;
   }
 
@@ -36,6 +37,7 @@ export function AppGuard({ children }: AppGuardProps) {
   // 4. Lógica de redirecionamento para o Setup
   //    - Ignorar se o usuário foi convidado (eles não precisam passar pelo setup inicial)
   //    - Ignorar se já estamos na rota de setup
+  //    - 🔥 IMPORTANTE: Ignorar se estamos na rota de force-reset (já tratada acima)
   if (!(profile as any)?.invited && needsSetup && !isSetupRoute) {
     return <Navigate to="/setup" replace />;
   }
@@ -44,6 +46,7 @@ export function AppGuard({ children }: AppGuardProps) {
   //    - Só entra em cena se já existe um tenant (ou seja, após o setup)
   //    - Ignorar se já estamos na rota de onboarding
   //    - Ignorar se já estamos na rota de setup (onboarding vem depois do setup)
+  //    - 🔥 IMPORTANTE: Ignorar se estamos na rota de force-reset (já tratada acima)
   if (tenant && (tenant.onboarding_step ?? 0) < 99 && !isOnboardingRoute && !isSetupRoute) {
     return <Navigate to="/onboarding" replace />;
   }
