@@ -218,3 +218,29 @@
 .bottomSpacing {
   padding-bottom: 140px;
 }
+
+
+.professionalNameAndStatus {
+  display: flex;
+  align-items: center;
+  gap: 12px;         /* 🔥 Espaçamento perfeito */
+  font-size: 1rem;
+  padding: 6px 0;
+}
+.statusBadgeActive,
+.statusBadgeInactive {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.statusBadgeActive {
+  background: #e3f9e5;
+  color: #2e7d32;
+}
+
+.statusBadgeInactive {
+  background: #fdecea;
+  color: #c62828;
+}
