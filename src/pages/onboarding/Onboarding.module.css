@@ -1,243 +1,226 @@
 /* ===========================================================
-   ONBOARDING — DESIGN MODERNO PREMIUM
-   Clean • Soft Glass • Gradient • Animation
+   ONBOARDING — ULTRA PREMIUM EDITION 2025
+   Branding • Depth • Motion • Soft-Glass • AI SaaS Style
 =========================================================== */
 
 /* =========================
-   LAYOUT BASE
+   GLOBAL PAGE BASE
 ========================= */
 
 .page {
   width: 100%;
   min-height: 100vh;
-  padding: 32px 16px;
+  padding: 40px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: linear-gradient(
-      135deg,
-      rgba(245, 240, 255, 0.55),
-      rgba(255, 255, 255, 1)
-  );
+
+  /* 🔥 Ultra Premium Background */
+  background: radial-gradient(
+      circle at top right,
+      rgba(131, 67, 162, 0.12),
+      transparent 60%
+    ),
+    radial-gradient(
+      circle at bottom left,
+      rgba(224, 182, 245, 0.14),
+      transparent 60%
+    ),
+    #faf9fc;
 }
 
 
 /* ===========================================================
-   CARD — Step Container (modern glass style)
+   STEP CARD — ULTRA PREMIUM GLASS CARD
 =========================================================== */
+
 .stepContainer {
   width: 100%;
-  max-width: 720px;
+  max-width: 760px;
 
-  padding: 32px 34px;
-  border-radius: 22px;
+  padding: 40px 46px;
+  border-radius: 26px;
 
-  /* 🔥 Soft glass + gradient */
+  /* 🔥 Ultra Glass Layer */
   background: linear-gradient(
-    145deg,
-    rgba(255, 255, 255, 0.92),
-    rgba(250, 248, 255, 0.82)
-  );
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(12px);
+      145deg,
+      rgba(255, 255, 255, 0.90),
+      rgba(250, 247, 255, 0.75)
+    );
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
 
-  /* 🔥 Premium shadow */
+  /* Depth Layer */
   box-shadow:
-    0 20px 45px rgba(0, 0, 0, 0.08),
-    0 4px 12px rgba(0, 0, 0, 0.04);
+    0 28px 60px rgba(0, 0, 0, 0.08),
+    0 6px 18px rgba(0, 0, 0, 0.04);
 
-  animation: stepFadeIn 0.35s ease-out forwards;
   opacity: 0;
-  transform: translateY(6px);
+  transform: translateY(12px);
+  animation: cardAppear 0.5s ease forwards;
 }
 
-/* Animação suave */
-@keyframes stepFadeIn {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Smooth card intro */
+@keyframes cardAppear {
+  0% { opacity: 0; transform: translateY(16px) scale(0.98); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 
 /* ===========================================================
-   TYPOGRAFIA DOS STEPS
+   TYPOGRAPHY — PREMIUM FINISH
 =========================================================== */
+
 .stepTitle {
-  font-size: 1.55rem;
+  font-size: 1.7rem;
   font-weight: 700;
-  color: #333;
-  margin-bottom: 6px;
+  color: #262626;
+  margin-bottom: 10px;
+  letter-spacing: -0.5px;
 }
 
 .stepText {
-  font-size: 1rem;
-  color: #565c63;
-  line-height: 1.6;
-  margin-bottom: 14px;
+  font-size: 1.03rem;
+  font-weight: 400;
+  color: #4a4a4a;
+  line-height: 1.65;
+  margin-bottom: 18px;
 }
 
 
 /* ===========================================================
-   PROGRESS BAR — Moderna
+   PROGRESS BAR — FUTURISTIC ANIMATED
 =========================================================== */
 
 .progressWrapper {
   width: 100%;
   max-width: 760px;
-  margin-bottom: 26px;
+  margin-bottom: 30px;
+  padding: 0 8px;
 }
 
 .progressBar {
   width: 100%;
-  height: 10px;
-
-  background: rgba(210, 210, 230, 0.35);
+  height: 12px;
+  background: rgba(200, 200, 220, 0.35);
   border-radius: 999px;
   overflow: hidden;
-  margin-bottom: 6px;
+  position: relative;
 }
 
 .progressFill {
   height: 100%;
   border-radius: 999px;
 
-  /* 🔥 Gradient animado */
-  background: linear-gradient(90deg, #8343A2, #B17CD8, #E0B6F5);
+  /* 🔥 Futuristic Gradient Trail */
+  background: linear-gradient(90deg, #8343A2, #A96CD3, #E0B6F5);
   background-size: 200% 100%;
-  animation: moveGradient 2s linear infinite;
+  animation: gradientFlow 2.4s linear infinite;
 
-  box-shadow: 0 0 12px rgba(131, 67, 162, 0.45);
-
-  transition: width 0.35s ease-out;
+  box-shadow: 0 0 14px rgba(131, 67, 162, 0.5);
+  transition: width 0.4s ease;
 }
 
-@keyframes moveGradient {
+/* Smooth infinite moving gradient */
+@keyframes gradientFlow {
   0% { background-position: 0%; }
   100% { background-position: -200%; }
 }
 
 .progressText {
-  font-size: 0.9rem;
-  color: #444;
-  margin-left: 2px;
+  text-align: left;
+  margin-top: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #222 !important; /* ✔ mais escuro */
 }
 
 
+
 /* ===========================================================
-   BOTÕES
+   BUTTONS — PREMIUM ROUNDED
 =========================================================== */
+
 .primaryBtn {
   width: 100%;
   border: none;
   background: var(--color-primary);
   color: #fff;
-  padding: 14px 20px;
+  padding: 16px 24px;
+
   border-radius: 999px;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 1.05rem;
   cursor: pointer;
-  margin-top: 20px;
-  transition: 0.2s ease;
+
+  transition: 0.25s ease;
+  margin-top: 28px;
+
+  box-shadow: 0 6px 16px rgba(131, 67, 162, 0.25);
 }
 
 .primaryBtn:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.05);
+  transform: translateY(-3px);
+  filter: brightness(1.08);
 }
+
 
 
 /* ===========================================================
-   WARNING MODAL
+   FINAL STEP — CELEBRATION
 =========================================================== */
 
-.warningButton {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-
-  background: var(--color-warning-bg);
-  border: 1px solid var(--color-warning-border);
-  color: var(--color-warning-text);
-
-  padding: 14px;
-  border-radius: 12px;
-  font-weight: 600;
-  margin-top: 18px;
-  cursor: pointer;
-
-  transition: 0.2s ease;
+.congratsWrapper {
+  text-align: center;
+  animation: fadeIn 0.6s ease-out forwards;
 }
 
-.warningButton:hover {
-  filter: brightness(1.05);
-  transform: translateY(-1px);
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
 }
 
-.warningModalOverlay {
-  position: fixed !important;
-  inset: 0;
-  background: rgba(0,0,0,0.55);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 999999 !important;
+.congratsIcon {
+  color: var(--color-primary);
+  margin-bottom: 20px;
+  animation: popIn 0.4s ease-out forwards;
 }
 
-.warningModal {
-  width: 100%;
-  max-width: 620px;
-  max-height: 90vh;
-  overflow-y: auto;
-
-  background: color-mix(in srgb, var(--color-warning-bg) 85%, white);
-  border: 1px solid var(--color-warning-border);
-  padding: 24px;
-
-  border-radius: 18px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.25);
-
-  animation: slideUp 0.3s ease-out forwards;
+@keyframes popIn {
+  0% { transform: scale(0.4); opacity: 0; }
+  80% { transform: scale(1.18); }
+  100% { transform: scale(1); opacity: 1; }
 }
 
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
 
 
 /* ===========================================================
-   RESPONSIVIDADE
+   RESPONSIVE DESIGN
 =========================================================== */
 
-@media (max-width: 640px) {
+@media (max-width: 760px) {
   .stepContainer {
-    padding: 22px 18px;
-    border-radius: 18px;
+    padding: 28px 24px;
+    border-radius: 20px;
   }
 
   .stepTitle {
-    font-size: 1.3rem;
-  }
-
-  .progressWrapper {
-    padding: 0 6px;
+    font-size: 1.45rem;
   }
 }
 
 @media (max-width: 480px) {
   .stepContainer {
-    padding: 18px;
-    border-radius: 15px;
+    padding: 24px 18px;
+    border-radius: 16px;
   }
 }
 
 
 /* ===========================================================
-   EXTRA — Espaço para barra fixa inferior
+   ADDITIONAL SPACE FOR FIXED NAVIGATION
 =========================================================== */
+
 .bottomSpacing {
-  padding-bottom: 130px;
+  padding-bottom: 150px;
 }
