@@ -1,91 +1,137 @@
-/* src/css/OnboardingFixedNavigation.module.css */
+/* ===========================================================
+   ONBOARDING FIXED NAVBAR — ULTRA PREMIUM
+=========================================================== */
 
 .navigationBar {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background: var(--card-bg); /* Use theme variable */
-  border-top: 1px solid var(--separator); /* Use theme variable */
-  padding: 16px 24px;
+  bottom: 20px; /* 🔥 flutuando acima do final */
+  left: 50%;
+  transform: translateX(-50%);
+
+  width: calc(100% - 32px);
+  max-width: 760px;
+
+  padding: 18px 22px;
+  border-radius: 22px;
+
+  /* 🔥 Efeito vidro (glass) com gradiente leve */
+  background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.90),
+      rgba(245, 242, 255, 0.88)
+    );
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  border: 1px solid rgba(255, 255, 255, 0.55);
+
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.08),
+    0 3px 8px rgba(0, 0, 0, 0.05);
+
   display: flex;
+  gap: 16px;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1);
-  z-index: 9001; /* Above other content, below modals */
+
+  z-index: 9500;
+  animation: fadeUp 0.35s ease-out;
 }
 
+@keyframes fadeUp {
+  from { opacity: 0; transform: translate(-50%, 20px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+
+/* ===========================================================
+   BUTTONS
+=========================================================== */
+
 .navButton {
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  border-radius: 999px; /* Pill shape */
+  justify-content: center;
+
+  gap: 10px;
+
+  padding: 14px 22px;
+  border-radius: 999px;
+
   font-weight: 600;
   font-size: 1rem;
+
   cursor: pointer;
-  transition: all 0.2s ease;
-  flex: 1; /* Distribute space */
-  justify-content: center; /* Center content */
+  transition: all 0.25s ease;
+  user-select: none;
 }
 
 .navButton:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
-/* Back button style */
+
+/* BACK BUTTON */
 .navButton:not(.nextButton) {
-  background: var(--bg); /* Use theme variable */
-  border: 1px solid var(--separator); /* Use theme variable */
-  color: var(--text-muted); /* Use theme variable */
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(200, 200, 200, 0.5);
+  color: #555;
 }
 
 .navButton:not(.nextButton):hover:not(:disabled) {
-  background: var(--separator); /* Darker on hover */
-  color: var(--text); /* Darker text */
+  background: rgba(240, 240, 240, 0.95);
+  transform: translateY(-2px);
 }
 
-/* Next/Finish button style */
+
+/* NEXT / FINISH BUTTON */
 .nextButton {
-  background: var(--color-primary); /* Use theme variable */
+  background: var(--color-primary);
+  color: white;
   border: none;
-  color: #fff;
-  margin-left: 16px; /* Space between buttons */
+
+  box-shadow: 0 6px 16px rgba(131, 67, 162, 0.35);
+  transition: 0.25s ease;
 }
 
 .nextButton:hover:not(:disabled) {
   filter: brightness(1.1);
-  transform: translateY(-1px);
+  transform: translateY(-3px);
 }
 
+
+/* BUTTON LABEL */
 .buttonLabel {
-  white-space: nowrap; /* Prevent text wrapping */
+  white-space: nowrap;
+  font-size: 1rem;
 }
 
-/* Mobile adjustments */
+
+/* ===========================================================
+   MOBILE (aprimorado)
+=========================================================== */
+
 @media (max-width: 640px) {
   .navigationBar {
-    padding: 12px 16px;
-    gap: 12px;
+    bottom: 12px;
+    padding: 14px 16px;
+    border-radius: 18px;
+    width: calc(100% - 20px);
   }
 
   .navButton {
-    padding: 10px 14px;
-    font-size: 0.9rem;
-    gap: 6px;
-  }
-
-  .nextButton {
-    margin-left: 12px;
+    padding: 12px 14px;
+    font-size: 0.92rem;
   }
 }
 
 @media (max-width: 480px) {
   .buttonLabel {
-    display: none; /* Hide text on very small screens, keep icons */
+    display: none;
   }
   .navButton {
-    padding: 10px; /* Smaller padding when text is hidden */
+    padding: 12px;
   }
 }
