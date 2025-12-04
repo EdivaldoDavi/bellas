@@ -303,10 +303,12 @@
   margin-top: 18px;
 }
 
+/* 🔥 FORÇA o modal a ficar sempre no centro da tela */
 .warningModalOverlay {
   position: fixed !important;
   top: 0;
   left: 0;
+
   width: 100vw;
   height: 100vh;
 
@@ -314,17 +316,21 @@
   backdrop-filter: blur(3px);
 
   display: flex;
-  align-items: center;
+  align-items: center;   /* ← centraliza 100% no viewport */
   justify-content: center;
 
-  z-index: 1000000;
+  z-index: 999999;
   padding: 16px;
+
+  pointer-events: auto;
 }
 
+/* 🔥 O modal agora ignora o layout da página */
 .warningModal {
-  background: #fffefa;
-  width: 100%;
+  width: 90%;
   max-width: 420px;
+
+  background: #fffefa;
   border-radius: 18px;
   padding: 24px;
 
@@ -332,6 +338,14 @@
   box-shadow: 0 8px 30px rgba(0,0,0,0.25);
 
   animation: slideUp 0.25s ease-out;
+
+  position: relative;
+}
+
+/* Evita cortar o modal caso o texto aumente */
+.warningModalWrapper {
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .warningModal h3 {

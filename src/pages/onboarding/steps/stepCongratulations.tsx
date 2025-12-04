@@ -80,8 +80,9 @@ export default function StepCongratulations() {
 
     {/* MODAL DO WARNING */}
     {showWarning && (
-      <div className={styles.warningModalOverlay}>
-        <div className={styles.warningModal}>
+<div className={styles.warningModalOverlay}>
+    <div className={styles.warningModalWrapper}>
+      <div className={styles.warningModal}>
           <AlertTriangle size={26} color="#b68400" />
           <h3>Aviso sobre conexão do WhatsApp</h3>
 
@@ -112,6 +113,7 @@ export default function StepCongratulations() {
           >
             Entendi
           </button>
+        </div>
         </div>
       </div>
     )}
