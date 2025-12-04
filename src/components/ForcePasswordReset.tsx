@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase, logout as fullClientLogout } from "../lib/supabaseCleint"; // Importar logout agressivo
+import { supabase } from "../lib/supabaseCleint"; // Não importamos fullClientLogout aqui
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useTheme } from "../hooks/useTheme";
@@ -70,9 +70,8 @@ export default function ForcePasswordReset() {
         return;
       }
 
-      // 🔥 NOVO: Chamar o logout agressivo para limpar todo o storage antes de tentar setar a sessão
-      console.log("ForcePasswordReset: Performing full client-side logout for a clean slate.");
-      await fullClientLogout(); // Isso limpará localStorage e sessionStorage
+      // REMOVIDO: A chamada a `fullClientLogout()` foi removida daqui.
+      // Deixamos `supabase.auth.setSession()` gerenciar a sessão diretamente.
 
       console.log("ForcePasswordReset: Attempting to set session with Supabase...");
       const { data, error } = await supabase.auth.setSession({
@@ -84,9 +83,9 @@ export default function ForcePasswordReset() {
       if (error) {
         toast.error(`Erro ao autenticar link de redefinição: ${error.message}`);
         console.error("ForcePasswordReset: setSession failed with error:", error);
-        // Como já fizemos logout, o AuthContext já deve estar limpo.
-        // O AppGuard deve redirecionar para /login automaticamente.
-        navigate("/login", { replace: true }); // Redireciona explicitamente para garantir
+        // Se setSession falhar, garantimos que a sessão seja limpa e redirecionamos para login.
+        await supabase.auth.signOut(); 
+        navigate("/login", { replace: true });
         setLoading(false); // Ensure loading is false
         return;
       }
@@ -94,7 +93,7 @@ export default function ForcePasswordReset() {
       if (!data.session) {
         toast.error("Erro ao autenticar link de redefinição: sessão não retornada.");
         console.error("ForcePasswordReset: setSession succeeded but data.session is null.");
-        // Mesmo caso de erro, redireciona para login.
+        await supabase.auth.signOut();
         navigate("/login", { replace: true });
         setLoading(false); // Ensure loading is false
         return;
@@ -217,7 +216,7 @@ export default function ForcePasswordReset() {
                       ? styles.medium
                       : strength === "strong"
                       ? styles.strong
-                      : strength === "very-strong"
+                      : styles.veryStrong
                       ? styles.veryStrong
                       : ""
                   }`}
