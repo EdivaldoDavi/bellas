@@ -150,7 +150,7 @@ const { updateOnboardingStep } = useUserTenant(); // <-- se ainda não estiver i
           }
         }}
       >
-        Bora começar! <CheckCircle2 size={18} />
+        Bora trabalhar! 😉 <CheckCircle2 size={18} />
       </button>
 
     </div>
