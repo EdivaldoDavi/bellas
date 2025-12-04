@@ -70,9 +70,8 @@ export default function ForcePasswordReset() {
         return;
       }
 
-      // 🔥 NOVO: Limpar qualquer sessão existente antes de tentar definir uma nova
-      console.log("ForcePasswordReset: Signing out any existing session for a clean slate.");
-      await supabase.auth.signOut(); // Isso também dispara o onAuthStateChange para limpar o AuthContext
+      // REMOVIDO: supabase.auth.signOut() explícito aqui para evitar corrida de condição.
+      // setSession já deve lidar com a substituição da sessão.
 
       console.log("ForcePasswordReset: Attempting to set session with Supabase...");
       const { data, error } = await supabase.auth.setSession({
@@ -84,9 +83,9 @@ export default function ForcePasswordReset() {
       if (error) {
         toast.error(`Erro ao autenticar link de redefinição: ${error.message}`);
         console.error("ForcePasswordReset: setSession failed with error:", error);
-        // Como já fizemos signOut antes, o AuthContext já deve estar limpo.
-        // O AppGuard deve redirecionar para /login automaticamente.
-        navigate("/login", { replace: true }); // Redireciona explicitamente para garantir
+        // Se setSession falhar, garantimos que a sessão seja limpa e redirecionamos para login.
+        await supabase.auth.signOut(); 
+        navigate("/login", { replace: true });
         setLoading(false); // Ensure loading is false
         return;
       }
@@ -94,7 +93,7 @@ export default function ForcePasswordReset() {
       if (!data.session) {
         toast.error("Erro ao autenticar link de redefinição: sessão não retornada.");
         console.error("ForcePasswordReset: setSession succeeded but data.session is null.");
-        // Mesmo caso de erro, redireciona para login.
+        await supabase.auth.signOut();
         navigate("/login", { replace: true });
         setLoading(false); // Ensure loading is false
         return;

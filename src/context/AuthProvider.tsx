@@ -24,7 +24,7 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export default function AuthProvider({ children }: { children: ReactNode }) {
+export default function AuthProvider({ children }: { children: ReactNode }) { // <-- CORREÇÃO AQUI
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,6 +44,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     console.log("AuthProvider: applySession - Updating session and user.");
     setSession(newSession);
     setUser(newSession?.user ?? null);
+    console.log("AuthProvider: applySession - New user state:", newSession?.user?.id ? "Logged In" : "Logged Out");
   };
 
   /* ============================================================
@@ -84,7 +85,9 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, newSession) => {
-      console.log("AuthProvider: Auth event:", event, "New Session User:", newSession?.user?.id);
+      console.log(`AuthProvider: Auth event: ${event}. New Session User ID: ${newSession?.user?.id ?? 'null'}.`);
+      console.log("AuthProvider: Full newSession object:", newSession);
+
 
       if (document.visibilityState === "hidden") {
         console.log("AuthProvider: Ignoring auth event (document hidden).");
@@ -109,17 +112,9 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       applySession(newSession);
     });
 
-    // REMOVIDO: Listener manual de logout forçado, pois não será mais disparado pelo supabaseClient.ts
-    // const handler = () => {
-    //   console.log("AuthProvider: supabase-signout event received.");
-    //   applySession(null);
-    // };
-    // window.addEventListener("supabase-signout", handler);
-
     return () => {
       console.log("AuthProvider: Cleaning up onAuthStateChange subscription.");
       subscription.unsubscribe();
-      // REMOVIDO: window.removeEventListener("supabase-signout", handler);
     };
   }, [navigate]); // Add navigate to dependencies
 
