@@ -100,8 +100,8 @@ export default function StepCongratulations() {
               </ul>
 
               <p style={{ marginTop: "8px" }}>
-                Você também pode conectar depois pelo menu{" "}
-                <strong>WhatsApp</strong> no painel.
+                Você também pode conectar depois pela opção {" "}
+                <strong>WhatsApp</strong> do menu do sistema.
               </p>
             </div>
           )}
@@ -131,7 +131,7 @@ export default function StepCongratulations() {
         style={{ marginTop: "30px" }}
         onClick={() => (window.location.href = "/dashboard")}
       >
-        Ir para o painel <CheckCircle2 size={18} />
+        Bora começar! <CheckCircle2 size={18} />
       </button>
     </div>
   );
