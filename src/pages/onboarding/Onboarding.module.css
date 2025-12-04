@@ -461,28 +461,66 @@
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 10px;
-  justify-content: space-between;
+  gap: 12px;
+  justify-content: flex-start;
   background: #fff8e1;
   color: #8a6800;
-  padding: 12px 14px;
+  padding: 14px;
   border-radius: 10px;
   font-weight: 600;
   border: 1px solid #f0dca0;
+  margin-top: 18px;
 }
 
-.warningCard {
-  margin-top: 12px;
-  background: #fff7da;
-  border-left: 4px solid #d2a400;
-  padding: 14px;
+/* 🔥 FULLSCREEN MODAL */
+.warningModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(3px);
+  z-index: 9999; /* Garantido acima de tudo */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+
+.warningModal {
+  background: #fffefa;
+  border-radius: 16px;
+  padding: 22px;
+  max-width: 420px;
+  width: 100%;
+  color: #6a5500;
+  border-left: 4px solid #b68400;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  animation: fadeIn 0.25s ease-out;
+}
+
+.warningModal h3 {
+  margin: 10px 0 8px;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.warningModal ul {
+  margin: 10px 0;
+  padding-left: 18px;
+}
+
+.closeWarningButton {
+  width: 100%;
+  background: #b68400;
+  color: #fff;
+  margin-top: 16px;
+  padding: 12px;
+  border: none;
   border-radius: 10px;
-  color: #6b5200;
-  font-size: 0.95rem;
-    z-index: 9999;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
-.warningCard ul {
-  padding-left: 16px;
-  margin: 6px 0;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
 }

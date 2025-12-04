@@ -10,8 +10,7 @@ import {
   Trophy,
   CheckCircle2,
   AlertTriangle,
-  ChevronDown,
-  ChevronUp,
+  ChevronRight,
 } from "lucide-react";
 
 export default function StepCongratulations() {
@@ -68,45 +67,56 @@ export default function StepCongratulations() {
       {/* ======================================================
          📱 MOBILE — botão para mostrar aviso
       ====================================================== */}
-      {isMobile && (
-        <div className={styles.mobileWarningToggle}>
+     {isMobile && (
+  <>
+    <button
+      className={styles.warningButton}
+      onClick={() => setShowWarning(true)}
+    >
+      <AlertTriangle size={20} color="#b68400" />
+      <span>Aviso importante sobre WhatsApp</span>
+      <ChevronRight size={18} />
+    </button>
+
+    {/* MODAL DO WARNING */}
+    {showWarning && (
+      <div className={styles.warningModalOverlay}>
+        <div className={styles.warningModal}>
+          <AlertTriangle size={26} color="#b68400" />
+          <h3>Aviso sobre conexão do WhatsApp</h3>
+
+          <p>
+            Você está usando um <strong>celular</strong>.
+            O WhatsApp não permite escanear um QR Code usando o mesmo aparelho
+            que será conectado.
+          </p>
+
+          <p style={{ marginTop: "8px" }}>
+            Para conectar seu WhatsApp, utilize:
+          </p>
+
+          <ul>
+            <li>• Notebook ou Desktop</li>
+            <li>• Tablet</li>
+            <li>• Outro celular</li>
+          </ul>
+
+          <p style={{ marginTop: "10px" }}>
+            Você também pode conectar depois pelo menu
+            <strong> WhatsApp</strong> no painel.
+          </p>
+
           <button
-            className={styles.warningButton}
-            onClick={() => setShowWarning((v) => !v)}
+            className={styles.closeWarningButton}
+            onClick={() => setShowWarning(false)}
           >
-            <AlertTriangle size={20} color="#b68400" />
-            <span>Aviso importante sobre o WhatsApp</span>
-            {showWarning ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            Entendi
           </button>
-
-          {/* Card expansível */}
-          {showWarning && (
-            <div className={styles.warningCard}>
-              <AlertTriangle size={22} color="#b68400" />
-              <p>
-                Você está em um <strong>celular</strong>.  
-                O WhatsApp não permite escanear QR Code usando o mesmo aparelho
-                que será conectado.
-              </p>
-
-              <p style={{ marginTop: "10px" }}>
-                Para conectar seu WhatsApp, use:
-              </p>
-
-              <ul>
-                <li>• Notebook ou Desktop</li>
-                <li>• Tablet</li>
-                <li>• Outro celular</li>
-              </ul>
-
-              <p style={{ marginTop: "8px" }}>
-                Você também pode conectar depois pela opção {" "}
-                <strong>WhatsApp</strong> do menu do sistema.
-              </p>
-            </div>
-          )}
         </div>
-      )}
+      </div>
+    )}
+  </>
+)}
 
       {/* ======================================================
          🖥 DESKTOP — mostrar QR normalmente
