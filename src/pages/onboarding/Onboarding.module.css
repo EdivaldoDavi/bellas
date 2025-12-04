@@ -196,31 +196,41 @@
 
 
 .warningModalOverlay {
-  position: fixed !important;
+  position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.55);
-  backdrop-filter: blur(3px);
+  background: rgba(0,0,0,0.55); /* ESCURECE o fundo */
+  backdrop-filter: blur(3px); /* Suave, só no fundo */
+  
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 99999 !important;
+
+  padding: 16px;
+  z-index: 999999;
 }
+
 .warningModal {
-  width: 100%;
+  background: #ffffff; /* Branco sólido */
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+  color: var(--text);
   max-width: 650px;
+  width: 100%;
   max-height: 90vh;
   overflow-y: auto;
+}
 
-  background: var(--color-warning-bg); /* fundo sólido e legível */
-  border: 1px solid var(--color-warning-border);
+.warningHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* ← garante espaçamento ideal */
+  margin-bottom: 12px;
+}
 
-  padding: 24px;
-  border-radius: 18px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.25);
-
-  color: var(--text);
-  animation: slideUp 0.3s ease-out forwards;
-  text-align: left;
+.warningIcon {
+  flex-shrink: 0;
+  margin-right: 4px; /* segurança extra */
 }
 
 

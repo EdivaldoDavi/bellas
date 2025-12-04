@@ -80,11 +80,12 @@ const { updateOnboardingStep } = useUserTenant(); // <-- se ainda não estiver i
           {/* Modal - sempre centralizado */}
           {showWarning && (
             <div className={styles.warningModalOverlay}>
-              <div className={styles.warningModal}> {/* REMOVIDO: .warningModalWrapper */}
-                  <div className={styles.warningHeader}>
-                    <AlertTriangle size={28} color="#b68400" />
-                    <h3>Aviso sobre conexão do WhatsApp</h3>
-                  </div>
+             <div className={styles.warningModal}> 
+              <div className={styles.warningHeader}>
+               <span className={styles.warningIcon}>⚠️</span>
+                <h3>Aviso sobre conexão do WhatsApp</h3>
+              </div>
+
 
                   <p>
                     Você está acessando pelo <strong>celular</strong>. 
