@@ -1,8 +1,7 @@
 // src/App.tsx
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { type ReactNode } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 
-import { useUserTenant } from "./context/UserTenantProvider";
+
 import { useAuth } from "./context/AuthProvider";
 
 
