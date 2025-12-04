@@ -88,20 +88,22 @@ const { updateOnboardingStep } = useUserTenant(); // <-- se ainda não estiver i
 
                   <p>
                     Você está acessando pelo <strong>celular</strong>. 
-                    <strong>Para conectar seu WhatsApp e começar a receber agendamentos automáticos pela IA 🤖,
-                       você vai precisar usar outro aparelho para exibir o QR Code — assim você consegue escanear usando o celular que vai receber os agendamentos.</strong>
+                    <strong>Para conectar seu WhatsApp e começar a receber agendamentos automáticos pela IA 🤖, 
+                      você vai precisar usar outro aparelho para exibir o QR Code — assim você consegue escanear usando o celular que vai receber os agendamentos</strong>
                   </p>
 
                   <p style={{ marginTop: 10 }}>
                       </p>
 
                   ✨ Pode ser qualquer um destes:
-                • 💻 Notebook ou computador
-                • 📱 Outro celular
-                • 📟 Tablet
+                  
+                  <ul className={styles.warningList}>
+                     <li>  💻 Notebook ou computador</li>
+                     <li>  📱 Outro celular</li>
+                     <li>  📟 Tablet</li>
+                </ul>
                   <p style={{ marginTop: 12 }}>
-                  Depois é só fazer login no app ir para a opção WhatsApp do menu lateral, clicar no botão Conectar WhatsApp, pegar o celular oficial dos agendamentos 
-                  e fazer a leitura do QR Code, maiores detalhes de conexão você verá na hora de conectar.
+                  Depois é só abrir o menu WhatsApp, tocar em Conectar WhatsApp, pegar o celular oficial dos agendamentos e fazer a leitura do QR Code.
                     Simples assim — quase mágica! ✨😄
                   </p>
 
