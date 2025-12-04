@@ -6,8 +6,8 @@
   width: var(--sidebar-width);
   min-height: 100vh;
   background: var(--sidebar-bg); /* Use global variable */
-  border-right: 1px solid var(--separator); /* Use global variable */
-  box-shadow: 2px 0 18px rgba(0, 0, 0, 0.08); /* ✅ sombra lateral elegante */
+  /* REMOVIDO: border-right: 1px solid var(--separator); */
+  /* REMOVIDO: box-shadow: 2px 0 18px rgba(0, 0, 0, 0.08); */ /* ✅ sombra lateral elegante */
   color: var(--text); /* Use global variable */
   display: flex;
   flex-direction: column;
