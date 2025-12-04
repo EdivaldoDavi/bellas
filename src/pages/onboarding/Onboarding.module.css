@@ -205,14 +205,13 @@
   align-items: center;
   z-index: 99999 !important;
 }
-
 .warningModal {
   width: 100%;
   max-width: 650px;
   max-height: 90vh;
   overflow-y: auto;
 
-  background: color-mix(in srgb, var(--color-warning-bg) 92%, transparent);
+  background: var(--color-warning-bg); /* fundo sólido e legível */
   border: 1px solid var(--color-warning-border);
 
   padding: 24px;
