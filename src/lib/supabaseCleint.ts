@@ -1,4 +1,3 @@
-// src/lib/supabaseClient.ts
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL!;
@@ -68,15 +67,18 @@ export async function getCurrentProfile() {
    MANUAL LOGOUT (SEGURO — sem loop infinito)
    ============================================================ */
 export async function logout() {
+  console.log("supabaseClient: Performing full client-side logout (clearing storage).");
   try {
     await supabase.auth.signOut({ scope: "local" });
-  } catch {}
+  } catch (e) {
+    console.error("supabaseClient: Error during supabase.auth.signOut:", e);
+  }
 
   sessionStorage.clear();
   localStorage.clear(); // para garantir compatibilidade com versões antigas
 
   window.dispatchEvent(new Event("supabase-signout"));
 
-  // reload garante que nenhum provider permaneça com user antigo
-  window.location.replace("/login?logged_out=1");
+  // REMOVIDO: window.location.replace("/login?logged_out=1");
+  // A navegação agora é responsabilidade do AuthProvider no onAuthStateChange
 }
