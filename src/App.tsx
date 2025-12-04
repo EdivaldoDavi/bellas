@@ -1,6 +1,6 @@
 // src/App.tsx
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
-import {  type ReactNode } from "react";
+import { type ReactNode } from "react";
 
 import { useUserTenant } from "./context/UserTenantProvider";
 import { useAuth } from "./context/AuthProvider";
@@ -28,100 +28,36 @@ import UsuariosPage from "./pages/UsuariosPage";
 import ServicosPage from "./pages/ServicosPage";
 import ProfessionalsPage from "./pages/ProfessionalsPage";
 import ClientesPage from "./pages/ClientesPage";
+import CommissionsPage from "./pages/ComissionsPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-import spinnerStyles from "./css/LoadingSpinner.module.css"; // Importar o CSS do spinner
+// Importar o LoadingSpinner para uso global
+import LoadingSpinner from "./components/LoadingSpinner";
 
 import Onboarding from "./pages/onboarding/Onboarding";
-import { OnboardingGuard } from "./guards/OnBoardingGuard";
-//import { SetupRedirectGuard } from "./guards/SetupRedirectGuard";
-import { SetupRedirectGuards } from "./guards/SetupRedirectGuards";
+// import { OnboardingGuard } from "./guards/OnBoardingGuard"; // REMOVIDO
+// import { SetupRedirectGuards } from "./guards/SetupRedirectGuards"; // REMOVIDO
 import { useApplyTenantTheme } from "./hooks/useApplyTenantTheme";
+
+// Importar o novo componente de rota protegida
+// import { AuthRequiredRoute } from "./guards/AuthRequiredRoute"; // REMOVIDO
+import { AppGuard } from "./guards/AppGuard"; // NOVO: Importar o AppGuard
  
 console.log("App.tsx rendered"); // Adicionado para depuração
 
-// =============================
-// 🔹 TELA DE LOADING GLOBAL
-// ============================= 
-function LoadingScreen() {
-  return (
-    <div className={spinnerStyles.spinnerContainer}>
-      <div className={spinnerStyles.spinner}></div>
-      <p className={spinnerStyles.loadingText}>Carregando...</p>
-    </div>
-  );
-}
-
-
-// =============================
-// 🔐 PRIVATE ROUTE
-// =============================
-function PrivateRoute({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuth();
-  const location = useLocation();
-
-  if (location.pathname === "/force-reset") return <>{children}</>;
-  if (loading) return <LoadingScreen />;
-  if (!user) return <Navigate to="/login" replace state={{ from: location }} />;
-
-  // CORREÇÃO: Retorna os children diretamente, sem se envolver em PrivateRoute novamente.
-  return <>{children}</>;
-}
-
-
-// =============================
-// 🛑 GUARD: BLOQUEAR DASHBOARD PARA PROFISSIONAIS
-// =============================
-function DashboardGuard({ children }: { children: ReactNode }) {
-  const { profile } = useUserTenant();
-
-  if (!profile) return null;
-
-  // Profissionais e Staff AGORA podem ver o dashboard.
-  // A lógica de qual dashboard mostrar (global, tenant, profissional)
-  // será tratada DENTRO do componente Dashboard.tsx.
-  // Este guard apenas garante que o usuário está logado e tem um perfil.
-  
-  return <>{children}</>;
-}
-
-
-// =============================
-// 🧭 GUARD DO SETUP
-// =============================
-/*
-function SetupRedirectGuard({ children }: { children: ReactNode }) {
-  const { needsSetup, loading } = useUserTenant();
-  const location = useLocation();
-
-  // Force reset nunca é bloqueado
-  if (location.pathname === "/force-reset") return <>{children}</>;
-  if (loading) return <LoadingScreen />;
-
-  const isSetupPage = location.pathname === "/setup";
-
-  if (needsSetup && !isSetupPage) {
-    return <Navigate to="/setup" replace />;
-  }
-
-  if (!needsSetup && isSetupPage) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  return <>{children}</>;
-}
-
-*/
 
 // =============================
 // 🔹 APP PRINCIPAL
 // =============================
 export default function App() {
-  
+  const { loading: authLoading } = useAuth(); // Verifica o estado de carregamento da autenticação
+  useApplyTenantTheme(); // Hook chamado incondicionalmente
 
-
-  useApplyTenantTheme();
+  // Se a autenticação ainda estiver carregando, exibe um spinner global
+  if (authLoading) {
+    return <LoadingSpinner message="Carregando autenticação..." />;
+  }
 
   return (
     <> {/* Fragmento adicionado aqui */}
@@ -137,56 +73,22 @@ export default function App() {
         <Route path="/force-reset" element={<ForcePasswordReset />} />
 
 
-        {/* ============ ONBOARDING (PRIORIDADE ABSOLUTA) ============ */}
-        <Route
-          path="/onboarding/*"
-          element={
-            <PrivateRoute>
-              <OnboardingGuard>
-                <Onboarding />
-              </OnboardingGuard>
-            </PrivateRoute>
-          }
-        />
-
-
-        {/* ============ SETUP ============ */}
-        <Route
-          path="/setup"
-          element={
-            <PrivateRoute>
-              <OnboardingGuard>     {/* garante que não entra no setup antes do onboarding */}
-                <SetupRedirectGuards>
-                  <Setup />
-                </SetupRedirectGuards>
-              </OnboardingGuard>
-            </PrivateRoute>
-          }
-        />
-
-
-        {/* ============ PRIVATE ROUTES COM LAYOUT ============ */}
+        {/* ============ ROTAS PROTEGIDAS COM APP GUARD ============ */}
         <Route
           element={
-            <PrivateRoute>
-              <OnboardingGuard>      {/* onboarding entra antes */}
-                <SetupRedirectGuards> {/* setup entra só depois */}
-                  <Layout />
-                </SetupRedirectGuards>
-              </OnboardingGuard>
-            </PrivateRoute>
+            <AppGuard>
+              <Layout />
+            </AppGuard>
           }
         >
-
           {/* DASHBOARD */}
-          <Route
-            path="/dashboard"
-            element={
-              <DashboardGuard>
-                <Dashboard />
-              </DashboardGuard>
-            }
-          />
+          <Route path="/dashboard" element={<Dashboard />} />
+
+          {/* ONBOARDING */}
+          <Route path="/onboarding/*" element={<Onboarding />} />
+
+          {/* SETUP */}
+          <Route path="/setup" element={<Setup />} />
 
           {/* ===================== OUTRAS ROTAS PRIVADAS ===================== */}
           <Route path="/agenda" element={<Agenda />} />
@@ -199,6 +101,7 @@ export default function App() {
           <Route path="/servicos" element={<ServicosPage />} />
           <Route path="/profissionais" element={<ProfessionalsPage />} />
           <Route path="/usuarios" element={<UsuariosPage />} />
+          <Route path="/commissions" element={<CommissionsPage />} /> {/* Nova rota para CommissionsPage */}
 
         </Route>
 
@@ -208,3 +111,20 @@ export default function App() {
     </>
   );
 }
+
+// =============================
+// 🛑 GUARD: BLOQUEAR DASHBOARD PARA PROFISSIONAIS
+// =============================
+// REMOVIDO: DashboardGuard não é mais necessário como componente separado,
+// sua lógica de permissão será tratada dentro do DashboardRouter ou AppGuard.
+// function DashboardGuard({ children }: { children: ReactNode }) {
+//   const { profile } = useUserTenant(); 
+//   if (!profile) {
+//     return (
+//       <div style={{ padding: 20, textAlign: "center", color: "red" }}>
+//         Erro: Perfil do usuário não disponível.
+//       </div>
+//     );
+//   }
+//   return <>{children}</>;
+// }
