@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom"; // Adicionado useLocation
+import { useNavigate  } from "react-router-dom"; // Adicionado useLocation
 import { supabase } from "../lib/supabaseCleint"; // ajuste conforme seu projeto
 import styles from "../css/SaloesPage.module.css";
 import { useUserAndTenant } from "../hooks/useUserAndTenant"; // Import useUserAndTenant

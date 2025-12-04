@@ -10,8 +10,7 @@ import ModalNewProfessional from "../components/ModalNewProfessional";
 // import CopyButton from "../components/CopyButton"; // REMOVIDO
 import { dbPhoneToMasked, onlyDigits } from "../utils/phoneUtils";
 import styles from "../css/ProfessionalsPage.module.css";
-import { useLayoutContext } from "../components/layout/LayoutContext"; // Importar o hook do contexto
-import { useLocation, useNavigate } from "react-router-dom"; // Adicionado useLocation e useNavigate
+
 
 type Professional = {
   id: string;

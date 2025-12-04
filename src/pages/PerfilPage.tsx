@@ -4,7 +4,6 @@ import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 import styles from "../css/PerfilPage.module.css";
 import { Eye, EyeOff, Check, UploadCloud } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom"; // Adicionado useLocation e useNavigate
 
 /* ============================================================
   FUNÇÃO DE FORÇA DA SENHA (igual ao ForceReset)
@@ -26,9 +25,6 @@ function getPasswordStrength(pwd: string) {
 
 export default function PerfilPage() {
 const { profile, refreshProfile } = useUserAndTenant(); // Added tenant
-const navigate = useNavigate();
-const location = useLocation(); // Obter o objeto location
-
 
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");

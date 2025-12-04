@@ -9,7 +9,6 @@ import { toast } from "react-toastify";
 
 import ModalNewService from "../components/ModalNewService";
 import styles from "../css/ServicosPage.module.css";
-import { useLayoutContext } from "../components/layout/LayoutContext"; // Importar o hook do contexto
 
 type Service = {
   id: string;
