@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabaseCleint"; // Não importamos fullClientLogout aqui
+import { supabase } from "../lib/supabaseCleint";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useTheme } from "../hooks/useTheme";
@@ -46,12 +46,15 @@ export default function ForcePasswordReset() {
   // 1️⃣ Validar hash + setSession
   useEffect(() => {
     async function run() {
+      // 🔥 NOVO LOG: O que o componente vê no hash da URL
+      console.log("ForcePasswordReset: START useEffect. Current window.location.hash:", window.location.hash);
+
       const hash = window.location.hash;
-      console.log("ForcePasswordReset: Current URL hash:", hash);
+      console.log("ForcePasswordReset: Current URL hash (after variable assignment):", hash);
 
       if (!hash.includes("access_token")) {
         toast.error("Link inválido ou expirado: token de acesso não encontrado.");
-        console.error("ForcePasswordReset: Hash does not contain access_token.");
+        console.error("ForcePasswordReset: Hash does not contain access_token. Navigating to /login."); // 🔥 NOVO LOG
         navigate("/login", { replace: true });
         setLoading(false); // Ensure loading is false
         return;
@@ -64,14 +67,11 @@ export default function ForcePasswordReset() {
 
       if (!access_token || !refresh_token) {
         toast.error("Token inválido: access_token ou refresh_token ausentes.");
-        console.error("ForcePasswordReset: Missing access_token or refresh_token.");
+        console.error("ForcePasswordReset: Missing access_token or refresh_token. Navigating to /login."); // 🔥 NOVO LOG
         navigate("/login", { replace: true });
         setLoading(false); // Ensure loading is false
         return;
       }
-
-      // REMOVIDO: A chamada a `fullClientLogout()` foi removida daqui.
-      // Deixamos `supabase.auth.setSession()` gerenciar a sessão diretamente.
 
       console.log("ForcePasswordReset: Attempting to set session with Supabase...");
       const { data, error } = await supabase.auth.setSession({
@@ -83,25 +83,24 @@ export default function ForcePasswordReset() {
       if (error) {
         toast.error(`Erro ao autenticar link de redefinição: ${error.message}`);
         console.error("ForcePasswordReset: setSession failed with error:", error);
-        // Se setSession falhar, garantimos que a sessão seja limpa e redirecionamos para login.
         await supabase.auth.signOut(); 
         navigate("/login", { replace: true });
-        setLoading(false); // Ensure loading is false
+        setLoading(false);
         return;
       }
       
       if (!data.session) {
         toast.error("Erro ao autenticar link de redefinição: sessão não retornada.");
-        console.error("ForcePasswordReset: setSession succeeded but data.session is null.");
+        console.error("ForcePasswordReset: setSession succeeded but data.session is null. Navigating to /login."); // 🔥 NOVO LOG
         await supabase.auth.signOut();
         navigate("/login", { replace: true });
-        setLoading(false); // Ensure loading is false
+        setLoading(false);
         return;
       }
 
       console.log("ForcePasswordReset: Session successfully set. User ID:", data.session.user.id);
-      // Limpa hash feio da URL
-      window.history.replaceState({}, "", "/force-reset");
+      // 🔥 COMENTADO TEMPORARIAMENTE: Limpa hash feio da URL
+      // window.history.replaceState({}, "", "/force-reset");
       setLoading(false);
     }
 
@@ -216,7 +215,7 @@ export default function ForcePasswordReset() {
                       ? styles.medium
                       : strength === "strong"
                       ? styles.strong
-                      : styles.veryStrong
+                      : strength === "very-strong"
                       ? styles.veryStrong
                       : ""
                   }`}

@@ -7,7 +7,7 @@ import {
 } from "react";
 import { supabase, logout } from "../lib/supabaseCleint"; // Importar logout
 import type { Session, User } from "@supabase/supabase-js";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate }  from "react-router-dom"; // Import useNavigate
 
 type AuthContextType = {
   user: User | null;
@@ -24,7 +24,7 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export default function AuthProvider({ children }: { children: ReactNode }) { // <-- CORREÇÃO AQUI
+export default function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -34,17 +34,21 @@ export default function AuthProvider({ children }: { children: ReactNode }) { //
      Função segura para atualizar sessão/usuário
      ============================================================ */
   const applySession = (newSession: Session | null) => {
+    // 🔥 SIMPLIFICADO: Sempre atualiza se a nova sessão for diferente da atual
+    // A comparação de tokens pode ser muito estrita ou falhar em casos de objetos diferentes mas conteúdo igual.
+    // Se a nova sessão é null e a antiga não, ou vice-versa, ou se os IDs de usuário são diferentes, atualiza.
     if (
-      session?.access_token === newSession?.access_token &&
-      session?.user?.id === newSession?.user?.id
+      (session === null && newSession !== null) ||
+      (session !== null && newSession === null) ||
+      (session?.user?.id !== newSession?.user?.id)
     ) {
+      console.log("AuthProvider: applySession - Session content changed, updating.");
+      setSession(newSession);
+      setUser(newSession?.user ?? null);
+      console.log("AuthProvider: applySession - New user state:", newSession?.user?.id ? "Logged In" : "Logged Out");
+    } else {
       console.log("AuthProvider: applySession - Session content identical, skipping update.");
-      return;
     }
-    console.log("AuthProvider: applySession - Updating session and user.");
-    setSession(newSession);
-    setUser(newSession?.user ?? null);
-    console.log("AuthProvider: applySession - New user state:", newSession?.user?.id ? "Logged In" : "Logged Out");
   };
 
   /* ============================================================
@@ -116,7 +120,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) { //
       console.log("AuthProvider: Cleaning up onAuthStateChange subscription.");
       subscription.unsubscribe();
     };
-  }, [navigate]); // Add navigate to dependencies
+  }, [navigate, session]); // Adicionado 'session' às dependências para garantir que applySession reaja a mudanças no estado local.
 
   /* ============================================================
      MÉTODOS DE AUTENTICAÇÃO
