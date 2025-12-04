@@ -4,11 +4,12 @@
 .page {
   min-height: 100vh;
   display: flex;
-  flex-direction: column;
+  align-items: center;     /* 🔥 Centraliza vertical */
+  justify-content: center; /* 🔥 Centraliza horizontal */
   padding: 24px;
   background: var(--page-bg, #f7f6fb);
-  overflow-x: hidden;
 }
+
 
 .card {
   width: 100%;
@@ -31,9 +32,13 @@
 .stepContainer {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  align-items: center;   /* 🔥 Centraliza tudo */
+  text-align: center;    /* 🔥 Alinha textos */
+  gap: 16px;
+  width: 100%;
   animation: fadeInStep 0.3s ease-out forwards;
 }
+
 
 @keyframes fadeInStep {
   from { opacity: 0; transform: translateY(10px); }
@@ -105,16 +110,17 @@
 .warningModalOverlay {
   position: fixed !important;
   inset: 0;
-  width: 100vw;
-  height: 100vh;
   background: rgba(0,0,0,0.55);
   backdrop-filter: blur(3px);
+
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 18px;
+  align-items: center;     /* 🔥 Centraliza vertical */
+  justify-content: center; /* 🔥 Centraliza horizontal */
+
+  padding: 16px;
   z-index: 999999;
 }
+
 
 /* Modal */
 .warningModalWrapper {
@@ -130,9 +136,7 @@
   border-radius: 18px;
   border-left: 4px solid #b68400;
   box-shadow: 0 8px 30px rgba(0,0,0,0.25);
-  animation: slideUp 0.25s ease-out;
 }
-
 .warningHeader {
   display: flex;
   align-items: center;
