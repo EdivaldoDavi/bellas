@@ -1,6 +1,6 @@
 // src/pages/ClientesPage.tsx
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+
 import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
@@ -20,7 +20,7 @@ type Customer = {
 };
 
 export default function ClientesPage() {
-  const navigate = useNavigate();
+
   const { tenant } = useUserAndTenant();
   const tenantId = tenant?.id;
   // const location = useLocation(); // No longer needed for page-level close

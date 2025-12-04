@@ -3,13 +3,10 @@ import { useEvolutionConnection } from "../hooks/useEvolutionConnection";
 import QRCodeDisplay from "./QRCodeDisplay";
 import N8nPauseButton from "../components/N8nPauseButton";
 import styles from "../css/ConnectWhatsApp.module.css"; // Importar o CSS
-import { useLocation, useNavigate } from "react-router-dom"; // Adicionado useLocation e useNavigate
 
 export default function ConnectWhatsAppPage() {
   const { tenant, subscription, loading } = useUserAndTenant();
-  const navigate = useNavigate();
-  const location = useLocation(); // Obter o objeto location
-
+  
   // 📌 Garantir chamada dos hooks
   const instanceId = tenant?.id || "";
   const evoBase = import.meta.env.VITE_EVO_PROXY_URL;
