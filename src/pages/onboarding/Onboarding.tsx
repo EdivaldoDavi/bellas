@@ -33,14 +33,14 @@ export default function Onboarding() {
   }, []);
 
   /* =====================================
-     🔥 Callbacks dos steps
+     🔥 Callbacks Tipados
   ===================================== */
- type ValidatorFn = (valid: boolean) => void;
+  type ValidatorFn = (valid: boolean) => void;
 
-const onServicesValidated: ValidatorFn = useCallback(valid => setHasServices(valid), []);
-const onScheduleValidated: ValidatorFn = useCallback(valid => setHasSchedule(valid), []);
-const onCustomerValidated: ValidatorFn = useCallback(valid => setHasCustomer(valid), []);
-const onAppointmentValidated: ValidatorFn = useCallback(valid => setHasAppointment(valid), []);
+  const onServicesValidated: ValidatorFn = useCallback(v => setHasServices(v), []);
+  const onScheduleValidated: ValidatorFn = useCallback(v => setHasSchedule(v), []);
+  const onCustomerValidated: ValidatorFn = useCallback(v => setHasCustomer(v), []);
+  const onAppointmentValidated: ValidatorFn = useCallback(v => setHasAppointment(v), []);
 
   /* =====================================
      🔥 Navegação
@@ -91,6 +91,9 @@ const onAppointmentValidated: ValidatorFn = useCallback(valid => setHasAppointme
     }
   }, [step, hasServices, hasSchedule, hasCustomer, hasAppointment, updateOnboardingStep]);
 
+  /* =====================================
+     🔥 Botão Próximo Habilitado?
+  ===================================== */
   const canGoNext = useMemo(() => {
     if (tenantLoading) return false;
 
@@ -116,20 +119,13 @@ const onAppointmentValidated: ValidatorFn = useCallback(valid => setHasAppointme
   ===================================== */
   const renderStep = () => {
     switch (step) {
-      case 0:
-        return <StepWelcome />;
-      case 1:
-        return <StepServices onServicesValidated={onServicesValidated} />;
-      case 2:
-        return <StepSchedule onScheduleValidated={onScheduleValidated} />;
-      case 3:
-        return <StepFirstCustomer onCustomerValidated={onCustomerValidated} />;
-      case 4:
-        return <StepFirstAppointment onAppointmentValidated={onAppointmentValidated} />;
-      case 5:
-        return <StepCongratulations />;
-      default:
-        return <StepWelcome />;
+      case 0: return <StepWelcome />;
+      case 1: return <StepServices onServicesValidated={onServicesValidated} />;
+      case 2: return <StepSchedule onScheduleValidated={onScheduleValidated} />;
+      case 3: return <StepFirstCustomer onCustomerValidated={onCustomerValidated} />;
+      case 4: return <StepFirstAppointment onAppointmentValidated={onAppointmentValidated} />;
+      case 5: return <StepCongratulations />;
+      default: return <StepWelcome />;
     }
   };
 
@@ -144,27 +140,33 @@ const onAppointmentValidated: ValidatorFn = useCallback(valid => setHasAppointme
   return (
     <div className={styles.page}>
 
-      {/* Barra de progresso */}
+      {/* Barra de Progresso */}
       <div className={styles.progressWrapper}>
         <div className={styles.progressBar}>
           <div className={styles.progressFill} style={{ width: `${progress}%` }} />
         </div>
-        <span className={styles.progressText}>{Math.round(progress)}% concluído</span>
+        <span className={styles.progressText}>
+          {Math.round(progress)}% concluído
+        </span>
       </div>
 
-      {/* Conteúdo do Step */}
+      {/* Conteúdo */}
       <div className={`${styles.stepWrapper} ${styles.bottomSpacing}`}>
         {renderStep()}
       </div>
 
-      {/* Navegação fixa */}
-      {step !== TOTAL_STEPS - 1 && (
+      {/* 
+        🔥 Navegação fixa 
+        NÃO mostrar no step 0 (Welcome)
+        NÃO mostrar no step final (5)
+      */}
+      {step > 0 && step < TOTAL_STEPS - 1 && (
         <OnboardingFixedNavigation
           currentStep={step}
           onBack={handleBack}
           onNext={handleNext}
           canGoNext={canGoNext}
-          isLastStep={step === TOTAL_STEPS - 1}
+          isLastStep={false}
         />
       )}
     </div>
