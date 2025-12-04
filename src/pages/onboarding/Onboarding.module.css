@@ -125,7 +125,7 @@
   align-items: center;
   justify-content: center;
 
-  padding: 16px;
+  padding: 16px; /* Padding padrão para desktop */
 
   z-index: 999999 !important; /* 🔥 garantir que está no topo */
 }
@@ -133,7 +133,7 @@
 /* Modal */
 .warningModal {
   width: 100%;
-  max-width: 420px;
+  max-width: 650px; /* Mantido para desktop */
   max-height: 90vh; /* Adicionado para permitir rolagem */
   overflow-y: auto; /* Adicionado para permitir rolagem */
   /* Fundo mais claro e opaco */
@@ -141,7 +141,7 @@
   backdrop-filter: none; /* REMOVIDO: Efeito de desfoque */
   -webkit-backdrop-filter: none; /* REMOVIDO: Compatibilidade Safari */
   border: 1px solid var(--color-warning-border); /* Adiciona uma borda para definir melhor */
-  padding: 24px;
+  padding: 24px; /* Padding padrão para desktop */
   border-radius: 18px;
   box-shadow: 0 8px 30px rgba(0,0,0,0.25);
   color: var(--text); /* Garante que o texto se adapte ao tema */
@@ -214,6 +214,17 @@
 
   .primaryBtn {
     font-size: 1.05rem;
+  }
+
+  /* Ajuste para o overlay do modal de aviso em telas pequenas */
+  .warningModalOverlay {
+    padding: 0; /* Remove o padding do overlay para mobile */
+  }
+
+  /* Ajuste para o modal de aviso em telas pequenas */
+  .warningModal {
+    padding: 16px; /* Mantém um padding interno razoável para o conteúdo */
+    border-radius: 18px; /* Adiciona bordas arredondadas para mobile */
   }
 }
 
