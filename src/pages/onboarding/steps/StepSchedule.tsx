@@ -1,11 +1,9 @@
-// src/pages/onboarding/steps/StepSchedule.tsx
 import { useEffect, useState, useCallback } from "react";
 import { useUserTenant } from "../../../context/UserTenantProvider";
 import { supabase } from "../../../lib/supabaseCleint";
 import { toast } from "react-toastify";
 import styles from "../Onboarding.module.css";
-// import ProfessionalsPage from "../../ProfessionalsPage"; // REMOVIDO: Não é mais um modal
-import ModalNewProfessional from "../../../components/ModalNewProfessional"; // ADICIONADO: O modal correto
+import ModalNewProfessional from "../../../components/ModalNewProfessional";
 
 type Professional = {
   id: string;
@@ -27,150 +25,105 @@ export default function StepSchedule({ onScheduleValidated }: StepScheduleProps)
   const [loadingProfessionals, setLoadingProfessionals] = useState(true);
 
   /* ============================================================
-     ✅ VALIDAR DADOS DO PROFISSIONAL (para habilitar o 'Continuar')
+     ✔ VALIDAR SE PROFISSIONAL TEM SERVIÇOS + HORÁRIOS
   ============================================================ */
   const validateProfessionalData = useCallback(async () => {
-    console.log("StepSchedule: validateProfessionalData called.");
     if (!tenantId || !userId) {
-      console.warn("StepSchedule: validateProfessionalData - Missing tenantId or userId. Validation failed.");
       onScheduleValidated(false);
       return false;
     }
 
-    try {
-      // 1. Buscar o professional_id associado ao usuário logado
-      const { data: prof, error: profFetchError } = await supabase
-        .from("professionals")
-        .select("id")
-        .eq("tenant_id", tenantId)
-        .eq("user_id", userId)
-        .maybeSingle(); // Use maybeSingle to avoid throwing if not found
+    // Buscar profissional logado
+    const { data: prof } = await supabase
+      .from("professionals")
+      .select("id")
+      .eq("tenant_id", tenantId)
+      .eq("user_id", userId)
+      .maybeSingle();
 
-      if (profFetchError) {
-        console.error("StepSchedule: validateProfessionalData - Erro ao buscar profissional:", profFetchError);
-        onScheduleValidated(false);
-        return false;
-      }
-      if (!prof) {
-        console.warn("StepSchedule: validateProfessionalData - Profissional não encontrado para user_id:", userId);
-        onScheduleValidated(false);
-        return false;
-      }
-
-      const professionalId = prof.id;
-      console.log("StepSchedule: validateProfessionalData - Professional ID encontrado:", professionalId);
-
-      // 2. Verificar se o profissional tem serviços associados
-      const { count: serviceCount, error: serviceCountError } = await supabase
-        .from("professional_services")
-        .select("id", { count: "exact", head: true })
-        .eq("tenant_id", tenantId)
-        .eq("professional_id", professionalId);
-
-      if (serviceCountError) {
-        console.error("StepSchedule: validateProfessionalData - Erro ao verificar contagem de serviços:", serviceCountError);
-        onScheduleValidated(false);
-        return false;
-      }
-
-      console.log("StepSchedule: validateProfessionalData - Contagem de serviços para o profissional:", serviceCount);
-      if (!serviceCount || serviceCount === 0) {
-        console.warn("StepSchedule: validateProfessionalData - Nenhum serviço associado ao profissional.");
-        onScheduleValidated(false);
-        return false;
-      }
-
-      // 3. Verificar se o profissional tem horários definidos
-      const { count: scheduleCount, error: scheduleCountError } = await supabase
-        .from("professional_schedules")
-        .select("id", { count: "exact", head: true })
-        .eq("tenant_id", tenantId)
-        .eq("professional_id", professionalId);
-
-      if (scheduleCountError) {
-        console.error("StepSchedule: validateProfessionalData - Erro ao verificar contagem de horários:", scheduleCountError);
-        onScheduleValidated(false);
-        return false;
-      }
-
-      console.log("StepSchedule: validateProfessionalData - Contagem de horários para o profissional:", scheduleCount);
-      if (!scheduleCount || scheduleCount === 0) {
-        console.warn("StepSchedule: validateProfessionalData - Nenhum horário definido para o profissional.");
-        onScheduleValidated(false);
-        return false;
-      }
-
-      // Tudo certo
-      console.log("StepSchedule: validateProfessionalData - Validação bem-sucedida. onScheduleValidated(true) called.");
-      onScheduleValidated(true);
-      return true;
-    } catch (err) {
-      console.error("StepSchedule: validateProfessionalData - Erro geral na validação:", err);
+    if (!prof) {
       onScheduleValidated(false);
       return false;
     }
-  }, [tenantId, userId, onScheduleValidated]); // Removed `profile` from dependencies as `userId` is sufficient and more stable.
+
+    const professionalId = prof.id;
+
+    // Verificar serviços
+    const { count: serviceCount } = await supabase
+      .from("professional_services")
+      .select("id", { count: "exact", head: true })
+      .eq("tenant_id", tenantId)
+      .eq("professional_id", professionalId);
+
+    if (!serviceCount) {
+      onScheduleValidated(false);
+      return false;
+    }
+
+    // Verificar horários
+    const { count: scheduleCount } = await supabase
+      .from("professional_schedules")
+      .select("id", { count: "exact", head: true })
+      .eq("tenant_id", tenantId)
+      .eq("professional_id", professionalId);
+
+    if (!scheduleCount) {
+      onScheduleValidated(false);
+      return false;
+    }
+
+    onScheduleValidated(true);
+    return true;
+  }, [tenantId, userId, onScheduleValidated]);
 
   /* ============================================================
-     🔥 CARREGAR PROFISSIONAIS
+     ✔ CARREGAR PROFISSIONAIS
   ============================================================ */
   const loadProfessionals = useCallback(async () => {
-    console.log("StepSchedule: loadProfessionals called.");
-    if (!tenantId) {
-      console.log("StepSchedule: loadProfessionals - No tenantId, skipping fetch.");
-      setProfessionals([]);
-      setLoadingProfessionals(false);
-      onScheduleValidated(false);
-      return;
-    }
+    if (!tenantId) return;
+
     setLoadingProfessionals(true);
 
     const { data, error } = await supabase
       .from("professionals")
       .select("id,name,is_active")
       .eq("tenant_id", tenantId)
-      .order("name", { ascending: true });
+      .order("name");
 
     if (error) {
-      console.error("StepSchedule: Erro ao carregar profissionais:", error);
       toast.error("Erro ao carregar profissionais.");
       setProfessionals([]);
       onScheduleValidated(false);
     } else {
-      console.log("StepSchedule: Profissionais carregados:", data);
-      setProfessionals((data || []) as Professional[]);
-      // Call validation after professionals are loaded
+      setProfessionals(data || []);
       await validateProfessionalData();
     }
+
     setLoadingProfessionals(false);
-    console.log("StepSchedule: loadProfessionals finished.");
-  }, [tenantId, onScheduleValidated, validateProfessionalData]); // Added validateProfessionalData to dependencies
+  }, [tenantId, validateProfessionalData, onScheduleValidated]);
 
   useEffect(() => {
     loadProfessionals();
-  }, [loadProfessionals]); // Depend on the memoized loadProfessionals
-
+  }, [loadProfessionals]);
 
   /* ============================================================
-     RENDER
+     RENDER – ULTRA PREMIUM
   ============================================================ */
   return (
     <div className={styles.stepContainer}>
-      {/*
-      <h2 className={styles.stepTitle}>
-        Escolha o(s) profissionais que irão atender
-      </h2>
+
+      {/* 🔥 TÍTULO + TEXTO MODERNOS */}
+      <h2 className={styles.stepTitle}>Configure seus horários e atendimentos</h2>
 
       <p className={styles.stepText}>
-        Aqui você pode ajustar os horários dos profissionais do Studio. Por
-        padrão, você já foi cadastrado como profissional com horários de
-        09:00 às 18:00 todos os dias. Se quiser ajustar agora, clique em{" "}
-        <strong>Ajustar horários agora</strong>.
+        Aqui você gerencia os profissionais do seu Studio e define os horários 
+        de atendimento. Você já foi cadastrado automaticamente como profissional, 
+        mas pode adicionar novos profissionais agora mesmo.
       </p>
-*/}
-      {/* LISTA DE PROFISSIONAIS */}
+
+      {/* LISTA */}
       <div className={styles.professionalsListWrapper}>
-        <p className={styles.servicesLabel}>Profissionais cadastrados: </p>
+        <p className={styles.servicesLabel}>Profissionais cadastrados:</p>
 
         {loadingProfessionals ? (
           <p className={styles.stepText}>Carregando profissionais...</p>
@@ -180,7 +133,7 @@ export default function StepSchedule({ onScheduleValidated }: StepScheduleProps)
           <ul className={styles.professionalsList}>
             {professionals.map((p) => (
               <li key={p.id} className={styles.professionalItem}>
-                <div className={styles.professionalNameAndStatus}> {/* Novo wrapper */}
+                <div className={styles.professionalNameAndStatus}>
                   <span>{p.name}</span>
                   <span
                     className={
@@ -198,28 +151,28 @@ export default function StepSchedule({ onScheduleValidated }: StepScheduleProps)
         )}
       </div>
 
-      {/* BOTÕES */}
-      {/* The navigation buttons are now handled by OnboardingFixedNavigation */}
+      {/* BOTÃO */}
       <button
-        className={styles.stepActionButton} // Apply new style
+        className={styles.stepActionButton}
         onClick={() => setShowModal(true)}
       >
         Cadastrar profissional
       </button>
 
+      {/* MODAL */}
       {tenantId && showModal && (
         <ModalNewProfessional
           tenantId={tenantId}
           show={showModal}
-          editId={null} // Always null for new professional in onboarding
+          editId={null}
           mode="cadastro"
           onClose={() => {
             setShowModal(false);
-            loadProfessionals(); // Reload professionals after modal closes
+            loadProfessionals();
           }}
           onSuccess={() => {
             setShowModal(false);
-            loadProfessionals(); // Reload professionals after successful creation
+            loadProfessionals();
           }}
         />
       )}
