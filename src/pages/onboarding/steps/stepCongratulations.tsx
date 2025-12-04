@@ -1,44 +1,57 @@
-import { useEffect, useState } from "react";
+// src/pages/onboarding/steps/StepCongratulations.tsx
+import { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+
 import { useUserTenant } from "../../../context/UserTenantProvider";
 import { useEvolutionConnection } from "../../../hooks/useEvolutionConnection";
+
 import QRCodeDisplay from "../../QRCodeDisplay";
 import confetti from "canvas-confetti";
 
 import styles from "../Onboarding.module.css";
-import { useNavigate } from "react-router-dom";
 
 import {
   Trophy,
   CheckCircle2,
-  AlertTriangle,
-  ChevronRight,
+  AlertTriangle
 } from "lucide-react";
 
 export default function StepCongratulations() {
-  const { tenant } = useUserTenant();
+  const navigate = useNavigate();
+  const { tenant, updateOnboardingStep } = useUserTenant();
+
   const [isMobile, setIsMobile] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
-const navigate = useNavigate();
-const { updateOnboardingStep } = useUserTenant(); // <-- se ainda não estiver importado
-  /* 🎊 Confetti */
+
+  /* ============================================================
+     🎆 Confetti ao abrir
+  ============================================================ */
   useEffect(() => {
-    const duration = 1800;
+    const duration = 1500;
     const end = Date.now() + duration;
 
-    (function frame() {
-      confetti({ particleCount: 5, spread: 70, origin: { x: 0.1 } });
-      confetti({ particleCount: 5, spread: 70, origin: { x: 0.9 } });
+    const frame = () => {
+      confetti({ particleCount: 8, spread: 65, origin: { x: 0.1 } });
+      confetti({ particleCount: 8, spread: 65, origin: { x: 0.9 } });
       if (Date.now() < end) requestAnimationFrame(frame);
-    })();
+    };
+
+    frame();
   }, []);
 
-  /* Detectar mobile real */
+  /* ============================================================
+     📱 Detectar mobile real
+  ============================================================ */
   useEffect(() => {
-    setIsMobile(window.matchMedia("(pointer: coarse)").matches);
+    const mobile = window.matchMedia("(pointer: coarse)").matches;
+    setIsMobile(mobile);
   }, []);
 
+  /* ============================================================
+     🔗 Evolution API – conectar WhatsApp
+  ============================================================ */
   const evoBase = import.meta.env.VITE_EVO_PROXY_URL;
-  const instanceId = tenant?.id || "";
+  const instanceId = tenant?.id ?? "";
 
   const { status, qrBase64, loading, start, refresh, logout } =
     useEvolutionConnection({
@@ -47,81 +60,109 @@ const { updateOnboardingStep } = useUserTenant(); // <-- se ainda não estiver i
       initialInstanceId: instanceId,
     });
 
+  /* ============================================================
+     📌 Finalizar onboarding
+  ============================================================ */
+  const finalize = useCallback(async () => {
+    try {
+      await updateOnboardingStep(99);
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Erro ao finalizar onboarding:", err);
+    }
+  }, [updateOnboardingStep, navigate]);
+
+  /* ============================================================
+     JSX
+  ============================================================ */
   return (
     <div className={styles.stepContainer}>
-      {/* Ícone de celebração */}
+
+      {/* 🎉 Ícone */}
       <div className={styles.congratsWrapper}>
         <div className={styles.congratsIcon}>
           <Trophy size={62} />
         </div>
       </div>
 
-      <h2 className={styles.stepTitle}>🎉 Parabéns, seu Studio está pronto!</h2>
+      <h2 className={styles.stepTitle}>🎉 Seu Studio está pronto!</h2>
 
       <p className={styles.stepText}>
-        Você concluiu a configuração do <strong>{tenant?.name}</strong>!
-        Agora é só conectar o WhatsApp e começar seus atendimentos.
+        Parabéns! O <strong>{tenant?.name}</strong> foi configurado com sucesso.
+        Agora falta apenas conectar seu WhatsApp.
       </p>
 
-      {/* ======================================================
-         📱 MOBILE — botão para mostrar aviso
-      ====================================================== */}
- {isMobile && (
+      {/* ======================================================================
+         📱 MOBILE – mostra o aviso premium
+      ====================================================================== */}
+      {isMobile && (
         <>
           <button
             className={styles.warningButton}
             onClick={() => setShowWarning(true)}
           >
-            <AlertTriangle size={20} color="#b68400" />
+            <AlertTriangle size={20} />
             <span>Aviso importante sobre WhatsApp</span>
-            <ChevronRight size={18} />
           </button>
 
-          {/* Modal - sempre centralizado */}
+          {/* PREMIUM MODAL */}
           {showWarning && (
             <div className={styles.warningModalOverlay}>
-             <div className={styles.warningModal}> 
-              <div className={styles.warningHeader}>
-                <AlertTriangle className={styles.warningIcon} size={28} color="#b68400" />
-                <h3>Aviso sobre conexão do WhatsApp</h3>
-              </div>
+              <div className={styles.warningModalPremium}>
+                
+                {/* Header */}
+                <div className={styles.warningPremiumHeader}>
+                  <div className={styles.warningPremiumIconWrapper}>
+                    <AlertTriangle size={24} className={styles.warningPremiumIcon} />
+                  </div>
+                  <h3 className={styles.warningPremiumTitle}>
+                    Aviso sobre conexão do WhatsApp
+                  </h3>
+                </div>
 
-
+                {/* Conteúdo */}
+                <div className={styles.warningPremiumContent}>
                   <p>
-                    Você está acessando pelo <strong>celular</strong>. 
-                    <strong>Para conectar seu WhatsApp e começar a receber agendamentos automáticos pela IA 🤖, 
-                      você vai precisar usar outro aparelho para exibir o QR Code — assim você consegue escanear usando o celular que vai receber os agendamentos</strong>
+                    Você está acessando pelo <strong>celular</strong>.
+                    Para conectar seu WhatsApp e receber agendamentos da IA 🤖,
+                    será necessário usar outro aparelho para exibir o QR Code.
                   </p>
 
                   <p style={{ marginTop: 10 }}>
-                      </p>
-
-                  ✨ Pode ser qualquer um destes:
-                  
-                  <ul className={styles.warningList}>
-                     <li>  💻 Notebook ou computador</li>
-                     <li>  📱 Outro celular</li>
-                     <li>  📟 Tablet</li>
-                </ul>
-                  <p style={{ marginTop: 12 }}>
-                  Depois é só abrir o menu WhatsApp, tocar em Conectar WhatsApp, pegar o celular oficial dos agendamentos e fazer a leitura do QR Code.
-                    Simples assim — quase mágica! ✨😄
+                    Assim, você escaneia o código usando o celular
+                    que vai receber os agendamentos.
                   </p>
 
-                  <button
-                    className={styles.closeWarningButton}
-                    onClick={() => setShowWarning(false)}
-                  >
-                    Entendi
-                  </button>
+                  <p style={{ marginTop: 12 }}>✨ Pode ser qualquer um destes:</p>
+
+                  <ul className={styles.warningList}>
+                    <li>💻 Notebook ou computador</li>
+                    <li>📱 Outro celular</li>
+                    <li>📟 Tablet</li>
+                  </ul>
+
+                  <p style={{ marginTop: 16 }}>
+                    Depois abra o menu WhatsApp → Conectar WhatsApp,
+                    e faça a leitura do QR Code usando o aparelho oficial.
+                  </p>
                 </div>
+
+                {/* Botão */}
+                <button
+                  className={styles.warningPremiumButton}
+                  onClick={() => setShowWarning(false)}
+                >
+                  Entendi
+                </button>
+              </div>
             </div>
           )}
         </>
       )}
-      {/* ======================================================
-         🖥 DESKTOP — QR CODE
-      ====================================================== */}
+
+      {/* ======================================================================
+         🖥 DESKTOP – mostra o QR Code direto
+      ====================================================================== */}
       {!isMobile && (
         <div style={{ marginTop: "25px" }}>
           <QRCodeDisplay
@@ -138,21 +179,13 @@ const { updateOnboardingStep } = useUserTenant(); // <-- se ainda não estiver i
       )}
 
       {/* Botão final */}
-     <button
+      <button
         className={styles.primaryBtn}
-        style={{ marginTop: "30px" }}
-        onClick={async () => {
-          try {
-            await updateOnboardingStep(99); // Marca como concluído
-            navigate("/dashboard");        // Redireciona
-          } catch (err) {
-            console.error("Erro ao finalizar onboarding:", err);
-          }
-        }}
+        style={{ marginTop: "32px" }}
+        onClick={finalize}
       >
-        Bora trabalhar! 😉 <CheckCircle2 size={18} />
+        Bora trabalhar! <CheckCircle2 size={18} />
       </button>
-
     </div>
   );
 }
