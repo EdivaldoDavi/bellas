@@ -20,11 +20,8 @@ type Professional = {
   is_active: boolean;
 };
 
-type ProfessionalsPageProps = {
-  onClose?: () => void; // usado no onboarding
-};
 
-export default function ProfessionalsPage({ onClose }: ProfessionalsPageProps) {
+export default function ProfessionalsPage() {
   const { tenant } = useUserAndTenant();
   const tenantId = tenant?.id;
   

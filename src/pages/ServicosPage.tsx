@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
-import { X, Plus, Pencil } from "lucide-react";
+import {  Plus, Pencil } from "lucide-react";
 import { toast } from "react-toastify";
 
 import ModalNewService from "../components/ModalNewService";
