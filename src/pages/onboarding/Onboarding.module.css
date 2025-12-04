@@ -242,3 +242,8 @@
   --color-warning-border: #6b5a00;
   --color-warning-text: #ffeb3b;
 }
+
+/* Espaço extra para não ficar por baixo do navigation fixo */
+.bottomSpacing {
+  padding-bottom: 120px;  /* Altura segura para a barra fixa */
+}
