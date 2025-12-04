@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom"; // Adicionado useLocation
 import { supabase } from "../lib/supabaseCleint"; // ajuste conforme seu projeto
 import styles from "../css/SaloesPage.module.css";
 import { useUserAndTenant } from "../hooks/useUserAndTenant"; // Import useUserAndTenant
@@ -17,6 +17,10 @@ export default function SaloesPage() {
   const [saloes, setSaloes] = useState<Salao[]>([]);
   const [loading, setLoading] = useState(true);
   const { tenant } = useUserAndTenant(); // Get tenant to access primary_color
+  const location = useLocation(); // Obter o objeto location
+
+  // The 'close' function is removed as the page is no longer a modal.
+  // Navigation is now handled by the sidebar.
 
   useEffect(() => {
     async function fetchSaloes() {

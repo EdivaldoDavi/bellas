@@ -1,43 +1,11 @@
 /* ================================
-   OVERLAY
+   PAGE CONTAINER
 ================================ */
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.65);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9998;
-}
-
-/* ================================
-   MODAL
-================================ */
-.modal {
-  width: 92%;
-  max-width: 760px;
-  max-height: 90vh;
-  overflow-y: auto;
-
-  background: var(--modal-bg);
-  padding: 28px;
-  border-radius: 22px;
-
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.04),
-              0 14px 40px rgba(0,0,0,0.35);
-
-  animation: fade 0.2s ease-out;
-}
-
-@keyframes fade {
-  from { opacity: 0; transform: scale(.97); }
-  to   { opacity: 1; transform: scale(1); }
+.container {
+  padding: 0 1.5rem 1.5rem; /* Adjust padding to fit within the main layout */
+  background: var(--bg);
+  min-height: 100vh;
+  color: var(--text);
 }
 
 /* ================================
@@ -48,47 +16,20 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  position: relative; /* garante que nada sobreponha */
-  z-index: 2;
+  margin-bottom: 1.5rem; /* Add margin-bottom for spacing */
 }
-
 
 .header h2 {
   margin: 0;
   font-size: 1.6rem;
   font-weight: 700;
-}
-
-.closeBtn {
-  flex-shrink: 0;          /* impede de expandir/comprimir */
-  display: flex;           /* centra o ícone */
-  align-items: center;
-  justify-content: center;
-
-  width: 38px;
-  height: 38px;
-
-  border-radius: 50%;
-  background: transparent;
-  border: 1px solid var(--border);
-
-  font-size: 20px;
   color: var(--text);
-  cursor: pointer;
-
-  transition: 0.15s ease-in-out;
 }
 
-.closeBtn:hover {
-  background: rgba(255,255,255,0.12);
-}
-
-:root[data-theme="light"] .closeBtn:hover {
-  background: rgba(0,0,0,0.06);
-}
+/* REMOVED: .closeBtn - no longer needed as it's not a modal */
 
 /* ================================
-   NOVO CLIENTE
+   NEW CLIENT BUTTON
 ================================ */
 .newBtn {
   width: 100%;
@@ -96,7 +37,7 @@
   border-radius: 18px;
   border: none;
 
-  background: var(--primary);
+  background: var(--color-primary); /* Use theme variable */
   color: #fff;
   font-weight: 600;
   font-size: 1rem;
@@ -108,6 +49,7 @@
 
   cursor: pointer;
   transition: .2s;
+  margin-bottom: 1.5rem; /* Add margin-bottom for spacing */
 }
 
 .newBtn:hover {
@@ -115,15 +57,16 @@
 }
 
 /* ================================
-   BUSCA
+   SEARCH INPUT
 ================================ */
 .search {
   width: 100%;
   padding: 12px 14px;
   border-radius: 14px;
-  border: 1px solid var(--border);
-  background: var(--input-bg);
+  border: 1px solid var(--separator); /* Use theme variable */
+  background: var(--card-bg); /* Use theme variable */
   color: var(--text);
+  margin-bottom: 1.5rem; /* Add margin-bottom for spacing */
 }
 
 .search::placeholder {
@@ -131,12 +74,12 @@
 }
 
 .search:focus {
-  border-color: var(--primary);
+  border-color: var(--color-primary); /* Use theme variable */
   outline: none;
 }
 
 /* ================================
-   LISTA
+   LIST
 ================================ */
 .list {
   display: flex;
@@ -149,7 +92,7 @@
 ================================ */
 .card {
   background: var(--card-bg);
-  border: 1px solid var(--border);
+  border: 1px solid var(--separator); /* Use theme variable */
   border-radius: 14px;
 
   padding: 16px;
@@ -174,16 +117,14 @@
   align-items: center;
   gap: 8px;
 
-  flex-wrap: wrap;     /* 🔥 permite quebra de linha */
-  /* REMOVIDO: white-space: nowrap; */
+  flex-wrap: wrap;
 }
 
-/* Novo wrapper para o telefone e os ícones de ação */
 .phoneRow {
   display: flex;
   align-items: center;
-  gap: 8px; /* Espaço entre o número e os ícones */
-  flex-wrap: wrap; /* Permite quebra de linha em telas pequenas */
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .phone {
@@ -196,8 +137,8 @@
 
 .actionIcons {
   display: flex;
-  gap: 8px; /* Espaço entre os ícones - AUMENTADO PARA 8PX */
-  flex-shrink: 0; /* Impede que os ícones encolham */
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .iconButton {
@@ -206,7 +147,7 @@
   padding: 4px;
   border-radius: 50%;
   cursor: pointer;
-  color: var(--color-primary); /* Usa a cor primária para os ícones */
+  color: var(--color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -214,7 +155,7 @@
 }
 
 .iconButton:hover {
-  background-color: rgba(var(--color-primary-rgb), 0.1); /* Fundo leve no hover */
+  background-color: rgba(var(--color-primary-rgb), 0.1);
   transform: scale(1.1);
 }
 
@@ -222,15 +163,14 @@
   transform: scale(0.95);
 }
 
-
 /* ================================
-   AÇÕES
+   ACTIONS
 ================================ */
 .actions {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-shrink: 0; /* Impede que as ações encolham demais */
+  flex-shrink: 0;
 }
 
 .iconBtn {
@@ -250,7 +190,6 @@
   background: rgba(255,0,0,0.25);
 }
 
-/* NOVO: Estilos para o botão de status */
 .statusToggleButton {
   padding: 8px 14px;
   border-radius: 8px;
@@ -258,16 +197,16 @@
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 0.9rem;
-  border: none; /* Remove default border */
+  border: none;
 }
 
 .statusToggleButton.activeState {
-  background-color: #007bff; /* Cor para 'Ativar' */
+  background-color: #007bff;
   color: #fff;
 }
 
 .statusToggleButton.inactiveState {
-  background-color: #dc3545; /* Cor para 'Inativar' */
+  background-color: #dc3545;
   color: #fff;
 }
 
@@ -275,9 +214,8 @@
   filter: brightness(1.1);
 }
 
-
 /* ================================
-   EMPTY
+   EMPTY STATE
 ================================ */
 .empty {
   text-align: center;
@@ -286,55 +224,32 @@
 }
 
 /* ================================
-   THEME DARK
+   TOAST ACTIONS (for confirmation toasts)
 ================================ */
-:root {
-  --primary: #7c5cff;
-  --modal-bg: #15141a;
-  --card-bg: #1c1b22;
-  --input-bg: #1f1e26;
-  --text: #ffffff;
-  --text-muted: #a9a6b7;
-  --border: #2a2832;
-}
-
-/* ================================
-   THEME LIGHT
-================================ */
-:root[data-theme="light"] {
-  --modal-bg: #ffffff;
-  --card-bg: #f6f6f9;
-  --input-bg: #efeff3;
-  --text: #101010;
-  --text-muted: #707070;
-  --border: #d7d7dd;
-}
-
-/* Styles for toast buttons */
 .toastActions {
   display: flex;
   justify-content: center;
-  gap: 12px; /* Aumentado o gap */
-  margin-top: 20px; /* Aumentado o margin-top */
+  gap: 12px;
+  margin-top: 20px;
   flex-wrap: wrap;
 }
 
 .toastButton {
-  padding: 10px 18px; /* Aumentado o padding */
-  border-radius: 10px; /* Levemente menos arredondado */
+  padding: 10px 18px;
+  border-radius: 10px;
   font-weight: 600;
-  font-size: 0.95rem; /* Tamanho da fonte ajustado */
+  font-size: 0.95rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 00.2s ease;
   flex: 1;
-  min-width: 130px; /* Aumentado o min-width */
+  min-width: 130px;
 }
 
 .toastConfirmButton {
   background: var(--color-primary);
   color: #fff;
   border: none;
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 35%, transparent); /* Adicionado sombra */
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 35%, transparent);
 }
 
 .toastConfirmButton:hover {
@@ -343,10 +258,10 @@
 }
 
 .toastCancelButton {
-  background: var(--card-alt-bg); /* Usar card-alt-bg */
-  color: var(--text); /* Usar text */
+  background: var(--card-alt-bg);
+  color: var(--text);
   border: 1px solid var(--separator);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Sombra sutil */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
 .toastCancelButton:hover {
@@ -355,48 +270,50 @@
   transform: translateY(-1px);
 }
 
-/* Responsividade para telas menores */
+/* ================================
+   RESPONSIVE
+================================ */
 @media (max-width: 768px) {
   .card {
-    flex-direction: column; /* Empilha o conteúdo do card verticalmente */
-    align-items: flex-start; /* Alinha os itens ao início */
-    gap: 10px; /* Adiciona um espaçamento entre os itens empilhados */
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
   }
 
-  .card > div:first-child { /* O div que contém título, meta, phoneRow */
-    width: 100%; /* Permite que ocupe a largura total */
+  .card > div:first-child {
+    width: 100%;
   }
 
   .meta {
-    flex-direction: column; /* Empilha os itens meta verticalmente */
+    flex-direction: column;
     align-items: flex-start;
     gap: 4px;
   }
 
   .phoneRow {
-    flex-wrap: wrap; /* Garante que a linha do telefone quebre */
+    flex-wrap: wrap;
     gap: 4px;
   }
 
   .actions {
-    flex-direction: column; /* Empilha os botões de ação verticalmente */
-    align-items: stretch; /* Estica os botões para a largura total */
-    width: 100%; /* Ocupa a largura total do card */
-    gap: 8px; /* Espaçamento entre os botões empilhados */
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 8px;
   }
 
-  .iconBtn { /* Botão de edição */
-    width: 100%; /* Ocupa a largura total */
+  .iconBtn {
+    width: 100%;
     text-align: center;
-    padding: 10px; /* Ajusta o padding */
-    border: 1px solid var(--separator); /* Adiciona borda para definição */
+    padding: 10px;
+    border: 1px solid var(--separator);
     border-radius: 8px;
     background: var(--bg);
     color: var(--text);
-    display: flex; /* Adicionado para alinhar ícone e texto */
-    justify-content: center; /* Centraliza conteúdo */
+    display: flex;
+    justify-content: center;
     align-items: center;
-    gap: 8px; /* Espaçamento entre ícone e texto */
+    gap: 8px;
   }
 
   .iconBtn:hover {
@@ -404,8 +321,8 @@
   }
 
   .statusToggleButton {
-    width: 100%; /* Ocupa a largura total */
-    padding: 10px; /* Ajusta o padding */
-    font-size: 0.9rem; /* Ajusta o tamanho da fonte */
+    width: 100%;
+    padding: 10px;
+    font-size: 0.9rem;
   }
 }

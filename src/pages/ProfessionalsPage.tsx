@@ -4,12 +4,14 @@ import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
 import { X, Plus, Pencil, MessageCircle, Phone } from "lucide-react"; // Adicionado MessageCircle e Phone
-import { toast } from "react-toastify";
+import { toast } from "react-toastify"; // Corrected import statement
 
 import ModalNewProfessional from "../components/ModalNewProfessional";
 // import CopyButton from "../components/CopyButton"; // REMOVIDO
 import { dbPhoneToMasked, onlyDigits } from "../utils/phoneUtils";
 import styles from "../css/ProfessionalsPage.module.css";
+import { useLayoutContext } from "../components/layout/LayoutContext"; // Importar o hook do contexto
+import { useLocation, useNavigate } from "react-router-dom"; // Adicionado useLocation e useNavigate
 
 type Professional = {
   id: string;
@@ -26,6 +28,8 @@ type ProfessionalsPageProps = {
 export default function ProfessionalsPage({ onClose }: ProfessionalsPageProps) {
   const { tenant } = useUserAndTenant();
   const tenantId = tenant?.id;
+  const navigate = useNavigate();
+  const location = useLocation(); // Obter o objeto location
 
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,6 +37,8 @@ export default function ProfessionalsPage({ onClose }: ProfessionalsPageProps) {
 
   const [openModal, setOpenModal] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+
+  const { openSidebarAndNavigate } = useLayoutContext(); // Usar o contexto
 
   // ================================
   // LOAD
@@ -77,10 +83,8 @@ export default function ProfessionalsPage({ onClose }: ProfessionalsPageProps) {
   // ================================
   // CLOSE HANDLER
   // ================================
-  function handleClose() {
-    if (onClose) onClose();
-    else history.back();
-  }
+  // The 'close' function is removed as the page is no longer a modal.
+  // Navigation is now handled by the sidebar.
 
   // ================================
   // ATIVAR / INATIVAR
@@ -152,119 +156,113 @@ export default function ProfessionalsPage({ onClose }: ProfessionalsPageProps) {
   // RENDER
   // ================================
   return (
-    <>
-      <div className={styles.overlay}>
-        <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-          {/* HEADER */}
-          <div className={styles.header}>
-            <h2>Profissionais</h2>
+    <div className={styles.container}>
+      {/* HEADER */}
+      <div className={styles.header}>
+        <h2>Profissionais</h2>
 
-            <button className={styles.closeBtn} onClick={handleClose}>
-              <X size={20} />
-            </button>
-          </div>
+        {/* The close button is removed as the page is no longer a modal */}
+      </div>
 
-          {/* NOVO PROFISSIONAL */}
-          <button
-            className={styles.newBtn}
-            style={{ backgroundColor: "var(--color-primary)" }}
-            onClick={() => {
-              setEditId(null);
-              setOpenModal(true);
-            }}
-          >
-            <Plus size={20} />
-            <span>Novo profissional</span>
-          </button>
+      {/* NOVO PROFISSIONAL */}
+      <button
+        className={styles.newBtn}
+        style={{ backgroundColor: "var(--color-primary)" }}
+        onClick={() => {
+          setEditId(null);
+          setOpenModal(true);
+        }}
+      >
+        <Plus size={20} />
+        <span>Novo profissional</span>
+      </button>
 
-          {/* SEARCH */}
-          <input
-            className={styles.search}
-            placeholder="Buscar profissional..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+      {/* SEARCH */}
+      <input
+        className={styles.search}
+        placeholder="Buscar profissional..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
 
-          {/* LIST */}
-          <div className={styles.list}>
-            {loading && (
-              <div className={styles.empty}>Carregando profissionais...</div>
-            )}
+      {/* LIST */}
+      <div className={styles.list}>
+        {loading && (
+          <div className={styles.empty}>Carregando profissionais...</div>
+        )}
 
-            {!loading && professionals.length === 0 && (
-              <div className={styles.empty}>Nenhum profissional encontrado.</div>
-            )}
+        {!loading && professionals.length === 0 && (
+          <div className={styles.empty}>Nenhum profissional encontrado.</div>
+        )}
 
-            {!loading &&
-              professionals.map((p) => (
-                <div key={p.id} className={styles.card}>
-                  <div>
-                    <div className={styles.title}>{p.name}</div>
+        {!loading &&
+          professionals.map((p) => (
+            <div key={p.id} className={styles.card}>
+              <div>
+                <div className={styles.title}>{p.name}</div>
 
-                    <div className={styles.meta}>
-                      {p.email || "Sem e-mail"} ·{" "}
-                      <span
-                        style={{
-                          color: p.is_active ? "#00c851" : "#dc3545",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {p.is_active ? "Ativo" : "Inativo"}
-                      </span>
-                    </div>
+                <div className={styles.meta}>
+                  {p.email || "Sem e-mail"} ·{" "}
+                  <span
+                    style={{
+                      color: p.is_active ? "#00c851" : "#dc3545",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {p.is_active ? "Ativo" : "Inativo"}
+                  </span>
+                </div>
 
-                    {/* TELEFONE COM WHATSAPP E LIGAÇÃO */}
-                    <div className={styles.phoneWrapper}>
-                      <span>📞 {dbPhoneToMasked(p.phone ?? "")}</span>
-                      <div className={styles.actionIcons}>
-                        {p.phone && (
-                          <>
-                            <button
-                              className={styles.iconButton}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                window.open(`https://wa.me/55${onlyDigits(p.phone || '')}`, '_blank');
-                              }}
-                              title="Enviar mensagem WhatsApp"
-                            >
-                              <MessageCircle size={18} />
-                            </button>
-                            <button
-                              className={styles.iconButton}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                window.location.href = `tel:${onlyDigits(p.phone || '')}`;
-                              }}
-                              title="Ligar para o profissional"
-                            >
-                              <Phone size={18} />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* ACTIONS */}
-                  <div className={styles.actions}>
-                    <button
-                      className={styles.iconBtn}
-                      onClick={() => openEdit(p.id)}
-                    >
-                      <Pencil size={18} />
-                    </button>
-
-                    <button
-                      className={`${styles.statusToggleButton} ${p.is_active ? styles.inactiveState : styles.activeState}`}
-                      onClick={() => confirmToggle(p)}
-                    >
-                      {p.is_active ? "Inativar" : "Ativar"}
-                    </button>
+                {/* TELEFONE COM WHATSAPP E LIGAÇÃO */}
+                <div className={styles.phoneWrapper}>
+                  <span>📞 {dbPhoneToMasked(p.phone ?? "")}</span>
+                  <div className={styles.actionIcons}>
+                    {p.phone && (
+                      <>
+                        <button
+                          className={styles.iconButton}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(`https://wa.me/55${onlyDigits(p.phone || '')}`, '_blank');
+                          }}
+                          title="Enviar mensagem WhatsApp"
+                        >
+                          <MessageCircle size={18} />
+                        </button>
+                        <button
+                          className={styles.iconButton}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.location.href = `tel:${onlyDigits(p.phone || '')}`;
+                          }}
+                          title="Ligar para o profissional"
+                        >
+                          <Phone size={18} />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
-              ))}
-          </div>
-        </div>
+              </div>
+
+              {/* ACTIONS */}
+              <div className={styles.actions}>
+                <button
+                  className={styles.iconBtn}
+                  onClick={() => openEdit(p.id)}
+                >
+                  <Pencil size={18} />
+                </button>
+
+                <button
+                  className={`${styles.statusToggleButton} ${p.is_active ? styles.inactiveState : styles.activeState}`}
+                  onClick={() => confirmToggle(p)}
+                >
+                  {p.is_active ? "Inativar" : "Ativar"}
+                </button>
+              </div>
+            </div>
+          ))}
       </div>
 
       {/* MODAL */}
@@ -283,6 +281,6 @@ export default function ProfessionalsPage({ onClose }: ProfessionalsPageProps) {
           load();
         }}
       />
-    </>
+    </div>
   );
 }

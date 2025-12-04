@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 import styles from "../css/PerfilPage.module.css";
 import { Eye, EyeOff, Check, UploadCloud } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom"; // Adicionado useLocation e useNavigate
 
 /* ============================================================
   FUNÇÃO DE FORÇA DA SENHA (igual ao ForceReset)
@@ -25,6 +26,8 @@ function getPasswordStrength(pwd: string) {
 
 export default function PerfilPage() {
 const { profile, refreshProfile } = useUserAndTenant(); // Added tenant
+const navigate = useNavigate();
+const location = useLocation(); // Obter o objeto location
 
 
   const [nome, setNome] = useState("");
@@ -226,6 +229,9 @@ const { profile, refreshProfile } = useUserAndTenant(); // Added tenant
     setLoading(false);
     console.log("handleAlterarSenha: Finalizando change password.");
   };
+
+  // The 'close' function is removed as the page is no longer a modal.
+  // Navigation is now handled by the sidebar.
 
   return (
     <div className={styles.container}>

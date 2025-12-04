@@ -1,5 +1,5 @@
 .container {
-  padding: 0 1.5rem 1.5rem; /* Ajusta para que o layout principal controle o padding-top */
+  padding: 0 1.5rem 1.5rem; /* Adjust padding to fit within the main layout */
   /* REMOVIDO: max-width: 600px; */ /* Removido para permitir que o container use mais largura no mobile */
   margin: 0 auto; /* Centraliza o conteúdo */
   color: var(--text);

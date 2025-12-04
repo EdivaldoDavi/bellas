@@ -1,10 +1,10 @@
 /* src/css/UsuariosPage.module.css */
 
 .container {
-  padding: 1.5rem;
-  background: var(--bg); /* Use global variable */
+  padding: 0 1.5rem 1.5rem; /* Adjust padding to fit within the main layout */
+  background: var(--bg);
   min-height: 100vh;
-  color: var(--text); /* Use global variable */
+  color: var(--text);
 }
 
 .title {

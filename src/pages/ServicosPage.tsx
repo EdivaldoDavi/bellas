@@ -1,6 +1,6 @@
 // src/pages/ServicosPage.tsx
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 
 import ModalNewService from "../components/ModalNewService";
 import styles from "../css/ServicosPage.module.css";
+import { useLayoutContext } from "../components/layout/LayoutContext"; // Importar o hook do contexto
 
 type Service = {
   id: string;
@@ -22,6 +23,7 @@ export default function ServicosPage() {
   const navigate = useNavigate();
   const { tenant } = useUserAndTenant();
   const tenantId = tenant?.id;
+  const location = useLocation(); // Obter o objeto location
 
   const [services, setServices] = useState<Service[]>([]);
   const [search, setSearch] = useState("");
@@ -30,6 +32,8 @@ export default function ServicosPage() {
 
   const [openModal, setOpenModal] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
+
+  const { openSidebarAndNavigate } = useLayoutContext(); // Usar o contexto
 
   /* ============================================================
      LOAD (busca no Supabase)
@@ -157,103 +161,98 @@ export default function ServicosPage() {
   /* ============================================================
      CLOSE
   ============================================================ */
-  function close() {
-    navigate(-1);
-  }
+  // The 'close' function is removed as the page is no longer a modal.
+  // Navigation is now handled by the sidebar.
 
   /* ============================================================
      RENDER
   ============================================================ */
   return (
-    <>
-      <div className={styles.overlay} onClick={close}>
-        <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-          {/* HEADER */}
-          <div className={styles.header}>
-            <h2>Serviços</h2>
-            <button className={styles.closeBtn} onClick={close}>
-              <X size={20} />
-            </button>
-          </div>
+    <> {/* Explicitly open a React fragment here */}
+      <div className={styles.container}>
+        {/* HEADER */}
+        <div className={styles.header}>
+          <h2>Serviços</h2>
+          {/* The close button is removed as the page is no longer a modal */}
+        </div>
 
-          {/* NOVO SERVIÇO */}
-          <button
-            className={styles.newBtn}
-            style={{ backgroundColor: "var(--color-primary)" }}
-            onClick={() => {
-              setEditingService(null);
-              setOpenModal(true);
-            }}
-          >
-            <Plus size={20} />
-            <span>Novo serviço</span>
-          </button>
+        {/* NOVO SERVIÇO */}
+        <button
+          className={styles.newBtn}
+          style={{ backgroundColor: "var(--color-primary)" }}
+          onClick={() => {
+            setEditingService(null);
+            setOpenModal(true);
+          }}
+        >
+          <Plus size={20} />
+          <span>Novo serviço</span>
+        </button>
 
-          {/* BUSCA */}
-          <input
-            className={styles.search}
-            placeholder="Buscar serviço..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+        {/* BUSCA */}
+        <input
+          className={styles.search}
+          placeholder="Buscar serviço..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
 
-          {/* LISTA */}
-          <div className={styles.list}>
-            {loading && <div className={styles.empty}>Carregando...</div>}
+        {/* LISTA */}
+        <div className={styles.list}>
+          {loading && <div className={styles.empty}>Carregando...</div>}
 
-            {!loading && services.length === 0 && (
-              <div className={styles.empty}>Nenhum serviço encontrado.</div>
-            )}
+          {!loading && services.length === 0 && (
+            <div className={styles.empty}>Nenhum serviço encontrado.</div>
+          )}
 
-            {!loading &&
-              services.length > 0 &&
-              services.map((svc) => (
-                <div key={svc.id} className={styles.card}>
-                  <div>
-                    <div className={styles.title}>{svc.name}</div>
-                    <div className={styles.meta}>
-                      {svc.duration_min ?? 60} min ·{" "}
-                      <span
-                        style={{
-                          color: svc.is_active ? "#007bff" : "#dc3545",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {svc.is_active ? "Ativo" : "Inativo"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className={styles.actions}>
-                    <button
-                      className={styles.iconBtn}
-                      onClick={() => openEdit(svc)}
+          {!loading &&
+            services.length > 0 &&
+            services.map((svc) => (
+              <div key={svc.id} className={styles.card}>
+                <div>
+                  <div className={styles.title}>{svc.name}</div>
+                  <div className={styles.meta}>
+                    {svc.duration_min ?? 60} min ·{" "}
+                    <span
+                      style={{
+                        color: svc.is_active ? "#007bff" : "#dc3545",
+                        fontWeight: "bold",
+                      }}
                     >
-                      <Pencil size={18} />
-                    </button>
-
-                    <button
-                      className={`${styles.statusToggleButton} ${svc.is_active ? styles.inactiveState : styles.activeState}`}
-                      onClick={() => confirmToggle(svc)}
-                    >
-                      {svc.is_active ? "Inativar" : "Ativar"}
-                    </button>
+                      {svc.is_active ? "Ativo" : "Inativo"}
+                    </span>
                   </div>
                 </div>
-              ))}
-          </div>
 
-          {/* BOTÃO "VER TODOS" (só quando está em modo preview) */}
-          {!showAllServices && !search.trim() && services.length >= 3 && (
-            <button
-              className={styles.viewAllButton}
-              style={{ backgroundColor: "var(--color-primary)" }}
-              onClick={() => setShowAllServices(true)}
-            >
-              Ver todos os serviços
-            </button>
-          )}
+                <div className={styles.actions}>
+                  <button
+                    className={styles.iconBtn}
+                    onClick={() => openEdit(svc)}
+                  >
+                    <Pencil size={18} />
+                  </button>
+
+                  <button
+                    className={`${styles.statusToggleButton} ${svc.is_active ? styles.inactiveState : styles.activeState}`}
+                    onClick={() => confirmToggle(svc)}
+                  >
+                    {svc.is_active ? "Inativar" : "Ativar"}
+                  </button>
+                </div>
+              </div>
+            ))}
         </div>
+
+        {/* BOTÃO "VER TODOS" (só quando está em modo preview) */}
+        {!showAllServices && !search.trim() && services.length >= 3 && (
+          <button
+            className={styles.newBtn} // Reusing newBtn style for consistency
+            style={{ backgroundColor: "var(--color-primary)", marginTop: "1.5rem" }}
+            onClick={() => setShowAllServices(true)}
+          >
+            Ver todos os serviços
+          </button>
+        )}
       </div>
 
       {/* MODAL NOVO/EDIT SERVIÇO */}
@@ -262,10 +261,10 @@ export default function ServicosPage() {
         show={openModal}
         mode={editingService ? "edit" : "cadastro"}
         service={
-  editingService
-    ? { ...editingService, price_cents: editingService.price_cents ?? null }
-    : undefined
-}
+          editingService
+            ? { ...editingService, price_cents: editingService.price_cents ?? null }
+            : undefined
+        }
         onClose={() => {
           setOpenModal(false);
           setEditingService(null);
@@ -273,6 +272,6 @@ export default function ServicosPage() {
         }}
         // isFromOnboarding não é passado aqui, mantendo o comportamento padrão
       />
-    </>
+    </> // Explicitly close the React fragment here
   );
 }

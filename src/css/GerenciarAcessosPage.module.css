@@ -1,6 +1,5 @@
-
 .container {
-  padding: 0 1.5rem 1.5rem; /* Ajustado para remover padding-top */
+  padding: 0 1.5rem 1.5rem; /* Adjust padding to fit within the main layout */
   background: var(--bg);
   min-height: 100vh;
   color: var(--text);

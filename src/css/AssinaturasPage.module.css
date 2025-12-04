@@ -1,5 +1,5 @@
 .container {
-  padding: 1.5rem;
+  padding: 0 1.5rem 1.5rem; /* Adjust padding to fit within the main layout */
 
   background: var(--bg);
   min-height: 100vh;
@@ -7,7 +7,7 @@
 }
 
 .title {
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: 700;
   margin-bottom: 1.5rem;
   color: var(--text);

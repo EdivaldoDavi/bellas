@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabaseCleint";
 import styles from "../css/AssinaturasPage.module.css";
+import { useLocation, useNavigate } from "react-router-dom"; // Adicionado useLocation e useNavigate
 
 type TableItem = {
   id: string;
@@ -35,6 +36,11 @@ export default function AssinaturasPage() {
   const [rows, setRows] = useState<TableItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const location = useLocation(); // Obter o objeto location
+
+  // The 'close' function is removed as the page is no longer a modal.
+  // Navigation is now handled by the sidebar.
 
   useEffect(() => {
     async function load() {

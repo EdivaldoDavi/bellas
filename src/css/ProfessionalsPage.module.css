@@ -1,105 +1,111 @@
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9998;
-}
-
-.modal {
-  width: 92%;
-  max-width: 760px;
-  background: var(--modal-bg);
-  padding: 28px;
-  border-radius: 22px;
-
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.closeBtn {
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  min-height: 32px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  background: #d63b71;
-  border-radius: 10px;
-
-  color: white;
-  cursor: pointer;
-
-  border: none;
-  padding: 0;
-
-  transition: background 0.15s ease;
-}
-
-.closeBtn:hover {
-  background: #c03568;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-
-.newBtn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  background: var(--primary);
-  padding: 10px 16px;
-  border-radius: 12px;
-  color: white;
-  font-weight: 600;
-}
-
-.search {
-  padding: 10px 14px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--input-bg);
+/* ================================
+   PAGE CONTAINER
+================================ */
+.container {
+  padding: 0 1.5rem 1.5rem; /* Adjust padding to fit within the main layout */
+  background: var(--bg);
+  min-height: 100vh;
   color: var(--text);
 }
 
+/* ================================
+   HEADER
+================================ */
+.header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem; /* Add margin-bottom for spacing */
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* REMOVED: .closeBtn - no longer needed as it's not a modal */
+
+/* ================================
+   NEW PROFESSIONAL BUTTON
+================================ */
+.newBtn {
+  width: 100%;
+  padding: 16px;
+  border-radius: 18px;
+  border: none;
+
+  background: var(--color-primary); /* Use theme variable */
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  transition: .2s;
+  margin-bottom: 1.5rem; /* Add margin-bottom for spacing */
+}
+
+.newBtn:hover {
+  filter: brightness(1.1);
+}
+
+/* ================================
+   SEARCH INPUT
+================================ */
+.search {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--separator); /* Use theme variable */
+  background: var(--card-bg); /* Use theme variable */
+  color: var(--text);
+  margin-bottom: 1.5rem; /* Add margin-bottom for spacing */
+}
+
+.search::placeholder {
+  color: var(--text-muted);
+}
+
+.search:focus {
+  border-color: var(--color-primary); /* Use theme variable */
+  outline: none;
+}
+
+/* ================================
+   LIST
+================================ */
 .list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
+/* ================================
+   CARD
+================================ */
 .card {
   background: var(--card-bg);
+  border: 1px solid var(--separator); /* Use theme variable */
+  border-radius: 14px;
+
   padding: 16px;
-  border-radius: 16px;
+
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .title {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 600;
+  color: var(--text);
 }
 
 .meta {
@@ -111,8 +117,7 @@
   align-items: center;
   gap: 8px;
 
-  flex-wrap: wrap;     /* 🔥 permite quebra de linha */
-  /* REMOVIDO: white-space: nowrap; */
+  flex-wrap: wrap;
 }
 
 .phoneWrapper {
@@ -163,10 +168,10 @@
 
 .actions {
   display: flex;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
   flex-shrink: 0; /* Impede que as ações encolham demais */
 }
-
 
 .iconBtn {
   border: none;
@@ -182,7 +187,7 @@
 }
 
 .danger {
-  background: #c0392b;
+  background: rgba(255,0,0,0.25);
 }
 
 /* NOVO: Estilos para o botão de status */

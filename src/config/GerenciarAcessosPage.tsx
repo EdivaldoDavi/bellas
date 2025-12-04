@@ -1,10 +1,15 @@
-
 import ManageRoles from "../components/ManageRoles";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 import styles from "../css/GerenciarAcessosPage.module.css"; // Importar o novo CSS
+import { useLocation, useNavigate } from "react-router-dom"; // Adicionado useLocation e useNavigate
 
 export default function GerenciarAcessosPage() {
   const { profile } = useUserAndTenant();
+  const navigate = useNavigate();
+  const location = useLocation(); // Obter o objeto location
+
+  // The 'close' function is removed as the page is no longer a modal.
+  // Navigation is now handled by the sidebar.
 
   // Carregando ou sem sessão
   if (!profile) {
@@ -34,7 +39,7 @@ export default function GerenciarAcessosPage() {
 
   return (
     <div className={styles.container}>
-      <h2 className={styles.title}>Gerenciar Acessos</h2>
+      <h2 className={styles.title}>Gerenciar Permissões</h2>
       <p className={styles.description}>Defina os papéis e permissões dos usuários do seu Studio.</p>
       <ManageRoles tenantId={profile.tenant_id} loggedInUserId={profile.user_id} />
     </div>

@@ -1,13 +1,12 @@
 .container {
-  padding: 1.5rem;
-  padding: 1.5rem 0; /* Só padding vertical */
+  padding: 0 1.5rem 1.5rem; /* Adjust padding to fit within the main layout */
   background: var(--bg); /* Use global variable */
   min-height: 100vh;
   color: var(--text); /* Use global variable */
 }
 
 .pageTitle {
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: 700;
   margin-bottom: 1.5rem;
   color: var(--text); /* Use global variable */

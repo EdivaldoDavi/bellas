@@ -3,9 +3,12 @@ import { useEvolutionConnection } from "../hooks/useEvolutionConnection";
 import QRCodeDisplay from "./QRCodeDisplay";
 import N8nPauseButton from "../components/N8nPauseButton";
 import styles from "../css/ConnectWhatsApp.module.css"; // Importar o CSS
+import { useLocation, useNavigate } from "react-router-dom"; // Adicionado useLocation e useNavigate
 
 export default function ConnectWhatsAppPage() {
   const { tenant, subscription, loading } = useUserAndTenant();
+  const navigate = useNavigate();
+  const location = useLocation(); // Obter o objeto location
 
   // 📌 Garantir chamada dos hooks
   const instanceId = tenant?.id || "";
@@ -25,6 +28,9 @@ export default function ConnectWhatsAppPage() {
     initialInstanceId: instanceId,
   });
 console.log("STATUS REAL DO WHATSAPP:", status);
+
+  // The 'close' function is removed as the page is no longer a modal.
+  // Navigation is now handled by the sidebar.
 
   // 🔥 Hooks sempre acima dos returns condicionais
   if (loading)

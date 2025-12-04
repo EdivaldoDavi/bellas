@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import Sidebar from "../sidebar/Sidebar";
@@ -12,11 +12,13 @@ import { useUserAndTenant } from "../../hooks/useUserAndTenant";
 import WhatsAppDisconnectedToast from "../WhatsAppDisconnectedToast";
 
 import styles from "./Layout.module.css";
+import { LayoutContext, type LayoutContextType } from "./LayoutContext"; // Importar o contexto
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const isMobile = useIsMobile(1024);
   const location = useLocation();
+  const navigate = useNavigate(); // Obter a função navigate
 
   const toggleSidebar = () => setSidebarOpen((p) => !p);
   const closeSidebar = () => setSidebarOpen(false);
@@ -86,6 +88,22 @@ export default function Layout() {
   }, [isWhatsDisconnected, instanceId, location.pathname, profile?.role]);
 
   /* =====================================================================
+     📌 FUNÇÃO PARA ABRIR SIDEBAR E NAVEGAR
+  ===================================================================== */
+  const openSidebarAndNavigate = useCallback((path: string) => {
+    setSidebarOpen(true); // Garante que a sidebar esteja aberta
+    navigate(path);       // Navega para o caminho especificado
+    if (isMobile) closeSidebar(); // Fecha a sidebar no mobile após a navegação
+  }, [navigate, isMobile, closeSidebar]);
+
+  const layoutContextValue = useMemo<LayoutContextType>(() => ({
+    openSidebarAndNavigate,
+    toggleSidebar,
+    closeSidebar,
+  }), [openSidebarAndNavigate, toggleSidebar, closeSidebar]);
+
+
+  /* =====================================================================
      📌 CLASSES DE ESTADO DO LAYOUT
   ===================================================================== */
   const rootClass = `
@@ -124,7 +142,9 @@ export default function Layout() {
         </header>
 
         <section className={styles.pageContent}>
-          <Outlet />
+          <LayoutContext.Provider value={layoutContextValue}>
+            <Outlet />
+          </LayoutContext.Provider>
         </section>
       </main>
     </div>

@@ -1,16 +1,16 @@
 // src/pages/ClientesPage.tsx
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
-import { X, Plus, Pencil, MessageCircle, Phone } from "lucide-react"; // Adicionado MessageCircle e Phone
+import { X, Plus, Pencil, MessageCircle, Phone } from "lucide-react";
 import { toast } from "react-toastify";
 
 import ModalNewCustomer from "../components/ModalNewCustomer";
-// import CopyButton from "../components/CopyButton"; // REMOVIDO
 import { dbPhoneToMasked, onlyDigits } from "../utils/phoneUtils";
 import styles from "../css/ClientesPage.module.css";
+// import { useLayoutContext } from "../components/layout/LayoutContext"; // No longer needed for page-level close
 
 type Customer = {
   id: string;
@@ -23,6 +23,7 @@ export default function ClientesPage() {
   const navigate = useNavigate();
   const { tenant } = useUserAndTenant();
   const tenantId = tenant?.id;
+  // const location = useLocation(); // No longer needed for page-level close
 
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [search, setSearch] = useState("");
@@ -30,6 +31,8 @@ export default function ClientesPage() {
 
   const [openModal, setOpenModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+
+  // const { openSidebarAndNavigate } = useLayoutContext(); // No longer needed for page-level close
 
   /* ============================================================
      LOAD PRINCIPAL (3 clientes ou busca → todos)
@@ -80,7 +83,7 @@ export default function ClientesPage() {
 
     toast(
       ({ closeToast }) => (
-        <div style={{ textAlign: "center", padding: '20px' }}> {/* Adicionado padding aqui */}
+        <div style={{ textAlign: "center", padding: '20px' }}>
           <p style={{ marginBottom: 12 }}>
             Deseja realmente <b>{action}</b> o cliente:
             <br />"{customer.full_name}"?
@@ -128,118 +131,110 @@ export default function ClientesPage() {
     }
   }
 
-  function close() {
-    navigate(-1);
-  }
+  // The 'close' function is removed as the page is no longer a modal.
+  // Navigation is now handled by the sidebar.
 
   /* ============================================================
      UI
   ============================================================ */
   return (
-    <>
-      <div className={styles.overlay} onClick={close}>
-        <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-          <div className={styles.header}>
-            <h2>Clientes</h2>
-            <button className={styles.closeBtn} onClick={close}>
-              <X size={20} />
-            </button>
-          </div>
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <h2>Clientes</h2>
+        {/* The close button is removed as the page is no longer a modal */}
+      </div>
 
-          <button
-            className={styles.newBtn}
-            style={{ backgroundColor: "var(--color-primary)" }}
-            onClick={() => {
-              setEditingCustomer(null);
-              setOpenModal(true);
-            }}
-          >
-            <Plus size={20} />
-            <span>Novo cliente</span>
-          </button>
+      <button
+        className={styles.newBtn}
+        style={{ backgroundColor: "var(--color-primary)" }}
+        onClick={() => {
+          setEditingCustomer(null);
+          setOpenModal(true);
+        }}
+      >
+        <Plus size={20} />
+        <span>Novo cliente</span>
+      </button>
 
-          <input
-            className={styles.search}
-            placeholder="Buscar cliente..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+      <input
+        className={styles.search}
+        placeholder="Buscar cliente..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
 
-          <div className={styles.list}>
-            {loading && customers.length === 0 && (
-              <div className={styles.empty}>Carregando...</div>
-            )}
+      <div className={styles.list}>
+        {loading && customers.length === 0 && (
+          <div className={styles.empty}>Carregando...</div>
+        )}
 
-            {!loading && customers.length === 0 && (
-              <div className={styles.empty}>Nenhum cliente encontrado.</div>
-            )}
+        {!loading && customers.length === 0 && (
+          <div className={styles.empty}>Nenhum cliente encontrado.</div>
+        )}
 
-            {customers.map((c) => (
-              <div key={c.id} className={styles.card}>
-                <div>
-                  <div className={styles.title}>{c.full_name}</div>
+        {customers.map((c) => (
+          <div key={c.id} className={styles.card}>
+            <div>
+              <div className={styles.title}>{c.full_name}</div>
 
-                  <div className={styles.meta}>
-                    <div className={styles.phoneRow}> {/* Usar phoneRow aqui */}
-                      <div className={styles.phone}>
-                        📞 {dbPhoneToMasked(c.customer_phone ?? "")}
-                      </div>
-                      <div className={styles.actionIcons}>
-                        {c.customer_phone && (
-                          <>
-                            {/* <CopyButton value={onlyDigits(c.customer_phone ?? "")} /> */} {/* REMOVIDO */}
-                            <button
-                              className={styles.iconButton}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                window.open(`https://wa.me/55${onlyDigits(c.customer_phone)}`, '_blank');
-                              }}
-                              title="Enviar mensagem WhatsApp"
-                            >
-                              <MessageCircle size={18} />
-                            </button>
-                            <button
-                              className={styles.iconButton}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                window.location.href = `tel:${onlyDigits(c.customer_phone)}`;
-                              }}
-                              title="Ligar para o cliente"
-                            >
-                              <Phone size={18} />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-
-                    <span
-                      style={{
-                        color: c.is_active ? "#00c851" : "#dc3545",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {c.is_active ? "Ativo" : "Inativo"}
-                    </span>
+              <div className={styles.meta}>
+                <div className={styles.phoneRow}>
+                  <div className={styles.phone}>
+                    📞 {dbPhoneToMasked(c.customer_phone ?? "")}
+                  </div>
+                  <div className={styles.actionIcons}>
+                    {c.customer_phone && (
+                      <>
+                        <button
+                          className={styles.iconButton}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(`https://wa.me/55${onlyDigits(c.customer_phone)}`, '_blank');
+                          }}
+                          title="Enviar mensagem WhatsApp"
+                        >
+                          <MessageCircle size={18} />
+                        </button>
+                        <button
+                          className={styles.iconButton}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.location.href = `tel:${onlyDigits(c.customer_phone)}`;
+                          }}
+                          title="Ligar para o cliente"
+                        >
+                          <Phone size={18} />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
 
-                <div className={styles.actions}>
-                  <button className={styles.iconBtn} onClick={() => openEdit(c)}>
-                    <Pencil size={18} />
-                  </button>
-
-                  <button
-                    className={`${styles.statusToggleButton} ${c.is_active ? styles.inactiveState : styles.activeState}`}
-                    onClick={() => confirmToggle(c)}
-                  >
-                    {c.is_active ? "Inativar" : "Ativar"}
-                  </button>
-                </div>
+                <span
+                  style={{
+                    color: c.is_active ? "#00c851" : "#dc3545",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {c.is_active ? "Ativo" : "Inativo"}
+                </span>
               </div>
-            ))}
+            </div>
+
+            <div className={styles.actions}>
+              <button className={styles.iconBtn} onClick={() => openEdit(c)}>
+                <Pencil size={18} />
+              </button>
+
+              <button
+                className={`${styles.statusToggleButton} ${c.is_active ? styles.inactiveState : styles.activeState}`}
+                onClick={() => confirmToggle(c)}
+              >
+                {c.is_active ? "Inativar" : "Ativar"}
+              </button>
+            </div>
           </div>
-        </div>
+        ))}
       </div>
 
       <ModalNewCustomer
@@ -253,6 +248,6 @@ export default function ClientesPage() {
         }}
         onSuccess={() => load()}
       />
-    </>
+    </div>
   );
 }
