@@ -1,13 +1,12 @@
-// src/components/ForcePasswordReset.tsx
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseCleint";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useTheme } from "../hooks/useTheme";
-// import { useBrandColor } from "../hooks/useBrandColor"; // REMOVED
 import { Eye, EyeOff, Check } from "lucide-react";
 import styles from "../css/ForcePasswordReset.module.css";
 import { useUserTenant } from "../context/UserTenantProvider";
+
 type PasswordStrength = "empty" | "weak" | "medium" | "strong" | "very-strong";
 
 function getPasswordStrength(pwd: string): PasswordStrength {
@@ -38,54 +37,70 @@ export default function ForcePasswordReset() {
   const strength = getPasswordStrength(newPass);
   const { reloadAll } = useUserTenant();
   const { theme } = useTheme();
-  // const { brandColor } = useBrandColor(); // REMOVED
 
   // Tema
   useEffect(() => {
     document.documentElement.setAttribute("data-theme-variant", theme);
   }, [theme]);
 
-  // REMOVED: useEffect for brandColor, now handled by applyTenantTheme or default CSS
-  /*
-  useEffect(() => {
-    if (brandColor) {
-      document.documentElement.style.setProperty("--color-primary", brandColor);
-    }
-  }, [brandColor]);
-  */
-
   // 1️⃣ Validar hash + setSession
   useEffect(() => {
     async function run() {
       const hash = window.location.hash;
+      console.log("ForcePasswordReset: Current URL hash:", hash);
 
       if (!hash.includes("access_token")) {
-        toast.error("Link inválido ou expirado.");
+        toast.error("Link inválido ou expirado: token de acesso não encontrado.");
+        console.error("ForcePasswordReset: Hash does not contain access_token.");
         navigate("/login", { replace: true });
+        setLoading(false); // Ensure loading is false
         return;
       }
 
       const params = new URLSearchParams(hash.replace("#", ""));
       const access_token = params.get("access_token");
       const refresh_token = params.get("refresh_token");
+      console.log("ForcePasswordReset: Extracted access_token:", access_token ? "present" : "missing", "refresh_token:", refresh_token ? "present" : "missing");
 
       if (!access_token || !refresh_token) {
-        toast.error("Token inválido.");
+        toast.error("Token inválido: access_token ou refresh_token ausentes.");
+        console.error("ForcePasswordReset: Missing access_token or refresh_token.");
         navigate("/login", { replace: true });
+        setLoading(false); // Ensure loading is false
         return;
       }
 
+      // 🔥 NOVO: Limpar qualquer sessão existente antes de tentar definir uma nova
+      console.log("ForcePasswordReset: Signing out any existing session for a clean slate.");
+      await supabase.auth.signOut(); // Isso também dispara o onAuthStateChange para limpar o AuthContext
+
+      console.log("ForcePasswordReset: Attempting to set session with Supabase...");
       const { data, error } = await supabase.auth.setSession({
         access_token,
         refresh_token,
       });
+      console.log("ForcePasswordReset: setSession response - data:", data, "error:", error);
 
-      if (error || !data.session) {
-        toast.error("Erro ao autenticar link de redefinição.");
+      if (error) {
+        toast.error(`Erro ao autenticar link de redefinição: ${error.message}`);
+        console.error("ForcePasswordReset: setSession failed with error:", error);
+        // Como já fizemos signOut antes, o AuthContext já deve estar limpo.
+        // O AppGuard deve redirecionar para /login automaticamente.
+        navigate("/login", { replace: true }); // Redireciona explicitamente para garantir
+        setLoading(false); // Ensure loading is false
+        return;
+      }
+      
+      if (!data.session) {
+        toast.error("Erro ao autenticar link de redefinição: sessão não retornada.");
+        console.error("ForcePasswordReset: setSession succeeded but data.session is null.");
+        // Mesmo caso de erro, redireciona para login.
         navigate("/login", { replace: true });
+        setLoading(false); // Ensure loading is false
         return;
       }
 
+      console.log("ForcePasswordReset: Session successfully set. User ID:", data.session.user.id);
       // Limpa hash feio da URL
       window.history.replaceState({}, "", "/force-reset");
       setLoading(false);
@@ -137,16 +152,11 @@ export default function ForcePasswordReset() {
 
     toast.success("Senha atualizada com sucesso! 🎉");
 
-    // 👉 NÃO faz signOut.
-    // 👉 Deixa o usuário logado.
-    // 👉 Sempre manda pra /setup e deixa o SetupRedirectGuard decidir:
-    //    - se needsSetup = true → fica no /setup
-    //    - se needsSetup = false → redireciona pra /dashboard
-  // 🔥 Recarrega tudo antes de redirecionar
-await reloadAll();
+    // 🔥 Recarrega tudo antes de redirecionar
+    await reloadAll();
 
-// Agora o Guard já tem os valores corretos (needsSetup lá dentro será true ou false corretamente)
-navigate("/dashboard", { replace: true });
+    // Agora o Guard já tem os valores corretos (needsSetup lá dentro será true ou false corretamente)
+    navigate("/dashboard", { replace: true });
   }
 
   if (loading) {
