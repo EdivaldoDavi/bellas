@@ -233,11 +233,7 @@ export default function ServicosPage() {
                     </button>
 
                     <button
-                      className={styles.statusToggleButton}
-                      style={{
-                        backgroundColor: svc.is_active ? "#dc3545" : "#007bff",
-                        color: "#fff",
-                      }}
+                      className={`${styles.statusToggleButton} ${svc.is_active ? styles.inactiveState : styles.activeState}`}
                       onClick={() => confirmToggle(svc)}
                     >
                       {svc.is_active ? "Inativar" : "Ativar"}

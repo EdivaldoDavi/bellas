@@ -255,11 +255,7 @@ export default function ProfessionalsPage({ onClose }: ProfessionalsPageProps) {
                     </button>
 
                     <button
-                      className={styles.statusToggleButton}
-                      style={{
-                        backgroundColor: p.is_active ? "#dc3545" : "#007bff",
-                        color: "#fff",
-                      }}
+                      className={`${styles.statusToggleButton} ${p.is_active ? styles.inactiveState : styles.activeState}`}
                       onClick={() => confirmToggle(p)}
                     >
                       {p.is_active ? "Inativar" : "Ativar"}

@@ -230,11 +230,7 @@ export default function ClientesPage() {
                   </button>
 
                   <button
-                    className={styles.statusToggleButton}
-                    style={{
-                      backgroundColor: c.is_active ? "#dc3545" : "#007bff",
-                      color: "#fff",
-                    }}
+                    className={`${styles.statusToggleButton} ${c.is_active ? styles.inactiveState : styles.activeState}`}
                     onClick={() => confirmToggle(c)}
                   >
                     {c.is_active ? "Inativar" : "Ativar"}

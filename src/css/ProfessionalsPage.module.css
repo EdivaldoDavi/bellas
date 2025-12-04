@@ -111,8 +111,8 @@
   align-items: center;
   gap: 8px;
 
-  flex-wrap: nowrap;     /* 🔥 impede quebra de linha */
-  white-space: nowrap;   /* 🔥 garante tudo na mesma linha */
+  flex-wrap: wrap;     /* 🔥 permite quebra de linha */
+  /* REMOVIDO: white-space: nowrap; */
 }
 
 .phoneWrapper {
@@ -120,6 +120,7 @@
   align-items: center;
   gap: 8px; /* Aumentado o gap para separar o número dos ícones */
   white-space: nowrap; /* 🚀 evita quebrar */
+  flex-wrap: wrap; /* Garante que a linha do telefone quebre */
 }
 
 .phoneWrapper span {
@@ -163,6 +164,7 @@
 .actions {
   display: flex;
   gap: 12px;
+  flex-shrink: 0; /* Impede que as ações encolham demais */
 }
 
 
@@ -181,6 +183,31 @@
 
 .danger {
   background: #c0392b;
+}
+
+/* NOVO: Estilos para o botão de status */
+.statusToggleButton {
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  border: none; /* Remove default border */
+}
+
+.statusToggleButton.activeState {
+  background-color: #007bff; /* Cor para 'Ativar' */
+  color: #fff;
+}
+
+.statusToggleButton.inactiveState {
+  background-color: #dc3545; /* Cor para 'Inativar' */
+  color: #fff;
+}
+
+.statusToggleButton:hover {
+  filter: brightness(1.1);
 }
 
 .empty {
@@ -232,4 +259,59 @@
   background: var(--separator);
   color: var(--text);
   transform: translateY(-1px);
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 768px) {
+  .card {
+    flex-direction: column; /* Empilha o conteúdo do card verticalmente */
+    align-items: flex-start; /* Alinha os itens ao início */
+    gap: 10px; /* Adiciona um espaçamento entre os itens empilhados */
+  }
+
+  .card > div:first-child { /* O div que contém título, meta, phoneWrapper */
+    width: 100%; /* Permite que ocupe a largura total */
+  }
+
+  .meta {
+    flex-direction: column; /* Empilha os itens meta verticalmente */
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .phoneWrapper {
+    flex-wrap: wrap; /* Garante que a linha do telefone quebre */
+    gap: 4px;
+  }
+
+  .actions {
+    flex-direction: column; /* Empilha os botões de ação verticalmente */
+    align-items: stretch; /* Estica os botões para a largura total */
+    width: 100%; /* Ocupa a largura total do card */
+    gap: 8px; /* Espaçamento entre os botões empilhados */
+  }
+
+  .iconBtn { /* Botão de edição */
+    width: 100%; /* Ocupa a largura total */
+    text-align: center;
+    padding: 10px; /* Ajusta o padding */
+    border: 1px solid var(--separator); /* Adiciona borda para definição */
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    display: flex; /* Adicionado para alinhar ícone e texto */
+    justify-content: center; /* Centraliza conteúdo */
+    align-items: center;
+    gap: 8px; /* Espaçamento entre ícone e texto */
+  }
+
+  .iconBtn:hover {
+    background: rgba(255,255,255,0.1);
+  }
+
+  .statusToggleButton {
+    width: 100%; /* Ocupa a largura total */
+    padding: 10px; /* Ajusta o padding */
+    font-size: 0.9rem; /* Ajusta o tamanho da fonte */
+  }
 }
