@@ -4,7 +4,8 @@ import { useUserTenant } from "../../../context/UserTenantProvider";
 import { supabase } from "../../../lib/supabaseCleint";
 import { toast } from "react-toastify";
 import styles from "../Onboarding.module.css";
-import ProfessionalsPage from "../../ProfessionalsPage";
+// import ProfessionalsPage from "../../ProfessionalsPage"; // REMOVIDO: Não é mais um modal
+import ModalNewProfessional from "../../../components/ModalNewProfessional"; // ADICIONADO: O modal correto
 
 type Professional = {
   id: string;
@@ -207,10 +208,20 @@ export default function StepSchedule({ onScheduleValidated }: StepScheduleProps)
       </button>
 
       {tenantId && showModal && (
-        <ProfessionalsPage onClose={() => {
-          setShowModal(false);
-          loadProfessionals(); // Reload professionals after modal closes
-        }} />
+        <ModalNewProfessional
+          tenantId={tenantId}
+          show={showModal}
+          editId={null} // Always null for new professional in onboarding
+          mode="cadastro"
+          onClose={() => {
+            setShowModal(false);
+            loadProfessionals(); // Reload professionals after modal closes
+          }}
+          onSuccess={() => {
+            setShowModal(false);
+            loadProfessionals(); // Reload professionals after successful creation
+          }}
+        />
       )}
     </div>
   );

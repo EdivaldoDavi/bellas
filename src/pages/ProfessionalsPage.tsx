@@ -3,15 +3,13 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
-import {  Plus, Pencil, MessageCircle, Phone } from "lucide-react"; // Adicionado MessageCircle e Phone
+import { X, Plus, Pencil, MessageCircle, Phone } from "lucide-react"; // Adicionado MessageCircle e Phone
 import { toast } from "react-toastify"; // Corrected import statement
 
 import ModalNewProfessional from "../components/ModalNewProfessional";
 // import CopyButton from "../components/CopyButton"; // REMOVIDO
 import { dbPhoneToMasked, onlyDigits } from "../utils/phoneUtils";
 import styles from "../css/ProfessionalsPage.module.css";
-
-
 type Professional = {
   id: string;
   name: string;
@@ -20,11 +18,16 @@ type Professional = {
   is_active: boolean;
 };
 
+// REMOVIDO: ProfessionalsPageProps type, as it's no longer a modal
+// type ProfessionalsPageProps = {
+//   onClose?: () => void; // used in onboarding
+// };
 
-export default function ProfessionalsPage() {
+export default function ProfessionalsPage() { // Removed onClose prop from here
   const { tenant } = useUserAndTenant();
   const tenantId = tenant?.id;
   
+
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -32,7 +35,7 @@ export default function ProfessionalsPage() {
   const [openModal, setOpenModal] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
 
- 
+  
 
   // ================================
   // LOAD
