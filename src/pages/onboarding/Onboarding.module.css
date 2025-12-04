@@ -1,6 +1,5 @@
 /* ===========================================================
-   ONBOARDING — ULTRA PREMIUM EDITION 2025
-   Branding • Depth • Motion • Soft-Glass • AI SaaS Style
+   ONBOARDING — ULTRA PREMIUM (CARD GRADIENT + PAGE WHITE)
 =========================================================== */
 
 /* =========================
@@ -11,27 +10,17 @@
   width: 100%;
   min-height: 100vh;
   padding: 40px 20px;
+
   display: flex;
   flex-direction: column;
   align-items: center;
 
-  /* 🔥 Ultra Premium Background */
-  background: radial-gradient(
-      circle at top right,
-      rgba(131, 67, 162, 0.12),
-      transparent 60%
-    ),
-    radial-gradient(
-      circle at bottom left,
-      rgba(224, 182, 245, 0.14),
-      transparent 60%
-    ),
-    #faf9fc;
+  background: #ffffff; /* 🔥 Pedido: background branco */
 }
 
 
 /* ===========================================================
-   STEP CARD — ULTRA PREMIUM GLASS CARD
+   STEP CARD — PREMIUM GRADIENT
 =========================================================== */
 
 .stepContainer {
@@ -39,57 +28,64 @@
   max-width: 760px;
 
   padding: 40px 46px;
-  border-radius: 26px;
+  border-radius: 28px;
 
-  /* 🔥 Ultra Glass Layer */
+  /* 🔥 Gradiente elegante, premium e suave */
   background: linear-gradient(
       145deg,
-      rgba(255, 255, 255, 0.90),
-      rgba(250, 247, 255, 0.75)
+      rgba(255, 255, 255, 0.94),
+      rgba(248, 243, 255, 0.94)
+    ),
+    linear-gradient(
+      135deg,
+      rgba(131, 67, 162, 0.12),
+      rgba(224, 182, 245, 0.18)
     );
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(16px);
 
-  /* Depth Layer */
+  border: 1px solid rgba(255, 255, 255, 0.7);
+
+  /* Glass suave */
+  backdrop-filter: blur(12px);
+
+  /* Sombra premium */
   box-shadow:
-    0 28px 60px rgba(0, 0, 0, 0.08),
-    0 6px 18px rgba(0, 0, 0, 0.04);
+    0 24px 48px rgba(0, 0, 0, 0.06),
+    0 6px 16px rgba(0, 0, 0, 0.04);
 
   opacity: 0;
   transform: translateY(12px);
-  animation: cardAppear 0.5s ease forwards;
+  animation: cardAppear 0.45s ease forwards;
 }
 
-/* Smooth card intro */
 @keyframes cardAppear {
-  0% { opacity: 0; transform: translateY(16px) scale(0.98); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 
 /* ===========================================================
-   TYPOGRAPHY — PREMIUM FINISH
+   TYPOGRAPHY — CLEAN + PREMIUM
 =========================================================== */
 
 .stepTitle {
   font-size: 1.7rem;
   font-weight: 700;
-  color: #262626;
+  color: #222;
   margin-bottom: 10px;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.4px;
 }
 
 .stepText {
-  font-size: 1.03rem;
+  font-size: 1.05rem;
   font-weight: 400;
   color: #4a4a4a;
   line-height: 1.65;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 
 
 /* ===========================================================
-   PROGRESS BAR — FUTURISTIC ANIMATED
+   PROGRESS BAR — FUTURISTIC GRADIENT
 =========================================================== */
 
 .progressWrapper {
@@ -101,44 +97,40 @@
 
 .progressBar {
   width: 100%;
-  height: 12px;
-  background: rgba(200, 200, 220, 0.35);
+  height: 10px;
+  background: #ececf1;
   border-radius: 999px;
   overflow: hidden;
-  position: relative;
 }
 
 .progressFill {
   height: 100%;
   border-radius: 999px;
 
-  /* 🔥 Futuristic Gradient Trail */
   background: linear-gradient(90deg, #8343A2, #A96CD3, #E0B6F5);
   background-size: 200% 100%;
   animation: gradientFlow 2.4s linear infinite;
 
-  box-shadow: 0 0 14px rgba(131, 67, 162, 0.5);
-  transition: width 0.4s ease;
+  box-shadow: 0 0 16px rgba(131, 67, 162, 0.35);
+  transition: width 0.35s ease;
 }
 
-/* Smooth infinite moving gradient */
 @keyframes gradientFlow {
   0% { background-position: 0%; }
   100% { background-position: -200%; }
 }
 
 .progressText {
-  text-align: left;
-  margin-top: 6px;
+  margin-top: 8px;
   font-size: 0.95rem;
   font-weight: 600;
-  color: #222 !important; /* ✔ mais escuro */
+  color: #222 !important; /* 🔥 mais escura, como você pediu */
 }
 
 
 
 /* ===========================================================
-   BUTTONS — PREMIUM ROUNDED
+   BUTTONS — ROUNDED + MODERN
 =========================================================== */
 
 .primaryBtn {
@@ -146,22 +138,22 @@
   border: none;
   background: var(--color-primary);
   color: #fff;
-  padding: 16px 24px;
 
+  padding: 16px;
   border-radius: 999px;
+
   font-weight: 600;
   font-size: 1.05rem;
   cursor: pointer;
-
-  transition: 0.25s ease;
   margin-top: 28px;
 
+  transition: 0.25s ease;
   box-shadow: 0 6px 16px rgba(131, 67, 162, 0.25);
 }
 
 .primaryBtn:hover {
   transform: translateY(-3px);
-  filter: brightness(1.08);
+  filter: brightness(1.1);
 }
 
 
@@ -172,7 +164,7 @@
 
 .congratsWrapper {
   text-align: center;
-  animation: fadeIn 0.6s ease-out forwards;
+  animation: fadeIn 0.5s ease-out forwards;
 }
 
 @keyframes fadeIn {
@@ -183,44 +175,42 @@
 .congratsIcon {
   color: var(--color-primary);
   margin-bottom: 20px;
-  animation: popIn 0.4s ease-out forwards;
+  animation: popIn 0.45s ease-out forwards;
 }
 
 @keyframes popIn {
   0% { transform: scale(0.4); opacity: 0; }
-  80% { transform: scale(1.18); }
+  80% { transform: scale(1.15); }
   100% { transform: scale(1); opacity: 1; }
 }
 
 
-
 /* ===========================================================
-   RESPONSIVE DESIGN
+   RESPONSIVE
 =========================================================== */
 
 @media (max-width: 760px) {
   .stepContainer {
-    padding: 28px 24px;
-    border-radius: 20px;
+    padding: 32px 24px;
+    border-radius: 22px;
   }
-
   .stepTitle {
-    font-size: 1.45rem;
+    font-size: 1.5rem;
   }
 }
 
 @media (max-width: 480px) {
   .stepContainer {
-    padding: 24px 18px;
-    border-radius: 16px;
+    padding: 26px 18px;
+    border-radius: 18px;
   }
 }
 
 
 /* ===========================================================
-   ADDITIONAL SPACE FOR FIXED NAVIGATION
+   SAFE SPACE FOR FIXED NAVIGATION
 =========================================================== */
 
 .bottomSpacing {
-  padding-bottom: 150px;
+  padding-bottom: 140px;
 }
