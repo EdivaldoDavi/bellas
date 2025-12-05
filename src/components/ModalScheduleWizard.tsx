@@ -6,7 +6,7 @@ import ReactDOM from "react-dom"; // Importar ReactDOM para usar createPortal
 
 import DatePickerModal from "../components/DatePickerModal";
 import SelectClientWhatsApp from "../components/SelectClientWhatsapp";
-import ModalNewCustomer from "../components/ModalNewCustomer";
+import NewCustomerForm from "../components/ModalNewCustomer"; // Renomeado
 import ModalNewService from "../components/ModalNewService";
 import ModalNewProfessional from "../components/ModalNewProfessional";
 
@@ -569,19 +569,22 @@ export default function ModalScheduleWizard({
       {/* ------------------------ MODAIS AUXILIARES ------------------------ */}
 
       {showNewCustomer && (
-        <ModalNewCustomer
-          tenantId={tenantId}
-          mode="agenda"
-          show={showNewCustomer}
-          onClose={() => setShowNewCustomer(false)}
-          onSuccess={(id, name) => {
-            setCustomerId(id);
-            setCustomerName(name);
-            clientRef.current?.reload(id);
-            setShowNewCustomer(false);
-            toast.success(`Cliente ${name} cadastrado!`);
-          }}
-        />
+        <div className={styles.overlay}>
+          <div className={styles.modal}> {/* Reutilizando o estilo do modal principal */}
+            <NewCustomerForm
+              tenantId={tenantId}
+              mode="new" // Corrigido para "new"
+              onCancel={() => setShowNewCustomer(false)}
+              onSaveSuccess={(id, name) => {
+                setCustomerId(id);
+                setCustomerName(name);
+                clientRef.current?.reload(id);
+                setShowNewCustomer(false);
+                toast.success(`Cliente ${name} cadastrado!`);
+              }}
+            />
+          </div>
+        </div>
       )}
 
       {showNewProfessional && (
