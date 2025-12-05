@@ -107,24 +107,24 @@ export default function StepServices({ onServicesValidated }: StepServicesProps)
             Nenhum serviço cadastrado ainda.
           </p>
         ) : (
-          <ul className={styles.servicesList}>
-            {services.map((s) => (
-             <li key={s.id} className={styles.serviceItem}>
-              <span className={styles.serviceName}>{s.name}</span>
+                  <ul className={styles.list}>
+          {services.map(s => (
+            <li key={s.id} className={styles.listItem}>
+              <span className={styles.itemTitle}>{s.name}</span>
 
-              <div className={styles.serviceMeta}>
-                <span className={styles.durationBadge}>
-                  {s.duration_min ?? 0} min
+              <span className={styles.itemMeta}>
+                <span className={`${styles.badge} ${styles.badgeDuration}`}>
+                  {s.duration_min} min
                 </span>
 
-                <span className={styles.priceBadge}>
-                  {formatCentsToBRL(s.price_cents ?? 0)}
+                <span className={`${styles.badge} ${styles.badgePrice}`}>
+                  {formatCentsToBRL(s.price_cents)}
                 </span>
-              </div>
+              </span>
             </li>
+          ))}
+        </ul>
 
-            ))}
-          </ul>
         )}
       </div>
 

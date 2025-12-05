@@ -1,13 +1,10 @@
 /* ===========================================================
-   ONBOARDING — ULTRA PREMIUM (CARD GRADIENT + BACKGROUND CLEAN)
+   ONBOARDING — ULTRA PREMIUM (CARD GRADIENT + CLEAN BACKGROUND)
 =========================================================== */
 
-/* =========================
-   PAGE TRANSPARENTE
-========================= */
 .page {
   width: 100%;
-  min-height: 100svh; /* 🔥 usa a altura REAL da tela, sem barra flutuante */
+  min-height: 100svh;
   padding: 40px 20px;
 
   display: flex;
@@ -17,21 +14,13 @@
   background: transparent !important;
 }
 
-
 .stepWrapper {
   width: 100%;
   max-width: 760px;
-  flex: 1;                   /* 🔥 ESSENCIAL para barra fixa funcionar */
+  flex: 1;
   display: flex;
   justify-content: center;
 }
-
-
-
-/* ===========================================================
-   STEP CARD — GRADIENTE PREMIUM
-=========================================================== */
-
 .stepContainer {
   width: 100%;
   max-width: 760px;
@@ -39,25 +28,16 @@
   padding: 40px 46px;
   border-radius: 28px;
 
-  /* 🔥 Gradiente elegante no card */
   background: linear-gradient(
       145deg,
       rgba(255, 255, 255, 0.95),
       rgba(248, 243, 255, 0.95)
     ),
-    linear-gradient(
-      135deg,
-      rgba(131, 67, 162, 0.12),
-      rgba(224, 182, 245, 0.22)
-    );
+    linear-gradient(135deg, rgba(131, 67, 162, 0.12), rgba(224, 182, 245, 0.22));
 
-  /* Borda translucida premium */
   border: 1px solid rgba(255, 255, 255, 0.7);
-
-  /* Efeito vidro suave */
   backdrop-filter: blur(12px);
 
-  /* Sombra premium */
   box-shadow:
     0 24px 48px rgba(0, 0, 0, 0.06),
     0 6px 16px rgba(0, 0, 0, 0.04);
@@ -71,35 +51,19 @@
   from { opacity: 0; transform: translateY(16px) scale(0.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
-
-
-
-/* ===========================================================
-   TYPOGRAPHY — PREMIUM & CLEAN
-=========================================================== */
-
 .stepTitle {
   font-size: 1.7rem;
   font-weight: 700;
   color: #222;
-  margin-bottom: 10px;
-  letter-spacing: -0.4px;
+  margin-bottom: 12px;
 }
 
 .stepText {
   font-size: 1.05rem;
-  font-weight: 400;
   color: #444;
   line-height: 1.65;
   margin-bottom: 14px;
 }
-
-
-
-/* ===========================================================
-   PROGRESS BAR — MODERNA COM GRADIENTE
-=========================================================== */
-
 .progressWrapper {
   width: 100%;
   max-width: 760px;
@@ -121,7 +85,6 @@
   background: linear-gradient(90deg, #8343A2, #A96CD3, #E0B6F5);
   background-size: 200% 100%;
   animation: gradientFlow 2.4s linear infinite;
-  box-shadow: 0 0 16px rgba(131, 67, 162, 0.35);
   transition: width 0.35s ease;
 }
 
@@ -134,28 +97,106 @@
   margin-top: 8px;
   font-size: 0.95rem;
   font-weight: 600;
-  color: #1d1d1d !important; /* 🔥 texto mais escuro como você pediu */
+  color: #1d1d1d !important;
+}
+.listWrapper {
+  margin-top: 20px;
 }
 
+.listLabel {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10px;
+}
 
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 
-/* ===========================================================
-   BOTÕES
-=========================================================== */
+.listItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 
+  background: #ffffff;
+  padding: 14px 18px;
+  border-radius: 14px;
+
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+
+  transition: all 0.18s ease-out;
+}
+
+.listItem:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+
+.itemTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.itemMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.badge {
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 10px;
+}
+
+/* Exclusivo do stepServices */
+.badgeDuration {
+  background: #eef0ff;
+  color: #4a4fbf;
+}
+
+.badgePrice {
+  background: #ffeef8;
+  color: #b83280;
+}
+
+/* StepSchedule */
+.badgeActive {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.badgeInactive {
+  background: #fde2e2;
+  color: #b91c1c;
+}
+
+/* StepFirstCustomer */
+.badgePhone {
+  background: #f3f4f6;
+  color: #374151;
+}
 .primaryBtn {
   width: 100%;
   border: none;
-  background: var(--color-primary);
-  color: #fff;
-
   padding: 16px;
   border-radius: 999px;
 
+  background: linear-gradient(135deg, #8d3fbb 0%, #b46ae4 100%);
   font-weight: 600;
+  color: #fff;
   font-size: 1.05rem;
-  cursor: pointer;
+
   margin-top: 28px;
+  cursor: pointer;
 
   transition: 0.25s ease;
   box-shadow: 0 6px 16px rgba(131, 67, 162, 0.25);
@@ -165,274 +206,115 @@
   transform: translateY(-3px);
   filter: brightness(1.1);
 }
-
-
-
-/* ===========================================================
-   FINAL STEP (PARABÉNS)
-=========================================================== */
-
-.congratsWrapper {
-  text-align: center;
-  animation: fadeIn 0.5s ease-out forwards;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.98); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-.congratsIcon {
-  color: var(--color-primary);
-  margin-bottom: 20px;
-  animation: popIn 0.45s ease-out forwards;
-}
-
-@keyframes popIn {
-  0% { transform: scale(0.4); opacity: 0; }
-  80% { transform: scale(1.15); }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-
-/* ============================
-   OVERLAY - vidro suave
-=============================== */
 .warningModalOverlay {
-  position: fixed !important;
+  position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.55);
   backdrop-filter: blur(6px);
+
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+
   z-index: 999999;
 }
 
-/* ============================
-   MODAL PREMIUM
-=============================== */
 .warningModalPremium {
   width: min(94%, 620px);
   max-height: 90vh;
   overflow-y: auto;
 
-  background: linear-gradient(135deg, #ffffff 0%, #faf7ff 45%, #f3eaff 100%);
-  border: 1px solid rgba(255, 255, 255, 0.6);
   padding: 28px 24px;
   border-radius: 24px;
+
+  background: linear-gradient(135deg, #ffffff, #faf7ff 50%, #f3eaff 100%);
+  border: 1px solid rgba(255,255,255,0.6);
 
   box-shadow: 0 12px 50px rgba(0,0,0,0.22);
   animation: premiumPop 0.35s ease-out forwards;
 }
 
-/* Animation */
 @keyframes premiumPop {
-  0%   { opacity: 0; transform: scale(0.85) translateY(20px); }
-  60%  { opacity: 1; transform: scale(1.05) translateY(0); }
+  0% { opacity: 0; transform: scale(0.85) translateY(20px); }
+  60% { opacity: 1; transform: scale(1.05); }
   100% { transform: scale(1); }
 }
 
-/* ============================
-   HEADER PREMIUM
-=============================== */
 .warningPremiumHeader {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   margin-bottom: 18px;
 }
 
-/* Ícone circular flutuante */
 .warningPremiumIconWrapper {
   width: 46px;
   height: 46px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ffe9b0 0%, #ffcd75 100%);
+
+  background: linear-gradient(135deg, #ffe9b0, #ffcd75);
   display: flex;
   align-items: center;
   justify-content: center;
+
   box-shadow: 0 4px 12px rgba(255,180,60,0.3);
-  animation: floatIcon 2.5s ease-in-out infinite;
-}
-
-@keyframes floatIcon {
-  0%,100% { transform: translateY(0); }
-  50%     { transform: translateY(-4px); }
-}
-
-.warningPremiumIcon {
-  color: #a96b00;
 }
 
 .warningPremiumTitle {
   font-size: 1.35rem;
   font-weight: 700;
   color: #3b2f42;
-  margin: 0;
 }
 
-/* ============================
-   CONTENT PREMIUM
-=============================== */
 .warningPremiumContent {
   font-size: 1rem;
   color: #4b4455;
   line-height: 1.55;
-  margin-bottom: 28px;
+  margin-bottom: 26px;
 }
 
-/* ============================
-   BOTÃO PREMIUM
-=============================== */
 .warningPremiumButton {
   width: 100%;
-  background: linear-gradient(135deg, #8d3fbb 0%, #b46ae4 100%);
-  color: white;
   padding: 14px;
-  border-radius: 14px;
-  border: none;
   font-weight: 600;
-  font-size: 1.1rem;
+  color: white;
+
+  background: linear-gradient(135deg, #8d3fbb, #b46ae4);
+  border: none;
+  border-radius: 14px;
+
   cursor: pointer;
-  transition: all 0.25s ease;
-  box-shadow: 0 4px 14px rgba(138, 43, 226, 0.35);
+  transition: 0.25s ease;
 }
 
 .warningPremiumButton:hover {
-  filter: brightness(1.12);
+  filter: brightness(1.1);
   transform: translateY(-2px);
 }
 
-
-/* ================================
-   LISTA DE SERVIÇOS — PREMIUM UI
-================================ */
-
-.servicesList {
+/* Bloco de texto do agendamento (data + descrição) */
+.appointmentText {
   display: flex;
   flex-direction: column;
-  gap: 12px; /* espaçamento mais bonito entre itens */
-  margin-top: 10px;
+  gap: 2px;
 }
 
-/* Card elegante para cada serviço */
-.serviceItem {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  padding: 14px 18px;
-  background: #ffffff;
-  border-radius: 14px;
-
-  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
-  border: 1px solid rgba(0,0,0,0.04);
-
-  transition: all 0.18s ease-out;
-}
-
-/* Hover suave premium */
-.serviceItem:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
-}
-
-/* Nome do serviço */
-.serviceName {
+/* Título já existe e é usado em todas as listas */
+.itemTitle {
   font-size: 1rem;
   font-weight: 600;
   color: #333;
 }
 
-/* Container das badges */
-.serviceMeta {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+/* Subtexto do item (ex: "Agendamento criado") */
+.itemSub {
+  font-size: 0.85rem;
+  color: #6b7280;
 }
-
-/* Badge com duração */
-.durationBadge {
-  background: #eef0ff;
-  color: #4a4fbf;
-  padding: 5px 10px;
-  border-radius: 10px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-/* Badge com preço */
-.priceBadge {
-  background: #ffeef8;
-  color: #b83280;
-  padding: 5px 10px;
-  border-radius: 10px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-/* ===========================================================
-   RESPONSIVE
-=========================================================== */
 
 @media (max-width: 760px) {
   .stepContainer {
-    padding: 32px 24px;
+    padding: 30px 24px;
     border-radius: 22px;
   }
-  .stepTitle {
-    font-size: 1.5rem;
-  }
-  .warningModal {
-    width: 94%;
-    padding: 18px;
-  }
-}
-
-@media (max-width: 480px) {
-  .stepContainer {
-    padding: 26px 18px;
-    border-radius: 18px;
-  }
-  .warningModal {
-    width: 94%;
-    padding: 18px;
-  }
-}
-
-
-
-/* ===========================================================
-   SAFE AREA PARA BOTÃO FIXO
-=========================================================== */
-
-.bottomSpacing {
-  padding-bottom: 140px;
-}
-
-
-.professionalNameAndStatus {
-  display: flex;
-  align-items: center;
-  gap: 12px;         /* 🔥 Espaçamento perfeito */
-  font-size: 1rem;
-  padding: 6px 0;
-}
-.statusBadgeActive,
-.statusBadgeInactive {
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.statusBadgeActive {
-  background: #e3f9e5;
-  color: #2e7d32;
-}
-
-.statusBadgeInactive {
-  background: #fdecea;
-  color: #c62828;
 }

@@ -130,21 +130,14 @@ export default function StepSchedule({ onScheduleValidated }: StepScheduleProps)
         ) : professionals.length === 0 ? (
           <p className={styles.emptyText}>Nenhum profissional cadastrado.</p>
         ) : (
-          <ul className={styles.professionalsList}>
-            {professionals.map((p) => (
-              <li key={p.id} className={styles.professionalItem}>
-                <div className={styles.professionalNameAndStatus}>
-                  <span>{p.name}</span>
-                  <span
-                    className={
-                      p.is_active
-                        ? styles.statusBadgeActive
-                        : styles.statusBadgeInactive
-                    }
-                  >
-                    {p.is_active ? "Ativo" : "Inativo"}
-                  </span>
-                </div>
+          <ul className={styles.list}>
+            {professionals.map(p => (
+              <li key={p.id} className={styles.listItem}>
+                <span className={styles.itemTitle}>{p.name}</span>
+
+                <span className={`${styles.badge} ${p.is_active ? styles.badgeActive : styles.badgeInactive}`}>
+                  {p.is_active ? "Ativo" : "Inativo"}
+                </span>
               </li>
             ))}
           </ul>

@@ -113,18 +113,21 @@ export default function StepFirstAppointment({ onAppointmentValidated }: StepFir
         )}
 
         {!loading && appointments.length > 0 && (
-          <ul className={styles.itemsList}>
-            {appointments.map((a) => (
-              <li key={a.id} className={styles.itemRow}>
-                <div className={styles.itemLine}>
-                  <span className={styles.itemTitle}>
-                    {formatDateTime(a.created_at)}
-                  </span>
-                  <span className={styles.itemSub}> — Agendamento criado</span>
-                </div>
-              </li>
-            ))}
-          </ul>
+                      <ul className={styles.list}>
+              {appointments.map((a) => (
+                <li key={a.id} className={styles.listItem}>
+                  <div className={styles.appointmentText}>
+                    <span className={styles.itemTitle}>
+                      {formatDateTime(a.created_at)}
+                    </span>
+                    <span className={styles.itemSub}>
+                      Agendamento criado
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+
         )}
       </div>
 

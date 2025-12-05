@@ -78,17 +78,14 @@ export default function StepFirstCustomer({ onCustomerValidated }: StepFirstCust
         )}
 
         {!loading && customers.length > 0 && (
-          <ul className={styles.itemsList}>
-            {customers.map((c) => (
-              <li key={c.id} className={styles.itemRow}>
-                <div className={styles.itemLine}>
-                  <span className={styles.itemTitle}>{c.full_name}</span>
-                  {c.customer_phone && (
-                    <span className={styles.itemSub}>
-                      — {c.customer_phone}
-                    </span>
-                  )}
-                </div>
+          <ul className={styles.list}>
+            {customers.map(c => (
+              <li key={c.id} className={styles.listItem}>
+                <span className={styles.itemTitle}>{c.full_name}</span>
+
+                <span className={`${styles.badge} ${styles.badgePhone}`}>
+                  {c.customer_phone}
+                </span>
               </li>
             ))}
           </ul>
