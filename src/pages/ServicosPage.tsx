@@ -212,7 +212,20 @@ export default function ServicosPage() {
             tenantId={tenantId}
             mode={pageMode === "new" ? "new" : "edit"}
             service={pageMode === "edit" ? (editingService as any) : undefined}
-            onSaveSuccess={() => {
+            onSaveSuccess={(id, name, duration) => {
+              // UPDATE OTIMISTA NA LISTA
+              setServices((prev) => {
+                const exists = prev.some((s) => s.id === id);
+                if (exists) {
+                  return prev.map((s) =>
+                    s.id === id ? { ...s, name, duration_min: duration } : s
+                  );
+                }
+                return [
+                  { id, name, duration_min: duration, is_active: true, price_cents: null },
+                  ...prev,
+                ];
+              });
               navigate("/servicos");
             }}
             onCancel={() => navigate("/servicos")}

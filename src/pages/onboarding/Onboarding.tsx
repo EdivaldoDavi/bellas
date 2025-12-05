@@ -18,6 +18,14 @@ export default function Onboarding() {
   const { tenant, updateOnboardingStep, loading: tenantLoading } = useUserTenant();
   const step = tenant?.onboarding_step ?? 0;
 
+  // ADDED: estado local de passo para navegação suave
+  const [uiStep, setUiStep] = useState(step);
+
+  useEffect(() => {
+    // Sincroniza quando o tenant muda (ex.: recarregado pelo contexto)
+    setUiStep(step);
+  }, [step]);
+
   /** ============================
    * VALIDATION FLAGS
   ============================ */
@@ -49,13 +57,16 @@ export default function Onboarding() {
    * NAVEGAÇÃO ENTRE STEPS
   ============================ */
   const handleBack = useCallback(() => {
-    if (step > 0) updateOnboardingStep(step - 1);
-  }, [step, updateOnboardingStep]);
+    if (uiStep > 0) {
+      setUiStep((s) => s - 1); // navega instantâneo
+      updateOnboardingStep(uiStep - 1); // persiste em background
+    }
+  }, [uiStep, updateOnboardingStep]);
 
   const handleNext = useCallback(async () => {
     let ok = true;
 
-    switch (step) {
+    switch (uiStep) {
       case 1:
         if (!hasServices) {
           toast.warn("Cadastre pelo menos um serviço antes de continuar.");
@@ -89,9 +100,12 @@ export default function Onboarding() {
         return;
     }
 
-    if (ok && step < TOTAL_STEPS - 1) updateOnboardingStep(step + 1);
+    if (ok && uiStep < TOTAL_STEPS - 1) {
+      setUiStep((s) => s + 1);       // navega instantâneo
+      updateOnboardingStep(uiStep + 1); // persiste em background
+    }
   }, [
-    step,
+    uiStep,
     hasServices,
     hasSchedule,
     hasCustomer,
@@ -105,7 +119,7 @@ export default function Onboarding() {
   const canGoNext = useMemo(() => {
     if (tenantLoading) return false;
 
-    switch (step) {
+    switch (uiStep) {
       case 0:
       case 5:
         return true;
@@ -126,7 +140,7 @@ export default function Onboarding() {
         return false;
     }
   }, [
-    step,
+    uiStep,
     hasServices,
     hasSchedule,
     hasCustomer,
@@ -138,7 +152,7 @@ export default function Onboarding() {
    * RENDER DE CADA STEP
   ============================ */
   const renderStep = () => {
-    switch (step) {
+    switch (uiStep) {
       case 0:
         return <StepWelcome />;
       case 1:
@@ -159,14 +173,13 @@ export default function Onboarding() {
   /** ============================
    * PROGRESSO
   ============================ */
-  const progress = Math.min(100, ((step + 1) / TOTAL_STEPS) * 100);
+  const progress = Math.min(100, ((uiStep + 1) / TOTAL_STEPS) * 100);
 
   /** ============================
    * LAYOUT
   ============================ */
   return (
-    <div className={styles.page}> {/* Removed onboarding-active class */}
-
+    <div className={styles.page}>
       {/* Progresso */}
       <div className={styles.progressWrapper}>
         <div className={styles.progressBar}>
@@ -175,15 +188,15 @@ export default function Onboarding() {
         <span className={styles.progressText}>{Math.round(progress)}% concluído</span>
       </div>
 
-      {/* 🔥 ENVOLVE O STEP COM WRAPPER ANIMADO */}
-      <div key={step} className={`${styles.stepWrapper} ${styles.stepTransition}`}>
+      {/* Wrapper animado */}
+      <div key={uiStep} className={`${styles.stepWrapper} ${styles.stepTransition}`}>
         {renderStep()}
       </div>
 
       {/* Navigation */}
-      {step > 0 && step < TOTAL_STEPS - 1 && (
+      {uiStep > 0 && uiStep < TOTAL_STEPS - 1 && (
         <OnboardingFixedNavigation
-          currentStep={step}
+          currentStep={uiStep}
           onBack={handleBack}
           onNext={handleNext}
           canGoNext={canGoNext}

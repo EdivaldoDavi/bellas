@@ -174,8 +174,24 @@ export default function ClientesPage() {
           tenantId={tenantId}
           mode={pageMode === "new" ? "new" : "edit"}
           customer={editingCustomer}
-          onSaveSuccess={() => navigate("/clientes")} // Volta para a lista após salvar
-          onCancel={() => navigate("/clientes")} // Volta para a lista ao cancelar
+          onSaveSuccess={(id, name) => {
+            // UPDATE OTIMISTA NA LISTA
+            setCustomers((prev) => {
+              const exists = prev.some((c) => c.id === id);
+              if (exists) {
+                return prev.map((c) =>
+                  c.id === id ? { ...c, full_name: name } : c
+                );
+              }
+              // adiciona no topo com dados mínimos; re-fetch acontece depois
+              return [
+                { id, full_name: name, customer_phone: "", is_active: true },
+                ...prev,
+              ];
+            });
+            navigate("/clientes"); // volta para a lista
+          }}
+          onCancel={() => navigate("/clientes")}
         />
       </div>
     );
