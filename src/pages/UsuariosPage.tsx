@@ -3,7 +3,7 @@ import { supabase } from "../lib/supabaseCleint";
 import { toast } from "react-toastify";
 
 import ManageRoles from "../components/ManageRoles";
-import { useUserAndTenant } from "../hooks/useUserAndTenant";
+import { useUserTenant } from "../context/UserTenantProvider";
 import styles from "../css/UsuariosPage.module.css";
 
 interface ProfessionalOption {
@@ -29,7 +29,7 @@ const isValidEmail = (email: string) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
 export default function UsuariosPage() {
-  const { tenant, profile } = useUserAndTenant();
+  const { tenant, profile, loading } = useUserTenant();
   const tenantId = tenant?.id;
   const loggedInUserId = profile?.user_id;
 
@@ -195,7 +195,8 @@ export default function UsuariosPage() {
     }
   }
 
-  if (!loggedInUserId || !tenantId) {
+  // Evita flicker: com AppGuard, loading já estará false quando a rota for acessada
+  if (loading) {
     return <p className={styles.description} style={{ padding: 20, textAlign: "center" }}>Carregando...</p>;
   }
 
@@ -270,7 +271,13 @@ export default function UsuariosPage() {
 
       {/* Seção de Gerenciar Permissões (existente) */}
       <div className={styles.manageRolesSection}>
-        <ManageRoles tenantId={tenantId} loggedInUserId={loggedInUserId} />
+        {loggedInUserId ? (
+          <ManageRoles tenantId={tenantId} loggedInUserId={loggedInUserId} />
+        ) : (
+          <p className={styles.description} style={{ padding: 12 }}>
+            Não foi possível identificar o usuário logado.
+          </p>
+        )}
       </div>
     </div>
   );
