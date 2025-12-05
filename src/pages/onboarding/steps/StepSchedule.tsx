@@ -23,6 +23,9 @@ export default function StepSchedule({ onScheduleValidated }: StepScheduleProps)
   const [showModal, setShowModal] = useState(false);
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [loadingProfessionals, setLoadingProfessionals] = useState(true);
+  const [selectedProfessionalId, setSelectedProfessionalId] = useState<string>("");
+  // ADDED: nome do profissional selecionado derivado
+  const selectedProfessionalName = professionals.find(p => p.id === selectedProfessionalId)?.name || "";
 
   /* ============================================================
      ✔ VALIDAR SE PROFISSIONAL TEM SERVIÇOS + HORÁRIOS
@@ -97,6 +100,8 @@ export default function StepSchedule({ onScheduleValidated }: StepScheduleProps)
     } else {
       setProfessionals(data || []);
       await validateProfessionalData();
+      // Seleciona visualmente o primeiro profissional se houver registros
+      setSelectedProfessionalId((data && data.length > 0) ? data[0].id : "");
     }
 
     setLoadingProfessionals(false);
@@ -134,7 +139,7 @@ export default function StepSchedule({ onScheduleValidated }: StepScheduleProps)
         ) : (
           <ul className={styles.list}>
             {professionals.map(p => (
-              <li key={p.id} className={styles.listItem}>
+              <li key={p.id} className={`${styles.listItem} ${selectedProfessionalId === p.id ? styles.listItemSelected : ""}`}>
                 <span className={styles.itemTitle}>{p.name}</span>
 
                 <span className={`${styles.badge} ${p.is_active ? styles.badgeActive : styles.badgeInactive}`}>
@@ -145,6 +150,11 @@ export default function StepSchedule({ onScheduleValidated }: StepScheduleProps)
           </ul>
         )}
       </div>
+
+      {/* ADDED: texto informando profissional selecionado */}
+      {selectedProfessionalId && selectedProfessionalName && (
+        <p className={styles.progressText}>Profissional selecionado: {selectedProfessionalName}</p>
+      )}
 
       {/* BOTÃO */}
       <button

@@ -5,7 +5,6 @@ import { useUserTenant } from "../../../context/UserTenantProvider";
 import styles from "../Onboarding.module.css";
 import NewCustomerForm from "../../../components/ModalNewCustomer"; // Renomeado
 import { dbPhoneToMasked } from "../../../utils/phoneUtils";
-import SelectClientWhatsApp from "../../../components/SelectClientWhatsapp";
 
 type Customer = {
   id: string;
@@ -31,7 +30,8 @@ export default function StepFirstCustomer({ onCustomerValidated }: StepFirstCust
 
   const disableAddCustomer = (!loading && customers.length > 0) || Boolean(selectedCustomerId);
 
-  
+  const handleClose = () => setShowModal(false);
+
   const handleSuccess = useCallback(async () => {
     await fetchCustomers();
     // setCanContinue(true); // No longer needed here
@@ -55,6 +55,13 @@ export default function StepFirstCustomer({ onCustomerValidated }: StepFirstCust
     if (!error && data) {
       setCustomers(data);
       onCustomerValidated(data.length > 0); // Update validation state
+
+      // Se ainda não houver cliente selecionado, seleciona o primeiro da lista
+      if (!selectedCustomerId && data.length > 0) {
+        setSelectedCustomerId(data[0].id);
+        setSelectedCustomerName(data[0].full_name);
+        onCustomerValidated(true);
+      }
     } else {
       onCustomerValidated(false); // Update validation state
     }
@@ -86,7 +93,10 @@ export default function StepFirstCustomer({ onCustomerValidated }: StepFirstCust
         {!loading && customers.length > 0 && (
                 <ul className={styles.list}>
           {customers.map((c) => (
-            <li key={c.id} className={styles.listItem}>
+            <li
+              key={c.id}
+              className={`${styles.listItem} ${selectedCustomerId === c.id ? styles.listItemSelected : ""}`}
+            >
               <div className={styles.itemLeft}>
                 <span className={styles.itemTitle}>{c.full_name}</span>
               </div>
@@ -99,28 +109,11 @@ export default function StepFirstCustomer({ onCustomerValidated }: StepFirstCust
           ))}
         </ul>
         )}
-      </div>
 
-      {/* SELETOR DE CLIENTE EXISTENTE */}
-      {tenant?.id && (
-        <div className={styles.listWrapper}>
-          <div className={styles.listLabel}>Selecionar cliente existente</div>
-          <SelectClientWhatsApp
-            tenantId={tenant.id}
-            value={selectedCustomerId}
-            hideAddButton={true}
-            onChange={(id, name) => {
-              setSelectedCustomerId(id);
-              setSelectedCustomerName(name);
-              onCustomerValidated(true);
-            }}
-            onAdd={() => setShowModal(true)}
-          />
-          {selectedCustomerName && (
-            <p className={styles.progressText}>Cliente selecionado: {selectedCustomerName}</p>
-          )}
-        </div>
-      )}
+        {selectedCustomerName && (
+          <p className={styles.progressText}>Cliente selecionado: {selectedCustomerName}</p>
+        )}
+      </div>
 
       {/* BOTÃO ABRIR MODAL CADASTRO */}
       <button

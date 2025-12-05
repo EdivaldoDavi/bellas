@@ -24,6 +24,9 @@ export default function StepServices({ onServicesValidated }: StepServicesProps)
   const [showModal, setShowModal] = useState(false);
   const [services, setServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(true);
+  const [selectedServiceId, setSelectedServiceId] = useState<string>("");
+  // ADDED: nome do serviço selecionado derivado
+  const selectedServiceName = services.find(s => s.id === selectedServiceId)?.name || "";
 
   console.log("StepServices Component Render: profile?.professional_id =", profile?.professional_id, "tenant?.id =", tenant?.id, "userTenantLoading =", userTenantLoading);
 
@@ -59,6 +62,8 @@ export default function StepServices({ onServicesValidated }: StepServicesProps)
         console.log("loadServices: Serviços carregados:", data);
         setServices((data || []) as Service[]);
         onServicesValidated((data || []).length > 0); // Update validation state
+        // Define um serviço "selecionado" visualmente (primeiro da lista) se houver
+        setSelectedServiceId((data && data.length > 0) ? data[0].id : "");
       }
     } catch (err) {
       console.error("loadServices: Erro inesperado em loadServices:", err);
@@ -111,7 +116,7 @@ export default function StepServices({ onServicesValidated }: StepServicesProps)
         ) : (
                   <ul className={styles.list}>
           {services.map(s => (
-            <li key={s.id} className={styles.listItem}>
+            <li key={s.id} className={`${styles.listItem} ${selectedServiceId === s.id ? styles.listItemSelected : ""}`}>
               <span className={styles.itemTitle}>{s.name}</span>
 
               <span className={styles.itemMeta}>
@@ -129,6 +134,11 @@ export default function StepServices({ onServicesValidated }: StepServicesProps)
 
         )}
       </div>
+
+      {/* ADDED: texto informando serviço selecionado */}
+      {selectedServiceId && selectedServiceName && (
+        <p className={styles.progressText}>Serviço selecionado: {selectedServiceName}</p>
+      )}
 
       {/* BOTÕES AÇÕES */}
       {/* The navigation buttons are now handled by OnboardingFixedNavigation */}
