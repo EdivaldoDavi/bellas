@@ -256,7 +256,7 @@ export default function Setup() {
           <span className={styles.helpIcon}>
             <HelpCircle size={16} />
             <span className={styles.tooltip}>
-              Usado para confirmações automáticas.
+              Este número será usado para conectar whatsapp e receber os agendamentos!
             </span>
           </span>
         </div>
@@ -271,6 +271,12 @@ export default function Setup() {
         {/* TELEFONE PESSOAL */}
         <div className={styles.labelWithIcon}>
           <label className={styles.colorLabel}>Seu telefone pessoal</label>
+          <span className={styles.helpIcon}>
+            <HelpCircle size={16} />
+            <span className={styles.tooltip}>
+              Telefone que usaremos para entrar em contato com você!
+            </span>
+          </span>
         </div>
 
         <input
