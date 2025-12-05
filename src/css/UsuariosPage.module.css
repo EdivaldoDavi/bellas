@@ -19,7 +19,55 @@
   margin-bottom: 1.5rem;
 }
 
-.newUserButton {
+/* ============================================================
+   SEÇÃO: CONVIDAR NOVO USUÁRIO (FORMULÁRIO)
+============================================================ */
+.inviteUserSection {
+  background: var(--card-bg);
+  border: 1px solid var(--separator);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem; /* Espaçamento entre as seções */
+  box-shadow: 0 2px 6px rgba(0,0,0,.08);
+}
+
+.sectionTitle {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: var(--text);
+}
+
+.sectionDescription {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-bottom: 1.25rem;
+}
+
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--separator); /* Use global variable */
+  background: var(--bg); /* Use global variable */
+  color: var(--text); /* Use global variable */
+  margin-bottom: 10px;
+  font-size: 14px;
+  transition: border-color .2s, box-shadow .2s, background .2s;
+}
+
+.input::placeholder {
+  color: var(--text-muted); /* Use global variable */
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent);
+  background: var(--card-bg); /* Use global variable */
+}
+
+.inviteButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -35,15 +83,45 @@
   font-weight: 600;
 
   cursor: pointer;
-  width: auto;
-  max-width: max-content;
-  flex-shrink: 0;
+  width: 100%; /* Ocupa a largura total */
   
   box-shadow: 0 3px 12px color-mix(in srgb, var(--color-primary) 35%, transparent);
   transition: all 0.25s ease;
 }
 
-.newUserButton:hover {
+.inviteButton:hover:not(:disabled) {
   filter: brightness(1.1);
   transform: translateY(-2px);
+}
+
+.inviteButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   SEÇÃO: GERENCIAR PERMISSÕES (EXISTENTE)
+============================================================ */
+.manageRolesSection {
+  /* Estilos para a seção que contém o ManageRoles, se necessário */
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 1rem 1rem; /* Menor padding lateral no mobile */
+  }
+  .title {
+    font-size: 1.4rem;
+  }
+  .inviteUserSection {
+    padding: 1rem;
+  }
+  .sectionTitle {
+    font-size: 1.2rem;
+  }
+  .inviteButton {
+    padding: 12px;
+    font-size: 1rem;
+  }
 }
