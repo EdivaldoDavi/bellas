@@ -15,12 +15,15 @@ export type Appointment = {
   id: string;
   starts_at: string;
   ends_at: string;
-  status?: string;
+  status: string;
 
-  service?: { name: string | null };
-  professional?: { full_name: string | null };
-  customer?: { full_name: string | null };
+  service_name?: string;
+  professional_name?: string;
+  customer_name?: string;
+
+  avatar_url?: string;
 };
+
 
 interface StepFirstAppointmentProps {
   onAppointmentValidated: (isValid: boolean) => void;
@@ -66,38 +69,36 @@ async function fetchAppointments() {
   const { data, error } = await supabase
     .from("appointments")
     .select(`
-      id,
-      starts_at,
-      ends_at,
-      status,
-      service:services ( name ),
-      professional:profiles ( full_name ),
-      customer:customers ( full_name )
+      id, starts_at, ends_at, status,
+      service:services(name),
+      professional:professionals(name),
+      customer:customers(full_name)
     `)
     .eq("tenant_id", tenant.id)
     .order("starts_at", { ascending: true });
 
   if (error) {
-    console.error(error);
+    console.error("Erro supabase:", error);
     toast.error("Erro ao carregar agendamentos.");
     setAppointments([]);
     onAppointmentValidated(false);
-  } else {
-    const mapped: Appointment[] = (data || []).map((a: any) => ({
-      id: a.id,
-      starts_at: a.starts_at,
-      ends_at: a.ends_at,
-      status: a.status,
-
-      service: a.service ? a.service[0] || null : null,
-      professional: a.professional ? a.professional[0] || null : null,
-      customer: a.customer ? a.customer[0] || null : null,
-    }));
-
-    setAppointments(mapped);
-    onAppointmentValidated(mapped.length > 0);
+    setLoading(false);
+    return;
   }
 
+  const mapped: Appointment[] = (data || []).map((a: any) => ({
+    id: a.id,
+    starts_at: a.starts_at,
+    ends_at: a.ends_at,
+    status: a.status,
+
+    service_name: a.service?.name || "Serviço",
+    professional_name: a.professional?.name || "Profissional",
+    customer_name: a.customer?.full_name || "Cliente",
+  }));
+
+  setAppointments(mapped);
+  onAppointmentValidated(mapped.length > 0);
   setLoading(false);
 }
 
@@ -127,25 +128,21 @@ async function fetchAppointments() {
         {!loading && appointments.length > 0 && (
           <ul className={styles.list}>
             {appointments.map((a) => (
-              <li key={a.id} className={styles.listItem}>
-                <div className={styles.appointmentText}>
-                  {/* Horário */}
-                  <span className={styles.itemTitle}>
-                    {timeRangeBR(a.starts_at, a.ends_at)}
-                  </span>
+                <li key={a.id} className={styles.listItem}>
+                  <div className={styles.appointmentText}>
+                    <span className={styles.itemTitle}>
+                      {timeRangeBR(a.starts_at, a.ends_at)}
+                    </span>
 
-                  {/* Serviço + profissional */}
-                  <span className={styles.itemSub}>
-                    {a.service?.name || "Serviço"} com{" "}
-                    {a.professional?.full_name || "Profissional"}
-                  </span>
+                    <span className={styles.itemSub}>
+                      {a.service_name} com {a.professional_name}
+                    </span>
 
-                  {/* Cliente */}
-                  <span className={styles.itemSub}>
-                    Cliente: {a.customer?.full_name || "Não informado"}
-                  </span>
-                </div>
-              </li>
+                    <span className={styles.itemSub}>
+                      Cliente: {a.customer_name}
+                    </span>
+                  </div>
+                </li>
             ))}
           </ul>
         )}
