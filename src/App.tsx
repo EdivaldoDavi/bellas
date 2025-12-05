@@ -16,7 +16,7 @@ import EmDesenvolvimento from "./components/EmDesenvolvimento";
 import Setup from "./pages/setup/Setup";
 import Dashboard from "./pages/dashboard/Dashboard";
 import Agenda from "./components/Agenda";
-import ScheduleWizardPage from "./pages/schedule/ScheduleWizardPage";
+
 import AssinaturasPage from "./pages/AssinaturasPage";
 import SaloesPage from "./pages/SaloesPage";
 import PerfilPage from "./pages/PerfilPage";
@@ -36,6 +36,7 @@ import "react-toastify/dist/ReactToastify.css";
 import LoadingSpinner from "./components/LoadingSpinner";
 
 import Onboarding from "./pages/onboarding/Onboarding";
+import ScheduleWizardPage from "./pages/schedule/ScheduleWizardPage";
 // import { OnboardingGuard } from "./guards/OnBoardingGuard"; // REMOVIDO
 // import { SetupRedirectGuards } from "./guards/SetupRedirectGuards"; // REMOVIDO
 import { useApplyTenantTheme } from "./hooks/useApplyTenantTheme";
@@ -87,11 +88,13 @@ export default function App() {
           {/* ONBOARDING */}
           <Route path="/onboarding/*" element={<Onboarding />} />
           <Route path="/onboarding/agendar" element={<ScheduleWizardPage />} />
+
           {/* SETUP */}
           <Route path="/setup" element={<Setup />} />
 
           {/* ===================== OUTRAS ROTAS PRIVADAS ===================== */}
           <Route path="/agenda" element={<Agenda />} />
+          <Route path="/agenda/novo" element={<ScheduleWizardPage />} />
           <Route path="/saloes" element={<SaloesPage />} />
           <Route path="/assinaturas" element={<AssinaturasPage />} />
           <Route path="/perfil" element={<PerfilPage />} />
