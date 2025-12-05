@@ -305,6 +305,31 @@
 }
 
 
+/* Container do item de serviço */
+.serviceItem {
+  display: flex;
+  justify-content: space-between; /* separa nome e preço */
+  align-items: center;
+  padding: 10px 14px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  margin-bottom: 10px;
+}
+
+/* Nome do serviço */
+.serviceItem strong {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Tempo + valor */
+.serviceItem span {
+  font-size: 0.9rem;
+  color: #666;
+  white-space: nowrap; /* impede quebrar linha */
+}
 
 /* ===========================================================
    RESPONSIVE
