@@ -311,6 +311,15 @@
   font-size: 0.85rem;
   color: #6b7280;
 }
+.phoneBadge {
+  background: #eef0ff;
+  color: #4a4fbf;
+  padding: 5px 10px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
 
 @media (max-width: 760px) {
   .stepContainer {

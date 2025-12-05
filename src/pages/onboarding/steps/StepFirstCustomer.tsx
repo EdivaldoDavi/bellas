@@ -4,6 +4,7 @@ import { supabase } from "../../../lib/supabaseCleint";
 import { useUserTenant } from "../../../context/UserTenantProvider";
 import styles from "../Onboarding.module.css";
 import ModalNewCustomer from "../../../components/ModalNewCustomer";
+import { dbPhoneToMasked } from "../../../utils/phoneUtils";
 
 type Customer = {
   id: string;
@@ -78,17 +79,20 @@ export default function StepFirstCustomer({ onCustomerValidated }: StepFirstCust
         )}
 
         {!loading && customers.length > 0 && (
-          <ul className={styles.list}>
-            {customers.map(c => (
-              <li key={c.id} className={styles.listItem}>
+                <ul className={styles.list}>
+          {customers.map((c) => (
+            <li key={c.id} className={styles.listItem}>
+              <div className={styles.itemLeft}>
                 <span className={styles.itemTitle}>{c.full_name}</span>
+              </div>
 
-                <span className={`${styles.badge} ${styles.badgePhone}`}>
-                  {c.customer_phone}
-                </span>
-              </li>
-            ))}
-          </ul>
+              {/* BADGE PREMIUM — TELEFONE FORMATADO */}
+              <span className={styles.phoneBadge}>
+                {dbPhoneToMasked(c.customer_phone)}
+              </span>
+            </li>
+          ))}
+        </ul>
         )}
       </div>
 
