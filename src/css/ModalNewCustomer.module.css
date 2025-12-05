@@ -1,33 +1,19 @@
 /* =========================
-   Overlay
+   FORM CONTAINER (novo)
 ========================= */
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000000; /* Aumentado para garantir que fique acima do ModalScheduleWizard */
-}
-
-
-/* =========================
-   Modal Container
-========================= */
-.modal {
+.formContainer {
   position: relative;
-  width: 92%;
-  max-width: 420px;
+  width: 100%;
+  max-width: 420px; /* Mantém a largura máxima para o formulário */
   padding: 26px 22px 22px;
   border-radius: 18px;
 
-  background: var(--modal-bg);
+  background: var(--card-bg); /* Usa card-bg para o fundo do formulário */
   color: var(--text);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15); /* Sombra mais suave */
 
   animation: fadeUp 0.22s ease-out;
+  margin: 0 auto; /* Centraliza o formulário na página */
 }
 
 /* Animação suave */
@@ -74,12 +60,16 @@
 
 /* =========================
    Título
-   (funciona com <h3> simples
-   ou className={styles.title})
 ========================= */
-.modal h3,
-.title {
-  margin: 0 32px 18px 0; /* espaço pro X à direita */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 0 18px 0;
+}
+
+.header h3 {
+  margin: 0;
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--text);
@@ -116,10 +106,8 @@
 
 /* =========================
    Botão Salvar
-   (aceita .saveBtn ou .saveButton)
 ========================= */
-.saveBtn,
-.saveButton {
+.saveBtn {
   width: 100%;
   margin-top: 10px;
   padding: 12px;
@@ -137,20 +125,17 @@
     opacity 0.15s ease;
 }
 
-.saveBtn:hover,
-.saveButton:hover {
+.saveBtn:hover {
   opacity: 0.95;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
 
-.saveBtn:active,
-.saveButton:active {
+.saveBtn:active {
   transform: translateY(1px);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
-.saveBtn:disabled,
-.saveButton:disabled {
+.saveBtn:disabled {
   opacity: 0.6;
   cursor: default;
   box-shadow: none;
@@ -160,7 +145,7 @@
    Temas (fallbacks)
 ========================= */
 :root {
-  --modal-bg: #ffffff;
+  --modal-bg: #ffffff; /* Mantido para outros modais */
   --card-bg: #ffffff;
   --input-bg: #f5f5f7;
   --text: #111111;
@@ -170,7 +155,7 @@
 }
 
 :root[data-theme="dark"] {
-  --modal-bg: #15141a;
+  --modal-bg: #15141a; /* Mantido para outros modais */
   --card-bg: #15141a;
   --input-bg: #1f1e26;
   --text: #ffffff;

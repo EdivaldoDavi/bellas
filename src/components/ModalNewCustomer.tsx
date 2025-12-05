@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabaseCleint";
 import { toast } from "react-toastify";
 import { X } from "lucide-react";
 import styles from "../css/ModalNewCustomer.module.css";
+import { useNavigate } from "react-router-dom"; // Importar useNavigate
 
 // 📌 Imports do util de telefone
 import {
@@ -20,23 +21,23 @@ interface Customer {
   is_active?: boolean;
 }
 
-interface ModalNewCustomerProps {
+interface NewCustomerFormProps { // Renomeado para refletir que é um formulário
   tenantId?: string;
-  show: boolean;
-  mode: "agenda" | "cadastro" | "edit";
-  customer?: Customer | null;
-  onClose: () => void;
-  onSuccess?: (id: string, name: string) => void;
+  mode: "new" | "edit"; // Alterado de "agenda" | "cadastro" para "new" | "edit"
+  customer?: Customer | null; // Cliente para edição
+  onSaveSuccess?: (id: string, name: string) => void; // Callback de sucesso
+  onCancel?: () => void; // Callback para cancelar/voltar
 }
 
-export default function ModalNewCustomer({
+export default function NewCustomerForm({ // Renomeado o componente
   tenantId,
-  show,
   mode,
   customer,
-  onClose,
-  onSuccess,
-}: ModalNewCustomerProps) {
+  onSaveSuccess,
+  onCancel,
+}: NewCustomerFormProps) {
+  const navigate = useNavigate(); // Inicializar useNavigate
+
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState(""); // agora com máscara
   const [loading, setLoading] = useState(false);
@@ -45,8 +46,6 @@ export default function ModalNewCustomer({
      CARREGAR DADOS NO MODO EDIÇÃO
   ============================================================ */
   useEffect(() => {
-    if (!show) return;
-
     if (mode === "edit" && customer) {
       setFullName(customer.full_name);
       setPhone(dbPhoneToMasked(customer.customer_phone)); // máscara
@@ -54,9 +53,7 @@ export default function ModalNewCustomer({
       setFullName("");
       setPhone("");
     }
-  }, [show, mode, customer]);
-
-  if (!show) return null;
+  }, [mode, customer]);
 
   /* ============================================================
      SALVAR
@@ -91,7 +88,8 @@ export default function ModalNewCustomer({
         if (error) throw error;
 
         toast.success("Cliente atualizado!");
-        onClose();
+        onSaveSuccess?.(customer.id, name);
+        onCancel?.(); // Voltar após salvar
         return;
       }
 
@@ -114,14 +112,9 @@ export default function ModalNewCustomer({
 
       toast.success("Cliente cadastrado!");
 
-      onSuccess?.(data.id, data.full_name);
-
-      if (mode !== "agenda") {
-        setFullName("");
-        setPhone("");
-      } else {
-        onClose();
-      }
+      onSaveSuccess?.(data.id, data.full_name);
+      onCancel?.(); // Voltar após salvar
+      
     } catch (err) {
       console.error(err);
       toast.error("Erro ao salvar cliente.");
@@ -134,42 +127,40 @@ export default function ModalNewCustomer({
      UI
   ============================================================ */
   return (
-    <div className={styles.overlay}>
-      <div className={styles.modal}>
-        <div className={styles.header}>
-          <h3>{mode === "edit" ? "Editar Cliente" : "Novo Cliente"}</h3>
-          <button className={styles.closeBtn} onClick={onClose}>
-            <X size={22} />
-          </button>
-        </div>
-
-        <input
-          className={styles.input}
-          placeholder="Nome completo"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-        />
-
-        <input
-          className={styles.input}
-          placeholder="Telefone"
-          value={phone}
-          onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
-          maxLength={17}
-        />
-
-        <button
-          className={styles.saveBtn}
-          disabled={loading}
-          onClick={handleSave}
-        >
-          {loading
-            ? "Salvando..."
-            : mode === "edit"
-            ? "Salvar Alterações"
-            : "Salvar Cliente"}
+    <div className={styles.formContainer}> {/* Novo container para o formulário */}
+      <div className={styles.header}>
+        <h3>{mode === "edit" ? "Editar Cliente" : "Novo Cliente"}</h3>
+        <button className={styles.closeBtn} onClick={onCancel || (() => navigate(-1))}>
+          <X size={22} />
         </button>
       </div>
+
+      <input
+        className={styles.input}
+        placeholder="Nome completo"
+        value={fullName}
+        onChange={(e) => setFullName(e.target.value)}
+      />
+
+      <input
+        className={styles.input}
+        placeholder="Telefone"
+        value={phone}
+        onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
+        maxLength={17}
+      />
+
+      <button
+        className={styles.saveBtn}
+        disabled={loading}
+        onClick={handleSave}
+      >
+        {loading
+          ? "Salvando..."
+          : mode === "edit"
+          ? "Salvar Alterações"
+          : "Salvar Cliente"}
+      </button>
     </div>
   );
 }

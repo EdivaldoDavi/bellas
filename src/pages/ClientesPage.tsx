@@ -1,5 +1,6 @@
 // src/pages/ClientesPage.tsx
 import { useEffect, useState } from "react";
+import { useNavigate, useParams, useLocation } from "react-router-dom"; // Importar useNavigate, useParams, useLocation
 
 import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
@@ -7,10 +8,9 @@ import { useUserAndTenant } from "../hooks/useUserAndTenant";
 import { Plus, Pencil, MessageCircle, Phone } from "lucide-react";
 import { toast } from "react-toastify";
 
-import ModalNewCustomer from "../components/ModalNewCustomer";
+import NewCustomerForm from "../components/ModalNewCustomer"; // Renomeado para NewCustomerForm
 import { dbPhoneToMasked, onlyDigits } from "../utils/phoneUtils";
 import styles from "../css/ClientesPage.module.css";
-// import { useLayoutContext } from "../components/layout/LayoutContext"; // No longer needed for page-level close
 
 type Customer = {
   id: string;
@@ -20,28 +20,36 @@ type Customer = {
 };
 
 export default function ClientesPage() {
-  
+  const navigate = useNavigate();
+  const params = useParams(); // Para pegar o ID na edição
+  const location = useLocation(); // Para saber se é /new ou /edit
+
   const { tenant } = useUserAndTenant();
   const tenantId = tenant?.id;
-  // const location = useLocation(); // No longer needed for page-level close
 
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const [openModal, setOpenModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
 
-  // const { openSidebarAndNavigate } = useLayoutContext(); // No longer needed for page-level close
+  // Determina o modo da página: 'list', 'new', ou 'edit'
+  const pageMode = location.pathname.endsWith("/new")
+    ? "new"
+    : params.id
+    ? "edit"
+    : "list";
 
   /* ============================================================
      LOAD PRINCIPAL (3 clientes ou busca → todos)
   ============================================================ */
   useEffect(() => {
-    if (tenantId) load();
-  }, [tenantId, search]);
+    if (tenantId && pageMode === "list") {
+      loadCustomers();
+    }
+  }, [tenantId, search, pageMode]);
 
-  async function load() {
+  async function loadCustomers() {
     if (!tenantId) return;
 
     setLoading(true);
@@ -68,11 +76,33 @@ export default function ClientesPage() {
   }
 
   /* ============================================================
-     EDITAR
+     CARREGAR CLIENTE PARA EDIÇÃO
   ============================================================ */
-  function openEdit(c: Customer) {
-    setEditingCustomer(c);
-    setOpenModal(true);
+  useEffect(() => {
+    if (pageMode === "edit" && params.id && tenantId) {
+      loadEditingCustomer(params.id);
+    } else if (pageMode === "new") {
+      setEditingCustomer(null); // Garante que não há cliente de edição ao criar um novo
+    }
+  }, [pageMode, params.id, tenantId]);
+
+  async function loadEditingCustomer(customerId: string) {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("customers")
+      .select("id, full_name, customer_phone, is_active")
+      .eq("tenant_id", tenantId)
+      .eq("id", customerId)
+      .single();
+
+    if (error) {
+      toast.error("Erro ao carregar cliente para edição.");
+      console.error(error);
+      navigate("/clientes"); // Volta para a lista se houver erro
+    } else {
+      setEditingCustomer(data as Customer);
+    }
+    setLoading(false);
   }
 
   /* ============================================================
@@ -131,26 +161,36 @@ export default function ClientesPage() {
     }
   }
 
-  // The 'close' function is removed as the page is no longer a modal.
-  // Navigation is now handled by the sidebar.
-
   /* ============================================================
      UI
   ============================================================ */
+  if (pageMode === "new" || pageMode === "edit") {
+    if (loading) {
+      return <p className={styles.empty}>Carregando formulário...</p>;
+    }
+    return (
+      <div className={styles.container}>
+        <NewCustomerForm
+          tenantId={tenantId}
+          mode={pageMode === "new" ? "new" : "edit"}
+          customer={editingCustomer}
+          onSaveSuccess={() => navigate("/clientes")} // Volta para a lista após salvar
+          onCancel={() => navigate("/clientes")} // Volta para a lista ao cancelar
+        />
+      </div>
+    );
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h2>Clientes</h2>
-        {/* The close button is removed as the page is no longer a modal */}
       </div>
 
       <button
         className={styles.newBtn}
         style={{ backgroundColor: "var(--color-primary)" }}
-        onClick={() => {
-          setEditingCustomer(null);
-          setOpenModal(true);
-        }}
+        onClick={() => navigate("/clientes/new")} // Navega para a página de novo cliente
       >
         <Plus size={20} />
         <span>Novo cliente</span>
@@ -222,7 +262,7 @@ export default function ClientesPage() {
             </div>
 
             <div className={styles.actions}>
-              <button className={styles.iconBtn} onClick={() => openEdit(c)}>
+              <button className={styles.iconBtn} onClick={() => navigate(`/clientes/edit/${c.id}`)}>
                 <Pencil size={18} />
               </button>
 
@@ -236,18 +276,6 @@ export default function ClientesPage() {
           </div>
         ))}
       </div>
-
-      <ModalNewCustomer
-        tenantId={tenantId}
-        show={openModal}
-        mode={editingCustomer ? "edit" : "cadastro"}
-        customer={editingCustomer}
-        onClose={() => {
-          setOpenModal(false);
-          load();
-        }}
-        onSuccess={() => load()}
-      />
     </div>
   );
 }

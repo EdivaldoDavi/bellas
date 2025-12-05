@@ -97,7 +97,12 @@ export default function App() {
           <Route path="/perfil" element={<PerfilPage />} />
           <Route path="/integracoes/whatsapp" element={<ConnectWhatsAppPage />} />
           <Route path="/gerenciar-acessos" element={<GerenciarAcessosPage />} />
+          
+          {/* ROTAS DE CLIENTES */}
           <Route path="/clientes" element={<ClientesPage />} />
+          <Route path="/clientes/new" element={<ClientesPage />} />
+          <Route path="/clientes/edit/:id" element={<ClientesPage />} />
+
           <Route path="/servicos" element={<ServicosPage />} />
           <Route path="/profissionais" element={<ProfessionalsPage />} />
           <Route path="/usuarios" element={<UsuariosPage />} />
