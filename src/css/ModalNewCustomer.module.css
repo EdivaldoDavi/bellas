@@ -9,8 +9,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 1000000; /* Aumentado para garantir que fique acima do ModalScheduleWizard */
 }
+
 
 /* =========================
    Modal Container
