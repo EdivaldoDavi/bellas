@@ -6,7 +6,7 @@
   width: 100%;
   display: flex;
   align-items: flex-start;
-  justify-content: center;
+  /* REMOVIDO: justify-content: center; */
   padding: 24px;
   background: #fafafa; /* fundo suave neutro */
 }
@@ -21,7 +21,7 @@
 ================================ */
 .content {
   width: 100%;
-  max-width: 760px;
+  /* REMOVIDO: max-width: 760px; */
 
   animation: fadeSlide 0.4s ease-out forwards;
   opacity: 0;

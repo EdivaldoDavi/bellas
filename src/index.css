@@ -138,7 +138,7 @@ button.primary:hover {
 .rankAmount {
   color: var(--color-success);
 }
-.onboarding-active .modal,
+/* REMOVIDO: .onboarding-active .modal,
 .onboarding-active .modal-dialog,
 .onboarding-active .modal-content {
   z-index: 999999 !important;
@@ -147,7 +147,7 @@ button.primary:hover {
 
 .onboarding-active .modal-backdrop {
   z-index: 999998 !important;
-}
+} */
 /* ===========================
    TRANSIÇÕES SUAVES
 =========================== */

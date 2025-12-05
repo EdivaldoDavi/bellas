@@ -165,7 +165,7 @@ export default function Onboarding() {
    * LAYOUT
   ============================ */
   return (
-    <div className={`${styles.page} onboarding-active`}>
+    <div className={styles.page}> {/* Removed onboarding-active class */}
 
       {/* Progresso */}
       <div className={styles.progressWrapper}>
