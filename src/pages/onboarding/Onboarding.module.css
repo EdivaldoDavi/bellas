@@ -132,6 +132,7 @@
   box-shadow: 0 3px 10px rgba(0,0,0,0.05);
 
   transition: all 0.18s ease-out;
+  margin-bottom: 22px !important;
 }
 
 .listItem:hover {
@@ -327,5 +328,62 @@
   .stepContainer {
     padding: 30px 24px;
     border-radius: 22px;
+  }
+}
+/* ===========================
+   BADGE ANIMADA PREMIUM
+=========================== */
+
+.animatedBadge {
+  display: inline-block;
+  padding: 5px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: 999px;
+
+  background: linear-gradient(135deg, #ecebff, #e8d7ff);
+  color: #5a42b5;
+
+  animation: badgePop 0.35s ease-out forwards, badgePulse 2.4s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes badgePop {
+  0% { opacity: 0; transform: scale(0.6) translateY(6px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+/* ===========================
+   TRANSIÇÃO ENTRE STEPS
+=========================== */
+
+.stepTransitionEnter {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.stepTransitionEnterActive {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.stepTransition {
+  opacity: 0;
+  transform: translateY(18px);
+  animation: stepFadeIn 0.45s ease forwards;
+}
+
+@keyframes stepFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

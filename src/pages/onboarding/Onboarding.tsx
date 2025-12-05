@@ -19,16 +19,16 @@ export default function Onboarding() {
   const step = tenant?.onboarding_step ?? 0;
 
   /** ============================
-   *  VALIDATION FLAGS
-   *  ============================ */
+   * VALIDATION FLAGS
+  ============================ */
   const [hasServices, setHasServices] = useState(false);
   const [hasSchedule, setHasSchedule] = useState(false);
   const [hasCustomer, setHasCustomer] = useState(false);
   const [hasAppointment, setHasAppointment] = useState(false);
 
   /** ============================
-   *  FORÇAR LIGHT MODE
-   *  ============================ */
+   * FORÇAR LIGHT MODE
+  ============================ */
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", "light");
     document.documentElement.style.setProperty("--color-primary", "#8343A2");
@@ -36,8 +36,8 @@ export default function Onboarding() {
   }, []);
 
   /** ============================
-   *  CALLBACKS TIPADOS
-   *  ============================ */
+   * CALLBACKS TIPADOS
+  ============================ */
   type ValidatorFn = (valid: boolean) => void;
 
   const onServicesValidated: ValidatorFn = useCallback((v) => setHasServices(v), []);
@@ -46,8 +46,8 @@ export default function Onboarding() {
   const onAppointmentValidated: ValidatorFn = useCallback((v) => setHasAppointment(v), []);
 
   /** ============================
-   *  NAVEGAÇÃO ENTRE STEPS
-   *  ============================ */
+   * NAVEGAÇÃO ENTRE STEPS
+  ============================ */
   const handleBack = useCallback(() => {
     if (step > 0) updateOnboardingStep(step - 1);
   }, [step, updateOnboardingStep]);
@@ -65,7 +65,7 @@ export default function Onboarding() {
 
       case 2:
         if (!hasSchedule) {
-          toast.warn("Associe pelo menos 1 serviço e defina horários.");
+          toast.warn("Associe pelo menos um serviço e defina horários.");
           ok = false;
         }
         break;
@@ -85,14 +85,11 @@ export default function Onboarding() {
         break;
 
       case 5:
-        // Step final → marcar onboarding concluído e sair pelo próprio StepCongrats
         await updateOnboardingStep(99);
         return;
     }
 
-    if (ok && step < TOTAL_STEPS - 1) {
-      updateOnboardingStep(step + 1);
-    }
+    if (ok && step < TOTAL_STEPS - 1) updateOnboardingStep(step + 1);
   }, [
     step,
     hasServices,
@@ -103,23 +100,28 @@ export default function Onboarding() {
   ]);
 
   /** ============================
-   *  CONTROLE DE BOTÃO PRÓXIMO
-   *  ============================ */
+   * HABILITAR BOTÃO NEXT?
+  ============================ */
   const canGoNext = useMemo(() => {
     if (tenantLoading) return false;
 
     switch (step) {
       case 0:
       case 5:
-        return true; // welcome e congratulations sempre habilitados
+        return true;
+
       case 1:
         return hasServices;
+
       case 2:
         return hasSchedule;
+
       case 3:
         return hasCustomer;
+
       case 4:
         return hasAppointment;
+
       default:
         return false;
     }
@@ -133,8 +135,8 @@ export default function Onboarding() {
   ]);
 
   /** ============================
-   *  RENDER DE CADA STEP
-   *  ============================ */
+   * RENDER DE CADA STEP
+  ============================ */
   const renderStep = () => {
     switch (step) {
       case 0:
@@ -155,39 +157,30 @@ export default function Onboarding() {
   };
 
   /** ============================
-   *  PROGRESSO
-   *  ============================ */
+   * PROGRESSO
+  ============================ */
   const progress = Math.min(100, ((step + 1) / TOTAL_STEPS) * 100);
 
   /** ============================
-   *  LAYOUT
-   *  ============================ */
+   * LAYOUT
+  ============================ */
   return (
     <div className={`${styles.page} onboarding-active`}>
 
-      {/* Barra de Progresso Premium */}
+      {/* Progresso */}
       <div className={styles.progressWrapper}>
         <div className={styles.progressBar}>
-          <div
-            className={styles.progressFill}
-            style={{ width: `${progress}%` }}
-          />
+          <div className={styles.progressFill} style={{ width: `${progress}%` }} />
         </div>
-        <span className={styles.progressText}>
-          {Math.round(progress)}% concluído
-        </span>
+        <span className={styles.progressText}>{Math.round(progress)}% concluído</span>
       </div>
 
-      {/* Step atual */}
-      <div className={`${styles.stepWrapper} ${styles.bottomSpacing}`}>
+      {/* 🔥 ENVOLVE O STEP COM WRAPPER ANIMADO */}
+      <div key={step} className={`${styles.stepWrapper} ${styles.stepTransition}`}>
         {renderStep()}
       </div>
 
-      {/* 
-        Navigation só aparece entre 1..4
-        Não aparece no Welcome (0)
-        Não aparece no Congratulations (5)
-      */}
+      {/* Navigation */}
       {step > 0 && step < TOTAL_STEPS - 1 && (
         <OnboardingFixedNavigation
           currentStep={step}

@@ -9,6 +9,7 @@
   z-index: 9999; /* Aumentado para ficar acima da navegação fixa do onboarding */
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  z-index: 999998 !important;
 }
 
 /* Modal (o card real que será centralizado) */
@@ -25,7 +26,7 @@
   border-radius: 16px; /* Cantos arredondados para o card */
   box-shadow: 0 12px 40px rgba(0,0,0,.35); /* Sombra para o card */
   animation: fadeIn .2s ease; /* Mantém a animação existente */
-  z-index: 10000; /* Garante que fique acima do overlay */
+z-index: 999999 !important;
 }
 
 /* Header */
