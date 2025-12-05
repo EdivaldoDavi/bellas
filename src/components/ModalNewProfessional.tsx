@@ -1,5 +1,6 @@
 import ProfessionalForm from "../components/ProfessionalForm";
 import styles from "../css/ModalNewProfessional.module.css";
+import { createPortal } from "react-dom";
 
 interface ModalNewProfessionalProps {
   tenantId?: string;
@@ -23,7 +24,7 @@ export default function ModalNewProfessional({
   // Para o Onboarding e uso atual, consideramos somente criação (new).
   const isEditing = mode === "edit" && !!editId;
 
-  return (
+  return createPortal(
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <ProfessionalForm
@@ -37,6 +38,7 @@ export default function ModalNewProfessional({
           }}
         />
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

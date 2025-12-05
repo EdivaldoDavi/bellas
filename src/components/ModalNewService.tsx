@@ -1,5 +1,6 @@
 import ServiceForm from "../components/ServiceForm";
 import styles from "../css/ModalNewService.module.css";
+import { createPortal } from "react-dom";
 
 interface ModalNewServiceProps {
   tenantId?: string;
@@ -30,7 +31,7 @@ export default function ModalNewService({
 
   const isEditing = mode === "edit" && !!service;
 
-  return (
+  return createPortal(
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <ServiceForm
@@ -45,6 +46,7 @@ export default function ModalNewService({
           }}
         />
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
