@@ -1,17 +1,17 @@
 import ManageRoles from "../components/ManageRoles";
-import { useUserAndTenant } from "../hooks/useUserAndTenant";
+import { useUserTenant } from "../context/UserTenantProvider";
 import styles from "../css/GerenciarAcessosPage.module.css"; // Importar o novo CSS
 
 
 export default function GerenciarAcessosPage() {
-  const { profile } = useUserAndTenant();
+  const { profile, loading } = useUserTenant();
   
 
   // The 'close' function is removed as the page is no longer a modal.
   // Navigation is now handled by the sidebar.
 
   // Carregando ou sem sessão
-  if (!profile) {
+  if (loading || !profile) {
     return <p className={styles.description} style={{ padding: 20, textAlign: "center" }}>Carregando...</p>;
   }
 
@@ -40,7 +40,13 @@ export default function GerenciarAcessosPage() {
     <div className={styles.container}>
       <h2 className={styles.title}>Gerenciar Permissões</h2>
       <p className={styles.description}>Defina os papéis e permissões dos usuários do seu Studio.</p>
-      <ManageRoles tenantId={profile.tenant_id} loggedInUserId={profile.user_id} />
+      {profile.user_id ? (
+        <ManageRoles tenantId={profile.tenant_id} loggedInUserId={profile.user_id} />
+      ) : (
+        <p className={styles.description} style={{ padding: 20, textAlign: "center", color: "red" }}>
+          Não foi possível identificar o usuário logado.
+        </p>
+      )}
     </div>
   );
 }

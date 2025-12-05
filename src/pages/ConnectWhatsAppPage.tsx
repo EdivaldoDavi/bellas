@@ -1,11 +1,11 @@
-import { useUserAndTenant } from "../hooks/useUserAndTenant";
+import { useUserTenant } from "../context/UserTenantProvider";
 import { useEvolutionConnection } from "../hooks/useEvolutionConnection";
 import QRCodeDisplay from "./QRCodeDisplay";
 import N8nPauseButton from "../components/N8nPauseButton";
 import styles from "../css/ConnectWhatsApp.module.css"; // Importar o CSS
 
 export default function ConnectWhatsAppPage() {
-  const { tenant, subscription, loading } = useUserAndTenant();
+  const { tenant, subscription, loading } = useUserTenant();
   
   // 📌 Garantir chamada dos hooks
   const instanceId = tenant?.id || "";
