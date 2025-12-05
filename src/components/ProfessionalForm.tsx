@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabaseCleint";
 import { toast } from "react-toastify";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 import styles from "../css/ModalNewProfessional.module.css";
 import ModalSelectServiceForProfessional from "./ModalSelectServiceForProfessional";
@@ -156,6 +157,8 @@ export default function ProfessionalForm({
 }: ProfessionalFormProps) {
   const isEditing = mode === "edit" && !!professional?.id;
   const navigate = useNavigate();
+  const location = useLocation();
+  const [reloadFlag, setReloadFlag] = useState(0);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -178,6 +181,13 @@ export default function ProfessionalForm({
   const [weekRows, setWeekRows] = useState<DayRow[]>(emptyWeek);
   const [copyToWeek, setCopyToWeek] = useState(true);
   const [showSelectSchedule, setShowSelectSchedule] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("refreshProfessional") === "1") {
+      setReloadFlag((v) => v + 1);
+    }
+  }, [location.search]);
 
   useEffect(() => {
     if (!tenantId) return;
@@ -257,7 +267,7 @@ export default function ProfessionalForm({
         setInitialLoading(false);
       }
     })();
-  }, [tenantId, isEditing, professional?.id]);
+  }, [tenantId, isEditing, professional?.id, reloadFlag]);
 
   async function handleSave() {
     if (!tenantId) return toast.error("Tenant inválido");
@@ -398,7 +408,13 @@ export default function ProfessionalForm({
           <h4>Serviços que executa</h4>
           <button
             className={styles.selectServicesBtn}
-            onClick={() => setShowSelectServices(true)}
+            onClick={() => {
+              if (isEditing && professional?.id) {
+                navigate(`/profissionais/edit/${professional.id}/servicos?returnTo=/profissionais/edit/${professional.id}`);
+              } else {
+                setShowSelectServices(true);
+              }
+            }}
           >
             Selecionar serviços
           </button>
@@ -411,7 +427,13 @@ export default function ProfessionalForm({
           <h4>Horários de trabalho</h4>
           <button
             className={styles.selectServicesBtn}
-            onClick={() => setShowSelectSchedule(true)}
+            onClick={() => {
+              if (isEditing && professional?.id) {
+                navigate(`/profissionais/edit/${professional.id}/horarios?returnTo=/profissionais/edit/${professional.id}`);
+              } else {
+                setShowSelectSchedule(true);
+              }
+            }}
           >
             Definir horários
           </button>

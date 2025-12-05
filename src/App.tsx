@@ -37,6 +37,9 @@ import LoadingSpinner from "./components/LoadingSpinner";
 
 import Onboarding from "./pages/onboarding/Onboarding";
 import ScheduleWizardPage from "./pages/schedule/ScheduleWizardPage";
+// ADDED: novas páginas de profissionais
+import ProfessionalServicesPage from "./pages/profissionais/ProfessionalServicesPage";
+import ProfessionalSchedulePage from "./pages/profissionais/ProfessionalSchedulePage";
 // import { OnboardingGuard } from "./guards/OnBoardingGuard"; // REMOVIDO
 // import { SetupRedirectGuards } from "./guards/SetupRedirectGuards"; // REMOVIDO
 import { useApplyTenantTheme } from "./hooks/useApplyTenantTheme";
@@ -113,6 +116,9 @@ export default function App() {
           <Route path="/profissionais" element={<ProfessionalsPage />} />
           <Route path="/profissionais/new" element={<ProfessionalsPage />} />
           <Route path="/profissionais/edit/:id" element={<ProfessionalsPage />} />
+          {/* NOVAS ROTAS: serviços e horários do profissional */}
+          <Route path="/profissionais/edit/:id/servicos" element={<ProfessionalServicesPage />} />
+          <Route path="/profissionais/edit/:id/horarios" element={<ProfessionalSchedulePage />} />
 
           <Route path="/usuarios" element={<UsuariosPage />} />
           <Route path="/commissions" element={<CommissionsPage />} /> {/* Nova rota para CommissionsPage */}
