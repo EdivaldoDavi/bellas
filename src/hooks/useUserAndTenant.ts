@@ -54,6 +54,14 @@ export function useUserAndTenant() {
     setTenant((prev) => (prev ? { ...prev, onboarding_step: step } : prev));
   }, []);
 
+  // Atualização otimista do perfil (não dispara loading global)
+  const updateProfileLocal = useCallback(
+    (partial: Partial<Omit<Profile, "professional_id">>) => {
+      setProfile((prev) => (prev ? { ...prev, ...partial } : prev));
+    },
+    []
+  );
+
   /* ============================================================
      🧹 Limpa tudo
   ============================================================ */
@@ -284,6 +292,7 @@ export function useUserAndTenant() {
 
     refreshProfile,
     reloadAll: refreshProfile,
-    setTenantOnboardingStep
+    setTenantOnboardingStep,
+    updateProfileLocal
   };
 }

@@ -2,7 +2,7 @@
 
 import { Menu, Sun, Moon, LogOut } from "lucide-react";
 import styles from "../css/header.module.css";
-import { useUserAndTenant } from "../hooks/useUserAndTenant";
+import { useUserTenant } from "../context/UserTenantProvider";
 import { useTheme } from "../hooks/useTheme";
 import BrandColorMenu from "./BrandColorMenu";
 import {  useEffect, useRef, useMemo } from "react";
@@ -11,7 +11,7 @@ import "../index.css";
 import { useIsMobile } from "../hooks/useIsMobile";
 
 export default function Header({ toggleSidebar }: { toggleSidebar: () => void }) {
-  const { profile, loading: profileLoading } = useUserAndTenant();
+  const { profile, loading: profileLoading } = useUserTenant();
   const { theme, toggleTheme } = useTheme();
   const isMobile = useIsMobile(1024);
 

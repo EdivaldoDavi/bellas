@@ -31,6 +31,7 @@ export interface UserTenantContextType {
   reloadAll: () => Promise<void>;
 
   updateOnboardingStep: (step: number) => Promise<void>;
+  updateProfileLocally: (partial: Partial<Profile>) => void;
 }
 
 /* ============================================================
@@ -44,7 +45,6 @@ const UserTenantContext = createContext<UserTenantContextType | null>(null);
 export function UserTenantProvider({ children }: { children: ReactNode }) {
   const {
     user,
-    // rawProfile, // <-- Removido daqui
     tenant: tenantFromHook,
     subscription,
     plan,
@@ -54,7 +54,8 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
     needsSetup,
     refreshProfile,
     memoizedProfile, 
-    setTenantOnboardingStep
+    setTenantOnboardingStep,
+    updateProfileLocal
   } = useUserAndTenant();
 
   /* ============================================================
@@ -77,6 +78,12 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
     setTenantOnboardingStep(step);
   };
 
+  /* Atualização otimista do perfil (ex.: full_name) */
+  const updateProfileLocally = (partial: Partial<Profile>) => {
+    const { professional_id, ...rest } = partial as any;
+    updateProfileLocal(rest);
+  };
+
   /* ============================================================
      🔄 Recarregar tudo
   ============================================================ */
@@ -90,7 +97,7 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
   const value = useMemo<UserTenantContextType>(
     () => ({
       user,
-      profile: memoizedProfile, // Usar o perfil já memoizado
+      profile: memoizedProfile,
       tenant: tenantFromHook,
       subscription,
       plan,
@@ -102,10 +109,11 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
       refreshProfile,
       reloadAll,
       updateOnboardingStep,
+      updateProfileLocally,
     }),
     [
       user,
-      memoizedProfile, // Depender diretamente do memoizedProfile
+      memoizedProfile,
       tenantFromHook,
       subscription,
       plan,
@@ -116,6 +124,7 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
       refreshProfile,
       reloadAll,
       updateOnboardingStep,
+      updateProfileLocally,
     ]
   );
 

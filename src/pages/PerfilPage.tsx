@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import { supabase } from "../lib/supabaseCleint";
-import { useUserAndTenant } from "../hooks/useUserAndTenant";
+import { useUserTenant } from "../context/UserTenantProvider";
 import styles from "../css/PerfilPage.module.css";
 import { Eye, EyeOff, Check, UploadCloud } from "lucide-react";
 
@@ -24,7 +24,7 @@ function getPasswordStrength(pwd: string) {
 }
 
 export default function PerfilPage() {
-const { profile, refreshProfile } = useUserAndTenant(); // Added tenant
+  const { profile, refreshProfile, updateProfileLocally } = useUserTenant(); // usar provider global e atualização otimista
 
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
@@ -75,70 +75,70 @@ const { profile, refreshProfile } = useUserAndTenant(); // Added tenant
         Upload de Avatar
   ================================ */
   const handleUploadAvatar = async () => {
-  if (!profile?.user_id || !avatarFile) {
-    toast.warn("Nenhum arquivo selecionado ou usuário não identificado.");
-    return;
-  }
-
-  setUploading(true);
-  console.log("handleUploadAvatar: Iniciando upload de avatar.");
-
-  try {
-    const fileExt = avatarFile.name.split(".").pop();
-    const fileName = `${profile.user_id}.${fileExt}`;
-
-    // caminho final do arquivo no bucket
-    const filePath = `${profile.user_id}/${fileName}`;
-
-    // 1) Upload no Storage
-    console.log("handleUploadAvatar: Fazendo upload para o Storage.");
-    const { error: uploadError } = await supabase.storage
-      .from("avatars")
-      .upload(filePath, avatarFile, {
-        cacheControl: "3600",
-        upsert: true,
-      });
-
-    if (uploadError) throw uploadError;
-    console.log("handleUploadAvatar: Upload para o Storage concluído.");
-
-    // 2) Obter URL pública
-    console.log("handleUploadAvatar: Obtendo URL pública do avatar.");
-    const { data: publicData } = supabase.storage
-      .from("avatars")
-      .getPublicUrl(filePath);
-
-    if (!publicData?.publicUrl) {
-      throw new Error("Não foi possível gerar a URL pública do avatar.");
+    if (!profile?.user_id || !avatarFile) {
+      toast.warn("Nenhum arquivo selecionado ou usuário não identificado.");
+      return;
     }
-    console.log("handleUploadAvatar: URL pública obtida:", publicData.publicUrl);
 
-    // 3) Atualiza no perfil
-    console.log("handleUploadAvatar: Atualizando URL do avatar no perfil.");
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update({ avatar_url: publicData.publicUrl })
-      .eq("user_id", profile.user_id);
+    setUploading(true);
+    console.log("handleUploadAvatar: Iniciando upload de avatar.");
 
-    if (updateError) throw updateError;
-    console.log("handleUploadAvatar: Perfil atualizado com sucesso no banco.");
+    try {
+      const fileExt = avatarFile.name.split(".").pop();
+      const fileName = `${profile.user_id}.${fileExt}`;
 
-    toast.success("Avatar atualizado com sucesso!");
-    console.log("handleUploadAvatar: Chamando refreshProfile.");
-    await refreshProfile();
-    console.log("handleUploadAvatar: refreshProfile concluído.");
+      // caminho final do arquivo no bucket
+      const filePath = `${profile.user_id}/${fileName}`;
+
+      // 1) Upload no Storage
+      console.log("handleUploadAvatar: Fazendo upload para o Storage.");
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, avatarFile, {
+          cacheControl: "3600",
+          upsert: true,
+        });
+
+      if (uploadError) throw uploadError;
+      console.log("handleUploadAvatar: Upload para o Storage concluído.");
+
+      // 2) Obter URL pública
+      console.log("handleUploadAvatar: Obtendo URL pública do avatar.");
+      const { data: publicData } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+
+      if (!publicData?.publicUrl) {
+        throw new Error("Não foi possível gerar a URL pública do avatar.");
+      }
+      console.log("handleUploadAvatar: URL pública obtida:", publicData.publicUrl);
+
+      // 3) Atualiza no perfil
+      console.log("handleUploadAvatar: Atualizando URL do avatar no perfil.");
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: publicData.publicUrl })
+        .eq("user_id", profile.user_id);
+
+      if (updateError) throw updateError;
+      console.log("handleUploadAvatar: Perfil atualizado com sucesso no banco.");
+
+      toast.success("Avatar atualizado com sucesso!");
+      console.log("handleUploadAvatar: Chamando refreshProfile.");
+      await refreshProfile();
+      console.log("handleUploadAvatar: refreshProfile concluído.");
 
 
-  } catch (err: any) {
-    console.error("handleUploadAvatar: Erro ao enviar avatar:", err);
-    toast.error("Erro ao atualizar avatar: " + err.message);
-  } finally {
-    setUploading(false);
-    setAvatarFile(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-    console.log("handleUploadAvatar: Finalizando upload de avatar.");
-  }
-};
+    } catch (err: any) {
+      console.error("handleUploadAvatar: Erro ao enviar avatar:", err);
+      toast.error("Erro ao atualizar avatar: " + err.message);
+    } finally {
+      setUploading(false);
+      setAvatarFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      console.log("handleUploadAvatar: Finalizando upload de avatar.");
+    }
+  };
 
   /* ================================
         SALVAR PERFIL
@@ -168,12 +168,10 @@ const { profile, refreshProfile } = useUserAndTenant(); // Added tenant
       if (upd2) throw upd2;
       console.log("handleSalvarPerfil: Tabela profiles atualizada.");
 
+      // 3. Atualização otimista no contexto (evita flicker/spinner)
+      updateProfileLocally({ full_name: nome });
       toast.success("Perfil atualizado com sucesso!");
-      // 3. Chama refreshProfile APÓS as atualizações serem enviadas
-      console.log("handleSalvarPerfil: Chamando refreshProfile.");
-      await refreshProfile();
-      console.log("handleSalvarPerfil: refreshProfile concluído.");
-
+      console.log("handleSalvarPerfil: Atualização otimista aplicada no contexto.");
 
     } catch (err: any) {
       toast.error("Erro ao salvar: " + err.message);
