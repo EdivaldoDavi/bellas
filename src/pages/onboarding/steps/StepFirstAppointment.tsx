@@ -41,6 +41,7 @@ export default function StepFirstAppointment({
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [reloadFlag, setReloadFlag] = useState(0);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<string>("");
 
   /* ============================================================
      FECHAR O WIZARD
@@ -99,6 +100,7 @@ async function fetchAppointments() {
 
   setAppointments(mapped);
   onAppointmentValidated(mapped.length > 0);
+  setSelectedAppointmentId(mapped.length > 0 ? mapped[0].id : "");
   setLoading(false);
 }
 
@@ -128,7 +130,10 @@ async function fetchAppointments() {
         {!loading && appointments.length > 0 && (
               <ul className={styles.appointmentList}>
                 {appointments.map((a) => (
-                  <li key={a.id} className={styles.appointmentItem}>
+                  <li
+                    key={a.id}
+                    className={`${styles.appointmentItem} ${selectedAppointmentId === a.id ? styles.listItemSelected : ""}`}
+                  >
                     
                     <span className={styles.appointmentTitle}>
                       {timeRangeBR(a.starts_at, a.ends_at)}
@@ -145,6 +150,17 @@ async function fetchAppointments() {
                   </li>
                 ))}
               </ul>
+        )}
+
+        {!loading && selectedAppointmentId && (
+          <p className={styles.progressText}>
+            {(() => {
+              const sel = appointments.find(ap => ap.id === selectedAppointmentId);
+              return sel
+                ? `Agendamento selecionado: ${timeRangeBR(sel.starts_at, sel.ends_at)} — ${sel.service_name} com ${sel.professional_name}`
+                : "";
+            })()}
+          </p>
         )}
       </div>
 
