@@ -11,7 +11,7 @@ import ModalScheduleTimes from "./ModalScheduletimes";
 import ModalSelectProfessional from "./ModalSelectProfessional";
 import ModalScheduleWizard from "../components/ModalScheduleWizard";
 
-import ModalNewCustomer from "../components/ModalNewCustomer";
+import NewCustomerForm from "../components/ModalNewCustomer"; // Renomeado
 import ModalNewService from "../components/ModalNewService";
 import ModalNewProfessional from "../components/ModalNewProfessional";
 
@@ -432,20 +432,25 @@ export default function Agenda() {
 
       {/* -- MODAIS -- */}
 
-      <ModalNewCustomer
-        tenantId={tenantId ?? ""}
-        mode="agenda"
-        show={showNewCustomer}
-        onClose={() => setShowNewCustomer(false)}
-        onSuccess={() => {}}
-      />
+      {showNewCustomer && (
+        <div className={styles.overlay}>
+          <div className={styles.modalContent}>
+            <NewCustomerForm
+              tenantId={tenantId ?? ""}
+              mode="new" // Corrigido para "new"
+              onCancel={() => setShowNewCustomer(false)}
+              onSaveSuccess={() => {}}
+            />
+          </div>
+        </div>
+      )}
 
       <ModalNewService
         tenantId={tenantId ?? ""}
         mode="agenda"
         show={showNewService}
         onClose={() => setShowNewService(false)}
-        onSuccess={(id) => setServiceId(id)}
+        onSuccess={() => {}}
       />
 
       <ModalNewProfessional
