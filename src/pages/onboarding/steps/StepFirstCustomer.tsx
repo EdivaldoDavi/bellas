@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../../../lib/supabaseCleint";
 import { useUserTenant } from "../../../context/UserTenantProvider";
 import styles from "../Onboarding.module.css";
-import ModalNewCustomer from "../../../components/ModalNewCustomer";
+import NewCustomerForm from "../../../components/ModalNewCustomer"; // Renomeado
 import { dbPhoneToMasked } from "../../../utils/phoneUtils";
 
 type Customer = {
@@ -105,14 +105,17 @@ export default function StepFirstCustomer({ onCustomerValidated }: StepFirstCust
         Cadastrar cliente
       </button>
 
-      {tenant?.id && (
-        <ModalNewCustomer
-          mode="agenda"
-          tenantId={tenant.id}
-          show={showModal}
-          onClose={handleClose}
-          onSuccess={handleSuccess}
-        />
+      {tenant?.id && showModal && (
+        <div className={styles.warningModalOverlay}> {/* Reutilizando o estilo de overlay */}
+          <div className={styles.warningModalPremium}> {/* Reutilizando o estilo de modal */}
+            <NewCustomerForm
+              mode="new" // Corrigido para "new"
+              tenantId={tenant.id}
+              onCancel ={handleClose}
+              onSaveSuccess={handleSuccess}
+            />
+          </div>
+        </div>
       )}
     </div>
   );
