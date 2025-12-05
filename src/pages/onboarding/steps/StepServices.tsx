@@ -158,11 +158,14 @@ export default function StepServices({ onServicesValidated }: StepServicesProps)
           mode="cadastro"
           isFromOnboarding={true}
           onClose={() => setShowModal(false)}
-          onSuccess={async () => {
+          onSuccess={async (id, name, duration) => {
+            // Igual ao StepFirstCustomer: recarrega lista e seleciona o criado
+            await loadServices();
+            setSelectedServiceId(id);
+            onServicesValidated(true);
             setShowModal(false);
-            await loadServices(); // Recarrega lista de serviços
-            await reloadAll(); // Força o recarregamento completo do contexto para atualizar professional_id
-            console.log("StepServices: ModalNewService closed, reloading services and full context.");
+            // REMOVED: reloadAll para evitar refresh completo do contexto
+            console.log("StepServices: Serviço criado, lista recarregada e serviço selecionado:", { id, name, duration });
           }}
           
         />
