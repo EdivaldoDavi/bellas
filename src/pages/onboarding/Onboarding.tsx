@@ -189,7 +189,7 @@ export default function Onboarding() {
       </div>
 
       {/* Wrapper animado */}
-      <div key={uiStep} className={`${styles.stepWrapper} ${styles.stepTransition}`}>
+      <div className={styles.stepWrapper}>
         {renderStep()}
       </div>
 

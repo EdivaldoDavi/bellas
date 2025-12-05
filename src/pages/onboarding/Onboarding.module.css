@@ -42,9 +42,7 @@
     0 24px 48px rgba(0, 0, 0, 0.06),
     0 6px 16px rgba(0, 0, 0, 0.04);
 
-  opacity: 0;
-  transform: translateY(12px);
-  animation: cardAppear 0.45s ease forwards;
+  opacity: 1;
 }
 
 @keyframes cardAppear {
@@ -448,9 +446,9 @@
   transition: opacity 0.35s ease, transform 0.35s ease;
 }
 .stepTransition {
-  opacity: 0;
-  transform: translateY(18px);
-  animation: stepFadeIn 0.45s ease forwards;
+  opacity: 1;
+  transform: none;
+  animation: none;
 }
 
 @keyframes stepFadeIn {
