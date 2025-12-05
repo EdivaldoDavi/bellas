@@ -9,7 +9,7 @@ import ModalCalendar from "./ModalCalendar";
 import ModalScheduleTimes from "./ModalScheduletimes";
 
 import ModalSelectProfessional from "./ModalSelectProfessional";
-import ModalScheduleWizard from "../components/ModalScheduleWizard";
+// import ModalScheduleWizard from "../components/ModalScheduleWizard";
 
 import NewCustomerForm from "../components/ModalNewCustomer"; // Renomeado
 import ModalNewService from "../components/ModalNewService";
@@ -26,6 +26,7 @@ import { ChevronLeft, ChevronRight, Plus, CheckSquare  } from "lucide-react"; //
 import styles from "../css/Agenda.module.css";
 
 import { supabase } from "../lib/supabaseCleint";
+import { useNavigate, useLocation } from "react-router-dom";
 
 interface Appointment {
   id: string;
@@ -43,6 +44,8 @@ interface Appointment {
 export default function Agenda() {
   const { profile, tenant } = useUserAndTenant();
   const { theme } = useTheme();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // 🚨 DEBUG: Log do perfil e tenant na Agenda
   console.log("Agenda: profile", profile);
@@ -60,7 +63,6 @@ export default function Agenda() {
   const [currentDate, setCurrentDate] = useState(new Date());
 
   /* MODAIS */
-  const [showWizard, setShowWizard] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showTimes, setShowTimes] = useState(false);
   const [showProfessionalModal, setShowProfessionalModal] = useState(false);
@@ -72,7 +74,7 @@ export default function Agenda() {
   /* CAMPOS PARA DATAS DISPONÍVEIS */
   // 🔥 NOVO: Inicializa professionalId com o ID do profissional logado, se houver
   const [professionalId, setProfessionalId] = useState(loggedInProfessionalId || "");
-  const [serviceId] = useState("");
+  const [serviceId, setServiceId] = useState("");
   const [, setSelectedDate] = useState("");
 
   const [serviceDuration] = useState<number | null>(null);
@@ -110,7 +112,15 @@ export default function Agenda() {
   useEffect(() => {
     if (!tenantId) return;
     fetchAppointments();
-  }, [tenantId, currentDate, loggedInProfessionalId]); // Adiciona loggedInProfessionalId como dependência
+  }, [tenantId, currentDate, loggedInProfessionalId]);
+
+  // ADDED: recarrega quando retornar com query ?refreshAppointments=1
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("refreshAppointments") === "1") {
+      fetchAppointments();
+    }
+  }, [location.search]);
 
   async function fetchAppointments() {
     setLoading(true);
@@ -289,8 +299,11 @@ export default function Agenda() {
         <h2 className={styles.title}>Agenda</h2>
 
         {canManageAppointments && !isSelectionMode && (
-          <div className={styles.agendaHeaderButtons}> {/* NEW CLASS */}
-            <button className={styles.newButton} onClick={() => setShowWizard(true)}>
+          <div className={styles.agendaHeaderButtons}>
+            <button
+              className={styles.newButton}
+              onClick={() => navigate("/agenda/novo?returnTo=/agenda")}
+            >
               <Plus size={18} /> Novo Agendamento
             </button>
             <button className={styles.completeButton} onClick={toggleSelectionMode}>
@@ -483,13 +496,6 @@ export default function Agenda() {
           setShowProfessionalModal(false);
           setShowCalendar(true);
         }}
-      />
-
-      <ModalScheduleWizard
-        open={showWizard}
-        tenantId={tenantId ?? ""}
-        onClose={() => setShowWizard(false)}
-        onBooked={() => fetchAppointments()}
       />
     </div>
   );

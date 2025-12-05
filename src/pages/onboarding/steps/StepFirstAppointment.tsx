@@ -4,10 +4,10 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../../../lib/supabaseCleint";
 import { useUserTenant } from "../../../context/UserTenantProvider";
 import styles from "../Onboarding.module.css";
-import ModalScheduleWizard from "../../../components/ModalScheduleWizard";
 import { toast } from "react-toastify";
 import { timeRangeBR, dateBR } from "../../../utils/date";
 import { Clock } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 /* ============================================================
    TIPAGEM DO AGENDAMENTO
@@ -38,11 +38,13 @@ export default function StepFirstAppointment({
 }: StepFirstAppointmentProps) {
   const { tenant } = useUserTenant();
 
-  const [showWizard, setShowWizard] = useState(false);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [reloadFlag, setReloadFlag] = useState(0);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string>("");
+
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // ADDED: helper simples para capitalizar nome do cliente
   const formatDisplayName = (name?: string) => {
@@ -54,18 +56,6 @@ export default function StepFirstAppointment({
       .map((s) => s[0].toUpperCase() + s.slice(1))
       .join(" ");
   };
-
-  /* ============================================================
-     FECHAR O WIZARD
-  ============================================================ */
-  const handleWizardClose = useCallback((reason?: "cancel" | "completed") => {
-    setShowWizard(false);
-
-    if (reason === "completed") {
-      setReloadFlag((v) => v + 1);
-      toast.success("Agendamento criado com sucesso!");
-    }
-  }, []);
 
   /* ============================================================
      CARREGAR AGENDAMENTOS
@@ -119,6 +109,14 @@ async function fetchAppointments() {
   useEffect(() => {
     fetchAppointments();
   }, [tenant?.id, reloadFlag]);
+
+  // ADDED: recarrega quando retornar com query ?refreshAppointments=1
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("refreshAppointments") === "1") {
+      setReloadFlag((v) => v + 1);
+    }
+  }, [location.search]);
 
   /* ============================================================
      RENDER
@@ -182,19 +180,10 @@ async function fetchAppointments() {
       {/* BOTÃO DE CRIAÇÃO */}
       <button
         className={styles.stepActionButton}
-        onClick={() => setShowWizard(true)}
+        onClick={() => navigate("/onboarding/agendar?returnTo=/onboarding")}
       >
         Criar agendamento
       </button>
-
-      {/* MODAL */}
-      {tenant?.id && (
-        <ModalScheduleWizard
-          open={showWizard}
-          tenantId={tenant.id}
-          onClose={handleWizardClose}
-        />
-      )}
     </div>
   );
 }

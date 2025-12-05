@@ -16,7 +16,7 @@ import EmDesenvolvimento from "./components/EmDesenvolvimento";
 import Setup from "./pages/setup/Setup";
 import Dashboard from "./pages/dashboard/Dashboard";
 import Agenda from "./components/Agenda";
-
+import ScheduleWizardPage from "./pages/schedule/ScheduleWizardPage";
 import AssinaturasPage from "./pages/AssinaturasPage";
 import SaloesPage from "./pages/SaloesPage";
 import PerfilPage from "./pages/PerfilPage";
@@ -86,7 +86,7 @@ export default function App() {
 
           {/* ONBOARDING */}
           <Route path="/onboarding/*" element={<Onboarding />} />
-
+          <Route path="/onboarding/agendar" element={<ScheduleWizardPage />} />
           {/* SETUP */}
           <Route path="/setup" element={<Setup />} />
 
