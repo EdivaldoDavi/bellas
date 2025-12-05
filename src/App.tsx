@@ -12,6 +12,7 @@ import Register from "./pages/auth/Register";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ForcePasswordReset from "./components/ForcePasswordReset";
 
+import EmDesenvolvimento from "./components/EmDesenvolvimento";
 import Setup from "./pages/setup/Setup";
 import Dashboard from "./pages/dashboard/Dashboard";
 import Agenda from "./components/Agenda";
@@ -70,7 +71,7 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/force-reset" element={<ForcePasswordReset />} />
-
+        <Route path="/config" element={<EmDesenvolvimento />} />
 
         {/* ============ ROTAS PROTEGIDAS COM APP GUARD ============ */}
         <Route

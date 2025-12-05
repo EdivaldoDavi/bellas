@@ -153,7 +153,7 @@ async function fetchAppointments() {
         className={styles.stepActionButton}
         onClick={() => setShowWizard(true)}
       >
-        Criar agendamento de teste
+        Criar agendamento
       </button>
 
       {/* MODAL */}
