@@ -109,13 +109,20 @@ export default function StepServices({ onServicesValidated }: StepServicesProps)
         ) : (
           <ul className={styles.servicesList}>
             {services.map((s) => (
-              <li key={s.id} className={styles.serviceItem}>
-                <strong>{s.name}</strong>
-                <span>
-                  {s.duration_min ?? 0} min —{" "}
+             <li key={s.id} className={styles.serviceItem}>
+              <span className={styles.serviceName}>{s.name}</span>
+
+              <div className={styles.serviceMeta}>
+                <span className={styles.durationBadge}>
+                  {s.duration_min ?? 0} min
+                </span>
+
+                <span className={styles.priceBadge}>
                   {formatCentsToBRL(s.price_cents ?? 0)}
                 </span>
-              </li>
+              </div>
+            </li>
+
             ))}
           </ul>
         )}
