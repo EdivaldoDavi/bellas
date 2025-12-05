@@ -1,166 +1,150 @@
-import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import styles from "../css/DatePickerModal.module.css";
-import { dateBR, toLocalISOString } from "../utils/date";
-import { useAvailableDays } from "../hooks/useAvailableDays";
+import { useEffect, useMemo, useState } from "react";
+import styles from "../css/ModalCalendar.module.css";
 
 interface Props {
-  value: string;
-  onSelect: (date: string) => void;
-  professionalId?: string;
-  serviceDuration?: number;
+  /** Data selecionada no formato YYYY-MM-DD */
+  value?: string;
+  /** Callback quando o usuário escolhe uma data (YYYY-MM-DD) */
+  onSelect: (dateIso: string) => void;
 }
 
-/** ✅ Semana começa no DOMINGO */
-const WEEK_STARTS_ON: number = 0;
-const WEEK_LABELS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-const HEADER_LABELS =
-  WEEK_STARTS_ON === 1
-    ? [...WEEK_LABELS.slice(1), WEEK_LABELS[0]] // segunda a domingo
-    : WEEK_LABELS; // domingo a sábado
+export default function DatePickerModalAgenda({ value, onSelect }: Props) {
+  // Estado do mês atual (primeiro dia do mês)
+  const [current, setCurrent] = useState(() => {
+    const d = value ? parseISO(value) : new Date();
+    return new Date(d.getFullYear(), d.getMonth(), 1);
+  });
 
-/** Calcula o deslocamento da primeira coluna conforme o início da semana */
-function startIndexForMonth(firstDayGetDay: number) {
-  return WEEK_STARTS_ON === 1 ? (firstDayGetDay + 6) % 7 : firstDayGetDay;
-}
+  const year = current.getFullYear();
+  const month = current.getMonth(); // 0–11
 
-/**
- * 📅 DatePickerModalAgenda
- * Componente de calendário inline reutilizando o estilo do DatePickerModal,
- * com controle interno de navegação entre meses.
- */
-export default function DatePickerModalAgenda({
-  value,
-  onSelect,
-  professionalId,
-  serviceDuration,
-}: Props) {
-  // Estado do mês/ano em exibição
-  const [viewYear, setViewYear] = useState(() =>
-    value ? new Date(value).getFullYear() : new Date().getFullYear()
+  const pad2 = (n: number) => String(n).padStart(2, "0");
+  const toISOLocal = (yy: number, mm0: number, dd: number) =>
+    `${yy}-${pad2(mm0 + 1)}-${pad2(dd)}`;
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstWeekday = new Date(year, month, 1).getDay(); // 0=Dom .. 6=Sáb
+
+  const cells: (number | null)[] = useMemo(() => {
+    const arr: (number | null)[] = [
+      ...Array(firstWeekday).fill(null),
+      ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
+    ];
+    while (arr.length < 42) arr.push(null);
+    return arr;
+  }, [firstWeekday, daysInMonth]);
+
+  const weeks = useMemo(() => {
+    const w: (number | null)[][] = [];
+    for (let i = 0; i < 6; i++) {
+      w.push(cells.slice(i * 7, i * 7 + 7));
+    }
+    return w;
+  }, [cells]);
+
+  const today = new Date();
+  const todayKey = toISOLocal(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
   );
-  const [viewMonth, setViewMonth] = useState(() =>
-    value ? new Date(value).getMonth() + 1 : new Date().getMonth() + 1
-  );
 
-  // Função para navegar entre meses
-  const changeMonth = (delta: number) => {
-    const newDate = new Date(viewYear, viewMonth - 1 + delta, 1);
-    setViewYear(newDate.getFullYear());
-    setViewMonth(newDate.getMonth() + 1);
+  function parseISO(iso: string): Date {
+    const [yy, mm, dd] = iso.split("-").map((x) => parseInt(x, 10));
+    return new Date(yy, (mm || 1) - 1, dd || 1);
+  }
+
+  const selectedDate = value || "";
+
+  const handleClickDay = (day: number) => {
+    const iso = toISOLocal(year, month, day);
+    onSelect(iso);
   };
 
-  /** Se não tiver professionalId e serviceDuration, habilita todos os dias */
-  const enableAllDays = !professionalId || !serviceDuration;
-
-  /** Hook de disponibilidade (apenas se ambos existirem) */
-const { loading, available } = useAvailableDays(
-  professionalId && serviceDuration ? professionalId : undefined,
-  professionalId && serviceDuration ? serviceDuration : undefined,
-  viewYear,
-  viewMonth
-);
-
-  /** Monta a grade de dias do mês */
-  const matrix = useMemo(() => {
-    const first = new Date(viewYear, viewMonth - 1, 1);
-    const last = new Date(viewYear, viewMonth, 0);
-    const daysInMonth = last.getDate();
-
-    const startOffset = startIndexForMonth(first.getDay());
-    const cells: { iso?: string; day?: number }[] = [];
-
-    // espaços antes do primeiro dia
-    for (let i = 0; i < startOffset; i++) cells.push({});
-    // dias do mês
-    for (let d = 1; d <= daysInMonth; d++) {
-      const iso = `${viewYear}-${String(viewMonth).padStart(2, "0")}-${String(
-        d
-      ).padStart(2, "0")}`;
-      cells.push({ iso, day: d });
-    }
-    // completa até múltiplo de 7
-    while (cells.length % 7 !== 0) cells.push({});
-    return cells;
-  }, [viewYear, viewMonth]);
-
-  /** Verifica se o dia está habilitado */
-  const isDayEnabled = (iso?: string) =>
-    !!iso && (enableAllDays ? true : available.has(iso));
+  const monthNames = [
+    "Jan",
+    "Fev",
+    "Mar",
+    "Abr",
+    "Mai",
+    "Jun",
+    "Jul",
+    "Ago",
+    "Set",
+    "Out",
+    "Nov",
+    "Dez",
+  ];
 
   return (
-    <div className={styles.modalInline}>
-      {/* Cabeçalho com mês e ano */}
+    <div>
+      {/* Cabeçalho do calendário */}
       <div className={styles.header}>
         <button
-          className={styles.navBtn}
-          onClick={() => changeMonth(-1)}
+          onClick={() => setCurrent(new Date(year, month - 1, 1))}
           aria-label="Mês anterior"
         >
-          <ChevronLeft size={18} />
+          ‹
         </button>
 
-        <h3>
-          {new Date(viewYear, viewMonth - 1, 1).toLocaleDateString("pt-BR", {
-            month: "long",
-            year: "numeric",
-          })}
-        </h3>
+        <span>
+          {monthNames[month]} {year}
+        </span>
 
         <button
-          className={styles.navBtn}
-          onClick={() => changeMonth(1)}
+          onClick={() => setCurrent(new Date(year, month + 1, 1))}
           aria-label="Próximo mês"
         >
-          <ChevronRight size={18} />
+          ›
         </button>
       </div>
 
-      {/* Legenda (somente se houver controle de disponibilidade) */}
-      {!enableAllDays && (
-        <div className={styles.legend}>
-          <span className={styles.badgeOk} /> Disponível
-          <span className={styles.badgeNo} /> Indisponível
-        </div>
-      )}
-
-      {/* Grade do calendário */}
-      <div className={styles.grid}>
-        {HEADER_LABELS.map((w) => (
-          <div key={w} className={`${styles.cell} ${styles.headerCell}`}>
-            {w}
-          </div>
+      {/* Semana */}
+      <div className={styles.weekdays}>
+        {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((d) => (
+          <span key={d}>{d}</span>
         ))}
-
-        {matrix.map((c, i) => {
-          const iso = c.iso;
-          const enabled = isDayEnabled(iso);
-          const isToday =
-            iso && iso === toLocalISOString(new Date()).split("T")[0];
-          const isSelected = iso === value;
-
-          return (
-            <button
-              key={i}
-              disabled={!enabled}
-              onClick={() => enabled && onSelect(iso!)}
-              className={`${styles.cell} 
-                ${enabled ? styles.cellOk : styles.cellNo} 
-                ${isToday ? styles.today : ""} 
-                ${isSelected ? styles.cellSelected : ""}`}
-            >
-              {c.day ?? ""}
-            </button>
-          );
-        })}
       </div>
 
-      {loading && (
-        <div className={styles.loading}>Carregando disponibilidade...</div>
-      )}
+      {/* Grade de dias */}
+      <div className={styles.calendar}>
+        {weeks.map((week, wi) => (
+          <div className={styles.row} key={wi}>
+            {week.map((day, di) => {
+              if (!day)
+                return <button key={di} className={styles.dayBtn} disabled />;
 
-      <div className={styles.footerHint}>
-        {value ? `Selecionado: ${dateBR(value)}` : "Selecione um dia"}
+              const key = toISOLocal(year, month, day);
+              const isToday = key === todayKey;
+
+              // Desabilita datas passadas
+              const isPast =
+                new Date(year, month, day).getTime() <
+                new Date(
+                  today.getFullYear(),
+                  today.getMonth(),
+                  today.getDate()
+                ).getTime();
+
+              const isSelected = selectedDate === key;
+
+              return (
+                <button
+                  key={di}
+                  disabled={isPast}
+                  className={[
+                    styles.dayBtn,
+                    isToday ? styles.today : "",
+                    isSelected ? styles.daySelected : "",
+                  ].join(" ")}
+                  onClick={() => handleClickDay(day)}
+                >
+                  {day}
+                </button>
+              );
+            })}
+          </div>
+        ))}
       </div>
     </div>
   );
