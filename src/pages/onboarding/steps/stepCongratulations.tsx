@@ -123,17 +123,17 @@ export default function StepCongratulations() {
                 {/* Conteúdo */}
                 <div className={styles.warningPremiumContent}>
                   <p>
-                    Você está acessando pelo <strong>celular</strong>.
-                    Para conectar seu WhatsApp e receber agendamentos da IA 🤖,
-                    será necessário usar outro aparelho para exibir o QR Code.
+                    Você está usando o <strong>celular</strong> para se cadastrar.
+                    Para conectar o WhatsApp Web é preciso escanear um <strong>QR Code</strong>,
+                    e um celular <em>não consegue escanear a própria tela</em>.
                   </p>
 
                   <p style={{ marginTop: 10 }}>
-                    Assim, você escaneia o código usando o celular
-                    que vai receber os agendamentos.
+                    Por isso, exiba o QR Code em <strong>outro dispositivo</strong> e use
+                    o celular oficial do WhatsApp para fazer a leitura.
                   </p>
 
-                  <p style={{ marginTop: 12 }}>✨ Pode ser qualquer um destes:</p>
+                  <p style={{ marginTop: 12 }}>Pode ser qualquer um destes dispositivos abaixo:</p>
 
                   <ul className={styles.warningList}>
                     <li>💻 Notebook ou computador</li>
@@ -142,9 +142,11 @@ export default function StepCongratulations() {
                   </ul>
 
                   <p style={{ marginTop: 16 }}>
-                    Depois abra o menu WhatsApp → Conectar WhatsApp,
-                    e faça a leitura do QR Code usando o aparelho oficial.
+                    Depois de finalizar o cadastro, você pode conectar quando quiser:
+                    no menu da barra lateral <strong>WhatsApp</strong> → <strong>Conectar WhatsApp</strong>.
                   </p>
+
+                  
                 </div>
 
                 {/* Botão */}

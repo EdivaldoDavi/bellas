@@ -359,8 +359,9 @@
     height: 100svh;
     max-height: none;
     border-radius: 0;
-    padding: 0;
+    padding: 20px 16px;
     border: none;
+    overflow-y: auto;
   }
 }
 
