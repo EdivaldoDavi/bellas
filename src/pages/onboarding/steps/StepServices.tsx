@@ -151,6 +151,7 @@ export default function StepServices({ onServicesValidated }: StepServicesProps)
             await reloadAll(); // Força o recarregamento completo do contexto para atualizar professional_id
             console.log("StepServices: ModalNewService closed, reloading services and full context.");
           }}
+          
         />
       )}
     </div>

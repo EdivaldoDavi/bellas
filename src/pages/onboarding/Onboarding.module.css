@@ -320,7 +320,9 @@
   font-weight: 600;
   white-space: nowrap;
 }
-
+.modalOnboardingFix {
+  z-index: 999999 !important;
+}
 @media (max-width: 760px) {
   .stepContainer {
     padding: 30px 24px;
