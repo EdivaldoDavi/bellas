@@ -41,8 +41,8 @@ export default function UsuariosPage() {
   const [professionals, setProfessionals] = useState<ProfessionalOption[]>([]);
   const [selectedProfessionalId, setSelectedProfessionalId] = useState<string | null>(null);
 
-  // State para a busca de usuários no ManageRoles (mantido)
-  const [searchManageRoles, setSearchManageRoles] = useState(""); // Novo estado para a busca do ManageRoles
+ 
+ 
 
   // Carregar profissionais ao montar a página ou quando o tenantId mudar
   useEffect(() => {
