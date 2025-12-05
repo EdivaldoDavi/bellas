@@ -67,6 +67,7 @@ export default function ScheduleWizardPage() {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
 
   /* -------------------------------- RESET -------------------------------- */
   function resetAll() {
@@ -166,8 +167,12 @@ export default function ScheduleWizardPage() {
 
   /* --------------------------- SALVAR AGENDAMENTO ------------------------- */
   async function saveAppointment() {
+    if (saving) return;
+    setSaving(true);
+    
     const tenantId = tenant?.id;
     if (!tenantId) {
+      setSaving(false);
       toast.error("Tenant não encontrado.");
       return;
     }
@@ -196,11 +201,12 @@ export default function ScheduleWizardPage() {
     const { error } = await supabase.from("appointments").insert([payload]);
 
     if (error) {
+      setSaving(false);
       toast.error("Erro ao agendar.");
       return;
     }
 
-    toast.success("Agendado com sucesso!");
+    toast.success("Agendado com sucesso!", { toastId: "appointment_success" });
 
     // Ao concluir, voltar para a página definida com sinalizador de atualização
     const url = new URL(window.location.origin + returnTo);
@@ -540,7 +546,7 @@ export default function ScheduleWizardPage() {
 
           <button
             className={styles.nextBtn}
-            disabled={!canNext}
+            disabled={!canNext || saving}
             onClick={goNext}
           >
             {step === totalSteps ? "Agendar" : "Próximo"}
