@@ -126,25 +126,25 @@ async function fetchAppointments() {
         )}
 
         {!loading && appointments.length > 0 && (
-          <ul className={styles.list}>
-            {appointments.map((a) => (
-                <li key={a.id} className={styles.listItem}>
-                  <div className={styles.appointmentText}>
-                    <span className={styles.itemTitle}>
+              <ul className={styles.appointmentList}>
+                {appointments.map((a) => (
+                  <li key={a.id} className={styles.appointmentItem}>
+                    
+                    <span className={styles.appointmentTitle}>
                       {timeRangeBR(a.starts_at, a.ends_at)}
                     </span>
 
-                    <span className={styles.itemSub}>
+                    <span className={styles.appointmentService}>
                       {a.service_name} com {a.professional_name}
                     </span>
 
-                    <span className={styles.itemSub}>
+                    <span className={styles.appointmentClient}>
                       Cliente: {a.customer_name}
                     </span>
-                  </div>
-                </li>
-            ))}
-          </ul>
+
+                  </li>
+                ))}
+              </ul>
         )}
       </div>
 
