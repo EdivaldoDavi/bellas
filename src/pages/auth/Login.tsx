@@ -69,10 +69,7 @@ export default function Login() {
           <img src={logoBellas} alt="Bellas Logo" className={styles.logo} />
         </div>
 
-        <h2 className={styles.title}>Entrar na plataforma</h2>
-        <p className={styles.subtitle}>
-          Acesse seu painel para gerenciar seu Studio. 
-        </p>
+        {/* REMOVED: título e subtítulo do login conforme solicitação */}
 
         <form onSubmit={handleSubmit} className={styles.form}>
           {error && <p className={styles.error}>{error}</p>}
