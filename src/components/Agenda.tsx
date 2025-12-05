@@ -74,7 +74,7 @@ export default function Agenda() {
   /* CAMPOS PARA DATAS DISPONÍVEIS */
   // 🔥 NOVO: Inicializa professionalId com o ID do profissional logado, se houver
   const [professionalId, setProfessionalId] = useState(loggedInProfessionalId || "");
-  const [serviceId, setServiceId] = useState("");
+  const [serviceId] = useState("");
   const [, setSelectedDate] = useState("");
 
   const [serviceDuration] = useState<number | null>(null);
