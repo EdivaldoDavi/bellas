@@ -364,6 +364,46 @@
   }
 }
 
+/* Linha de horário com ícone */
+.appointmentTimeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.appointmentIcon {
+  color: #7c3ebd;
+}
+
+/* Data do agendamento (se quiser destacar separadamente, já fica pronto) */
+.appointmentDate {
+  font-size: 0.95rem;
+  color: #6b7280;
+}
+
+/* Badge para o nome do cliente */
+.customerBadge {
+  background: #f4eaff;        /* lilás suave */
+  color: #6b21a8;             /* roxo escuro */
+  padding: 5px 10px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  display: inline-block;
+  margin-left: 6px;
+}
+
+/* Mobile refinamento */
+@media (max-width: 760px) {
+  .appointmentTimeRow {
+    gap: 6px;
+  }
+  .customerBadge {
+    font-size: 0.82rem;
+    padding: 4px 8px;
+  }
+}
 
 /* ===========================
    BADGE ANIMADA PREMIUM

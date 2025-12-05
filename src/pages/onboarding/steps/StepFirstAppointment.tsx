@@ -6,7 +6,8 @@ import { useUserTenant } from "../../../context/UserTenantProvider";
 import styles from "../Onboarding.module.css";
 import ModalScheduleWizard from "../../../components/ModalScheduleWizard";
 import { toast } from "react-toastify";
-import { timeRangeBR } from "../../../utils/date";
+import { timeRangeBR, dateBR } from "../../../utils/date";
+import { Clock } from "lucide-react";
 
 /* ============================================================
    TIPAGEM DO AGENDAMENTO
@@ -42,6 +43,17 @@ export default function StepFirstAppointment({
   const [loading, setLoading] = useState(true);
   const [reloadFlag, setReloadFlag] = useState(0);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string>("");
+
+  // ADDED: helper simples para capitalizar nome do cliente
+  const formatDisplayName = (name?: string) => {
+    if (!name) return "Cliente";
+    return name
+      .toLowerCase()
+      .split(" ")
+      .filter(Boolean)
+      .map((s) => s[0].toUpperCase() + s.slice(1))
+      .join(" ");
+  };
 
   /* ============================================================
      FECHAR O WIZARD
@@ -134,17 +146,20 @@ async function fetchAppointments() {
                     key={a.id}
                     className={`${styles.appointmentItem} ${selectedAppointmentId === a.id ? styles.listItemSelected : ""}`}
                   >
-                    
-                    <span className={styles.appointmentTitle}>
-                      {timeRangeBR(a.starts_at, a.ends_at)}
-                    </span>
+                    {/* LINHA DE DATA + HORÁRIO COM ÍCONE */}
+                    <div className={styles.appointmentTimeRow}>
+                      <Clock size={18} className={styles.appointmentIcon} />
+                      <span className={styles.appointmentTitle}>
+                        {dateBR(a.starts_at.slice(0, 10))} — {timeRangeBR(a.starts_at, a.ends_at)}
+                      </span>
+                    </div>
 
                     <span className={styles.appointmentService}>
                       {a.service_name} com {a.professional_name}
                     </span>
 
                     <span className={styles.appointmentClient}>
-                      Cliente: {a.customer_name}
+                      Cliente: <span className={styles.customerBadge}>{formatDisplayName(a.customer_name)}</span>
                     </span>
 
                   </li>
