@@ -49,6 +49,11 @@ export function useUserAndTenant() {
     string | null
   >(null);
 
+  // Atualiza localmente o onboarding_step para evitar flicker de loading
+  const setTenantOnboardingStep = useCallback((step: number) => {
+    setTenant((prev) => (prev ? { ...prev, onboarding_step: step } : prev));
+  }, []);
+
   /* ============================================================
      🧹 Limpa tudo
   ============================================================ */
@@ -265,19 +270,20 @@ export function useUserAndTenant() {
   }, [profile, internalProfessionalId]);
 
   return {
-  loading,
-  error,
-  user: authUser,
-  profile: memoizedProfile,
-  tenant,
-  subscription,
-  plan,
-  features,
-  permissions,
-  needsSetup,
-  memoizedProfile,
+    loading,
+    error,
+    user: authUser,
+    profile: memoizedProfile,
+    tenant,
+    subscription,
+    plan,
+    features,
+    permissions,
+    needsSetup,
+    memoizedProfile,
 
-  refreshProfile,
-  reloadAll: refreshProfile
-};
+    refreshProfile,
+    reloadAll: refreshProfile,
+    setTenantOnboardingStep
+  };
 }

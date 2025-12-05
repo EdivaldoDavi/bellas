@@ -54,6 +54,7 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
     needsSetup,
     refreshProfile,
     memoizedProfile, 
+    setTenantOnboardingStep
   } = useUserAndTenant();
 
   /* ============================================================
@@ -72,8 +73,8 @@ export function UserTenantProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // 🔥 ESSENCIAL: recarregar tenant após update
-    await refreshProfile();
+    // Atualiza localmente sem disparar loading global
+    setTenantOnboardingStep(step);
   };
 
   /* ============================================================
