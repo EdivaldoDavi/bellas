@@ -30,6 +30,9 @@
 
   position: relative;
   animation: fadeIn 0.22s ease-out;
+
+  /* ADDED: centraliza quando está dentro de uma página (sem overlay) */
+  margin: 0 auto;
 }
 
 /* Fade animation */

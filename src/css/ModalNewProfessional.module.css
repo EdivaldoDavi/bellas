@@ -30,6 +30,9 @@
 
   box-shadow: 0 12px 42px rgba(0,0,0,0.40);
   animation: fadeIn .20s ease-out;
+
+  /* ADDED: centraliza quando está dentro de uma página (sem overlay) */
+  margin: 0 auto;
 }
 
 /* Botão fechar */
