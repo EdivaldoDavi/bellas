@@ -3,13 +3,14 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseCleint";
 import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
-import { Plus, Pencil, MessageCircle, Phone } from "lucide-react"; // Adicionado MessageCircle e Phone
-import { toast } from "react-toastify"; // Corrected import statement
+import { Plus, Pencil, MessageCircle, Phone } from "lucide-react";
+import { toast } from "react-toastify";
 
-import ModalNewProfessional from "../components/ModalNewProfessional";
-// import CopyButton from "../components/CopyButton"; // REMOVIDO
 import { dbPhoneToMasked, onlyDigits } from "../utils/phoneUtils";
 import styles from "../css/ProfessionalsPage.module.css";
+import ProfessionalForm from "../components/ProfessionalForm";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+
 type Professional = {
   id: string;
   name: string;
@@ -18,31 +19,57 @@ type Professional = {
   is_active: boolean;
 };
 
-// REMOVIDO: ProfessionalsPageProps type, as it's no longer a modal
-// type ProfessionalsPageProps = {
-//   onClose?: () => void; // used in onboarding
-// };
-
-export default function ProfessionalsPage() { // Removed onClose prop from here
+export default function ProfessionalsPage() {
   const { tenant } = useUserAndTenant();
   const tenantId = tenant?.id;
-  
+
+  const navigate = useNavigate();
+  const params = useParams();
+  const location = useLocation();
+
+  const pageMode = location.pathname.endsWith("/new")
+    ? "new"
+    : params.id
+    ? "edit"
+    : "list";
 
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  const [openModal, setOpenModal] = useState(false);
-  const [editId, setEditId] = useState<string | null>(null);
+  const [editingProfessional, setEditingProfessional] = useState<Professional | null>(null);
 
-  
-
-  // ================================
-  // LOAD
-  // ================================
   useEffect(() => {
-    if (tenantId) load();
-  }, [tenantId, search]);
+    if (!tenantId) return;
+
+    if (pageMode === "edit" && params.id) {
+      loadEditingProfessional(params.id);
+    } else if (pageMode === "new") {
+      setEditingProfessional(null);
+      setLoading(false);
+    } else {
+      load();
+    }
+  }, [tenantId, search, pageMode, params.id]);
+
+  async function loadEditingProfessional(id: string) {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("professionals")
+      .select("id,name,email,phone,is_active")
+      .eq("tenant_id", tenantId)
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      toast.error("Erro ao carregar profissional.");
+      console.error(error);
+      navigate("/profissionais");
+    } else {
+      setEditingProfessional(data as any);
+      setLoading(false);
+    }
+  }
 
   async function load() {
     if (!tenantId) return;
@@ -77,11 +104,9 @@ export default function ProfessionalsPage() { // Removed onClose prop from here
     setLoading(false);
   }
 
-  // ================================
-  // CLOSE HANDLER
-  // ================================
-  // The 'close' function is removed as the page is no longer a modal.
-  // Navigation is now handled by the sidebar.
+  function openEdit(id: string) {
+    navigate(`/profissionais/edit/${id}`);
+  }
 
   // ================================
   // ATIVAR / INATIVAR
@@ -105,7 +130,7 @@ export default function ProfessionalsPage() { // Removed onClose prop from here
 
     toast(
       ({ closeToast }) => (
-        <div style={{ textAlign: "center", padding: '20px' }}> {/* Adicionado padding aqui */}
+        <div style={{ textAlign: "center", padding: '20px' }}>
           <p style={{ marginBottom: 12 }}>
             Deseja realmente <b>{action}</b> o profissional:
             <br />"{p.name}"?
@@ -141,34 +166,37 @@ export default function ProfessionalsPage() { // Removed onClose prop from here
     );
   }
 
-  // ================================
-  // EDITAR PROFISSIONAL
-  // ================================
-  function openEdit(id: string) {
-    setEditId(id);
-    setOpenModal(true);
+  if (pageMode === "new" || pageMode === "edit") {
+    if (loading) {
+      return <div className={styles.container}><div className={styles.empty}>Carregando formulário...</div></div>;
+    }
+    return (
+      <div className={styles.container}>
+        <ProfessionalForm
+          tenantId={tenantId!}
+          mode={pageMode === "new" ? "new" : "edit"}
+          professional={pageMode === "edit" ? (editingProfessional as any) : undefined}
+          onCancel={() => navigate("/profissionais")}
+          onSaveSuccess={() => {
+            navigate("/profissionais");
+          }}
+        />
+      </div>
+    );
   }
 
-  // ================================
-  // RENDER
-  // ================================
   return (
     <div className={styles.container}>
       {/* HEADER */}
       <div className={styles.header}>
         <h2>Profissionais</h2>
-
-        {/* The close button is removed as the page is no longer a modal */}
       </div>
 
       {/* NOVO PROFISSIONAL */}
       <button
         className={styles.newBtn}
         style={{ backgroundColor: "var(--color-primary)" }}
-        onClick={() => {
-          setEditId(null);
-          setOpenModal(true);
-        }}
+        onClick={() => navigate("/profissionais/new")}
       >
         <Plus size={20} />
         <span>Novo profissional</span>
@@ -261,23 +289,6 @@ export default function ProfessionalsPage() { // Removed onClose prop from here
             </div>
           ))}
       </div>
-
-      {/* MODAL */}
-      <ModalNewProfessional
-        tenantId={tenantId!}
-        show={openModal}
-        editId={editId}
-        mode="cadastro"
-        onClose={() => {
-          setOpenModal(false);
-          setEditId(null);
-        }}
-        onSuccess={() => {
-          setOpenModal(false);
-          setEditId(null);
-          load();
-        }}
-      />
     </div>
   );
 }

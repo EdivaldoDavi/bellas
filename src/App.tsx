@@ -104,7 +104,13 @@ export default function App() {
           <Route path="/clientes/edit/:id" element={<ClientesPage />} />
 
           <Route path="/servicos" element={<ServicosPage />} />
+          <Route path="/servicos/new" element={<ServicosPage />} />
+          <Route path="/servicos/edit/:id" element={<ServicosPage />} />
+
           <Route path="/profissionais" element={<ProfessionalsPage />} />
+          <Route path="/profissionais/new" element={<ProfessionalsPage />} />
+          <Route path="/profissionais/edit/:id" element={<ProfessionalsPage />} />
+
           <Route path="/usuarios" element={<UsuariosPage />} />
           <Route path="/commissions" element={<CommissionsPage />} /> {/* Nova rota para CommissionsPage */}
 

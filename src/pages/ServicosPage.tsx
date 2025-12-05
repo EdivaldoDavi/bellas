@@ -7,8 +7,9 @@ import { useUserAndTenant } from "../hooks/useUserAndTenant";
 import {  Plus, Pencil } from "lucide-react";
 import { toast } from "react-toastify";
 
-import ModalNewService from "../components/ModalNewService";
 import styles from "../css/ServicosPage.module.css";
+import ServiceForm from "../components/ServiceForm";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 
 type Service = {
   id: string;
@@ -23,13 +24,21 @@ export default function ServicosPage() {
   const { tenant } = useUserAndTenant();
   const tenantId = tenant?.id;
   
+  const navigate = useNavigate();
+  const params = useParams();
+  const location = useLocation();
+
+  const pageMode = location.pathname.endsWith("/new")
+    ? "new"
+    : params.id
+    ? "edit"
+    : "list";
 
   const [services, setServices] = useState<Service[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [showAllServices, setShowAllServices] = useState(false);
 
-  const [openModal, setOpenModal] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
 
 
@@ -39,9 +48,36 @@ export default function ServicosPage() {
   ============================================================ */
   useEffect(() => {
     if (!tenantId) return;
-    load();
+
+    if (pageMode === "edit" && params.id) {
+      loadEditingService(params.id);
+    } else if (pageMode === "new") {
+      setEditingService(null);
+      setLoading(false);
+    } else {
+      load();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tenantId, showAllServices, search]);
+  }, [tenantId, showAllServices, search, pageMode, params.id]);
+
+  async function loadEditingService(serviceId: string) {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("services")
+      .select("id,name,duration_min,is_active,price_cents")
+      .eq("tenant_id", tenantId)
+      .eq("id", serviceId)
+      .single();
+
+    if (error) {
+      console.error("Erro ao carregar serviço para edição:", error);
+      toast.error("Erro ao carregar serviço.");
+      navigate("/servicos");
+    } else {
+      setEditingService((data || null) as any);
+      setLoading(false);
+    }
+  }
 
   async function load() {
     if (!tenantId) return;
@@ -87,8 +123,7 @@ export default function ServicosPage() {
      EDITAR
   ============================================================ */
   function openEdit(s: Service) {
-    setEditingService(s);
-    setOpenModal(true);
+    navigate(`/servicos/edit/${s.id}`);
   }
 
   /* ============================================================
@@ -166,23 +201,40 @@ export default function ServicosPage() {
   /* ============================================================
      RENDER
   ============================================================ */
+  if (pageMode === "new" || pageMode === "edit") {
+    if (loading) {
+      return <div className={styles.container}><div className={styles.empty}>Carregando formulário...</div></div>;
+    }
+    return (
+      <> 
+        <div className={styles.container}>
+          <ServiceForm
+            tenantId={tenantId}
+            mode={pageMode === "new" ? "new" : "edit"}
+            service={pageMode === "edit" ? (editingService as any) : undefined}
+            onSaveSuccess={() => {
+              navigate("/servicos");
+            }}
+            onCancel={() => navigate("/servicos")}
+          />
+        </div>
+      </>
+    );
+  }
+
   return (
-    <> {/* Explicitly open a React fragment here */}
+    <> 
       <div className={styles.container}>
         {/* HEADER */}
         <div className={styles.header}>
           <h2>Serviços</h2>
-          {/* The close button is removed as the page is no longer a modal */}
         </div>
 
         {/* NOVO SERVIÇO */}
         <button
           className={styles.newBtn}
           style={{ backgroundColor: "var(--color-primary)" }}
-          onClick={() => {
-            setEditingService(null);
-            setOpenModal(true);
-          }}
+          onClick={() => navigate("/servicos/new")}
         >
           <Plus size={20} />
           <span>Novo serviço</span>
@@ -242,10 +294,9 @@ export default function ServicosPage() {
             ))}
         </div>
 
-        {/* BOTÃO "VER TODOS" (só quando está em modo preview) */}
         {!showAllServices && !search.trim() && services.length >= 3 && (
           <button
-            className={styles.newBtn} // Reusing newBtn style for consistency
+            className={styles.newBtn}
             style={{ backgroundColor: "var(--color-primary)", marginTop: "1.5rem" }}
             onClick={() => setShowAllServices(true)}
           >
@@ -253,24 +304,6 @@ export default function ServicosPage() {
           </button>
         )}
       </div>
-
-      {/* MODAL NOVO/EDIT SERVIÇO */}
-      <ModalNewService
-        tenantId={tenantId}
-        show={openModal}
-        mode={editingService ? "edit" : "cadastro"}
-        service={
-          editingService
-            ? { ...editingService, price_cents: editingService.price_cents ?? null }
-            : undefined
-        }
-        onClose={() => {
-          setOpenModal(false);
-          setEditingService(null);
-          load(); // recarrega lista após salvar
-        }}
-        // isFromOnboarding não é passado aqui, mantendo o comportamento padrão
-      />
-    </> // Explicitly close the React fragment here
+    </> 
   );
 }
