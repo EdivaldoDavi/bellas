@@ -6,96 +6,108 @@ import { useUserTenant } from "../../../context/UserTenantProvider";
 import styles from "../Onboarding.module.css";
 import ModalScheduleWizard from "../../../components/ModalScheduleWizard";
 import { toast } from "react-toastify";
+import { timeRangeBR } from "../../../utils/date";
 
-type Appointment = {
+/* ============================================================
+   TIPAGEM DO AGENDAMENTO
+============================================================ */
+export type Appointment = {
   id: string;
-  created_at: string;
+  starts_at: string;
+  ends_at: string;
+  status?: string;
+
+  service?: { name: string | null };
+  professional?: { full_name: string | null };
+  customer?: { full_name: string | null };
 };
 
 interface StepFirstAppointmentProps {
   onAppointmentValidated: (isValid: boolean) => void;
 }
 
-export default function StepFirstAppointment({ onAppointmentValidated }: StepFirstAppointmentProps) {
-  const { tenant /*, updateOnboardingStep */ } = useUserTenant(); // Removido updateOnboardingStep
+/* ============================================================
+   COMPONENTE PRINCIPAL
+============================================================ */
+export default function StepFirstAppointment({
+  onAppointmentValidated,
+}: StepFirstAppointmentProps) {
+  const { tenant } = useUserTenant();
 
   const [showWizard, setShowWizard] = useState(false);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // força recarregar lista sempre que um agendamento for criado
   const [reloadFlag, setReloadFlag] = useState(0);
 
-  /* ==========================
-     FECHAR MODAL DO WIZARD
-  ============================ */
+  /* ============================================================
+     FECHAR O WIZARD
+  ============================================================ */
   const handleWizardClose = useCallback((reason?: "cancel" | "completed") => {
     setShowWizard(false);
 
     if (reason === "completed") {
-      // Recarrega lista de agendamentos
       setReloadFlag((v) => v + 1);
-
       toast.success("Agendamento criado com sucesso!");
-
-      // ✅ NÃO AVANÇA AUTOMATICAMENTE
-      // Apenas recarrega a lista e deixa o botão "Continuar →" habilitar o próximo passo
     }
   }, []);
 
-
-  /* ==========================
+  /* ============================================================
      CARREGAR AGENDAMENTOS
-  ============================ */
-  async function fetchAppointments() {
-    if (!tenant?.id) {
-      setAppointments([]);
-      onAppointmentValidated(false); // Update validation state
-      return;
-    }
-
-    setLoading(true);
-
-    const { data, error } = await supabase
-      .from("appointments")
-      .select("id, created_at")
-      .eq("tenant_id", tenant.id)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error(error);
-      toast.error("Erro ao carregar agendamentos.");
-      setAppointments([]);
-      onAppointmentValidated(false); // Update validation state
-    } else {
-      setAppointments(data || []);
-      onAppointmentValidated((data || []).length > 0); // Update validation state
-    }
-
-    setLoading(false);
+  ============================================================ */
+async function fetchAppointments() {
+  if (!tenant?.id) {
+    setAppointments([]);
+    onAppointmentValidated(false);
+    return;
   }
+
+  setLoading(true);
+
+  const { data, error } = await supabase
+    .from("appointments")
+    .select(`
+      id,
+      starts_at,
+      ends_at,
+      status,
+      service:services ( name ),
+      professional:profiles ( full_name ),
+      customer:customers ( full_name )
+    `)
+    .eq("tenant_id", tenant.id)
+    .order("starts_at", { ascending: true });
+
+  if (error) {
+    console.error(error);
+    toast.error("Erro ao carregar agendamentos.");
+    setAppointments([]);
+    onAppointmentValidated(false);
+  } else {
+    const mapped: Appointment[] = (data || []).map((a: any) => ({
+      id: a.id,
+      starts_at: a.starts_at,
+      ends_at: a.ends_at,
+      status: a.status,
+
+      service: a.service ? a.service[0] || null : null,
+      professional: a.professional ? a.professional[0] || null : null,
+      customer: a.customer ? a.customer[0] || null : null,
+    }));
+
+    setAppointments(mapped);
+    onAppointmentValidated(mapped.length > 0);
+  }
+
+  setLoading(false);
+}
 
   useEffect(() => {
     fetchAppointments();
-  }, [tenant?.id, reloadFlag, onAppointmentValidated]); // Add onAppointmentValidated to dependencies
+  }, [tenant?.id, reloadFlag]);
 
-  /* ==========================
-     UTIL FORMATAR DATA
-  ============================ */
-  function formatDateTime(iso: string) {
-    const d = new Date(iso);
-    return d.toLocaleString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }
-
-  /* ==========================
+  /* ============================================================
      RENDER
-  ============================ */
+  ============================================================ */
   return (
     <div className={styles.stepContainer}>
       <h2 className={styles.stepTitle}>Crie seu primeiro agendamento</h2>
@@ -113,36 +125,41 @@ export default function StepFirstAppointment({ onAppointmentValidated }: StepFir
         )}
 
         {!loading && appointments.length > 0 && (
-                      <ul className={styles.list}>
-              {appointments.map((a) => (
-                <li key={a.id} className={styles.listItem}>
-                  <div className={styles.appointmentText}>
-                    <span className={styles.itemTitle}>
-                      {formatDateTime(a.created_at)}
-                    </span>
-                    <span className={styles.itemSub}>
-                      Agendamento criado
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
+          <ul className={styles.list}>
+            {appointments.map((a) => (
+              <li key={a.id} className={styles.listItem}>
+                <div className={styles.appointmentText}>
+                  {/* Horário */}
+                  <span className={styles.itemTitle}>
+                    {timeRangeBR(a.starts_at, a.ends_at)}
+                  </span>
 
+                  {/* Serviço + profissional */}
+                  <span className={styles.itemSub}>
+                    {a.service?.name || "Serviço"} com{" "}
+                    {a.professional?.full_name || "Profissional"}
+                  </span>
+
+                  {/* Cliente */}
+                  <span className={styles.itemSub}>
+                    Cliente: {a.customer?.full_name || "Não informado"}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
 
-      {/* BOTÕES */}
-      {/* The navigation buttons are now handled by OnboardingFixedNavigation */}
+      {/* BOTÃO DE CRIAÇÃO */}
       <button
-        className={styles.stepActionButton} // Apply new style
+        className={styles.stepActionButton}
         onClick={() => setShowWizard(true)}
       >
         Criar agendamento de teste
       </button>
 
-      {/* ==========================
-         MODAL DO WIZARD
-      ============================ */}
+      {/* MODAL */}
       {tenant?.id && (
         <ModalScheduleWizard
           open={showWizard}

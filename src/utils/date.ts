@@ -1,6 +1,23 @@
 // src/utils/date.ts
 import {  supabase } from "../lib/supabaseCleint";
 import { toast } from "react-toastify";
+/** Format time range HH:mm - HH:mm (from ISO strings) */
+export function timeRangeBR(startISO: string, endISO: string): string {
+  if (!startISO || !endISO) return "";
+
+  const start = new Date(startISO);
+  const end = new Date(endISO);
+
+  const opts: Intl.DateTimeFormatOptions = {
+    hour: "2-digit",
+    minute: "2-digit",
+  };
+
+  const s = start.toLocaleTimeString("pt-BR", opts);
+  const e = end.toLocaleTimeString("pt-BR", opts);
+
+  return `${s} - ${e}`;
+}
 
 export async function checkAvailableTimes(dateStr: string, profId: string) {
   if (!dateStr || !profId) return false;
