@@ -51,6 +51,9 @@ export default function StepSchedule({ onScheduleValidated }: StepScheduleProps)
 
     const professionalId = prof.id;
 
+    // GARANTIR QUE O PROFISSIONAL PADRÃO FIQUE SELECIONADO
+    setSelectedProfessionalId(professionalId);
+
     // Verificar serviços
     const { count: serviceCount } = await supabase
       .from("professional_services")
@@ -100,8 +103,8 @@ export default function StepSchedule({ onScheduleValidated }: StepScheduleProps)
     } else {
       setProfessionals(data || []);
       await validateProfessionalData();
-      // Seleciona visualmente o primeiro profissional se houver registros
-      setSelectedProfessionalId((data && data.length > 0) ? data[0].id : "");
+      // NÃO sobrescrever a seleção se já existe um selecionado (mantém o padrão)
+      setSelectedProfessionalId(prev => prev || ((data && data.length > 0) ? data[0].id : ""));
     }
 
     setLoadingProfessionals(false);
@@ -114,7 +117,8 @@ export default function StepSchedule({ onScheduleValidated }: StepScheduleProps)
   /* ============================================================
      RENDER – ULTRA PREMIUM
   ============================================================ */
-  const disableAddProfessional = !loadingProfessionals && (professionals.length > 0);
+  // Permitir cadastrar pelo menos mais um (habilita quando há 0 ou 1 profissionais)
+  const disableAddProfessional = loadingProfessionals ? true : professionals.length > 1;
 
   return (
     <div className={styles.stepContainer}>
