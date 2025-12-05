@@ -14,6 +14,7 @@
   position: relative;
   transition: width 0.3s ease, background 0.3s ease;
   z-index: 1; /* desktop fica abaixo do header/layout */
+  overflow: hidden; /* confina a rolagem ao conteúdo interno (menu) */
 }
 
 
@@ -98,6 +99,11 @@
 .footer { 
   padding: .5rem; 
   flex-shrink: 0; /* Adicionado para evitar que o rodapé seja espremido */
+  position: sticky; /* mantém o rodapé fixo no fim do drawer */
+  bottom: 0;
+  background: var(--sidebar-bg);
+  border-top: 1px solid var(--separator);
+  box-shadow: 0 -4px 12px rgba(0,0,0,.06);
 }
 .footer .menuItem { background: var(--color-primary); color:#fff; }
 .footer .menuItem:hover { opacity:.9; }
@@ -189,12 +195,16 @@
     transition: transform .3s ease;
     z-index: 1001;              /* acima do layout/header */
     border-right: 1px solid var(--separator); /* Use global variable */
+    overflow: hidden; /* garante que apenas o conteúdo interno role */
   }
   .sidebar.open { transform: translateX(0); }
   /* No mobile não existe o conceito de "colapsado fino" nem tooltip */
   .sidebar.collapsed { transform: translateX(-100%); width: 260px; }
   .sidebar .label { display: inline; } /* garante que o texto apareça */
   .logo { opacity: 1; }
+
+  /* Dá espaço extra no fim da lista para não ficar "por trás" do rodapé fixo */
+  .menu { padding-bottom: 72px; }
 }
 
 /* Overlay do drawer (mobile) */
