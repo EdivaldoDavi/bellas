@@ -87,6 +87,8 @@ export default function StepServices({ onServicesValidated }: StepServicesProps)
   /* ============================================================
      🔥 RENDERIZAÇÃO
   ============================================================ */
+  const disableAddService = !loadingServices && (services.length > 0);
+
   return (
     <div className={styles.stepContainer}>
       <h2 className={styles.stepTitle}>Cadastre seus serviços principais</h2>
@@ -131,8 +133,9 @@ export default function StepServices({ onServicesValidated }: StepServicesProps)
       {/* BOTÕES AÇÕES */}
       {/* The navigation buttons are now handled by OnboardingFixedNavigation */}
       <button
-        className={styles.stepActionButton} // Apply new style
+        className={styles.stepActionButton}
         onClick={() => setShowModal(true)}
+        disabled={disableAddService}
       >
         Cadastrar serviço
       </button>

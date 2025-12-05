@@ -207,6 +207,13 @@
   transform: translateY(-3px);
   filter: brightness(1.1);
 }
+
+.stepActionButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: grayscale(10%);
+}
+
 .warningModalOverlay {
   position: fixed;
   inset: 0;
@@ -328,6 +335,22 @@
   .stepContainer {
     padding: 30px 24px;
     border-radius: 22px;
+  }
+}
+
+/* MOBILE: modal ocupa 100% da largura/altura sem bordas nem padding */
+@media (max-width: 760px) {
+  .warningModalOverlay {
+    align-items: stretch;
+  }
+  .warningModalPremium {
+    width: 100vw;
+    max-width: none;
+    height: 100svh;
+    max-height: none;
+    border-radius: 0;
+    padding: 0;
+    border: none;
   }
 }
 

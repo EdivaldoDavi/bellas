@@ -27,6 +27,7 @@ interface NewCustomerFormProps { // Renomeado para refletir que é um formulári
   customer?: Customer | null; // Cliente para edição
   onSaveSuccess?: (id: string, name: string) => void; // Callback de sucesso
   onCancel?: () => void; // Callback para cancelar/voltar
+  asModal?: boolean; // NOVO: faz o container ocupar o wrapper
 }
 
 export default function NewCustomerForm({ // Renomeado o componente
@@ -35,6 +36,7 @@ export default function NewCustomerForm({ // Renomeado o componente
   customer,
   onSaveSuccess,
   onCancel,
+  asModal = false,
 }: NewCustomerFormProps) {
   const navigate = useNavigate(); // Inicializar useNavigate
 
@@ -126,8 +128,10 @@ export default function NewCustomerForm({ // Renomeado o componente
   /* ============================================================
      UI
   ============================================================ */
+  const containerClass = `${styles.formContainer} ${asModal ? styles.formContainerModal : ""}`;
+
   return (
-    <div className={styles.formContainer}> {/* Novo container para o formulário */}
+    <div className={containerClass}> {/* Novo container com variante */}
       <div className={styles.header}>
         <h3>{mode === "edit" ? "Editar Cliente" : "Novo Cliente"}</h3>
         <button className={styles.closeBtn} onClick={onCancel || (() => navigate(-1))}>

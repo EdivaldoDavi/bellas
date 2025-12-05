@@ -109,6 +109,8 @@ export default function StepSchedule({ onScheduleValidated }: StepScheduleProps)
   /* ============================================================
      RENDER – ULTRA PREMIUM
   ============================================================ */
+  const disableAddProfessional = !loadingProfessionals && (professionals.length > 0);
+
   return (
     <div className={styles.stepContainer}>
 
@@ -148,6 +150,7 @@ export default function StepSchedule({ onScheduleValidated }: StepScheduleProps)
       <button
         className={styles.stepActionButton}
         onClick={() => setShowModal(true)}
+        disabled={disableAddProfessional}
       >
         Cadastrar profissional
       </button>

@@ -5,6 +5,7 @@ import { useUserTenant } from "../../../context/UserTenantProvider";
 import styles from "../Onboarding.module.css";
 import NewCustomerForm from "../../../components/ModalNewCustomer"; // Renomeado
 import { dbPhoneToMasked } from "../../../utils/phoneUtils";
+import SelectClientWhatsApp from "../../../components/SelectClientWhatsapp";
 
 type Customer = {
   id: string;
@@ -24,6 +25,11 @@ export default function StepFirstCustomer({ onCustomerValidated }: StepFirstCust
 
   const [showModal, setShowModal] = useState(false);
   // const [canContinue, setCanContinue] = useState(false); // No longer needed here, managed by parent
+
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
+  const [selectedCustomerName, setSelectedCustomerName] = useState<string>("");
+
+  const disableAddCustomer = (!loading && customers.length > 0) || Boolean(selectedCustomerId);
 
   const handleClose = () => setShowModal(false);
 
@@ -96,23 +102,52 @@ export default function StepFirstCustomer({ onCustomerValidated }: StepFirstCust
         )}
       </div>
 
-      {/* BOTÕES NA MESMA LINHA (PADRÃO) */}
-      {/* The navigation buttons are now handled by OnboardingFixedNavigation */}
+      {/* SELETOR DE CLIENTE EXISTENTE */}
+      {tenant?.id && (
+        <div className={styles.listWrapper}>
+          <div className={styles.listLabel}>Selecionar cliente existente</div>
+          <SelectClientWhatsApp
+            tenantId={tenant.id}
+            value={selectedCustomerId}
+            hideAddButton={true}
+            onChange={(id, name) => {
+              setSelectedCustomerId(id);
+              setSelectedCustomerName(name);
+              onCustomerValidated(true);
+            }}
+            onAdd={() => setShowModal(true)}
+          />
+          {selectedCustomerName && (
+            <p className={styles.progressText}>Cliente selecionado: {selectedCustomerName}</p>
+          )}
+        </div>
+      )}
+
+      {/* BOTÃO ABRIR MODAL CADASTRO */}
       <button
-        className={styles.stepActionButton} // Apply new style
+        className={styles.stepActionButton}
         onClick={() => setShowModal(true)}
+        disabled={disableAddCustomer}
       >
         Cadastrar cliente
       </button>
 
       {tenant?.id && showModal && (
         <div className={styles.warningModalOverlay}> {/* Reutilizando o estilo de overlay */}
-          <div className={styles.warningModalPremium}> {/* Reutilizando o estilo de modal */}
+          <div className={`${styles.warningModalPremium} ${styles.warningModalTight}`}> {/* Wrapper sem padding */}
             <NewCustomerForm
               mode="new" // Corrigido para "new"
               tenantId={tenant.id}
-              onCancel ={handleClose}
-              onSaveSuccess={handleSuccess}
+              onCancel={() => setShowModal(false)}
+              onSaveSuccess={(id, name) => {
+                // Atualiza lista e seleciona automaticamente o novo cliente
+                handleSuccess();
+                setSelectedCustomerId(id);
+                setSelectedCustomerName(name);
+                onCustomerValidated(true);
+                setShowModal(false);
+              }}
+              asModal // faz o form ocupar 100% do wrapper
             />
           </div>
         </div>
