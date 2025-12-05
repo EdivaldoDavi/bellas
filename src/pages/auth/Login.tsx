@@ -62,10 +62,10 @@ export default function Login() {
 
   return (
     <div className={styles.pageWrapper}>
-      <div className={styles.loginCard}>
-
+      <div className={`${styles.loginCard} ${styles.loginCardCompact}`}>
+        
         {/* LOGO */}
-        <div className={styles.logoWrapper}>
+        <div className={`${styles.logoWrapper} ${styles.logoCompact}`}>
           <img src={logoBellas} alt="Bellas Logo" className={styles.logo} />
         </div>
 

@@ -32,6 +32,11 @@
   text-align: center;
 }
 
+/* Variante compacta para reduzir o padding geral no card */
+.loginCardCompact {
+  padding: 36px 32px;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -55,6 +60,11 @@
 
 .logo:hover {
   transform: scale(1.06);
+}
+
+/* Variante compacta para reduzir o espaço abaixo do logo */
+.logoCompact {
+  margin-bottom: 10px;
 }
 
 /* ===========================
