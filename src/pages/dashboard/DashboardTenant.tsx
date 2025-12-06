@@ -265,7 +265,7 @@ export default function DashboardTenant() {
 
   // Renderiza o LoadingSpinner se estiver carregando
   if (loading) {
-    return <LoadingSpinner message="Carregando dados do Studio..." />;
+    return <LoadingSpinner />;
   }
 
   if (role === "manager") {
