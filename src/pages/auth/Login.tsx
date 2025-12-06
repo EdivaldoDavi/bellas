@@ -13,6 +13,7 @@ export default function Login() {
   const [senha, setSenha] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const navigate = useNavigate();
   const { signIn, user, loading } = useAuth();
@@ -48,6 +49,7 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSubmitting(true);
 
     try {
       await signIn(email.trim(), senha);
@@ -58,6 +60,7 @@ export default function Login() {
         setError(err?.message || "Erro ao fazer login.");
       }
     }
+    setSubmitting(false);
   };
 
   return (
@@ -109,8 +112,8 @@ export default function Login() {
             Esqueceu sua senha?
           </button>
 
-          <button type="submit" className={styles.submit} disabled={loading}>
-            {loading ? "Entrando..." : "Entrar"}
+          <button type="submit" className={styles.submit} disabled={submitting}>
+            {submitting ? "Entrando..." : "Entrar"}
           </button>
         </form>
 

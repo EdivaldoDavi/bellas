@@ -127,16 +127,14 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
      ============================================================ */
 
   const signIn = async (email: string, password: string) => {
-    setLoading(true);
-    console.log("AuthProvider: signIn called. Setting loading to true.");
+    console.log("AuthProvider: signIn called.");
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    setLoading(false);
-    console.log("AuthProvider: signIn complete. Setting loading to false.");
+    console.log("AuthProvider: signIn complete.");
     if (error) throw error;
   };
 
@@ -145,8 +143,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     password: string,
     meta?: Record<string, any>
   ) => {
-    setLoading(true);
-    console.log("AuthProvider: signUp called. Setting loading to true.");
+    console.log("AuthProvider: signUp called.");
 
     const { error } = await supabase.auth.signUp({
       email,
@@ -157,8 +154,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       },
     });
 
-    setLoading(false);
-    console.log("AuthProvider: signUp complete. Setting loading to false.");
+    console.log("AuthProvider: signUp complete.");
     if (error) throw error;
   };
 
