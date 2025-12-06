@@ -37,7 +37,7 @@ export function AppGuard({ children }: AppGuardProps) {
      2) Exibir spinner até carregar usuário + tenant
   ======================================================= */
   if (authLoading || tenantLoading) {
-    return <LoadingSpinner message="Carregando informações..." />;
+    return <LoadingSpinner  />;
   }
 
   /* =======================================================

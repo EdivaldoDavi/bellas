@@ -23,7 +23,7 @@ export default function StepWelcome() {
 
   // Exibe um spinner enquanto os dados do tenant estão sendo carregados
   if (loading) {
-    return <LoadingSpinner message="Carregando informações do Studio..." />;
+    return <LoadingSpinner />;
   }
 
   // Se não houver tenant após o carregamento, pode ser um erro ou um estado inesperado.
