@@ -276,12 +276,9 @@ export default function ServicosPage() {
                 <div>
                   <div className={styles.title}>{svc.name}</div>
                   <div className={styles.meta}>
-                    {svc.duration_min ?? 60} min ·{" "}
+                    <span>{svc.duration_min ?? 60} min</span>
                     <span
-                      style={{
-                        color: svc.is_active ? "#007bff" : "#dc3545",
-                        fontWeight: "bold",
-                      }}
+                      className={`${styles.statusBadge} ${svc.is_active ? styles.statusActive : styles.statusInactive}`}
                     >
                       {svc.is_active ? "Ativo" : "Inativo"}
                     </span>
@@ -294,6 +291,7 @@ export default function ServicosPage() {
                     onClick={() => openEdit(svc)}
                   >
                     <Pencil size={18} />
+                    <span className={styles.btnLabel}>Editar</span>
                   </button>
 
                   <button

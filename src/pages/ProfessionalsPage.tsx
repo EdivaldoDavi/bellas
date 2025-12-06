@@ -228,12 +228,7 @@ export default function ProfessionalsPage() {
 
                 <div className={styles.meta}>
                   {p.email || "Sem e-mail"} ·{" "}
-                  <span
-                    style={{
-                      color: p.is_active ? "#00c851" : "#dc3545",
-                      fontWeight: "bold",
-                    }}
-                  >
+                  <span className={`${styles.statusBadge} ${p.is_active ? styles.statusActive : styles.statusInactive}`}>
                     {p.is_active ? "Ativo" : "Inativo"}
                   </span>
                 </div>
@@ -277,6 +272,7 @@ export default function ProfessionalsPage() {
                   onClick={() => openEdit(p.id)}
                 >
                   <Pencil size={18} />
+                  <span className={styles.btnLabel}>Editar</span>
                 </button>
 
                 <button

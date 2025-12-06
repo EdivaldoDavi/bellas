@@ -267,10 +267,7 @@ export default function ClientesPage() {
                 </div>
 
                 <span
-                  style={{
-                    color: c.is_active ? "#00c851" : "#dc3545",
-                    fontWeight: "bold",
-                  }}
+                  className={`${styles.statusBadge} ${c.is_active ? styles.statusActive : styles.statusInactive}`}
                 >
                   {c.is_active ? "Ativo" : "Inativo"}
                 </span>
@@ -280,6 +277,7 @@ export default function ClientesPage() {
             <div className={styles.actions}>
               <button className={styles.iconBtn} onClick={() => navigate(`/clientes/edit/${c.id}`)}>
                 <Pencil size={18} />
+                <span className={styles.btnLabel}>Editar</span>
               </button>
 
               <button

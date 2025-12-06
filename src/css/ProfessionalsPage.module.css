@@ -108,6 +108,26 @@
   color: var(--text);
 }
 
+/* NOVO: Badge de status */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.statusActive {
+  background: rgba(0, 200, 81, 0.12);
+  color: #00c851;
+}
+
+.statusInactive {
+  background: rgba(220, 53, 69, 0.12);
+  color: #dc3545;
+}
+
 .meta {
   font-size: 0.85rem;
   color: var(--text-muted);
@@ -180,14 +200,17 @@
   border-radius: 8px;
   cursor: pointer;
   color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
-.iconBtn:hover {
-  background: rgba(255,255,255,0.1);
-}
-
-.danger {
-  background: rgba(255,0,0,0.25);
+/* NOVO: rótulo de botão (mostrado no mobile) */
+.btnLabel {
+  display: none;
+  font-weight: 600;
+  font-size: 0.95rem;
 }
 
 /* NOVO: Estilos para o botão de status */
@@ -286,37 +309,46 @@
 
   .phoneWrapper {
     flex-wrap: wrap; /* Garante que a linha do telefone quebre */
-    gap: 4px;
+    gap: 6px;
   }
 
+  /* AÇÕES: lado a lado no mobile */
   .actions {
-    flex-direction: column; /* Empilha os botões de ação verticalmente */
-    align-items: stretch; /* Estica os botões para a largura total */
-    width: 100%; /* Ocupa a largura total do card */
-    gap: 8px; /* Espaçamento entre os botões empilhados */
+    flex-direction: row; /* Agora lado a lado */
+    align-items: center;
+    width: 100%;
+    gap: 8px; /* Espaçamento entre os botões */
   }
 
+  /* Botão Editar com cor primária e rótulo visível */
   .iconBtn { /* Botão de edição */
-    width: 100%; /* Ocupa a largura total */
+    width: auto;
+    flex: 1; /* Divide espaço com o botão de ativar/inativar */
     text-align: center;
-    padding: 10px; /* Ajusta o padding */
-    border: 1px solid var(--separator); /* Adiciona borda para definição */
-    border-radius: 8px;
-    background: var(--bg);
-    color: var(--text);
-    display: flex; /* Adicionado para alinhar ícone e texto */
+    padding: 10px 12px;
+    border: none;
+    border-radius: 10px;
+    background: var(--color-primary);
+    color: #fff;
+    display: inline-flex; /* Alinha ícone e texto */
     justify-content: center; /* Centraliza conteúdo */
     align-items: center;
     gap: 8px; /* Espaçamento entre ícone e texto */
   }
 
   .iconBtn:hover {
-    background: rgba(255,255,255,0.1);
+    filter: brightness(1.05);
+    background: color-mix(in srgb, var(--color-primary) 92%, white);
+  }
+
+  .btnLabel {
+    display: inline;
   }
 
   .statusToggleButton {
-    width: 100%; /* Ocupa a largura total */
+    width: auto; /* Largura automática */
+    flex: 1; /* Divide o espaço com o botão Editar */
     padding: 10px; /* Ajusta o padding */
-    font-size: 0.9rem; /* Ajusta o tamanho da fonte */
+    font-size: 0.95rem; /* Ajusta o tamanho da fonte */
   }
 }
