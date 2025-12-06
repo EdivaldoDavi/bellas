@@ -67,7 +67,7 @@ export default function DashboardTenant() {
       setLoading(true);
       // Usar o profile do contexto, não buscar novamente
       if (userTenantLoading || !profile || !tenant) {
-        setLoading(false); // Ensure loading is false if tenant is null
+        // Não finalizar loading aqui; evita piscar mensagens antes do contexto carregar
         return;
       }
 
@@ -252,7 +252,8 @@ export default function DashboardTenant() {
     };
   }, [tenant?.id]); // loadDashboard removido das dependências
 
-  if (!tenant) {
+  // Só mostra a mensagem sem tenant quando o carregamento terminou
+  if (!tenant && !userTenantLoading && !loading) {
     return (
       <div className={styles.container}>
         <p style={{ textAlign: "center", padding: 20 }}>
@@ -264,7 +265,7 @@ export default function DashboardTenant() {
   }
 
   // Renderiza o LoadingSpinner se estiver carregando
-  if (loading) {
+  if (userTenantLoading || loading) {
     return <LoadingSpinner />;
   }
 
