@@ -2,6 +2,7 @@ import { useUserTenant } from "../context/UserTenantProvider";
 import { useEvolutionConnection } from "../hooks/useEvolutionConnection";
 import QRCodeDisplay from "./QRCodeDisplay";
 import N8nPauseButton from "../components/N8nPauseButton";
+import LoadingSpinner from "../components/LoadingSpinner";
 import styles from "../css/ConnectWhatsApp.module.css"; // Importar o CSS
 
 export default function ConnectWhatsAppPage() {
@@ -30,8 +31,7 @@ console.log("STATUS REAL DO WHATSAPP:", status);
   // Navigation is now handled by the sidebar.
 
   // 🔥 Hooks sempre acima dos returns condicionais
-  if (loading)
-    return <div style={{ padding: "2rem" }}>Carregando informações…</div>;
+  if (loading) return <LoadingSpinner />;
 
   if (!tenant)
     return <div style={{ padding: "2rem" }}>❌ Tenant não encontrado.</div>;

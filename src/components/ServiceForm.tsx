@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseCleint";
 import { toast } from "react-toastify";
 import { X } from "lucide-react";
+import LoadingSpinner from "./LoadingSpinner";
 
 import styles from "../css/ModalNewService.module.css";
 import { formatCentsToBRL, parseBRLToCents, formatPriceInput } from "../utils/currencyUtils";
@@ -249,7 +250,7 @@ export default function ServiceForm({
       <h3>{isEditing ? "Editar serviço" : "Novo serviço"}</h3>
 
       {initialLoading ? (
-        <p className={styles.empty}>Carregando...</p>
+        <LoadingSpinner />
       ) : (
         <>
           <input

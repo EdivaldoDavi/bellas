@@ -5,6 +5,7 @@ import { useUserTenant } from "../../../context/UserTenantProvider";
 import styles from "../Onboarding.module.css";
 import NewCustomerForm from "../../../components/ModalNewCustomer"; // Renomeado
 import { dbPhoneToMasked } from "../../../utils/phoneUtils";
+import LoadingSpinner from "../../../components/LoadingSpinner";
 
 type Customer = {
   id: string;
@@ -30,7 +31,7 @@ export default function StepFirstCustomer({ onCustomerValidated }: StepFirstCust
 
   const disableAddCustomer = (!loading && customers.length > 0) || Boolean(selectedCustomerId);
 
-
+  const handleClose = () => setShowModal(false);
 
   const handleSuccess = useCallback(async () => {
     await fetchCustomers();
@@ -84,7 +85,7 @@ export default function StepFirstCustomer({ onCustomerValidated }: StepFirstCust
 
       {/* LISTA DE CLIENTES */}
       <div className={styles.listContainer}>
-        {loading && <p>Carregando clientes...</p>}
+        {loading && <LoadingSpinner />}
 
         {!loading && customers.length === 0 && (
           <p>Nenhum cliente cadastrado ainda.</p>

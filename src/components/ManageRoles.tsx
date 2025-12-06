@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabaseCleint";
 import { toast } from "react-toastify";
 import styles from "../css/ManageRoles.module.css";
 import { Plus } from "lucide-react"; // Importar ícone Plus
+import LoadingSpinner from "./LoadingSpinner";
 
 interface Props {
   tenantId?: string;
@@ -139,7 +140,7 @@ export default function ManageRoles({ tenantId, loggedInUserId }: Props) {
         onChange={(e) => setSearch(e.target.value)}
       />
 
-      {loading && <p className={styles.loading}>Carregando usuários...</p>}
+      {loading && <LoadingSpinner />}
 
       {!loading && users.length === 0 && (
         <p className={styles.empty}>Nenhum usuário encontrado para este Studio.</p>

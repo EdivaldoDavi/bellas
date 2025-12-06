@@ -3,6 +3,7 @@ import { useNavigate  } from "react-router-dom"; // Adicionado useLocation
 import { supabase } from "../lib/supabaseCleint"; // ajuste conforme seu projeto
 import styles from "../css/SaloesPage.module.css";
 import { useUserAndTenant } from "../hooks/useUserAndTenant"; // Import useUserAndTenant
+import LoadingSpinner from "../components/LoadingSpinner";
 
 type Salao = {
   id: string;
@@ -64,7 +65,7 @@ export default function SaloesPage() {
       <h2 className={styles.pageTitle}>Gerenciar Salões</h2>
 
       {loading ? (
-        <p>Carregando...</p>
+        <LoadingSpinner />
       ) : (
         <div className={styles.grid}>
           {saloes.map((s) => (

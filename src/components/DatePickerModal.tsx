@@ -8,6 +8,7 @@ import {
   toLocalISOString,
 } from "../utils/date";
 import { useAvailableDays } from "../hooks/useAvailableDays";
+import LoadingSpinner from "./LoadingSpinner";
 
 interface Props {
   tenantId: string;
@@ -209,11 +210,7 @@ export default function DatePickerModal({
               })}
             </div>
 
-            {loading && (
-              <div className={styles.loading}>
-                Carregando disponibilidade...
-              </div>
-            )}
+            {loading && <LoadingSpinner />}
 
             <div className={styles.footerHint}>
               {value

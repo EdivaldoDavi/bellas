@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { X } from "lucide-react";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
 import { supabase } from "../../lib/supabaseCleint";
 import { useUserAndTenant } from "../../hooks/useUserAndTenant";
@@ -163,7 +164,7 @@ export default function ProfessionalSchedulePage() {
 
         {loading ? (
           <div className={styles.list}>
-            <div className={styles.item} style={{ justifyItems: "center" }}>Carregando...</div>
+            <LoadingSpinner />
           </div>
         ) : localCopy ? (
           <div className={styles.block}>

@@ -1,6 +1,6 @@
 // src/pages/onboarding/steps/StepFirstAppointment.tsx
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../../../lib/supabaseCleint";
 import { useUserTenant } from "../../../context/UserTenantProvider";
 import styles from "../Onboarding.module.css";
@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 import { timeRangeBR, dateBR } from "../../../utils/date";
 import { Clock } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import LoadingSpinner from "../../../components/LoadingSpinner";
 
 /* ============================================================
    TIPAGEM DO AGENDAMENTO
@@ -131,7 +132,7 @@ async function fetchAppointments() {
       </p>
 
       <div className={styles.listContainer}>
-        {loading && <p>Carregando agendamentos...</p>}
+        {loading && <LoadingSpinner />}
 
         {!loading && appointments.length === 0 && (
           <p>Nenhum agendamento criado ainda.</p>

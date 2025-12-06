@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
+import LoadingSpinner from "./LoadingSpinner";
 
 import styles from "../css/ModalNewProfessional.module.css";
 import ModalSelectServiceForProfessional from "./ModalSelectServiceForProfessional";
@@ -380,7 +381,7 @@ export default function ProfessionalForm({
       <h3>{isEditing ? "Editar profissional" : "Novo profissional"}</h3>
 
       {initialLoading ? (
-        <p className={styles.emptyText}>Carregando dados...</p>
+        <LoadingSpinner />
       ) : (
         <>
           <input

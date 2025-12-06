@@ -2,6 +2,7 @@ import { useUserAndTenant } from "../../hooks/useUserAndTenant";
 import DashboardGlobal from "./DashboardGlobal";
 import DashboardTenant from "./DashboardTenant";
 import {  Navigate } from "react-router-dom";
+import LoadingSpinner from "../../components/LoadingSpinner";
 // REMOVIDO: import styles from "./Dashboard.module.css"; // Importar o CSS do Dashboard
 
 export default function Dashboard() {
@@ -16,14 +17,9 @@ export default function Dashboard() {
   console.log("Dashboard.tsx - Role:", role);
   console.log("Dashboard.tsx - Has Tenant:", hasTenant);
 
-
   // 🔄 Loading SEM desmontar
   if (loading) {
-    return (
-      <div style={{ padding: 20, textAlign: "center" }}>
-        Carregando informações…
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   // ❌ Profile ausente

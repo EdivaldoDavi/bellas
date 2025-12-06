@@ -4,6 +4,7 @@ import { supabase } from "../../../lib/supabaseCleint";
 import { toast } from "react-toastify";
 import styles from "../Onboarding.module.css";
 import ModalNewProfessional from "../../../components/ModalNewProfessional";
+import LoadingSpinner from "../../../components/LoadingSpinner";
 
 type Professional = {
   id: string;
@@ -137,7 +138,7 @@ export default function StepSchedule({ onScheduleValidated }: StepScheduleProps)
         <p className={styles.servicesLabel}>Profissionais cadastrados:</p>
 
         {loadingProfessionals ? (
-          <p className={styles.stepText}>Carregando profissionais...</p>
+          <LoadingSpinner />
         ) : professionals.length === 0 ? (
           <p className={styles.emptyText}>Nenhum profissional cadastrado.</p>
         ) : (

@@ -6,6 +6,7 @@ import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
 import {  Plus, Pencil } from "lucide-react";
 import { toast } from "react-toastify";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 import styles from "../css/ServicosPage.module.css";
 import ServiceForm from "../components/ServiceForm";
@@ -203,7 +204,7 @@ export default function ServicosPage() {
   ============================================================ */
   if (pageMode === "new" || pageMode === "edit") {
     if (loading) {
-      return <div className={styles.container}><div className={styles.empty}>Carregando formulário...</div></div>;
+      return <div className={styles.container}><LoadingSpinner /></div>;
     }
     return (
       <> 
@@ -263,7 +264,7 @@ export default function ServicosPage() {
 
         {/* LISTA */}
         <div className={styles.list}>
-          {loading && <div className={styles.empty}>Carregando...</div>}
+          {loading && <LoadingSpinner />}
 
           {!loading && services.length === 0 && (
             <div className={styles.empty}>Nenhum serviço encontrado.</div>

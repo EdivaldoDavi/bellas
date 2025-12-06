@@ -5,6 +5,7 @@ import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
 import { Plus, Pencil, MessageCircle, Phone } from "lucide-react";
 import { toast } from "react-toastify";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 import { dbPhoneToMasked, onlyDigits } from "../utils/phoneUtils";
 import styles from "../css/ProfessionalsPage.module.css";
@@ -168,7 +169,7 @@ export default function ProfessionalsPage() {
 
   if (pageMode === "new" || pageMode === "edit") {
     if (loading) {
-      return <div className={styles.container}><div className={styles.empty}>Carregando formulário...</div></div>;
+      return <div className={styles.container}><LoadingSpinner /></div>;
     }
     return (
       <div className={styles.container}>
@@ -212,9 +213,7 @@ export default function ProfessionalsPage() {
 
       {/* LIST */}
       <div className={styles.list}>
-        {loading && (
-          <div className={styles.empty}>Carregando profissionais...</div>
-        )}
+        {loading && <LoadingSpinner />}
 
         {!loading && professionals.length === 0 && (
           <div className={styles.empty}>Nenhum profissional encontrado.</div>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabaseCleint";
 import styles from "../css/AssinaturasPage.module.css";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 type TableItem = {
   id: string;
@@ -28,7 +29,7 @@ function formatDateBR(dateIso: string | null) {
 function nextCharge(status: string, trial_end_at: string | null, current_period_end_at: string | null) {
   if (status === "trial") return trial_end_at ?? null;
   if (status === "active") return current_period_end_at ?? null;
-  return null; // canceled → “—”
+  return null; // canceled → "—"
 }
 
 export default function AssinaturasPage() {
@@ -75,7 +76,7 @@ export default function AssinaturasPage() {
   }, []);
 
   const content = useMemo(() => {
-    if (loading) return <div className={styles.loading}>Carregando...</div>;
+    if (loading) return <LoadingSpinner />;
     if (errorMsg) return <div className={styles.error}>{errorMsg}</div>;
     if (rows.length === 0) return <div className={styles.empty}>Nenhuma assinatura encontrada.</div>;
 

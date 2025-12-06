@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../../../lib/supabaseCleint";
 import { useUserTenant } from "../../../context/UserTenantProvider";
 import { toast } from "react-toastify";
+import LoadingSpinner from "../../../components/LoadingSpinner";
 
 import styles from "../Onboarding.module.css";
 import ModalNewService from "../../../components/ModalNewService";
@@ -20,7 +21,7 @@ interface StepServicesProps {
 }
 
 export default function StepServices({ onServicesValidated }: StepServicesProps) {
-  const { tenant, profile, loading: userTenantLoading } = useUserTenant();
+  const { tenant, profile, loading: userTenantLoading, reloadAll } = useUserTenant();
   const [showModal, setShowModal] = useState(false);
   const [services, setServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(true);
@@ -108,7 +109,7 @@ export default function StepServices({ onServicesValidated }: StepServicesProps)
         <p className={styles.servicesLabel}>Serviços cadastrados:</p>
 
         {loadingServices ? (
-          <p className={styles.stepText}>Carregando serviços...</p>
+          <LoadingSpinner />
         ) : services.length === 0 ? (
           <p className={styles.emptyText}>
             Nenhum serviço cadastrado ainda.

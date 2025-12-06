@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import styles from "./DashboardGlobal.module.css";
 import { supabase } from "../../lib/supabaseCleint";
 import { useUserAndTenant } from "../../hooks/useUserAndTenant"; // Import useUserAndTenant
+import LoadingSpinner from "../../components/LoadingSpinner";
 
 interface Stats {
   totalTenants: number;
@@ -96,7 +97,7 @@ export default function DashboardGlobal() {
     }
   }, [tenant?.primary_color]);
 
-  if (loading) return <p className={styles.loading}>Carregando...</p>;
+  if (loading) return <LoadingSpinner />;
 
   return (
     <div className={styles.container}>

@@ -8,6 +8,7 @@ import { supabase } from "../lib/supabaseCleint";
 import { Plus, MessageCircle, Phone, User } from "lucide-react"; // Adicionado User
 import styles from "../css/SelectClientWhatsapp.module.css";
 import { dbPhoneToMasked, onlyDigits } from "../utils/phoneUtils"; // Importar dbPhoneToMasked e onlyDigits
+import LoadingSpinner from "./LoadingSpinner";
 
 interface Client {
   id: string;
@@ -113,9 +114,7 @@ function SelectClientComponent(
       />
 
       <div className={styles.listBox}>
-        {loading && (
-          <div className={styles.loading}>Carregando...</div>
-        )}
+        {loading && <LoadingSpinner />}
 
         {!loading && filtered.length === 0 && (
           <div className={styles.empty}>Nenhum cliente encontrado</div>

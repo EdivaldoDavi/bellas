@@ -7,6 +7,7 @@ import { useUserAndTenant } from "../hooks/useUserAndTenant";
 
 import { Plus, Pencil, MessageCircle, Phone } from "lucide-react";
 import { toast } from "react-toastify";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 import NewCustomerForm from "../components/ModalNewCustomer"; // Renomeado para NewCustomerForm
 import { dbPhoneToMasked, onlyDigits } from "../utils/phoneUtils";
@@ -166,7 +167,7 @@ export default function ClientesPage() {
   ============================================================ */
   if (pageMode === "new" || pageMode === "edit") {
     if (loading) {
-      return <p className={styles.empty}>Carregando formulário...</p>;
+      return <LoadingSpinner />;
     }
     return (
       <div className={styles.container}>
@@ -220,9 +221,7 @@ export default function ClientesPage() {
       />
 
       <div className={styles.list}>
-        {loading && customers.length === 0 && (
-          <div className={styles.empty}>Carregando...</div>
-        )}
+        {loading && customers.length === 0 && <LoadingSpinner />}
 
         {!loading && customers.length === 0 && (
           <div className={styles.empty}>Nenhum cliente encontrado.</div>
