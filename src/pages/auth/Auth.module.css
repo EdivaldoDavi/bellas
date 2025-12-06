@@ -225,6 +225,32 @@
   color: var(--color-primary);
   font-weight: 600;
 }
+
+/* ===========================
+   ERROR MESSAGE (alert suave)
+=========================== */
+.error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 12px 14px;
+  margin-bottom: 16px;
+
+  background: hsl(0, 100%, 97%);        /* fundo vermelho bem suave */
+  border: 1px solid hsl(0, 79%, 88%);    /* borda sutil */
+  color: #8f1d1d;                        /* texto em vermelho elegante */
+  border-radius: 12px;
+
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  text-align: left;
+}
+
+.errorIcon {
+  color: #c02626; /* ícone em tom mais forte */
+  flex-shrink: 0;
+}
+
 input[type="password"],
 input[type="text"],
 input {

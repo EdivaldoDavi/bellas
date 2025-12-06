@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthProvider";
 import { useTheme } from "../../hooks/useTheme";
 import styles from "./Auth.module.css";
 import { toast } from "react-toastify";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, AlertCircle } from "lucide-react";
 
 import logoBellas from "../../assets/bellaslogotransp.png";
 
@@ -75,7 +75,12 @@ export default function Login() {
         {/* REMOVED: título e subtítulo do login conforme solicitação */}
 
         <form onSubmit={handleSubmit} className={styles.form}>
-          {error && <p className={styles.error}>{error}</p>}
+          {error && (
+            <div className={styles.error} role="alert" aria-live="polite">
+              <AlertCircle className={styles.errorIcon} size={20} />
+              <span>{error}</span>
+            </div>
+          )}
 
           <label className={styles.label}>Email</label>
           <input
