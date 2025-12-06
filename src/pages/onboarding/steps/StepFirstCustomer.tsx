@@ -31,7 +31,7 @@ export default function StepFirstCustomer({ onCustomerValidated }: StepFirstCust
 
   const disableAddCustomer = (!loading && customers.length > 0) || Boolean(selectedCustomerId);
 
-  const handleClose = () => setShowModal(false);
+  
 
   const handleSuccess = useCallback(async () => {
     await fetchCustomers();

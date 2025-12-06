@@ -21,7 +21,7 @@ interface StepServicesProps {
 }
 
 export default function StepServices({ onServicesValidated }: StepServicesProps) {
-  const { tenant, profile, loading: userTenantLoading, reloadAll } = useUserTenant();
+  const { tenant, profile, loading: userTenantLoading } = useUserTenant();
   const [showModal, setShowModal] = useState(false);
   const [services, setServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(true);
